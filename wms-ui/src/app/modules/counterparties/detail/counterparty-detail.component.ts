@@ -3,6 +3,7 @@ import { DecimalPipe, DatePipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TableModule } from 'primeng/table';
 import { Button } from 'primeng/button';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { CounterpartyService } from '../../../core/services/counterparty.service';
@@ -13,7 +14,7 @@ import { Transfer } from '../../../core/models/transfer.model';
 @Component({
   selector: 'app-counterparty-detail',
   standalone: true,
-  imports: [DecimalPipe, DatePipe, TableModule, Button, PageHeaderComponent, StatusBadgeComponent],
+  imports: [DecimalPipe, DatePipe, TableModule, Button, TranslocoDirective, PageHeaderComponent, StatusBadgeComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './counterparty-detail.component.html',
   styleUrl: './counterparty-detail.component.scss'

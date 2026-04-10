@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { TableModule } from 'primeng/table';
 import { Button } from 'primeng/button';
 import { Select } from 'primeng/select';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { ProductionService } from '../../../core/services/production.service';
@@ -14,7 +15,7 @@ import { ProductionOrder, ProductionOrderStatus } from '../../../core/models/pro
 @Component({
   selector: 'app-order-list',
   standalone: true,
-  imports: [DecimalPipe, DatePipe, FormsModule, TableModule, Button, Select, PageHeaderComponent, StatusBadgeComponent],
+  imports: [DecimalPipe, DatePipe, FormsModule, TableModule, Button, Select, PageHeaderComponent, StatusBadgeComponent, TranslocoDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './order-list.component.html',
   styleUrl: './order-list.component.scss'

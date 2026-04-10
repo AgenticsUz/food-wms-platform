@@ -6,6 +6,7 @@ import { InputNumber } from 'primeng/inputnumber';
 import { Select } from 'primeng/select';
 import { DatePicker } from 'primeng/datepicker';
 import { Textarea } from 'primeng/textarea';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { ProductionService } from '../../../core/services/production.service';
 import { ApiService } from '../../../core/services/api.service';
@@ -20,7 +21,7 @@ interface SimpleUser {
 @Component({
   selector: 'app-order-create',
   standalone: true,
-  imports: [FormsModule, Button, InputNumber, Select, DatePicker, Textarea, PageHeaderComponent],
+  imports: [FormsModule, Button, InputNumber, Select, DatePicker, Textarea, PageHeaderComponent, TranslocoDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './order-create.component.html',
   styleUrl: './order-create.component.scss'

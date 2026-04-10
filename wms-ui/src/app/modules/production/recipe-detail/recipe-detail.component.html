@@ -1,6 +1,6 @@
-<div class="page-enter">
+<div class="page-enter" *transloco="let t">
   <app-page-header [title]="recipe()?.name ?? 'Recipe Detail'" subtitle="Recipe configuration and stages">
-    <p-button icon="pi pi-arrow-left" label="Back" [text]="true" (onClick)="goBack()" />
+    <p-button icon="pi pi-arrow-left" [label]="t('common.back')" [text]="true" (onClick)="goBack()" />
   </app-page-header>
 
   @if (loading()) {
@@ -13,20 +13,20 @@
     <!-- Recipe Info -->
     <div class="detail-grid">
       <div class="wms-card detail-card">
-        <p class="detail-card-title">Output Product</p>
+        <p class="detail-card-title">{{ t('production.outputProduct') }}</p>
         <p class="detail-card-value small">{{ r.outputProductName || '—' }}</p>
       </div>
       <div class="wms-card detail-card">
-        <p class="detail-card-title">Output Quantity</p>
+        <p class="detail-card-title">{{ t('production.outputQty') }}</p>
         <p class="detail-card-value">{{ r.outputQuantity | number:'1.0-2' }}
           <span class="unit-label">{{ r.outputUnitName }}</span>
         </p>
       </div>
       <div class="wms-card detail-card">
-        <p class="detail-card-title">Status</p>
+        <p class="detail-card-title">{{ t('common.status') }}</p>
         <app-status-badge
           [status]="r.isActive ? 'Confirmed' : 'Cancelled'"
-          [label]="r.isActive ? 'Active' : 'Inactive'" />
+          [label]="r.isActive ? t('common.active') : t('common.inactive')" />
       </div>
     </div>
 
@@ -59,9 +59,9 @@
               styleClass="p-datatable-sm p-datatable-striped">
               <ng-template #header>
                 <tr>
-                  <th>Product</th>
-                  <th class="text-right">Quantity</th>
-                  <th>Unit</th>
+                  <th>{{ t('nav.products') }}</th>
+                  <th class="text-right">{{ t('common.quantity') }}</th>
+                  <th>{{ t('common.unit') }}</th>
                 </tr>
               </ng-template>
               <ng-template #body let-input>
@@ -76,14 +76,14 @@
                   <td colspan="3">
                     <div class="empty-state">
                       <i class="pi pi-inbox"></i>
-                      <p>No inputs for this stage</p>
+                      <p>{{ t('common.noData') }}</p>
                     </div>
                   </td>
                 </tr>
               </ng-template>
             </p-table>
           } @else {
-            <p class="no-inputs-text">No inputs defined for this stage</p>
+            <p class="no-inputs-text">{{ t('common.noData') }}</p>
           }
         </div>
       }
@@ -91,7 +91,7 @@
       <div class="wms-card section-card">
         <div class="empty-state">
           <i class="pi pi-sitemap"></i>
-          <p>No stages defined for this recipe</p>
+          <p>{{ t('common.noData') }}</p>
         </div>
       </div>
     }

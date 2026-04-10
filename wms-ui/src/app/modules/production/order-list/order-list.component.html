@@ -1,12 +1,12 @@
-<div class="page-enter">
-  <app-page-header title="Production Orders" subtitle="Manage and track production orders">
-    <p-button icon="pi pi-plus" label="New Order" (onClick)="createNew()" />
+<div class="page-enter" *transloco="let t">
+  <app-page-header [title]="t('production.orders')" [subtitle]="t('production.manageOrders')">
+    <p-button icon="pi pi-plus" [label]="t('production.newOrder')" (onClick)="createNew()" />
   </app-page-header>
 
   <div class="filters-bar wms-card">
     <div class="filter-group">
       <p-select [options]="statusOptions" [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event); onFilterChange()"
-        optionLabel="label" optionValue="value" placeholder="Status" [style]="{ minWidth: '180px' }" />
+        optionLabel="label" optionValue="value" [placeholder]="t('common.status')" [style]="{ minWidth: '180px' }" />
     </div>
   </div>
 
@@ -16,13 +16,13 @@
       <ng-template #header>
         <tr>
           <th>ID</th>
-          <th>Recipe</th>
-          <th>Product</th>
-          <th class="text-right">Planned Qty</th>
-          <th>Status</th>
-          <th pSortableColumn="plannedStartDate">Start Date <p-sortIcon field="plannedStartDate" /></th>
-          <th>Assigned To</th>
-          <th class="text-center">Actions</th>
+          <th>{{ t('production.recipe') }}</th>
+          <th>{{ t('nav.products') }}</th>
+          <th class="text-right">{{ t('production.plannedQty') }}</th>
+          <th>{{ t('common.status') }}</th>
+          <th pSortableColumn="plannedStartDate">{{ t('production.startDate') }} <p-sortIcon field="plannedStartDate" /></th>
+          <th>{{ t('production.assignedTo') }}</th>
+          <th class="text-center">{{ t('common.actions') }}</th>
         </tr>
       </ng-template>
       <ng-template #body let-order>
@@ -46,7 +46,7 @@
           <td colspan="8">
             <div class="empty-state">
               <i class="pi pi-cog"></i>
-              <p>No production orders found</p>
+              <p>{{ t('production.noOrders') }}</p>
             </div>
           </td>
         </tr>

@@ -4,6 +4,7 @@ import { TableModule } from 'primeng/table';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Dialog } from 'primeng/dialog';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { ProductService } from '../../../core/services/product.service';
 import { NotificationService } from '../../../shared/services/notification.service';
@@ -12,7 +13,7 @@ import { Unit, UnitCreateDto } from '../../../core/models/product.model';
 @Component({
   selector: 'app-units',
   standalone: true,
-  imports: [FormsModule, TableModule, Button, InputText, Dialog, PageHeaderComponent],
+  imports: [FormsModule, TableModule, Button, InputText, Dialog, TranslocoDirective, PageHeaderComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './units.component.html',
   styleUrl: './units.component.scss'

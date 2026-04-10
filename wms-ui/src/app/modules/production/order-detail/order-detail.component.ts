@@ -7,6 +7,7 @@ import { Button } from 'primeng/button';
 import { InputNumber } from 'primeng/inputnumber';
 import { Textarea } from 'primeng/textarea';
 import { Dialog } from 'primeng/dialog';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { ProductionService } from '../../../core/services/production.service';
@@ -23,7 +24,7 @@ import {
   imports: [
     DecimalPipe, DatePipe, FormsModule,
     TableModule, Button, InputNumber, Textarea, Dialog,
-    PageHeaderComponent, StatusBadgeComponent
+    PageHeaderComponent, StatusBadgeComponent, TranslocoDirective
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './order-detail.component.html',

@@ -1,8 +1,8 @@
-<div class="page-enter dashboard">
+<div class="page-enter dashboard" *transloco="let t">
   <!-- Header greeting -->
   <div class="dashboard-header">
     <div>
-      <h1 class="greeting">{{ getGreeting() }}, {{ userName }}</h1>
+      <h1 class="greeting">{{ getGreeting() === 'Good morning' ? t('dashboard.goodMorning') : getGreeting() === 'Good afternoon' ? t('dashboard.goodAfternoon') : t('dashboard.goodEvening') }}, {{ userName }}</h1>
       <p class="date-text">{{ today | date:'EEEE, MMMM d, yyyy' }}</p>
     </div>
   </div>
@@ -27,7 +27,7 @@
           <span class="card-value number">{{ (summary()?.totalStockKg ?? 0) | number:'1.0-0' }}</span>
           <span class="card-unit">kg</span>
         </div>
-        <span class="card-label">Total Stock</span>
+        <span class="card-label">{{ t('dashboard.totalStock') }}</span>
       </div>
 
       <!-- Efficiency -->
@@ -39,7 +39,7 @@
           <span class="card-value number">{{ (summary()?.overallEfficiencyPercent ?? 0) | number:'1.1-1' }}</span>
           <span class="card-unit">%</span>
         </div>
-        <span class="card-label">Efficiency</span>
+        <span class="card-label">{{ t('dashboard.efficiency') }}</span>
       </div>
 
       <!-- Pending Transfers -->
@@ -50,7 +50,7 @@
         <div class="card-content">
           <span class="card-value number">{{ summary()?.pendingTransfers ?? 0 }}</span>
         </div>
-        <span class="card-label">Pending Transfers</span>
+        <span class="card-label">{{ t('dashboard.pendingTransfers') }}</span>
       </div>
 
       <!-- Monthly Revenue -->
@@ -69,7 +69,7 @@
           }
           <span>{{ (summary()?.revenueChangePercent ?? 0) | number:'1.1-1' }}%</span>
         </div>
-        <span class="card-label">Revenue</span>
+        <span class="card-label">{{ t('dashboard.revenue') }}</span>
       </div>
 
       <!-- Low Stock Alert -->
@@ -80,7 +80,7 @@
         <div class="card-content">
           <span class="card-value number">{{ summary()?.lowStockProductCount ?? 0 }}</span>
         </div>
-        <span class="card-label">Low Stock Items</span>
+        <span class="card-label">{{ t('dashboard.lowStockItems') }}</span>
       </div>
     }
   </div>
@@ -89,7 +89,7 @@
   <div class="charts-section">
     <!-- Full-width: Plan vs Actual -->
     <div class="wms-card chart-card full-width">
-      <h3 class="chart-title">Production: Plan vs Actual (7 days)</h3>
+      <h3 class="chart-title">{{ t('dashboard.planVsActual') }}</h3>
       @if (planVsActualChart()) {
         <apx-chart
           [series]="$any(planVsActualChart())['series']"
@@ -105,7 +105,7 @@
       } @else {
         <div class="chart-empty">
           <i class="pi pi-chart-line"></i>
-          <p>No production data available</p>
+          <p>{{ t('dashboard.noProductionData') }}</p>
         </div>
       }
     </div>
@@ -114,7 +114,7 @@
     <div class="chart-row">
       <!-- Bar: Daily Transfers -->
       <div class="wms-card chart-card half-width">
-        <h3 class="chart-title">Daily Transfers (7 days)</h3>
+        <h3 class="chart-title">{{ t('dashboard.dailyTransfers') }}</h3>
         @if (dailyTransfersChart()) {
           <apx-chart
             [series]="$any(dailyTransfersChart())['series']"
@@ -129,14 +129,14 @@
         } @else {
           <div class="chart-empty">
             <i class="pi pi-chart-bar"></i>
-            <p>No transfer data available</p>
+            <p>{{ t('dashboard.noTransferData') }}</p>
           </div>
         }
       </div>
 
       <!-- Donut: Product Distribution -->
       <div class="wms-card chart-card half-width">
-        <h3 class="chart-title">Product Distribution</h3>
+        <h3 class="chart-title">{{ t('dashboard.productDistribution') }}</h3>
         @if (productDistributionChart()) {
           <apx-chart
             [series]="$any(productDistributionChart())['series']"
@@ -150,7 +150,7 @@
         } @else {
           <div class="chart-empty">
             <i class="pi pi-chart-pie"></i>
-            <p>No product data available</p>
+            <p>{{ t('dashboard.noProductData') }}</p>
           </div>
         }
       </div>
@@ -159,7 +159,7 @@
 
   <!-- Recent Transfers Table -->
   <div class="wms-card table-card">
-    <h3 class="chart-title">Recent Transfers</h3>
+    <h3 class="chart-title">{{ t('dashboard.recentTransfers') }}</h3>
     <p-table
       [value]="recentTransfers()"
       [rows]="5"
@@ -168,12 +168,12 @@
     >
       <ng-template #header>
         <tr>
-          <th>Type</th>
-          <th>Counterparty</th>
-          <th class="text-right">Amount</th>
-          <th class="text-right">Items</th>
-          <th>Status</th>
-          <th>Date</th>
+          <th>{{ t('common.type') }}</th>
+          <th>{{ t('transfer.counterparty') }}</th>
+          <th class="text-right">{{ t('common.amount') }}</th>
+          <th class="text-right">{{ t('transfer.items') }}</th>
+          <th>{{ t('common.status') }}</th>
+          <th>{{ t('common.date') }}</th>
         </tr>
       </ng-template>
       <ng-template #body let-transfer>
@@ -199,7 +199,7 @@
           <td colspan="6" class="empty-message">
             <div class="chart-empty">
               <i class="pi pi-inbox"></i>
-              <p>No recent transfers</p>
+              <p>{{ t('dashboard.noRecentTransfers') }}</p>
             </div>
           </td>
         </tr>

@@ -1,13 +1,13 @@
-<div class="page-enter">
-  <app-page-header title="Clients" subtitle="Manage your clients">
-    <p-button icon="pi pi-plus" label="Add Client" (onClick)="openNew()" />
+<div class="page-enter" *transloco="let t">
+  <app-page-header [title]="t('partners.clients')" [subtitle]="t('partners.manageClients')">
+    <p-button icon="pi pi-plus" [label]="t('partners.addClient')" (onClick)="openNew()" />
   </app-page-header>
 
   <div class="filters-bar wms-card">
     <div class="filter-group">
       <span class="p-input-icon-left">
         <i class="pi pi-search"></i>
-        <input pInputText placeholder="Search clients..." [ngModel]="search()" (ngModelChange)="onSearch($event)" />
+        <input pInputText [placeholder]="t('common.search')" [ngModel]="search()" (ngModelChange)="onSearch($event)" />
       </span>
     </div>
   </div>
@@ -17,11 +17,11 @@
       [rowsPerPageOptions]="[10, 15, 25, 50]" [scrollable]="true" styleClass="p-datatable-sm p-datatable-striped">
       <ng-template #header>
         <tr>
-          <th pSortableColumn="name">Name <p-sortIcon field="name" /></th>
-          <th>Phone</th>
-          <th>Address</th>
-          <th class="text-center">Portal</th>
-          <th class="text-center">Actions</th>
+          <th pSortableColumn="name">{{ t('common.name') }} <p-sortIcon field="name" /></th>
+          <th>{{ t('common.phone') }}</th>
+          <th>{{ t('common.address') }}</th>
+          <th class="text-center">{{ t('partners.portal') }}</th>
+          <th class="text-center">{{ t('common.actions') }}</th>
         </tr>
       </ng-template>
       <ng-template #body let-item>
@@ -31,9 +31,9 @@
           <td>{{ item.address || '—' }}</td>
           <td class="text-center">
             @if (item.portalEnabled) {
-              <span class="badge-success">Active</span>
+              <span class="badge-success">{{ t('common.active') }}</span>
             } @else {
-              <span class="badge-neutral">Off</span>
+              <span class="badge-neutral">{{ t('common.inactive') }}</span>
             }
           </td>
           <td class="text-center actions-cell">
@@ -44,41 +44,41 @@
         </tr>
       </ng-template>
       <ng-template #emptymessage>
-        <tr><td colspan="5"><div class="empty-state"><i class="pi pi-users"></i><p>No clients found</p></div></td></tr>
+        <tr><td colspan="5"><div class="empty-state"><i class="pi pi-users"></i><p>{{ t('partners.noClients') }}</p></div></td></tr>
       </ng-template>
     </p-table>
   </div>
-</div>
 
-<p-dialog [header]="editing() ? 'Edit Client' : 'New Client'" [(visible)]="dialogVisible" [modal]="true" [style]="{ width: '520px' }" [draggable]="false">
-  <div class="form-grid">
-    <div class="form-field full-width">
-      <label>Name *</label>
-      <input pInputText [ngModel]="form().name" (ngModelChange)="updateForm('name', $event)" class="w-full" />
+  <p-dialog [header]="editing() ? t('common.edit') + ' ' + t('partners.clients') : t('common.create') + ' ' + t('partners.clients')" [(visible)]="dialogVisible" [modal]="true" [style]="{ width: '520px' }" [draggable]="false">
+    <div class="form-grid">
+      <div class="form-field full-width">
+        <label>{{ t('common.name') }} *</label>
+        <input pInputText [ngModel]="form().name" (ngModelChange)="updateForm('name', $event)" class="w-full" />
+      </div>
+      <div class="form-field">
+        <label>{{ t('common.phone') }}</label>
+        <input pInputText [ngModel]="form().phone ?? ''" (ngModelChange)="updateForm('phone', $event || null)" class="w-full" />
+      </div>
+      <div class="form-field">
+        <label>{{ t('settings.portalPhone') }}</label>
+        <input pInputText [ngModel]="form().portalPhone ?? ''" (ngModelChange)="updateForm('portalPhone', $event || null)" class="w-full" />
+      </div>
+      <div class="form-field full-width">
+        <label>{{ t('common.address') }}</label>
+        <input pInputText [ngModel]="form().address ?? ''" (ngModelChange)="updateForm('address', $event || null)" class="w-full" />
+      </div>
+      <div class="form-field full-width">
+        <label>{{ t('common.note') }}</label>
+        <textarea pTextarea [ngModel]="form().note ?? ''" (ngModelChange)="updateForm('note', $event || null)" class="w-full" rows="3"></textarea>
+      </div>
+      <div class="form-field">
+        <label>{{ t('settings.portalAccess') }}</label>
+        <p-toggleswitch [ngModel]="form().portalEnabled" (ngModelChange)="updateForm('portalEnabled', $event)" />
+      </div>
     </div>
-    <div class="form-field">
-      <label>Phone</label>
-      <input pInputText [ngModel]="form().phone ?? ''" (ngModelChange)="updateForm('phone', $event || null)" class="w-full" />
-    </div>
-    <div class="form-field">
-      <label>Portal Phone</label>
-      <input pInputText [ngModel]="form().portalPhone ?? ''" (ngModelChange)="updateForm('portalPhone', $event || null)" class="w-full" />
-    </div>
-    <div class="form-field full-width">
-      <label>Address</label>
-      <input pInputText [ngModel]="form().address ?? ''" (ngModelChange)="updateForm('address', $event || null)" class="w-full" />
-    </div>
-    <div class="form-field full-width">
-      <label>Note</label>
-      <textarea pTextarea [ngModel]="form().note ?? ''" (ngModelChange)="updateForm('note', $event || null)" class="w-full" rows="3"></textarea>
-    </div>
-    <div class="form-field">
-      <label>Portal Access</label>
-      <p-toggleswitch [ngModel]="form().portalEnabled" (ngModelChange)="updateForm('portalEnabled', $event)" />
-    </div>
-  </div>
-  <ng-template #footer>
-    <p-button label="Cancel" [text]="true" (onClick)="dialogVisible.set(false)" />
-    <p-button [label]="editing() ? 'Update' : 'Create'" icon="pi pi-check" (onClick)="save()" [loading]="saving()" />
-  </ng-template>
-</p-dialog>
+    <ng-template #footer>
+      <p-button [label]="t('common.cancel')" [text]="true" (onClick)="dialogVisible.set(false)" />
+      <p-button [label]="editing() ? t('common.update') : t('common.create')" icon="pi pi-check" (onClick)="save()" [loading]="saving()" />
+    </ng-template>
+  </p-dialog>
+</div>

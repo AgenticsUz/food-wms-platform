@@ -1,13 +1,13 @@
-<div class="page-enter">
-  <app-page-header title="Batches" subtitle="Track lots and expiry dates">
-    <p-button icon="pi pi-refresh" label="Refresh" [outlined]="true" (onClick)="loadBatches()" />
+<div class="page-enter" *transloco="let t">
+  <app-page-header [title]="t('warehouse.batches')" [subtitle]="t('warehouse.trackLots')">
+    <p-button icon="pi pi-refresh" [label]="t('common.refresh')" [outlined]="true" (onClick)="loadBatches()" />
   </app-page-header>
 
   <div class="filters-bar wms-card">
     <div class="filter-group">
       <span class="p-input-icon-left">
         <i class="pi pi-search"></i>
-        <input pInputText placeholder="Search by product or lot..." [ngModel]="search()" (ngModelChange)="onSearch($event)" />
+        <input pInputText [placeholder]="t('warehouse.searchLot')" [ngModel]="search()" (ngModelChange)="onSearch($event)" />
       </span>
     </div>
   </div>
@@ -17,13 +17,13 @@
       [rowsPerPageOptions]="[10, 20, 50]" [scrollable]="true" styleClass="p-datatable-sm p-datatable-striped">
       <ng-template #header>
         <tr>
-          <th pSortableColumn="productName">Product <p-sortIcon field="productName" /></th>
-          <th>Lot Number</th>
-          <th>Manufactured</th>
-          <th>Expiry</th>
-          <th class="text-right">Initial Qty</th>
-          <th class="text-right">Remaining</th>
-          <th>Status</th>
+          <th pSortableColumn="productName">{{ t('common.name') }} <p-sortIcon field="productName" /></th>
+          <th>{{ t('warehouse.lotNumber') }}</th>
+          <th>{{ t('warehouse.manufactured') }}</th>
+          <th>{{ t('warehouse.expiry') }}</th>
+          <th class="text-right">{{ t('warehouse.initialQty') }}</th>
+          <th class="text-right">{{ t('warehouse.remainingQty') }}</th>
+          <th>{{ t('common.status') }}</th>
         </tr>
       </ng-template>
       <ng-template #body let-b>
@@ -43,7 +43,7 @@
         </tr>
       </ng-template>
       <ng-template #emptymessage>
-        <tr><td colspan="7"><div class="empty-state"><i class="pi pi-box"></i><p>No batches found</p></div></td></tr>
+        <tr><td colspan="7"><div class="empty-state"><i class="pi pi-box"></i><p>{{ t('warehouse.noBatches') }}</p></div></td></tr>
       </ng-template>
     </p-table>
   </div>

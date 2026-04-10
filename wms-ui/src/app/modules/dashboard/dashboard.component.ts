@@ -2,6 +2,7 @@ import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@ang
 import { DecimalPipe, DatePipe } from '@angular/common';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { TableModule } from 'primeng/table';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { AnalyticsService } from '../../core/services/analytics.service';
 import { AuthService } from '../../core/services/auth.service';
 import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge.component';
@@ -17,7 +18,7 @@ import {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [DecimalPipe, DatePipe, NgApexchartsModule, TableModule, StatusBadgeComponent],
+  imports: [DecimalPipe, DatePipe, NgApexchartsModule, TableModule, StatusBadgeComponent, TranslocoDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'

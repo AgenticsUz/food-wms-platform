@@ -1,6 +1,6 @@
-<div class="page-enter">
-  <app-page-header title="Products" subtitle="Manage your product catalog">
-    <p-button icon="pi pi-plus" label="Add Product" (onClick)="openNew()" />
+<div class="page-enter" *transloco="let t">
+  <app-page-header [title]="t('products.products')" [subtitle]="t('products.manageProducts')">
+    <p-button icon="pi pi-plus" [label]="t('products.addProduct')" (onClick)="openNew()" />
   </app-page-header>
 
   <!-- Filters -->
@@ -9,7 +9,7 @@
       <span class="p-input-icon-left">
         <i class="pi pi-search"></i>
         <input pInputText
-               placeholder="Search products..."
+               [placeholder]="t('products.searchProducts')"
                [ngModel]="search()"
                (ngModelChange)="onSearchChange($event)" />
       </span>
@@ -21,7 +21,7 @@
         (ngModelChange)="onTypeChange($event)"
         optionLabel="label"
         optionValue="value"
-        placeholder="Filter by type"
+        [placeholder]="t('products.filterByType')"
         [style]="{ minWidth: '180px' }" />
     </div>
   </div>
@@ -40,14 +40,14 @@
     >
       <ng-template #header>
         <tr>
-          <th pSortableColumn="name">Name <p-sortIcon field="name" /></th>
-          <th>Category</th>
-          <th>Type</th>
-          <th>Unit</th>
-          <th class="text-right" pSortableColumn="minStock">Min Stock <p-sortIcon field="minStock" /></th>
-          <th class="text-right">Cost Price</th>
-          <th>Barcode</th>
-          <th class="text-center">Actions</th>
+          <th pSortableColumn="name">{{ t('common.name') }} <p-sortIcon field="name" /></th>
+          <th>{{ t('products.category') }}</th>
+          <th>{{ t('common.type') }}</th>
+          <th>{{ t('common.unit') }}</th>
+          <th class="text-right" pSortableColumn="minStock">{{ t('products.minStock') }} <p-sortIcon field="minStock" /></th>
+          <th class="text-right">{{ t('products.costPrice') }}</th>
+          <th>{{ t('products.barcode') }}</th>
+          <th class="text-center">{{ t('common.actions') }}</th>
         </tr>
       </ng-template>
       <ng-template #body let-product>
@@ -84,87 +84,87 @@
           <td colspan="8">
             <div class="empty-state">
               <i class="pi pi-box"></i>
-              <p>No products found</p>
+              <p>{{ t('products.noProducts') }}</p>
             </div>
           </td>
         </tr>
       </ng-template>
     </p-table>
   </div>
+
+  <!-- Product Form Dialog -->
+  <p-dialog
+    [header]="editing() ? t('common.edit') + ' ' + t('products.products') : t('common.create') + ' ' + t('products.products')"
+    [(visible)]="dialogVisible"
+    [modal]="true"
+    [style]="{ width: '520px' }"
+    [draggable]="false"
+  >
+    <div class="form-grid">
+      <div class="form-field full-width">
+        <label>{{ t('common.name') }} *</label>
+        <input pInputText [ngModel]="form().name" (ngModelChange)="updateForm('name', $event)" class="w-full" />
+      </div>
+
+      <div class="form-field">
+        <label>{{ t('products.category') }}</label>
+        <p-select
+          [options]="categories()"
+          [ngModel]="form().categoryId"
+          (ngModelChange)="updateForm('categoryId', $event)"
+          optionLabel="name"
+          optionValue="id"
+          [placeholder]="t('products.category')"
+          [style]="{ width: '100%' }" />
+      </div>
+
+      <div class="form-field">
+        <label>{{ t('common.unit') }}</label>
+        <p-select
+          [options]="units()"
+          [ngModel]="form().unitId"
+          (ngModelChange)="updateForm('unitId', $event)"
+          optionLabel="name"
+          optionValue="id"
+          [placeholder]="t('common.unit')"
+          [style]="{ width: '100%' }" />
+      </div>
+
+      <div class="form-field">
+        <label>{{ t('common.type') }} *</label>
+        <p-select
+          [options]="typeOptions.slice(1)"
+          [ngModel]="form().type"
+          (ngModelChange)="updateForm('type', $event)"
+          optionLabel="label"
+          optionValue="value"
+          [style]="{ width: '100%' }" />
+      </div>
+
+      <div class="form-field">
+        <label>{{ t('products.minStock') }}</label>
+        <p-inputNumber [ngModel]="form().minStock" (ngModelChange)="updateForm('minStock', $event)" [minFractionDigits]="0" [maxFractionDigits]="2" [style]="{ width: '100%' }" />
+      </div>
+
+      <div class="form-field">
+        <label>{{ t('products.costPrice') }}</label>
+        <p-inputNumber [ngModel]="form().costPrice" (ngModelChange)="updateForm('costPrice', $event)" [minFractionDigits]="0" [maxFractionDigits]="2" mode="decimal" [style]="{ width: '100%' }" />
+      </div>
+
+      <div class="form-field">
+        <label>{{ t('products.shelfLife') }}</label>
+        <p-inputNumber [ngModel]="form().shelfLifeDays" (ngModelChange)="updateForm('shelfLifeDays', $event)" [style]="{ width: '100%' }" />
+      </div>
+
+      <div class="form-field full-width">
+        <label>{{ t('products.barcode') }}</label>
+        <input pInputText [ngModel]="form().barcode ?? ''" (ngModelChange)="updateForm('barcode', $event || null)" class="w-full" />
+      </div>
+    </div>
+
+    <ng-template #footer>
+      <p-button [label]="t('common.cancel')" [text]="true" (onClick)="dialogVisible.set(false)" />
+      <p-button [label]="editing() ? t('common.update') : t('common.create')" icon="pi pi-check" (onClick)="save()" [loading]="saving()" />
+    </ng-template>
+  </p-dialog>
 </div>
-
-<!-- Product Form Dialog -->
-<p-dialog
-  [header]="editing() ? 'Edit Product' : 'New Product'"
-  [(visible)]="dialogVisible"
-  [modal]="true"
-  [style]="{ width: '520px' }"
-  [draggable]="false"
->
-  <div class="form-grid">
-    <div class="form-field full-width">
-      <label>Name *</label>
-      <input pInputText [ngModel]="form().name" (ngModelChange)="updateForm('name', $event)" class="w-full" />
-    </div>
-
-    <div class="form-field">
-      <label>Category</label>
-      <p-select
-        [options]="categories()"
-        [ngModel]="form().categoryId"
-        (ngModelChange)="updateForm('categoryId', $event)"
-        optionLabel="name"
-        optionValue="id"
-        placeholder="Select category"
-        [style]="{ width: '100%' }" />
-    </div>
-
-    <div class="form-field">
-      <label>Unit</label>
-      <p-select
-        [options]="units()"
-        [ngModel]="form().unitId"
-        (ngModelChange)="updateForm('unitId', $event)"
-        optionLabel="name"
-        optionValue="id"
-        placeholder="Select unit"
-        [style]="{ width: '100%' }" />
-    </div>
-
-    <div class="form-field">
-      <label>Type *</label>
-      <p-select
-        [options]="typeOptions.slice(1)"
-        [ngModel]="form().type"
-        (ngModelChange)="updateForm('type', $event)"
-        optionLabel="label"
-        optionValue="value"
-        [style]="{ width: '100%' }" />
-    </div>
-
-    <div class="form-field">
-      <label>Min Stock</label>
-      <p-inputNumber [ngModel]="form().minStock" (ngModelChange)="updateForm('minStock', $event)" [minFractionDigits]="0" [maxFractionDigits]="2" [style]="{ width: '100%' }" />
-    </div>
-
-    <div class="form-field">
-      <label>Cost Price</label>
-      <p-inputNumber [ngModel]="form().costPrice" (ngModelChange)="updateForm('costPrice', $event)" [minFractionDigits]="0" [maxFractionDigits]="2" mode="decimal" [style]="{ width: '100%' }" />
-    </div>
-
-    <div class="form-field">
-      <label>Shelf Life (days)</label>
-      <p-inputNumber [ngModel]="form().shelfLifeDays" (ngModelChange)="updateForm('shelfLifeDays', $event)" [style]="{ width: '100%' }" />
-    </div>
-
-    <div class="form-field full-width">
-      <label>Barcode</label>
-      <input pInputText [ngModel]="form().barcode ?? ''" (ngModelChange)="updateForm('barcode', $event || null)" class="w-full" />
-    </div>
-  </div>
-
-  <ng-template #footer>
-    <p-button label="Cancel" [text]="true" (onClick)="dialogVisible.set(false)" />
-    <p-button [label]="editing() ? 'Update' : 'Create'" icon="pi pi-check" (onClick)="save()" [loading]="saving()" />
-  </ng-template>
-</p-dialog>

@@ -2,6 +2,7 @@ import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@ang
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { Button } from 'primeng/button';
 import { InputNumber } from 'primeng/inputnumber';
 import { Select } from 'primeng/select';
@@ -21,7 +22,7 @@ import { Product } from '../../../core/models/product.model';
 @Component({
   selector: 'app-transfer-create',
   standalone: true,
-  imports: [DecimalPipe, FormsModule, Button, InputNumber, Select, Textarea, TableModule, PageHeaderComponent],
+  imports: [DecimalPipe, FormsModule, TranslocoDirective, Button, InputNumber, Select, Textarea, TableModule, PageHeaderComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './transfer-create.component.html',
   styleUrl: './transfer-create.component.scss'

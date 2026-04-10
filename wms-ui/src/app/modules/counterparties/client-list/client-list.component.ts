@@ -7,6 +7,7 @@ import { InputText } from 'primeng/inputtext';
 import { Dialog } from 'primeng/dialog';
 import { ToggleSwitch } from 'primeng/toggleswitch';
 import { Textarea } from 'primeng/textarea';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { CounterpartyService } from '../../../core/services/counterparty.service';
 import { NotificationService } from '../../../shared/services/notification.service';
@@ -15,7 +16,7 @@ import { Counterparty, CounterpartyCreateDto, CounterpartyType } from '../../../
 @Component({
   selector: 'app-client-list',
   standalone: true,
-  imports: [FormsModule, TableModule, Button, InputText, Dialog, ToggleSwitch, Textarea, PageHeaderComponent],
+  imports: [FormsModule, TableModule, Button, InputText, Dialog, ToggleSwitch, Textarea, TranslocoDirective, PageHeaderComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './client-list.component.html',
   styleUrl: './client-list.component.scss'

@@ -1,56 +1,56 @@
-<div class="page-enter">
-  <app-page-header title="New Transfer" subtitle="Create a new stock transfer">
-    <p-button icon="pi pi-arrow-left" label="Back" [text]="true" (onClick)="goBack()" />
+<div class="page-enter" *transloco="let t">
+  <app-page-header [title]="t('transfer.newTransfer')" [subtitle]="t('transfer.createTransfer')">
+    <p-button icon="pi pi-arrow-left" [label]="t('common.back')" [text]="true" (onClick)="goBack()" />
   </app-page-header>
 
   <!-- Transfer Type & Headers -->
   <div class="wms-card section-card">
     <div class="form-grid">
       <div class="form-field full-width">
-        <label>Transfer Type *</label>
+        <label>{{ t('transfer.selectType') }} *</label>
         <p-select [options]="typeOptions" [ngModel]="transferType()" (ngModelChange)="transferType.set($event)"
           optionLabel="label" optionValue="value" [style]="{ width: '100%' }" />
       </div>
 
       @if (isIncoming || isOutgoing) {
         <div class="form-field">
-          <label>{{ isIncoming ? 'Supplier' : 'Client' }} *</label>
+          <label>{{ isIncoming ? t('transfer.selectSupplier') : t('transfer.selectClient') }} *</label>
           <p-select [options]="filteredCounterparties" [ngModel]="counterpartyId()" (ngModelChange)="counterpartyId.set($event)"
-            optionLabel="name" optionValue="id" [placeholder]="'Select ' + (isIncoming ? 'supplier' : 'client')" [filter]="true" [style]="{ width: '100%' }" />
+            optionLabel="name" optionValue="id" [placeholder]="isIncoming ? t('transfer.selectSupplier') : t('transfer.selectClient')" [filter]="true" [style]="{ width: '100%' }" />
         </div>
       }
 
       @if (isIncoming) {
         <div class="form-field">
-          <label>Destination Warehouse *</label>
+          <label>{{ t('transfer.destWarehouse') }} *</label>
           <p-select [options]="warehouses()" [ngModel]="toWarehouseId()" (ngModelChange)="toWarehouseId.set($event)"
-            optionLabel="name" optionValue="id" placeholder="Select warehouse" [style]="{ width: '100%' }" />
+            optionLabel="name" optionValue="id" [placeholder]="t('transfer.selectWarehouse')" [style]="{ width: '100%' }" />
         </div>
       }
 
       @if (isOutgoing) {
         <div class="form-field">
-          <label>Source Warehouse *</label>
+          <label>{{ t('transfer.sourceWarehouse') }} *</label>
           <p-select [options]="warehouses()" [ngModel]="fromWarehouseId()" (ngModelChange)="fromWarehouseId.set($event)"
-            optionLabel="name" optionValue="id" placeholder="Select warehouse" [style]="{ width: '100%' }" />
+            optionLabel="name" optionValue="id" [placeholder]="t('transfer.selectWarehouse')" [style]="{ width: '100%' }" />
         </div>
       }
 
       @if (isInternal) {
         <div class="form-field">
-          <label>From Warehouse *</label>
+          <label>{{ t('transfer.fromWarehouse') }} *</label>
           <p-select [options]="warehouses()" [ngModel]="fromWarehouseId()" (ngModelChange)="fromWarehouseId.set($event)"
-            optionLabel="name" optionValue="id" placeholder="Source warehouse" [style]="{ width: '100%' }" />
+            optionLabel="name" optionValue="id" [placeholder]="t('transfer.sourceWarehouse')" [style]="{ width: '100%' }" />
         </div>
         <div class="form-field">
-          <label>To Warehouse *</label>
+          <label>{{ t('transfer.toWarehouse') }} *</label>
           <p-select [options]="warehouses()" [ngModel]="toWarehouseId()" (ngModelChange)="toWarehouseId.set($event)"
-            optionLabel="name" optionValue="id" placeholder="Destination warehouse" [style]="{ width: '100%' }" />
+            optionLabel="name" optionValue="id" [placeholder]="t('transfer.destWarehouse')" [style]="{ width: '100%' }" />
         </div>
       }
 
       <div class="form-field full-width">
-        <label>Note</label>
+        <label>{{ t('common.note') }}</label>
         <textarea pTextarea [ngModel]="note()" (ngModelChange)="note.set($event)" class="w-full" rows="2" placeholder="Optional notes..."></textarea>
       </div>
     </div>
@@ -58,7 +58,7 @@
 
   <!-- Add Items -->
   <div class="wms-card section-card">
-    <h3 class="section-title">Items</h3>
+    <h3 class="section-title">{{ t('transfer.items') }}</h3>
     <div class="add-item-row">
       <div class="add-item-field">
         <p-select [options]="products()" [ngModel]="itemProductId()" (ngModelChange)="itemProductId.set($event)"
@@ -66,24 +66,24 @@
       </div>
       <div class="add-item-field small">
         <p-inputNumber [ngModel]="itemQuantity()" (ngModelChange)="itemQuantity.set($event ?? 0)"
-          placeholder="Qty" [minFractionDigits]="0" [maxFractionDigits]="2" [style]="{ width: '100%' }" />
+          [placeholder]="t('common.quantity')" [minFractionDigits]="0" [maxFractionDigits]="2" [style]="{ width: '100%' }" />
       </div>
       <div class="add-item-field small">
         <p-inputNumber [ngModel]="itemUnitPrice()" (ngModelChange)="itemUnitPrice.set($event ?? 0)"
-          placeholder="Price" [minFractionDigits]="0" [maxFractionDigits]="2" mode="decimal" [style]="{ width: '100%' }" />
+          [placeholder]="t('common.price')" [minFractionDigits]="0" [maxFractionDigits]="2" mode="decimal" [style]="{ width: '100%' }" />
       </div>
-      <p-button icon="pi pi-plus" label="Add" (onClick)="addItem()" />
+      <p-button icon="pi pi-plus" [label]="t('transfer.addItem')" (onClick)="addItem()" />
     </div>
 
     @if (items().length > 0) {
       <p-table [value]="items()" styleClass="p-datatable-sm p-datatable-striped" class="items-table">
         <ng-template #header>
           <tr>
-            <th>Product</th>
-            <th class="text-right">Quantity</th>
-            <th class="text-right">Unit Price</th>
-            <th class="text-right">Total</th>
-            <th class="text-center">Remove</th>
+            <th>{{ t('common.name') }}</th>
+            <th class="text-right">{{ t('common.quantity') }}</th>
+            <th class="text-right">{{ t('common.price') }}</th>
+            <th class="text-right">{{ t('common.total') }}</th>
+            <th class="text-center">{{ t('common.actions') }}</th>
           </tr>
         </ng-template>
         <ng-template #body let-item let-i="rowIndex">
@@ -100,20 +100,20 @@
       </p-table>
 
       <div class="total-row">
-        <span class="total-label">Total:</span>
+        <span class="total-label">{{ t('transfer.totalAmount') }}:</span>
         <span class="total-value number">{{ totalAmount | number:'1.0-2' }}</span>
       </div>
     } @else {
       <div class="empty-state">
         <i class="pi pi-shopping-cart"></i>
-        <p>No items added yet</p>
+        <p>{{ t('transfer.noItems') }}</p>
       </div>
     }
   </div>
 
   <!-- Submit -->
   <div class="action-bar">
-    <p-button label="Cancel" [text]="true" severity="secondary" (onClick)="goBack()" />
-    <p-button label="Create Transfer" icon="pi pi-check" (onClick)="submit()" [loading]="saving()" [disabled]="items().length === 0" />
+    <p-button [label]="t('common.cancel')" [text]="true" severity="secondary" (onClick)="goBack()" />
+    <p-button [label]="t('transfer.createTransfer')" icon="pi pi-check" (onClick)="submit()" [loading]="saving()" [disabled]="items().length === 0" />
   </div>
 </div>

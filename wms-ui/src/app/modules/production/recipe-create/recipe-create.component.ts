@@ -6,6 +6,7 @@ import { InputText } from 'primeng/inputtext';
 import { InputNumber } from 'primeng/inputnumber';
 import { Select } from 'primeng/select';
 import { ToggleSwitch } from 'primeng/toggleswitch';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { ProductionService } from '../../../core/services/production.service';
 import { ProductService } from '../../../core/services/product.service';
@@ -39,7 +40,7 @@ interface InputForm {
 @Component({
   selector: 'app-recipe-create',
   standalone: true,
-  imports: [FormsModule, Button, InputText, InputNumber, Select, ToggleSwitch, PageHeaderComponent],
+  imports: [FormsModule, Button, InputText, InputNumber, Select, ToggleSwitch, PageHeaderComponent, TranslocoDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './recipe-create.component.html',
   styleUrl: './recipe-create.component.scss'

@@ -19,7 +19,8 @@
       "Bash(python3 -c \"import json; json.load\\(open\\('C:/Users/g.turaqulov/Desktop/Personal-Project/projects/wms/wms-ui/src/assets/i18n/en.json'\\)\\); print\\('en.json: VALID'\\)\")",
       "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('C:/Users/g.turaqulov/Desktop/Personal-Project/projects/wms/wms-ui/src/assets/i18n/uz.json','utf8'\\)\\); console.log\\('uz: VALID'\\)\")",
       "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('C:/Users/g.turaqulov/Desktop/Personal-Project/projects/wms/wms-ui/src/assets/i18n/ru.json','utf8'\\)\\); console.log\\('ru: VALID'\\)\")",
-      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('C:/Users/g.turaqulov/Desktop/Personal-Project/projects/wms/wms-ui/src/assets/i18n/en.json','utf8'\\)\\); console.log\\('en: VALID'\\)\")"
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('C:/Users/g.turaqulov/Desktop/Personal-Project/projects/wms/wms-ui/src/assets/i18n/en.json','utf8'\\)\\); console.log\\('en: VALID'\\)\")",
+      "Bash(node:*)"
     ]
   }
 }

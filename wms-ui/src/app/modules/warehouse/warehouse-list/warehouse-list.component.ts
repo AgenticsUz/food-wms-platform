@@ -1,5 +1,6 @@
 import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { TableModule } from 'primeng/table';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
@@ -15,7 +16,7 @@ import { Warehouse, WarehouseCreateDto, WarehouseType } from '../../../core/mode
 @Component({
   selector: 'app-warehouse-list',
   standalone: true,
-  imports: [FormsModule, TableModule, Button, InputText, Dialog, Select, Textarea, PageHeaderComponent, StatusBadgeComponent],
+  imports: [FormsModule, TranslocoDirective, TableModule, Button, InputText, Dialog, Select, Textarea, PageHeaderComponent, StatusBadgeComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './warehouse-list.component.html',
   styleUrl: './warehouse-list.component.scss'

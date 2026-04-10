@@ -2,6 +2,7 @@ import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@ang
 import { DecimalPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { TableModule } from 'primeng/table';
 import { Button } from 'primeng/button';
 import { Select } from 'primeng/select';
@@ -15,7 +16,7 @@ import { Transfer, TransferType, TransferStatus } from '../../../core/models/tra
 @Component({
   selector: 'app-transfer-list',
   standalone: true,
-  imports: [DecimalPipe, DatePipe, FormsModule, TableModule, Button, Select, DatePicker, PageHeaderComponent, StatusBadgeComponent],
+  imports: [DecimalPipe, DatePipe, FormsModule, TranslocoDirective, TableModule, Button, Select, DatePicker, PageHeaderComponent, StatusBadgeComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './transfer-list.component.html',
   styleUrl: './transfer-list.component.scss'

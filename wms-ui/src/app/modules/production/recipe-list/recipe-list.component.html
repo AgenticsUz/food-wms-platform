@@ -1,6 +1,6 @@
-<div class="page-enter">
-  <app-page-header title="Production Recipes" subtitle="Manage recipes for finished products">
-    <p-button icon="pi pi-plus" label="New Recipe" (onClick)="createNew()" />
+<div class="page-enter" *transloco="let t">
+  <app-page-header [title]="t('production.recipes')" [subtitle]="t('production.manageRecipes')">
+    <p-button icon="pi pi-plus" [label]="t('production.newRecipe')" (onClick)="createNew()" />
   </app-page-header>
 
   <!-- Search -->
@@ -9,7 +9,7 @@
       <span class="p-input-icon-left">
         <i class="pi pi-search"></i>
         <input pInputText
-               placeholder="Search recipes..."
+               [placeholder]="t('common.search')"
                [ngModel]="search()"
                (ngModelChange)="onSearchChange($event)" />
       </span>
@@ -23,12 +23,12 @@
       styleClass="p-datatable-sm p-datatable-striped">
       <ng-template #header>
         <tr>
-          <th pSortableColumn="name">Name <p-sortIcon field="name" /></th>
-          <th>Output Product</th>
-          <th class="text-right">Output Qty</th>
-          <th>Unit</th>
-          <th class="text-center">Status</th>
-          <th class="text-center">Actions</th>
+          <th pSortableColumn="name">{{ t('common.name') }} <p-sortIcon field="name" /></th>
+          <th>{{ t('production.outputProduct') }}</th>
+          <th class="text-right">{{ t('production.outputQty') }}</th>
+          <th>{{ t('common.unit') }}</th>
+          <th class="text-center">{{ t('common.status') }}</th>
+          <th class="text-center">{{ t('common.actions') }}</th>
         </tr>
       </ng-template>
       <ng-template #body let-recipe>
@@ -40,7 +40,7 @@
           <td class="text-center">
             <app-status-badge
               [status]="recipe.isActive ? 'Confirmed' : 'Cancelled'"
-              [label]="recipe.isActive ? 'Active' : 'Inactive'" />
+              [label]="recipe.isActive ? t('common.active') : t('common.inactive')" />
           </td>
           <td class="text-center actions-cell">
             <p-button icon="pi pi-eye" [rounded]="true" [text]="true" severity="info"
@@ -55,7 +55,7 @@
           <td colspan="6">
             <div class="empty-state">
               <i class="pi pi-book"></i>
-              <p>No recipes found</p>
+              <p>{{ t('production.noRecipes') }}</p>
             </div>
           </td>
         </tr>

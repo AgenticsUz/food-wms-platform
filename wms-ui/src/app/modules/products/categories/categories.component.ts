@@ -5,6 +5,7 @@ import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Dialog } from 'primeng/dialog';
 import { Select } from 'primeng/select';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { ProductService } from '../../../core/services/product.service';
 import { NotificationService } from '../../../shared/services/notification.service';
@@ -13,7 +14,7 @@ import { Category, CategoryCreateDto } from '../../../core/models/product.model'
 @Component({
   selector: 'app-categories',
   standalone: true,
-  imports: [FormsModule, TableModule, Button, InputText, Dialog, Select, PageHeaderComponent],
+  imports: [FormsModule, TableModule, Button, InputText, Dialog, Select, TranslocoDirective, PageHeaderComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './categories.component.html',
   styleUrl: './categories.component.scss'

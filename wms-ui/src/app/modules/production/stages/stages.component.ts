@@ -5,6 +5,7 @@ import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Dialog } from 'primeng/dialog';
 import { InputNumber } from 'primeng/inputnumber';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { ProductionService } from '../../../core/services/production.service';
 import { NotificationService } from '../../../shared/services/notification.service';
@@ -13,7 +14,7 @@ import { ProductionStage, ProductionStageCreateDto } from '../../../core/models/
 @Component({
   selector: 'app-stages',
   standalone: true,
-  imports: [FormsModule, TableModule, Button, InputText, Dialog, InputNumber, PageHeaderComponent],
+  imports: [FormsModule, TableModule, Button, InputText, Dialog, InputNumber, PageHeaderComponent, TranslocoDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './stages.component.html',
   styleUrl: './stages.component.scss'

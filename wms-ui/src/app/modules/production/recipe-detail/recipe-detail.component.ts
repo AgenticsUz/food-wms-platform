@@ -3,6 +3,7 @@ import { DecimalPipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TableModule } from 'primeng/table';
 import { Button } from 'primeng/button';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { ProductionService } from '../../../core/services/production.service';
@@ -12,7 +13,7 @@ import { ProductionRecipe } from '../../../core/models/production.model';
 @Component({
   selector: 'app-recipe-detail',
   standalone: true,
-  imports: [DecimalPipe, TableModule, Button, PageHeaderComponent, StatusBadgeComponent],
+  imports: [DecimalPipe, TableModule, Button, PageHeaderComponent, StatusBadgeComponent, TranslocoDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './recipe-detail.component.html',
   styleUrl: './recipe-detail.component.scss'

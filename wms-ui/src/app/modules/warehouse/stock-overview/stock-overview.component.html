@@ -1,11 +1,11 @@
-<div class="page-enter">
-  <app-page-header title="Stock Overview" subtitle="Current warehouse inventory" />
+<div class="page-enter" *transloco="let t">
+  <app-page-header [title]="t('warehouse.stockOverview')" [subtitle]="t('warehouse.currentInventory')" />
 
   <div class="filters-bar wms-card">
     <div class="filter-group">
       <span class="p-input-icon-left">
         <i class="pi pi-search"></i>
-        <input pInputText placeholder="Search by product or warehouse..." [ngModel]="search()" (ngModelChange)="onSearch($event)" />
+        <input pInputText [placeholder]="t('warehouse.searchProduct')" [ngModel]="search()" (ngModelChange)="onSearch($event)" />
       </span>
     </div>
     <div class="filter-group">
@@ -15,7 +15,7 @@
         (ngModelChange)="onWarehouseChange($event)"
         optionLabel="label"
         optionValue="value"
-        placeholder="Select warehouse"
+        [placeholder]="t('warehouse.allWarehouses')"
         [style]="{ minWidth: '200px' }" />
     </div>
   </div>
@@ -25,13 +25,13 @@
       [rowsPerPageOptions]="[10, 20, 50]" [scrollable]="true" styleClass="p-datatable-sm p-datatable-striped">
       <ng-template #header>
         <tr>
-          <th pSortableColumn="productName">Product <p-sortIcon field="productName" /></th>
-          <th>Warehouse</th>
-          <th>Unit</th>
-          <th class="text-right" pSortableColumn="totalQuantity">Total Qty <p-sortIcon field="totalQuantity" /></th>
-          <th class="text-right">Reserved</th>
-          <th class="text-right" pSortableColumn="availableQuantity">Available <p-sortIcon field="availableQuantity" /></th>
-          <th>Status</th>
+          <th pSortableColumn="productName">{{ t('common.name') }} <p-sortIcon field="productName" /></th>
+          <th>{{ t('nav.warehouse') }}</th>
+          <th>{{ t('common.unit') }}</th>
+          <th class="text-right" pSortableColumn="totalQuantity">{{ t('warehouse.totalQty') }} <p-sortIcon field="totalQuantity" /></th>
+          <th class="text-right">{{ t('warehouse.reserved') }}</th>
+          <th class="text-right" pSortableColumn="availableQuantity">{{ t('warehouse.available') }} <p-sortIcon field="availableQuantity" /></th>
+          <th>{{ t('common.status') }}</th>
         </tr>
       </ng-template>
       <ng-template #body let-s>
@@ -46,15 +46,15 @@
           </td>
           <td>
             @if (isLow(s)) {
-              <app-status-badge status="Cancelled" label="Low Stock" />
+              <app-status-badge status="Cancelled" [label]="t('status.lowStock')" />
             } @else {
-              <app-status-badge status="Active" label="In Stock" />
+              <app-status-badge status="Active" [label]="t('status.inStock')" />
             }
           </td>
         </tr>
       </ng-template>
       <ng-template #emptymessage>
-        <tr><td colspan="7"><div class="empty-state"><i class="pi pi-box"></i><p>No stock data</p></div></td></tr>
+        <tr><td colspan="7"><div class="empty-state"><i class="pi pi-box"></i><p>{{ t('warehouse.noStockData') }}</p></div></td></tr>
       </ng-template>
     </p-table>
   </div>

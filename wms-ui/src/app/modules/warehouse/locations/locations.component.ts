@@ -1,5 +1,6 @@
 import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { TableModule } from 'primeng/table';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
@@ -13,7 +14,7 @@ import { Location, LocationCreateDto, Warehouse } from '../../../core/models/war
 @Component({
   selector: 'app-locations',
   standalone: true,
-  imports: [FormsModule, TableModule, Button, InputText, Dialog, Select, PageHeaderComponent],
+  imports: [FormsModule, TranslocoDirective, TableModule, Button, InputText, Dialog, Select, PageHeaderComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './locations.component.html',
   styleUrl: './locations.component.scss'

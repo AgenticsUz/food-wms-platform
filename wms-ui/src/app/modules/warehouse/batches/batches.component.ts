@@ -1,6 +1,7 @@
 import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { DecimalPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { TableModule } from 'primeng/table';
 import { InputText } from 'primeng/inputtext';
 import { Button } from 'primeng/button';
@@ -13,7 +14,7 @@ import { Batch } from '../../../core/models/warehouse.model';
 @Component({
   selector: 'app-batches',
   standalone: true,
-  imports: [DecimalPipe, DatePipe, FormsModule, TableModule, InputText, Button, PageHeaderComponent, StatusBadgeComponent],
+  imports: [DecimalPipe, DatePipe, FormsModule, TranslocoDirective, TableModule, InputText, Button, PageHeaderComponent, StatusBadgeComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './batches.component.html',
   styleUrl: './batches.component.scss'

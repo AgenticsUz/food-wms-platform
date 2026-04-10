@@ -1,33 +1,33 @@
-<div class="page-enter">
-  <app-page-header title="New Recipe" subtitle="Build a production recipe with stages and inputs">
-    <p-button icon="pi pi-arrow-left" label="Back" [text]="true" (onClick)="goBack()" />
+<div class="page-enter" *transloco="let t">
+  <app-page-header [title]="t('production.newRecipe')" [subtitle]="t('production.createRecipe')">
+    <p-button icon="pi pi-arrow-left" [label]="t('common.back')" [text]="true" (onClick)="goBack()" />
   </app-page-header>
 
   <!-- Recipe Info -->
   <div class="wms-card section-card">
-    <h3 class="section-title">Recipe Information</h3>
+    <h3 class="section-title">{{ t('production.recipeInfo') }}</h3>
     <div class="form-grid">
       <div class="form-field">
-        <label>Recipe Name *</label>
+        <label>{{ t('common.name') }} *</label>
         <input pInputText [ngModel]="recipeName()" (ngModelChange)="recipeName.set($event)" placeholder="e.g. Plombir 100ml Recipe" class="w-full" />
       </div>
       <div class="form-field">
-        <label>Output Product *</label>
+        <label>{{ t('production.outputProduct') }} *</label>
         <p-select [options]="products()" [ngModel]="outputProductId()" (ngModelChange)="outputProductId.set($event)"
           optionLabel="name" optionValue="id" placeholder="Select finished product" [filter]="true" [style]="{ width: '100%' }" />
       </div>
       <div class="form-field">
-        <label>Output Quantity *</label>
+        <label>{{ t('production.outputQty') }} *</label>
         <p-inputNumber [ngModel]="outputQuantity()" (ngModelChange)="outputQuantity.set($event ?? 0)"
-          placeholder="Quantity" [minFractionDigits]="0" [maxFractionDigits]="2" [style]="{ width: '100%' }" />
+          [placeholder]="t('common.quantity')" [minFractionDigits]="0" [maxFractionDigits]="2" [style]="{ width: '100%' }" />
       </div>
       <div class="form-field">
-        <label>Output Unit *</label>
+        <label>{{ t('common.unit') }} *</label>
         <p-select [options]="units()" [ngModel]="outputUnitId()" (ngModelChange)="outputUnitId.set($event)"
           optionLabel="name" optionValue="id" placeholder="Select unit" [style]="{ width: '100%' }" />
       </div>
       <div class="form-field">
-        <label>Active</label>
+        <label>{{ t('common.active') }}</label>
         <p-toggleSwitch [ngModel]="isActive()" (ngModelChange)="isActive.set($event)" />
       </div>
     </div>
@@ -43,7 +43,7 @@
 
       <div class="form-grid">
         <div class="form-field">
-          <label>Production Stage *</label>
+          <label>{{ t('production.stages') }} *</label>
           <p-select [options]="availableStages()" [ngModel]="stage.stageId" (ngModelChange)="stage.stageId = $event"
             optionLabel="name" optionValue="id" placeholder="Select stage" [style]="{ width: '100%' }" />
         </div>
@@ -53,12 +53,12 @@
             [min]="1" [style]="{ width: '100%' }" />
         </div>
         <div class="form-field">
-          <label>Expected Output Qty</label>
+          <label>{{ t('production.outputQty') }}</label>
           <p-inputNumber [ngModel]="stage.expectedOutputQty" (ngModelChange)="stage.expectedOutputQty = $event"
             [minFractionDigits]="0" [maxFractionDigits]="2" placeholder="Optional" [style]="{ width: '100%' }" />
         </div>
         <div class="form-field">
-          <label>Output Product (Semi-finished)</label>
+          <label>{{ t('production.outputProduct') }}</label>
           <p-select [options]="products()" [ngModel]="stage.outputProductId" (ngModelChange)="stage.outputProductId = $event"
             optionLabel="name" optionValue="id" placeholder="Optional" [filter]="true" [showClear]="true" [style]="{ width: '100%' }" />
         </div>
@@ -85,11 +85,11 @@
           </div>
           <div class="input-field small">
             <p-inputNumber [ngModel]="input.quantity" (ngModelChange)="input.quantity = $event ?? 0"
-              placeholder="Qty" [minFractionDigits]="0" [maxFractionDigits]="2" [style]="{ width: '100%' }" />
+              [placeholder]="t('common.quantity')" [minFractionDigits]="0" [maxFractionDigits]="2" [style]="{ width: '100%' }" />
           </div>
           <div class="input-field small">
             <p-select [options]="units()" [ngModel]="input.unitId" (ngModelChange)="input.unitId = $event"
-              optionLabel="name" optionValue="id" placeholder="Unit" [style]="{ width: '100%' }" />
+              optionLabel="name" optionValue="id" [placeholder]="t('common.unit')" [style]="{ width: '100%' }" />
           </div>
           <p-button icon="pi pi-times" [rounded]="true" [text]="true" severity="danger" (onClick)="removeInput(i, j)" />
         </div>
@@ -97,22 +97,22 @@
 
       @if (stage.inputs.length === 0) {
         <div class="empty-state small">
-          <p>No inputs added for this stage</p>
+          <p>{{ t('common.noData') }}</p>
         </div>
       }
 
-      <p-button icon="pi pi-plus" label="Add Input" [text]="true" severity="secondary" (onClick)="addInput(i)" />
+      <p-button icon="pi pi-plus" [label]="t('production.addInput')" [text]="true" severity="secondary" (onClick)="addInput(i)" />
     </div>
   }
 
   <!-- Add Stage Button -->
   <div class="add-stage-btn">
-    <p-button icon="pi pi-plus" label="Add Stage" [outlined]="true" (onClick)="addStage()" [style]="{ width: '100%' }" />
+    <p-button icon="pi pi-plus" [label]="t('production.addStage')" [outlined]="true" (onClick)="addStage()" [style]="{ width: '100%' }" />
   </div>
 
   <!-- Action Bar -->
   <div class="action-bar">
-    <p-button label="Cancel" [text]="true" severity="secondary" (onClick)="goBack()" />
-    <p-button label="Create Recipe" icon="pi pi-check" (onClick)="submit()" [loading]="saving()" [disabled]="stages().length === 0" />
+    <p-button [label]="t('common.cancel')" [text]="true" severity="secondary" (onClick)="goBack()" />
+    <p-button [label]="t('production.createRecipe')" icon="pi pi-check" (onClick)="submit()" [loading]="saving()" [disabled]="stages().length === 0" />
   </div>
 </div>

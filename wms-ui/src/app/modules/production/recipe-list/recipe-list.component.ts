@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { TableModule } from 'primeng/table';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { ProductionService } from '../../../core/services/production.service';
@@ -14,7 +15,7 @@ import { ProductionRecipe } from '../../../core/models/production.model';
 @Component({
   selector: 'app-recipe-list',
   standalone: true,
-  imports: [DecimalPipe, FormsModule, TableModule, Button, InputText, PageHeaderComponent, StatusBadgeComponent],
+  imports: [DecimalPipe, FormsModule, TableModule, Button, InputText, PageHeaderComponent, StatusBadgeComponent, TranslocoDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './recipe-list.component.html',
   styleUrl: './recipe-list.component.scss'

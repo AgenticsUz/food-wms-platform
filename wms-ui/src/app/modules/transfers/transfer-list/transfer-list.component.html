@@ -1,22 +1,22 @@
-<div class="page-enter">
-  <app-page-header title="Transfers" subtitle="Manage incoming, outgoing and internal transfers">
-    <p-button icon="pi pi-plus" label="New Transfer" (onClick)="createNew()" />
+<div class="page-enter" *transloco="let t">
+  <app-page-header [title]="t('transfer.transfers')" [subtitle]="t('transfer.manageTransfers')">
+    <p-button icon="pi pi-plus" [label]="t('transfer.newTransfer')" (onClick)="createNew()" />
   </app-page-header>
 
   <div class="filters-bar wms-card">
     <div class="filter-group">
       <p-select [options]="typeOptions" [ngModel]="typeFilter()" (ngModelChange)="typeFilter.set($event); onFilterChange()"
-        optionLabel="label" optionValue="value" placeholder="Type" [style]="{ minWidth: '160px' }" />
+        optionLabel="label" optionValue="value" [placeholder]="t('common.type')" [style]="{ minWidth: '160px' }" />
     </div>
     <div class="filter-group">
       <p-select [options]="statusOptions" [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event); onFilterChange()"
-        optionLabel="label" optionValue="value" placeholder="Status" [style]="{ minWidth: '160px' }" />
+        optionLabel="label" optionValue="value" [placeholder]="t('common.status')" [style]="{ minWidth: '160px' }" />
     </div>
     <div class="filter-group">
-      <p-datepicker [ngModel]="dateFrom()" (ngModelChange)="dateFrom.set($event); onFilterChange()" dateFormat="yy-mm-dd" [showIcon]="true" placeholder="From" />
+      <p-datepicker [ngModel]="dateFrom()" (ngModelChange)="dateFrom.set($event); onFilterChange()" dateFormat="yy-mm-dd" [showIcon]="true" [placeholder]="t('common.from')" />
     </div>
     <div class="filter-group">
-      <p-datepicker [ngModel]="dateTo()" (ngModelChange)="dateTo.set($event); onFilterChange()" dateFormat="yy-mm-dd" [showIcon]="true" placeholder="To" />
+      <p-datepicker [ngModel]="dateTo()" (ngModelChange)="dateTo.set($event); onFilterChange()" dateFormat="yy-mm-dd" [showIcon]="true" [placeholder]="t('common.to')" />
     </div>
   </div>
 
@@ -26,12 +26,12 @@
       <ng-template #header>
         <tr>
           <th>ID</th>
-          <th>Type</th>
-          <th>Counterparty / Warehouse</th>
-          <th class="text-right">Amount</th>
-          <th>Status</th>
-          <th pSortableColumn="createdAt">Date <p-sortIcon field="createdAt" /></th>
-          <th class="text-center">Actions</th>
+          <th>{{ t('common.type') }}</th>
+          <th>{{ t('transfer.counterparty') }}</th>
+          <th class="text-right">{{ t('common.amount') }}</th>
+          <th>{{ t('common.status') }}</th>
+          <th pSortableColumn="createdAt">{{ t('common.date') }} <p-sortIcon field="createdAt" /></th>
+          <th class="text-center">{{ t('common.actions') }}</th>
         </tr>
       </ng-template>
       <ng-template #body let-t>
@@ -50,7 +50,7 @@
         </tr>
       </ng-template>
       <ng-template #emptymessage>
-        <tr><td colspan="7"><div class="empty-state"><i class="pi pi-arrow-right-arrow-left"></i><p>No transfers found</p></div></td></tr>
+        <tr><td colspan="7"><div class="empty-state"><i class="pi pi-arrow-right-arrow-left"></i><p>{{ t('transfer.noTransfers') }}</p></div></td></tr>
       </ng-template>
     </p-table>
   </div>

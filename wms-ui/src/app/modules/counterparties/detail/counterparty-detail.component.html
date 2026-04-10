@@ -1,6 +1,6 @@
-<div class="page-enter">
-  <app-page-header [title]="counterparty()?.name ?? 'Counterparty'" [subtitle]="counterparty() ? getTypeName(counterparty()!.type) : ''">
-    <p-button icon="pi pi-arrow-left" label="Back" [text]="true" (onClick)="goBack()" />
+<div class="page-enter" *transloco="let t">
+  <app-page-header [title]="counterparty()?.name ?? t('nav.counterparties')" [subtitle]="counterparty() ? getTypeName(counterparty()!.type) : ''">
+    <p-button icon="pi pi-arrow-left" [label]="t('common.back')" [text]="true" (onClick)="goBack()" />
   </app-page-header>
 
   @if (loading()) {
@@ -13,27 +13,27 @@
     <!-- Info cards -->
     <div class="detail-grid">
       <div class="wms-card detail-card">
-        <p class="detail-card-title">Balance</p>
+        <p class="detail-card-title">{{ t('partners.balance') }}</p>
         <p class="detail-card-value" [class.text-danger]="(balance()?.debtAmount ?? 0) < 0" [class.text-success]="(balance()?.debtAmount ?? 0) > 0">
           {{ (balance()?.debtAmount ?? 0) | number:'1.0-2' }}
         </p>
         <p class="detail-card-hint">
-          @if ((balance()?.debtAmount ?? 0) > 0) { They owe us }
-          @else if ((balance()?.debtAmount ?? 0) < 0) { We owe them }
-          @else { No debt }
+          @if ((balance()?.debtAmount ?? 0) > 0) { {{ t('finance.theyOweUs') }} }
+          @else if ((balance()?.debtAmount ?? 0) < 0) { {{ t('finance.weOweThem') }} }
+          @else { {{ t('finance.noDebt') }} }
         </p>
       </div>
       <div class="wms-card detail-card">
-        <p class="detail-card-title">Phone</p>
+        <p class="detail-card-title">{{ t('common.phone') }}</p>
         <p class="detail-card-value small">{{ counterparty()?.phone || '—' }}</p>
       </div>
       <div class="wms-card detail-card">
-        <p class="detail-card-title">Portal</p>
+        <p class="detail-card-title">{{ t('partners.portal') }}</p>
         <p class="detail-card-value small">
           @if (counterparty()?.portalEnabled) {
-            <span class="badge-success">Active</span>
+            <span class="badge-success">{{ t('common.active') }}</span>
           } @else {
-            <span class="badge-neutral">Disabled</span>
+            <span class="badge-neutral">{{ t('common.inactive') }}</span>
           }
         </p>
       </div>
@@ -42,24 +42,24 @@
     @if (counterparty()?.address || counterparty()?.note) {
       <div class="wms-card section-card info-section">
         @if (counterparty()?.address) {
-          <p><strong>Address:</strong> {{ counterparty()!.address }}</p>
+          <p><strong>{{ t('common.address') }}:</strong> {{ counterparty()!.address }}</p>
         }
         @if (counterparty()?.note) {
-          <p><strong>Note:</strong> {{ counterparty()!.note }}</p>
+          <p><strong>{{ t('common.note') }}:</strong> {{ counterparty()!.note }}</p>
         }
       </div>
     }
 
     <!-- Transfer History -->
     <div class="wms-card section-card">
-      <h3 class="section-title">Transfer History</h3>
+      <h3 class="section-title">{{ t('partners.transferHistory') }}</h3>
       <p-table [value]="transfers()" [paginator]="true" [rows]="10" [scrollable]="true" styleClass="p-datatable-sm p-datatable-striped">
         <ng-template #header>
           <tr>
-            <th>Type</th>
-            <th class="text-right">Amount</th>
-            <th>Status</th>
-            <th>Date</th>
+            <th>{{ t('common.type') }}</th>
+            <th class="text-right">{{ t('common.amount') }}</th>
+            <th>{{ t('common.status') }}</th>
+            <th>{{ t('common.date') }}</th>
           </tr>
         </ng-template>
         <ng-template #body let-t>
@@ -73,21 +73,21 @@
           </tr>
         </ng-template>
         <ng-template #emptymessage>
-          <tr><td colspan="4"><div class="empty-state"><i class="pi pi-arrow-right-arrow-left"></i><p>No transfers</p></div></td></tr>
+          <tr><td colspan="4"><div class="empty-state"><i class="pi pi-arrow-right-arrow-left"></i><p>{{ t('partners.noTransfers') }}</p></div></td></tr>
         </ng-template>
       </p-table>
     </div>
 
     <!-- Payment History -->
     <div class="wms-card section-card">
-      <h3 class="section-title">Payment History</h3>
+      <h3 class="section-title">{{ t('partners.paymentHistory') }}</h3>
       <p-table [value]="payments()" [paginator]="true" [rows]="10" [scrollable]="true" styleClass="p-datatable-sm p-datatable-striped">
         <ng-template #header>
           <tr>
-            <th class="text-right">Amount</th>
-            <th>Method</th>
-            <th>Date</th>
-            <th>Note</th>
+            <th class="text-right">{{ t('common.amount') }}</th>
+            <th>{{ t('finance.paymentMethod') }}</th>
+            <th>{{ t('common.date') }}</th>
+            <th>{{ t('common.note') }}</th>
           </tr>
         </ng-template>
         <ng-template #body let-p>
@@ -99,7 +99,7 @@
           </tr>
         </ng-template>
         <ng-template #emptymessage>
-          <tr><td colspan="4"><div class="empty-state"><i class="pi pi-wallet"></i><p>No payments</p></div></td></tr>
+          <tr><td colspan="4"><div class="empty-state"><i class="pi pi-wallet"></i><p>{{ t('partners.noPayments') }}</p></div></td></tr>
         </ng-template>
       </p-table>
     </div>

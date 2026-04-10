@@ -1,6 +1,7 @@
 import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { DecimalPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { TableModule } from 'primeng/table';
 import { DatePicker } from 'primeng/datepicker';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
@@ -12,7 +13,7 @@ import { StockMovement } from '../../../core/models/warehouse.model';
 @Component({
   selector: 'app-movements',
   standalone: true,
-  imports: [DecimalPipe, DatePipe, FormsModule, TableModule, DatePicker, PageHeaderComponent, StatusBadgeComponent],
+  imports: [DecimalPipe, DatePipe, FormsModule, TranslocoDirective, TableModule, DatePicker, PageHeaderComponent, StatusBadgeComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './movements.component.html',
   styleUrl: './movements.component.scss'

@@ -1,6 +1,7 @@
 import { Component, inject, signal, computed, ChangeDetectionStrategy, output } from '@angular/core';
 import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { TranslocoDirective } from '@jsverse/transloco';
+import { TranslocoService } from '@jsverse/transloco';
 import { TenantService } from '../../core/services/tenant.service';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../shared/services/notification.service';
@@ -31,6 +32,7 @@ export class SidebarComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
   private notify = inject(NotificationService);
+  private transloco = inject(TranslocoService);
 
   collapsed = signal(false);
   collapseToggled = output<boolean>();
@@ -152,8 +154,8 @@ export class SidebarComponent {
 
   logout() {
     this.notify.confirmAction(
-      'Tizimdan chiqmoqchimisiz?',
-      'Chiqish',
+      this.transloco.translate('auth.confirmLogout'),
+      this.transloco.translate('auth.logoutTitle'),
       () => this.authService.logout()
     );
   }

@@ -1,6 +1,7 @@
 import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { TableModule } from 'primeng/table';
 import { Select } from 'primeng/select';
 import { InputText } from 'primeng/inputtext';
@@ -13,7 +14,7 @@ import { Warehouse, WarehouseStockRow } from '../../../core/models/warehouse.mod
 @Component({
   selector: 'app-stock-overview',
   standalone: true,
-  imports: [DecimalPipe, FormsModule, TableModule, Select, InputText, PageHeaderComponent, StatusBadgeComponent],
+  imports: [DecimalPipe, FormsModule, TranslocoDirective, TableModule, Select, InputText, PageHeaderComponent, StatusBadgeComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './stock-overview.component.html',
   styleUrl: './stock-overview.component.scss'

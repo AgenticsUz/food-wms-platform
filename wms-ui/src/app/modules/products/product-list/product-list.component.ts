@@ -7,6 +7,7 @@ import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { Dialog } from 'primeng/dialog';
 import { InputNumber } from 'primeng/inputnumber';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { ProductService } from '../../../core/services/product.service';
@@ -18,7 +19,7 @@ import { Product, ProductCreateDto, ProductType, Category, Unit } from '../../..
   standalone: true,
   imports: [
     DecimalPipe, FormsModule, TableModule, Button, InputText, Select,
-    Dialog, InputNumber, PageHeaderComponent, StatusBadgeComponent
+    Dialog, InputNumber, TranslocoDirective, PageHeaderComponent, StatusBadgeComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './product-list.component.html',

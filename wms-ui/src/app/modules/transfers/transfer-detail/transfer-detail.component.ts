@@ -1,6 +1,7 @@
 import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { DecimalPipe, DatePipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { TableModule } from 'primeng/table';
 import { Button } from 'primeng/button';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
@@ -12,7 +13,7 @@ import { Transfer, TransferType, TransferStatus } from '../../../core/models/tra
 @Component({
   selector: 'app-transfer-detail',
   standalone: true,
-  imports: [DecimalPipe, DatePipe, TableModule, Button, PageHeaderComponent, StatusBadgeComponent],
+  imports: [DecimalPipe, DatePipe, TranslocoDirective, TableModule, Button, PageHeaderComponent, StatusBadgeComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './transfer-detail.component.html',
   styleUrl: './transfer-detail.component.scss'
