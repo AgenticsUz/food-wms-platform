@@ -1,0 +1,9 @@
+@use '../../../shared/styles/module-common';
+
+.clickable {
+  cursor: pointer;
+  &:hover { color: var(--primary-600); text-decoration: underline; }
+}
+
+.badge-success { background: #d1fae5; color: #065f46; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+.badge-neutral { background: #f1f5f9; color: #475569; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }

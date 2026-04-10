@@ -1,0 +1,99 @@
+<div class="page-enter">
+  <app-page-header [title]="'Transfer #' + (transfer()?.id ?? '')" [subtitle]="transfer() ? getTypeName(transfer()!.type) : ''">
+    <p-button icon="pi pi-arrow-left" label="Back" [text]="true" (onClick)="goBack()" />
+  </app-page-header>
+
+  @if (loading()) {
+    <div class="detail-grid">
+      @for (i of [1,2,3,4]; track i) {
+        <div class="wms-card detail-card"><div class="skeleton" style="height:60px;width:100%"></div></div>
+      }
+    </div>
+  } @else if (transfer(); as t) {
+    <!-- Info cards -->
+    <div class="detail-grid">
+      <div class="wms-card detail-card">
+        <p class="detail-card-title">Status</p>
+        <app-status-badge [status]="getStatusKey(t.status)" [label]="getStatusName(t.status)" />
+      </div>
+      <div class="wms-card detail-card">
+        <p class="detail-card-title">Total Amount</p>
+        <p class="detail-card-value">{{ t.totalAmount | number:'1.0-2' }}</p>
+      </div>
+      <div class="wms-card detail-card">
+        <p class="detail-card-title">Counterparty</p>
+        <p class="detail-card-value small">{{ t.counterpartyName || '—' }}</p>
+      </div>
+      <div class="wms-card detail-card">
+        <p class="detail-card-title">Date</p>
+        <p class="detail-card-value small">{{ t.createdAt | date:'MMM d, yyyy HH:mm' }}</p>
+      </div>
+    </div>
+
+    <!-- Warehouse info -->
+    <div class="wms-card section-card info-row">
+      @if (t.fromWarehouseName) {
+        <div class="info-item">
+          <span class="info-label">From:</span>
+          <span class="info-value">{{ t.fromWarehouseName }}</span>
+        </div>
+      }
+      @if (t.toWarehouseName) {
+        <div class="info-item">
+          <span class="info-label">To:</span>
+          <span class="info-value">{{ t.toWarehouseName }}</span>
+        </div>
+      }
+      @if (t.note) {
+        <div class="info-item">
+          <span class="info-label">Note:</span>
+          <span class="info-value">{{ t.note }}</span>
+        </div>
+      }
+      @if (t.createdByUserName) {
+        <div class="info-item">
+          <span class="info-label">Created by:</span>
+          <span class="info-value">{{ t.createdByUserName }}</span>
+        </div>
+      }
+    </div>
+
+    <!-- Items table -->
+    <div class="wms-card section-card">
+      <h3 class="section-title">Items</h3>
+      <p-table [value]="t.items" [scrollable]="true" styleClass="p-datatable-sm p-datatable-striped">
+        <ng-template #header>
+          <tr>
+            <th>Product</th>
+            <th>Lot</th>
+            <th class="text-right">Quantity</th>
+            <th class="text-right">Unit Price</th>
+            <th class="text-right">Total</th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-item>
+          <tr>
+            <td><span class="item-name">{{ item.productName || 'Product #' + item.productId }}</span></td>
+            <td><span class="lot-number">{{ item.lotNumber || '—' }}</span></td>
+            <td class="text-right"><span class="number">{{ item.quantity | number:'1.0-2' }}</span></td>
+            <td class="text-right"><span class="number">{{ item.unitPrice | number:'1.0-2' }}</span></td>
+            <td class="text-right"><span class="number">{{ (item.totalPrice ?? item.quantity * item.unitPrice) | number:'1.0-2' }}</span></td>
+          </tr>
+        </ng-template>
+        <ng-template #emptymessage>
+          <tr><td colspan="5"><div class="empty-state"><i class="pi pi-shopping-cart"></i><p>No items</p></div></td></tr>
+        </ng-template>
+      </p-table>
+    </div>
+
+    <!-- Action buttons -->
+    @if (isPending) {
+      <div class="action-bar">
+        <p-button label="Reject" icon="pi pi-times" severity="danger" [outlined]="true"
+          (onClick)="reject()" [loading]="rejecting()" />
+        <p-button label="Confirm Transfer" icon="pi pi-check" severity="success"
+          (onClick)="confirm()" [loading]="confirming()" />
+      </div>
+    }
+  }
+</div>

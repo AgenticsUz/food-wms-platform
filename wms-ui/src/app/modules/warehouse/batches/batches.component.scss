@@ -1,0 +1,7 @@
+@use '../../../shared/styles/module-common';
+
+.lot-number {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: var(--text-secondary);
+}

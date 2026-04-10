@@ -147,3 +147,4 @@ C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.API\obj\D
 C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.API\obj\Debug\net8.0\staticwebassets\msbuild.buildMultiTargeting.WMS.API.props
 C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.API\obj\Debug\net8.0\staticwebassets\msbuild.buildTransitive.WMS.API.props
 C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.API\obj\Debug\net8.0\staticwebassets.pack.json
+C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.API\obj\Debug\net8.0\WMS.API.sourcelink.json

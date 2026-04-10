@@ -1,0 +1,119 @@
+<div class="page-enter">
+  <app-page-header title="New Transfer" subtitle="Create a new stock transfer">
+    <p-button icon="pi pi-arrow-left" label="Back" [text]="true" (onClick)="goBack()" />
+  </app-page-header>
+
+  <!-- Transfer Type & Headers -->
+  <div class="wms-card section-card">
+    <div class="form-grid">
+      <div class="form-field full-width">
+        <label>Transfer Type *</label>
+        <p-select [options]="typeOptions" [ngModel]="transferType()" (ngModelChange)="transferType.set($event)"
+          optionLabel="label" optionValue="value" [style]="{ width: '100%' }" />
+      </div>
+
+      @if (isIncoming || isOutgoing) {
+        <div class="form-field">
+          <label>{{ isIncoming ? 'Supplier' : 'Client' }} *</label>
+          <p-select [options]="filteredCounterparties" [ngModel]="counterpartyId()" (ngModelChange)="counterpartyId.set($event)"
+            optionLabel="name" optionValue="id" [placeholder]="'Select ' + (isIncoming ? 'supplier' : 'client')" [filter]="true" [style]="{ width: '100%' }" />
+        </div>
+      }
+
+      @if (isIncoming) {
+        <div class="form-field">
+          <label>Destination Warehouse *</label>
+          <p-select [options]="warehouses()" [ngModel]="toWarehouseId()" (ngModelChange)="toWarehouseId.set($event)"
+            optionLabel="name" optionValue="id" placeholder="Select warehouse" [style]="{ width: '100%' }" />
+        </div>
+      }
+
+      @if (isOutgoing) {
+        <div class="form-field">
+          <label>Source Warehouse *</label>
+          <p-select [options]="warehouses()" [ngModel]="fromWarehouseId()" (ngModelChange)="fromWarehouseId.set($event)"
+            optionLabel="name" optionValue="id" placeholder="Select warehouse" [style]="{ width: '100%' }" />
+        </div>
+      }
+
+      @if (isInternal) {
+        <div class="form-field">
+          <label>From Warehouse *</label>
+          <p-select [options]="warehouses()" [ngModel]="fromWarehouseId()" (ngModelChange)="fromWarehouseId.set($event)"
+            optionLabel="name" optionValue="id" placeholder="Source warehouse" [style]="{ width: '100%' }" />
+        </div>
+        <div class="form-field">
+          <label>To Warehouse *</label>
+          <p-select [options]="warehouses()" [ngModel]="toWarehouseId()" (ngModelChange)="toWarehouseId.set($event)"
+            optionLabel="name" optionValue="id" placeholder="Destination warehouse" [style]="{ width: '100%' }" />
+        </div>
+      }
+
+      <div class="form-field full-width">
+        <label>Note</label>
+        <textarea pTextarea [ngModel]="note()" (ngModelChange)="note.set($event)" class="w-full" rows="2" placeholder="Optional notes..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Items -->
+  <div class="wms-card section-card">
+    <h3 class="section-title">Items</h3>
+    <div class="add-item-row">
+      <div class="add-item-field">
+        <p-select [options]="products()" [ngModel]="itemProductId()" (ngModelChange)="itemProductId.set($event)"
+          optionLabel="name" optionValue="id" placeholder="Select product" [filter]="true" [style]="{ width: '100%' }" />
+      </div>
+      <div class="add-item-field small">
+        <p-inputNumber [ngModel]="itemQuantity()" (ngModelChange)="itemQuantity.set($event ?? 0)"
+          placeholder="Qty" [minFractionDigits]="0" [maxFractionDigits]="2" [style]="{ width: '100%' }" />
+      </div>
+      <div class="add-item-field small">
+        <p-inputNumber [ngModel]="itemUnitPrice()" (ngModelChange)="itemUnitPrice.set($event ?? 0)"
+          placeholder="Price" [minFractionDigits]="0" [maxFractionDigits]="2" mode="decimal" [style]="{ width: '100%' }" />
+      </div>
+      <p-button icon="pi pi-plus" label="Add" (onClick)="addItem()" />
+    </div>
+
+    @if (items().length > 0) {
+      <p-table [value]="items()" styleClass="p-datatable-sm p-datatable-striped" class="items-table">
+        <ng-template #header>
+          <tr>
+            <th>Product</th>
+            <th class="text-right">Quantity</th>
+            <th class="text-right">Unit Price</th>
+            <th class="text-right">Total</th>
+            <th class="text-center">Remove</th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-item let-i="rowIndex">
+          <tr>
+            <td><span class="item-name">{{ item.productName || 'Product #' + item.productId }}</span></td>
+            <td class="text-right"><span class="number">{{ item.quantity | number:'1.0-2' }}</span></td>
+            <td class="text-right"><span class="number">{{ item.unitPrice | number:'1.0-2' }}</span></td>
+            <td class="text-right"><span class="number">{{ item.quantity * item.unitPrice | number:'1.0-2' }}</span></td>
+            <td class="text-center">
+              <p-button icon="pi pi-times" [rounded]="true" [text]="true" severity="danger" (onClick)="removeItem(i)" />
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+
+      <div class="total-row">
+        <span class="total-label">Total:</span>
+        <span class="total-value number">{{ totalAmount | number:'1.0-2' }}</span>
+      </div>
+    } @else {
+      <div class="empty-state">
+        <i class="pi pi-shopping-cart"></i>
+        <p>No items added yet</p>
+      </div>
+    }
+  </div>
+
+  <!-- Submit -->
+  <div class="action-bar">
+    <p-button label="Cancel" [text]="true" severity="secondary" (onClick)="goBack()" />
+    <p-button label="Create Transfer" icon="pi pi-check" (onClick)="submit()" [loading]="saving()" [disabled]="items().length === 0" />
+  </div>
+</div>

@@ -25,7 +25,7 @@ Each tenant (factory) can enable or disable modules based on their needs.
 
 | Layer | Technology |
 |---|---|
-| Backend | .NET 8, ASP.NET Core Web API (port: 7040) |
+| Backend | .NET 8 LTS, ASP.NET Core Web API (port: 7040) |
 | ORM | Entity Framework Core 8 |
 | Database | SQLite (MVP) |
 | Auth | JWT Bearer Tokens |
@@ -637,7 +637,17 @@ frontend/.angular/
 *.user
 ```
 
-### Git init
+### global.json (REQUIRED — prevents SDK version conflicts)
+Create next to WMS.sln:
+```json
+{
+  "sdk": {
+    "version": "8.0.417",
+    "rollForward": "latestPatch"
+  }
+}
+```
+> This locks the project to .NET 8 SDK. Never remove this file.
 ```bash
 cd wms
 git init

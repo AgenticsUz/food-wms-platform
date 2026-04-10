@@ -1,0 +1,55 @@
+<div class="page-enter">
+  <app-page-header title="Locations" subtitle="Manage warehouse bins and shelves">
+    <p-button icon="pi pi-plus" label="Add Location" (onClick)="openNew()" />
+  </app-page-header>
+
+  <div class="wms-card table-wrapper">
+    <p-table [value]="locations()" [loading]="loading()" [paginator]="true" [rows]="20"
+      [rowsPerPageOptions]="[10, 20, 50]" [scrollable]="true" styleClass="p-datatable-sm p-datatable-striped">
+      <ng-template #header>
+        <tr>
+          <th pSortableColumn="name">Name <p-sortIcon field="name" /></th>
+          <th>Code</th>
+          <th>Warehouse</th>
+          <th class="text-center">Actions</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-loc>
+        <tr>
+          <td><span class="item-name">{{ loc.name }}</span></td>
+          <td><span class="code-text">{{ loc.code || '—' }}</span></td>
+          <td>{{ loc.warehouseName || '—' }}</td>
+          <td class="text-center actions-cell">
+            <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info" (onClick)="openEdit(loc)" />
+            <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" (onClick)="deleteLocation(loc)" />
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr><td colspan="4"><div class="empty-state"><i class="pi pi-map-marker"></i><p>No locations found</p></div></td></tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>
+
+<p-dialog [header]="editing() ? 'Edit Location' : 'New Location'" [(visible)]="dialogVisible" [modal]="true" [style]="{ width: '440px' }" [draggable]="false">
+  <div class="form-col">
+    <div class="form-field">
+      <label>Warehouse *</label>
+      <p-select [options]="warehouses()" [ngModel]="form().warehouseId" (ngModelChange)="updateForm('warehouseId', $event)"
+        optionLabel="name" optionValue="id" placeholder="Select warehouse" [style]="{ width: '100%' }" />
+    </div>
+    <div class="form-field">
+      <label>Name *</label>
+      <input pInputText [ngModel]="form().name" (ngModelChange)="updateForm('name', $event)" class="w-full" placeholder="e.g. Freezer A-1" />
+    </div>
+    <div class="form-field">
+      <label>Code</label>
+      <input pInputText [ngModel]="form().code ?? ''" (ngModelChange)="updateForm('code', $event || null)" class="w-full" placeholder="e.g. A1" />
+    </div>
+  </div>
+  <ng-template #footer>
+    <p-button label="Cancel" [text]="true" (onClick)="dialogVisible.set(false)" />
+    <p-button [label]="editing() ? 'Update' : 'Create'" icon="pi pi-check" (onClick)="save()" [loading]="saving()" />
+  </ng-template>
+</p-dialog>

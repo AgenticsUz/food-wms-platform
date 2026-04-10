@@ -1,0 +1,84 @@
+<div class="page-enter">
+  <app-page-header title="Suppliers" subtitle="Manage your suppliers">
+    <p-button icon="pi pi-plus" label="Add Supplier" (onClick)="openNew()" />
+  </app-page-header>
+
+  <div class="filters-bar wms-card">
+    <div class="filter-group">
+      <span class="p-input-icon-left">
+        <i class="pi pi-search"></i>
+        <input pInputText placeholder="Search suppliers..." [ngModel]="search()" (ngModelChange)="onSearch($event)" />
+      </span>
+    </div>
+  </div>
+
+  <div class="wms-card table-wrapper">
+    <p-table [value]="filtered()" [loading]="loading()" [paginator]="true" [rows]="15"
+      [rowsPerPageOptions]="[10, 15, 25, 50]" [scrollable]="true" styleClass="p-datatable-sm p-datatable-striped">
+      <ng-template #header>
+        <tr>
+          <th pSortableColumn="name">Name <p-sortIcon field="name" /></th>
+          <th>Phone</th>
+          <th>Address</th>
+          <th class="text-center">Portal</th>
+          <th class="text-center">Actions</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-item>
+        <tr>
+          <td><span class="item-name clickable" (click)="viewDetail(item)">{{ item.name }}</span></td>
+          <td>{{ item.phone || '—' }}</td>
+          <td>{{ item.address || '—' }}</td>
+          <td class="text-center">
+            @if (item.portalEnabled) {
+              <span class="badge-success">Active</span>
+            } @else {
+              <span class="badge-neutral">Off</span>
+            }
+          </td>
+          <td class="text-center actions-cell">
+            <p-button icon="pi pi-eye" [rounded]="true" [text]="true" severity="secondary" (onClick)="viewDetail(item)" />
+            <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info" (onClick)="openEdit(item)" />
+            <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" (onClick)="deleteItem(item)" />
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr><td colspan="5"><div class="empty-state"><i class="pi pi-truck"></i><p>No suppliers found</p></div></td></tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>
+
+<p-dialog [header]="editing() ? 'Edit Supplier' : 'New Supplier'" [(visible)]="dialogVisible" [modal]="true" [style]="{ width: '520px' }" [draggable]="false">
+  <div class="form-grid">
+    <div class="form-field full-width">
+      <label>Name *</label>
+      <input pInputText [ngModel]="form().name" (ngModelChange)="updateForm('name', $event)" class="w-full" />
+    </div>
+    <div class="form-field">
+      <label>Phone</label>
+      <input pInputText [ngModel]="form().phone ?? ''" (ngModelChange)="updateForm('phone', $event || null)" class="w-full" />
+    </div>
+    <div class="form-field">
+      <label>Portal Phone</label>
+      <input pInputText [ngModel]="form().portalPhone ?? ''" (ngModelChange)="updateForm('portalPhone', $event || null)" class="w-full" />
+    </div>
+    <div class="form-field full-width">
+      <label>Address</label>
+      <input pInputText [ngModel]="form().address ?? ''" (ngModelChange)="updateForm('address', $event || null)" class="w-full" />
+    </div>
+    <div class="form-field full-width">
+      <label>Note</label>
+      <textarea pTextarea [ngModel]="form().note ?? ''" (ngModelChange)="updateForm('note', $event || null)" class="w-full" rows="3"></textarea>
+    </div>
+    <div class="form-field">
+      <label>Portal Access</label>
+      <p-toggleswitch [ngModel]="form().portalEnabled" (ngModelChange)="updateForm('portalEnabled', $event)" />
+    </div>
+  </div>
+  <ng-template #footer>
+    <p-button label="Cancel" [text]="true" (onClick)="dialogVisible.set(false)" />
+    <p-button [label]="editing() ? 'Update' : 'Create'" icon="pi pi-check" (onClick)="save()" [loading]="saving()" />
+  </ng-template>
+</p-dialog>
