@@ -111,17 +111,17 @@ public class FinanceService : IFinanceService
     {
         var income = await _db.Transactions
             .Where(t => t.TenantId == tenantId && t.Type == TransactionType.Income)
-            .SumAsync(t => (decimal?)t.Amount) ?? 0;
+            .SumAsync(t => (double)t.Amount);
         var expense = await _db.Transactions
             .Where(t => t.TenantId == tenantId && t.Type == TransactionType.Expense)
-            .SumAsync(t => (decimal?)t.Amount) ?? 0;
+            .SumAsync(t => (double)t.Amount);
         var debt = await _db.Debts.Where(d => d.TenantId == tenantId)
-            .SumAsync(d => (decimal?)d.Amount) ?? 0;
+            .SumAsync(d => (double)d.Amount);
 
         return new FinanceSummaryDto
         {
-            TotalIncome = income, TotalExpense = expense,
-            TotalDebt = debt, NetProfit = income - expense
+            TotalIncome = (decimal)income, TotalExpense = (decimal)expense,
+            TotalDebt = (decimal)debt, NetProfit = (decimal)(income - expense)
         };
     }
 }

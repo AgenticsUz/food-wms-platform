@@ -18,22 +18,22 @@ public class AnalyticsService : IAnalyticsService
         var lastMonthStart = monthStart.AddMonths(-1);
 
         var totalStock = await _db.WarehouseStocks
-            .Where(s => s.TenantId == tenantId).SumAsync(s => (decimal?)s.Quantity) ?? 0;
+            .Where(s => s.TenantId == tenantId).SumAsync(s => (double)s.Quantity);
         var activeOrders = await _db.ProductionOrders
             .Where(o => o.TenantId == tenantId && o.Status == ProductionOrderStatus.InProgress).CountAsync();
         var pendingTransfers = await _db.Transfers
             .Where(t => t.TenantId == tenantId && t.Status == TransferStatus.Pending).CountAsync();
         var monthRevenue = await _db.Transactions
             .Where(t => t.TenantId == tenantId && t.Type == TransactionType.Income && t.Date >= monthStart)
-            .SumAsync(t => (decimal?)t.Amount) ?? 0;
+            .SumAsync(t => (double)t.Amount);
         var lastMonthRevenue = await _db.Transactions
             .Where(t => t.TenantId == tenantId && t.Type == TransactionType.Income
                 && t.Date >= lastMonthStart && t.Date < monthStart)
-            .SumAsync(t => (decimal?)t.Amount) ?? 0;
+            .SumAsync(t => (double)t.Amount);
         var revenueChange = lastMonthRevenue > 0
-            ? Math.Round((monthRevenue - lastMonthRevenue) / lastMonthRevenue * 100, 1) : 0;
+            ? Math.Round(((decimal)monthRevenue - (decimal)lastMonthRevenue) / (decimal)lastMonthRevenue * 100, 1) : 0;
         var totalDebt = await _db.Debts
-            .Where(d => d.TenantId == tenantId).SumAsync(d => (decimal?)d.Amount) ?? 0;
+            .Where(d => d.TenantId == tenantId).SumAsync(d => (double)d.Amount);
 
         // Low stock count
         var products = await _db.Products.Where(p => p.TenantId == tenantId && p.MinStock > 0).ToListAsync();
@@ -42,24 +42,24 @@ public class AnalyticsService : IAnalyticsService
         {
             var stock = await _db.WarehouseStocks
                 .Where(s => s.TenantId == tenantId && s.ProductId == p.Id)
-                .SumAsync(s => (decimal?)s.Quantity) ?? 0;
-            if (stock <= p.MinStock) lowStockCount++;
+                .SumAsync(s => (double)s.Quantity);
+            if ((decimal)stock <= p.MinStock) lowStockCount++;
         }
 
         // Efficiency last 7 days
         var from7 = now.AddDays(-7);
         var plans = await _db.ShiftPlans.Where(p => p.TenantId == tenantId && p.Date >= from7)
-            .SumAsync(p => (decimal?)p.PlannedQuantity) ?? 0;
+            .SumAsync(p => (double)p.PlannedQuantity);
         var actuals = await _db.ShiftActuals.Where(a => a.TenantId == tenantId && a.Date >= from7)
-            .SumAsync(a => (decimal?)a.ActualQuantity) ?? 0;
+            .SumAsync(a => (double)a.ActualQuantity);
 
         return new DashboardSummaryDto
         {
-            TotalStockKg = totalStock, ActiveProductionOrders = activeOrders,
-            PendingTransfers = pendingTransfers, MonthlyRevenue = monthRevenue,
+            TotalStockKg = (decimal)totalStock, ActiveProductionOrders = activeOrders,
+            PendingTransfers = pendingTransfers, MonthlyRevenue = (decimal)monthRevenue,
             RevenueChangePercent = revenueChange, LowStockProductCount = lowStockCount,
-            OverallEfficiencyPercent = plans > 0 ? Math.Round(actuals / plans * 100, 1) : 0,
-            TotalDebt = totalDebt
+            OverallEfficiencyPercent = plans > 0 ? Math.Round((decimal)actuals / (decimal)plans * 100, 1) : 0,
+            TotalDebt = (decimal)totalDebt
         };
     }
 
@@ -96,8 +96,8 @@ public class AnalyticsService : IAnalyticsService
             .Select(g => new WasteByStageDto
             {
                 StageName = g.Key,
-                TotalActual = g.Sum(se => se.ActualQuantity),
-                TotalWaste = g.Sum(se => se.WasteQuantity)
+                TotalActual = (decimal)g.Sum(se => (double)se.ActualQuantity),
+                TotalWaste = (decimal)g.Sum(se => (double)se.WasteQuantity)
             }).ToListAsync();
     }
 
@@ -224,7 +224,7 @@ public class AnalyticsService : IAnalyticsService
             .Where(s => s.TenantId == tenantId)
             .Include(s => s.Product)
             .GroupBy(s => new { s.Product.Name, s.Product.Type })
-            .Select(g => new { g.Key.Name, g.Key.Type, Total = g.Sum(s => s.Quantity) })
+            .Select(g => new { g.Key.Name, g.Key.Type, Total = (decimal)g.Sum(s => (double)s.Quantity) })
             .ToListAsync();
 
         var grandTotal = stocks.Sum(s => s.Total);

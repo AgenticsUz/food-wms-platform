@@ -102,16 +102,16 @@ public class KpiService : IKpiService
         if (from.HasValue) { planQ = planQ.Where(p => p.Date >= from); actualQ = actualQ.Where(a => a.Date >= from); }
         if (to.HasValue) { planQ = planQ.Where(p => p.Date <= to); actualQ = actualQ.Where(a => a.Date <= to); }
 
-        var totalPlanned = await planQ.SumAsync(p => (decimal?)p.PlannedQuantity) ?? 0;
-        var totalActual = await actualQ.SumAsync(a => (decimal?)a.ActualQuantity) ?? 0;
-        var totalWaste = await actualQ.SumAsync(a => (decimal?)a.WasteQuantity) ?? 0;
+        var totalPlanned = await planQ.SumAsync(p => (double)p.PlannedQuantity);
+        var totalActual = await actualQ.SumAsync(a => (double)a.ActualQuantity);
+        var totalWaste = await actualQ.SumAsync(a => (double)a.WasteQuantity);
 
         return new KpiSummaryDto
         {
-            TotalPlanned = totalPlanned, TotalActual = totalActual,
-            EfficiencyPercent = totalPlanned > 0 ? Math.Round(totalActual / totalPlanned * 100, 1) : 0,
-            TotalWaste = totalWaste,
-            WastePercent = totalActual > 0 ? Math.Round(totalWaste / totalActual * 100, 1) : 0
+            TotalPlanned = (decimal)totalPlanned, TotalActual = (decimal)totalActual,
+            EfficiencyPercent = totalPlanned > 0 ? Math.Round((decimal)totalActual / (decimal)totalPlanned * 100, 1) : 0,
+            TotalWaste = (decimal)totalWaste,
+            WastePercent = totalActual > 0 ? Math.Round((decimal)totalWaste / (decimal)totalActual * 100, 1) : 0
         };
     }
 
