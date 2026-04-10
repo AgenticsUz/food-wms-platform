@@ -1,5 +1,5 @@
 import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { DecimalPipe, DatePipe } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 import { Select } from 'primeng/select';
@@ -8,12 +8,12 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { WarehouseService } from '../../../core/services/warehouse.service';
 import { NotificationService } from '../../../shared/services/notification.service';
-import { Warehouse, WarehouseStock } from '../../../core/models/warehouse.model';
+import { Warehouse, WarehouseStockRow } from '../../../core/models/warehouse.model';
 
 @Component({
   selector: 'app-stock-overview',
   standalone: true,
-  imports: [DecimalPipe, DatePipe, FormsModule, TableModule, Select, InputText, PageHeaderComponent, StatusBadgeComponent],
+  imports: [DecimalPipe, FormsModule, TableModule, Select, InputText, PageHeaderComponent, StatusBadgeComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './stock-overview.component.html',
   styleUrl: './stock-overview.component.scss'
@@ -24,8 +24,8 @@ export default class StockOverviewComponent implements OnInit {
 
   warehouses = signal<Warehouse[]>([]);
   selectedWarehouseId = signal<number | null>(null);
-  stock = signal<WarehouseStock[]>([]);
-  filtered = signal<WarehouseStock[]>([]);
+  stock = signal<WarehouseStockRow[]>([]);
+  filtered = signal<WarehouseStockRow[]>([]);
   loading = signal(true);
   search = signal('');
 
@@ -54,58 +54,43 @@ export default class StockOverviewComponent implements OnInit {
   loadStock() {
     this.loading.set(true);
     const whId = this.selectedWarehouseId();
-    const obs = whId
-      ? this.warehouseService.getStock(whId)
-      : this.warehouseService.getAllStock();
-    obs.subscribe({
-      next: (res) => {
-        const list = res.success && res.data ? res.data : [];
-        this.stock.set(list);
-        this.applyFilter();
-        this.loading.set(false);
-      },
-      error: () => { this.loading.set(false); this.notify.error('Failed to load stock'); }
-    });
+
+    if (whId) {
+      // Load stock for a specific warehouse
+      const wh = this.warehouses().find(w => w.id === whId);
+      if (!wh) { this.loading.set(false); return; }
+      this.warehouseService.getStockRows(wh).subscribe({
+        next: (rows) => {
+          this.stock.set(rows);
+          this.applyFilter();
+          this.loading.set(false);
+        },
+        error: () => { this.loading.set(false); this.notify.error('Failed to load stock'); }
+      });
+    } else {
+      // Load stock from ALL warehouses
+      this.warehouseService.getAllStockRows(this.warehouses()).subscribe({
+        next: (rows) => {
+          this.stock.set(rows);
+          this.applyFilter();
+          this.loading.set(false);
+        },
+        error: () => { this.loading.set(false); this.notify.error('Failed to load stock'); }
+      });
+    }
   }
 
   applyFilter() {
     const q = this.search().toLowerCase();
     this.filtered.set(q
-      ? this.stock().filter(s => s.productName.toLowerCase().includes(q) || s.lotNumber.toLowerCase().includes(q))
+      ? this.stock().filter(s => s.productName.toLowerCase().includes(q) || s.warehouseName.toLowerCase().includes(q))
       : this.stock());
   }
 
   onSearch(value: string) { this.search.set(value); this.applyFilter(); }
   onWarehouseChange(value: number | null) { this.selectedWarehouseId.set(value); this.loadStock(); }
 
-  isExpired(date: string | null): boolean {
-    if (!date) return false;
-    return new Date(date) < new Date();
-  }
-
-  isExpiringSoon(date: string | null): boolean {
-    if (!date) return false;
-    const d = new Date(date);
-    const now = new Date();
-    const diff = (d.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
-    return diff > 0 && diff <= 30;
-  }
-
-  getExpiryStatus(date: string | null): string {
-    if (!date) return 'Active';
-    if (this.isExpired(date)) return 'Cancelled';
-    if (this.isExpiringSoon(date)) return 'Pending';
-    return 'Active';
-  }
-
-  getExpiryLabel(date: string | null): string {
-    if (!date) return 'No expiry';
-    if (this.isExpired(date)) return 'Expired';
-    if (this.isExpiringSoon(date)) return 'Expiring';
-    return 'OK';
-  }
-
-  isLow(s: WarehouseStock): boolean {
-    return s.quantity <= 0;
+  isLow(s: WarehouseStockRow): boolean {
+    return s.availableQuantity <= 0;
   }
 }

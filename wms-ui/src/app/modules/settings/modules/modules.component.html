@@ -1,0 +1,31 @@
+<div class="page-enter">
+  <app-page-header title="Module Configuration" subtitle="Enable or disable modules for your tenant" />
+
+  <div class="wms-card module-list">
+    @if (loading()) {
+      <div class="loading-state">
+        <i class="pi pi-spin pi-spinner"></i>
+        <p>Loading modules...</p>
+      </div>
+    } @else if (modules().length === 0) {
+      <div class="empty-state">
+        <i class="pi pi-th-large"></i>
+        <p>No modules available</p>
+      </div>
+    } @else {
+      @for (module of modules(); track module.moduleId) {
+        <div class="module-row">
+          <div class="module-info">
+            <div class="module-name">{{ module.moduleName }}</div>
+            <div class="module-code">{{ module.moduleCode }}</div>
+          </div>
+          <p-toggleswitch
+            [ngModel]="module.isEnabled"
+            (ngModelChange)="onToggle(module, $event)"
+            [disabled]="saving()"
+          />
+        </div>
+      }
+    }
+  </div>
+</div>

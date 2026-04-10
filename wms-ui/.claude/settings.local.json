@@ -11,7 +11,9 @@
       "Bash(node -e \"const d=require\\('fs'\\).readFileSync\\('/dev/stdin','utf8'\\); const p=JSON.parse\\(d\\); console.log\\('version:', p.version\\); const keys = Object.keys\\(p.exports||{}\\); keys.filter\\(k=>!k.includes\\('package'\\)\\).forEach\\(k=>console.log\\(k\\)\\)\")",
       "Bash(node -e \"const p = require\\('@jsverse/transloco/package.json'\\); console.log\\('version:', p.version\\);\")",
       "Bash(grep \"export.*provideTransloco\\\\|export.*TranslocoHttpLoader\\\\|export.*TranslocoLoader\" node_modules/@jsverse/transloco/lib/*.d.ts)",
-      "Bash(npx ng:*)"
+      "Bash(npx ng:*)",
+      "Bash(ls \"C:\\\\Users\\\\g.turaqulov\\\\Desktop\\\\Personal-Project\\\\projects\\\\wms\\\\wms-ui\\\\src\\\\app\\\\modules\\\\settings\"/*/*.ts)",
+      "Bash(ls \"C:\\\\Users\\\\g.turaqulov\\\\Desktop\\\\Personal-Project\\\\projects\\\\wms\\\\wms-ui\\\\src\\\\app\\\\modules\\\\portal\"/*/*.ts)"
     ]
   }
 }

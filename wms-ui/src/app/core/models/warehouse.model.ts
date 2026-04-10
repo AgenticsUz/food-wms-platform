@@ -45,7 +45,18 @@ export interface Batch {
   createdAt: string;
 }
 
-export interface WarehouseStock {
+// Grouped stock from GET /api/warehouses/{id}/stock
+export interface WarehouseStockGrouped {
+  productId: number;
+  productName: string;
+  unitShortName: string;
+  totalQuantity: number;
+  reservedQuantity: number;
+  availableQuantity: number;
+}
+
+// Detailed stock from GET /api/warehouses/{id}/stock/detail
+export interface WarehouseStockDetail {
   id: number;
   warehouseId: number;
   warehouseName: string;
@@ -59,6 +70,18 @@ export interface WarehouseStock {
   quantity: number;
   reservedQuantity: number;
   unitShortName: string;
+}
+
+// Used by stock overview — enriched with warehouse info
+export interface WarehouseStockRow {
+  productId: number;
+  productName: string;
+  unitShortName: string;
+  totalQuantity: number;
+  reservedQuantity: number;
+  availableQuantity: number;
+  warehouseId: number;
+  warehouseName: string;
 }
 
 export interface StockMovement {

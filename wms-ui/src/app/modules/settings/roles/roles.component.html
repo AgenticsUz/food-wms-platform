@@ -1,0 +1,76 @@
+<div class="page-enter">
+  <app-page-header title="Roles" subtitle="Manage user roles">
+    <p-button icon="pi pi-plus" label="Add Role" (onClick)="openNew()" />
+  </app-page-header>
+
+  <div class="wms-card table-wrapper">
+    <p-table
+      [value]="roles()"
+      [loading]="loading()"
+      [paginator]="true"
+      [rows]="20"
+      [scrollable]="true"
+      styleClass="p-datatable-sm p-datatable-striped"
+    >
+      <ng-template #header>
+        <tr>
+          <th pSortableColumn="name">Name <p-sortIcon field="name" /></th>
+          <th>Description</th>
+          <th>Created</th>
+          <th class="text-center">Actions</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-role>
+        <tr>
+          <td>
+            <span class="item-name">{{ role.name }}</span>
+          </td>
+          <td>
+            <span class="text-muted">{{ role.description || '-' }}</span>
+          </td>
+          <td>{{ role.createdAt | date:'mediumDate' }}</td>
+          <td class="text-center actions-cell">
+            <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info" (onClick)="openEdit(role)" />
+            <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" (onClick)="deleteRole(role)" />
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="4">
+            <div class="empty-state">
+              <i class="pi pi-shield"></i>
+              <p>No roles found</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>
+
+<!-- Role Form Dialog -->
+<p-dialog
+  [header]="editing() ? 'Edit Role' : 'New Role'"
+  [(visible)]="dialogVisible"
+  [modal]="true"
+  [style]="{ width: '450px' }"
+  [draggable]="false"
+>
+  <div class="form-col">
+    <div class="form-field">
+      <label>Name *</label>
+      <input pInputText [ngModel]="form().name" (ngModelChange)="updateForm('name', $event)" class="w-full" placeholder="e.g. Admin" />
+    </div>
+
+    <div class="form-field">
+      <label>Description</label>
+      <textarea pTextarea [ngModel]="form().description" (ngModelChange)="updateForm('description', $event)" class="w-full" [rows]="3" placeholder="Optional description"></textarea>
+    </div>
+  </div>
+
+  <ng-template #footer>
+    <p-button label="Cancel" [text]="true" (onClick)="dialogVisible.set(false)" />
+    <p-button [label]="editing() ? 'Update' : 'Create'" icon="pi pi-check" (onClick)="save()" [loading]="saving()" />
+  </ng-template>
+</p-dialog>

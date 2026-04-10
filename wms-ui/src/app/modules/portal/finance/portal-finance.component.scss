@@ -1,0 +1,14 @@
+@use '../../../shared/styles/module-common';
+
+.balance-value {
+  color: var(--success);
+}
+
+.debt-value {
+  color: var(--danger);
+}
+
+.number {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 500;
+}

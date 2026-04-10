@@ -5,7 +5,7 @@
     <div class="filter-group">
       <span class="p-input-icon-left">
         <i class="pi pi-search"></i>
-        <input pInputText placeholder="Search by product or lot..." [ngModel]="search()" (ngModelChange)="onSearch($event)" />
+        <input pInputText placeholder="Search by product or warehouse..." [ngModel]="search()" (ngModelChange)="onSearch($event)" />
       </span>
     </div>
     <div class="filter-group">
@@ -26,35 +26,35 @@
       <ng-template #header>
         <tr>
           <th pSortableColumn="productName">Product <p-sortIcon field="productName" /></th>
-          <th>Lot Number</th>
           <th>Warehouse</th>
-          <th>Location</th>
-          <th class="text-right" pSortableColumn="quantity">Quantity <p-sortIcon field="quantity" /></th>
           <th>Unit</th>
-          <th>Expiry</th>
+          <th class="text-right" pSortableColumn="totalQuantity">Total Qty <p-sortIcon field="totalQuantity" /></th>
+          <th class="text-right">Reserved</th>
+          <th class="text-right" pSortableColumn="availableQuantity">Available <p-sortIcon field="availableQuantity" /></th>
           <th>Status</th>
         </tr>
       </ng-template>
       <ng-template #body let-s>
         <tr [class.row-alert]="isLow(s)">
           <td><span class="item-name">{{ s.productName }}</span></td>
-          <td><span class="lot-number">{{ s.lotNumber }}</span></td>
           <td>{{ s.warehouseName }}</td>
-          <td>{{ s.locationName }}</td>
-          <td class="text-right"><span class="number">{{ s.quantity | number:'1.0-2' }}</span></td>
           <td>{{ s.unitShortName }}</td>
-          <td>
-            @if (s.expiryDate) {
-              {{ s.expiryDate | date:'MMM d, yyyy' }}
-            } @else { — }
+          <td class="text-right"><span class="number">{{ s.totalQuantity | number:'1.0-2' }}</span></td>
+          <td class="text-right"><span class="number">{{ s.reservedQuantity | number:'1.0-2' }}</span></td>
+          <td class="text-right">
+            <span class="number" [class.text-danger]="isLow(s)">{{ s.availableQuantity | number:'1.0-2' }}</span>
           </td>
           <td>
-            <app-status-badge [status]="getExpiryStatus(s.expiryDate)" [label]="getExpiryLabel(s.expiryDate)" />
+            @if (isLow(s)) {
+              <app-status-badge status="Cancelled" label="Low Stock" />
+            } @else {
+              <app-status-badge status="Active" label="In Stock" />
+            }
           </td>
         </tr>
       </ng-template>
       <ng-template #emptymessage>
-        <tr><td colspan="8"><div class="empty-state"><i class="pi pi-box"></i><p>No stock data</p></div></td></tr>
+        <tr><td colspan="7"><div class="empty-state"><i class="pi pi-box"></i><p>No stock data</p></div></td></tr>
       </ng-template>
     </p-table>
   </div>

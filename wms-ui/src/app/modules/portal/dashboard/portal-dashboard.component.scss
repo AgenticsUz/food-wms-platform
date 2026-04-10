@@ -1,0 +1,17 @@
+@use '../../../shared/styles/module-common';
+
+.page-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 24px;
+}
+
+.debt-value {
+  color: var(--danger);
+}
+
+.number {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 500;
+}

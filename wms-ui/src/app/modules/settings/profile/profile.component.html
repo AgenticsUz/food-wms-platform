@@ -1,0 +1,46 @@
+<div class="page-enter">
+  <app-page-header title="My Profile" subtitle="Manage your account information" />
+
+  <!-- Profile Information -->
+  <div class="wms-card section-card">
+    <h3 class="section-title">Profile Information</h3>
+    <div class="form-grid">
+      <div class="form-field">
+        <label>Full Name *</label>
+        <input pInputText [ngModel]="fullName()" (ngModelChange)="fullName.set($event)" class="w-full" placeholder="Your full name" />
+      </div>
+
+      <div class="form-field">
+        <label>Phone *</label>
+        <input pInputText [ngModel]="phone()" (ngModelChange)="phone.set($event)" class="w-full" placeholder="Your phone number" />
+      </div>
+    </div>
+    <div class="form-actions">
+      <p-button label="Save Profile" icon="pi pi-check" (onClick)="saveProfile()" [loading]="saving()" />
+    </div>
+  </div>
+
+  <!-- Change Password -->
+  <div class="wms-card section-card">
+    <h3 class="section-title">Change Password</h3>
+    <div class="form-col password-form">
+      <div class="form-field">
+        <label>Current Password *</label>
+        <p-password [ngModel]="currentPassword()" (ngModelChange)="currentPassword.set($event)" [toggleMask]="true" [feedback]="false" styleClass="w-full" inputStyleClass="w-full" placeholder="Enter current password" />
+      </div>
+
+      <div class="form-field">
+        <label>New Password *</label>
+        <p-password [ngModel]="newPassword()" (ngModelChange)="newPassword.set($event)" [toggleMask]="true" [feedback]="true" styleClass="w-full" inputStyleClass="w-full" placeholder="Enter new password" />
+      </div>
+
+      <div class="form-field">
+        <label>Confirm Password *</label>
+        <p-password [ngModel]="confirmPassword()" (ngModelChange)="confirmPassword.set($event)" [toggleMask]="true" [feedback]="false" styleClass="w-full" inputStyleClass="w-full" placeholder="Confirm new password" />
+      </div>
+    </div>
+    <div class="form-actions">
+      <p-button label="Change Password" icon="pi pi-lock" (onClick)="changePassword()" [loading]="changingPassword()" severity="warn" />
+    </div>
+  </div>
+</div>

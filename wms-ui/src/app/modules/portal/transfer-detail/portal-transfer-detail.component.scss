@@ -1,0 +1,40 @@
+@use '../../../shared/styles/module-common';
+
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+
+  .section-title {
+    margin: 0;
+  }
+}
+
+.note-card {
+  padding: 20px;
+  margin-bottom: 20px;
+
+  &:hover {
+    transform: none;
+  }
+}
+
+.note-text {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.detail-card-label {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 4px 0 0;
+}
+
+.number {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 500;
+}

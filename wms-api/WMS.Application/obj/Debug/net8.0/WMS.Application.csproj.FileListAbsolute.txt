@@ -13,3 +13,4 @@ C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Applicati
 C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Application\obj\Debug\net8.0\refint\WMS.Application.dll
 C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Application\obj\Debug\net8.0\WMS.Application.pdb
 C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Application\obj\Debug\net8.0\ref\WMS.Application.dll
+C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Application\obj\Debug\net8.0\WMS.Application.sourcelink.json

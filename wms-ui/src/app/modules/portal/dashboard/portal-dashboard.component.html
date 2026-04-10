@@ -1,0 +1,52 @@
+<div class="page-enter">
+  <h1 class="page-title">Welcome, {{ counterpartyName }}</h1>
+
+  <div class="detail-grid">
+    <div class="wms-card detail-card">
+      <p class="detail-card-title">Balance</p>
+      <p class="detail-card-value">{{ finance()?.balance ?? 0 | number:'1.0-2' }}</p>
+    </div>
+    <div class="wms-card detail-card">
+      <p class="detail-card-title">Total Debt</p>
+      <p class="detail-card-value debt-value">{{ finance()?.totalDebt ?? 0 | number:'1.0-2' }}</p>
+    </div>
+  </div>
+
+  <div class="wms-card section-card">
+    <h3 class="section-title">Recent Transfers</h3>
+
+    @if (transfers().length > 0) {
+      <p-table [value]="transfers()" [loading]="loading()" styleClass="p-datatable-sm p-datatable-striped">
+        <ng-template #header>
+          <tr>
+            <th>ID</th>
+            <th>Type</th>
+            <th class="text-right">Amount</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th></th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-t>
+          <tr>
+            <td class="number">#{{ t.id }}</td>
+            <td>{{ getTypeName(t.type) }}</td>
+            <td class="text-right number">{{ t.totalAmount | number:'1.0-2' }}</td>
+            <td>
+              <app-status-badge [status]="getStatusLabel(t.status)" [label]="getStatusLabel(t.status)" />
+            </td>
+            <td>{{ t.createdAt | date:'mediumDate' }}</td>
+            <td>
+              <p-button icon="pi pi-eye" [text]="true" size="small" [routerLink]="['/portal/transfers', t.id]" />
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    } @else if (!loading()) {
+      <div class="empty-state">
+        <i class="pi pi-inbox"></i>
+        <p>No transfers yet</p>
+      </div>
+    }
+  </div>
+</div>

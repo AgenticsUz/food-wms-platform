@@ -116,9 +116,19 @@ public class TransferService : ITransferService
         var toWarehouseId = transfer.ToWarehouseId
             ?? throw new Exception("Incoming transfer must have a destination warehouse");
 
-        // Get first location in warehouse
-        var location = await _db.Locations.FirstOrDefaultAsync(l => l.WarehouseId == toWarehouseId)
-            ?? throw new Exception("No location found in destination warehouse");
+        // Get or create default location in warehouse
+        var location = await _db.Locations.FirstOrDefaultAsync(l => l.WarehouseId == toWarehouseId);
+        if (location == null)
+        {
+            location = new Location
+            {
+                WarehouseId = toWarehouseId,
+                Name = "Default",
+                Code = "DEF"
+            };
+            _db.Locations.Add(location);
+            await _db.SaveChangesAsync();
+        }
 
         foreach (var item in transfer.Items)
         {
@@ -138,13 +148,14 @@ public class TransferService : ITransferService
 
             item.BatchId = batch.Id;
 
-            // Add to stock
+            // Add to stock and save immediately
             _db.WarehouseStocks.Add(new WarehouseStock
             {
                 TenantId = tenantId, WarehouseId = toWarehouseId,
                 LocationId = location.Id, ProductId = item.ProductId,
                 BatchId = batch.Id, Quantity = item.Quantity
             });
+            await _db.SaveChangesAsync();
         }
     }
 

@@ -1,0 +1,34 @@
+# ===========================
+# .NET Backend (wms-api)
+# ===========================
+wms-api/bin/
+wms-api/obj/
+wms-api/*.db
+wms-api/*.db-shm
+wms-api/*.db-wal
+wms-api/**/*.db
+wms-api/.vs/
+
+# ===========================
+# Angular Frontend (wms-ui)
+# ===========================
+wms-ui/node_modules/
+wms-ui/dist/
+wms-ui/.angular/
+
+# ===========================
+# IDE
+# ===========================
+.idea/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# ===========================
+# OS
+# ===========================
+.DS_Store
+Thumbs.db
+desktop.ini

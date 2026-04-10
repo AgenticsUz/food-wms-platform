@@ -1,5 +1,7 @@
 <div class="page-enter">
-  <app-page-header title="Batches" subtitle="Track lots and expiry dates" />
+  <app-page-header title="Batches" subtitle="Track lots and expiry dates">
+    <p-button icon="pi pi-refresh" label="Refresh" [outlined]="true" (onClick)="loadBatches()" />
+  </app-page-header>
 
   <div class="filters-bar wms-card">
     <div class="filter-group">

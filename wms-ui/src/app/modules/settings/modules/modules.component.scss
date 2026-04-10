@@ -1,0 +1,53 @@
+@use '../../../shared/styles/module-common';
+
+.module-list {
+  padding: 0;
+  &:hover { transform: none; }
+}
+
+.module-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s ease;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background: var(--bg-muted);
+  }
+}
+
+.module-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.module-name {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text-primary);
+}
+
+.module-code {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+  color: var(--text-muted);
+  gap: 8px;
+
+  i { font-size: 24px; }
+  p { margin: 0; font-size: 14px; }
+}

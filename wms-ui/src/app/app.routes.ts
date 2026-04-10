@@ -63,12 +63,15 @@ export const routes: Routes = [
     children: [
       {
         path: 'login',
-        loadComponent: () => import('./modules/portal/portal-login.component')
+        loadComponent: () => import('./modules/portal/login/portal-login.component')
       },
       {
         path: '',
         canActivate: [portalGuard],
-        loadChildren: () => import('./modules/portal/portal.routes')
+        loadComponent: () => import('./modules/portal/layout/portal-layout.component'),
+        children: [
+          { path: '', loadChildren: () => import('./modules/portal/portal.routes') }
+        ]
       }
     ]
   }

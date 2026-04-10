@@ -3,6 +3,7 @@ import { DecimalPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 import { InputText } from 'primeng/inputtext';
+import { Button } from 'primeng/button';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { WarehouseService } from '../../../core/services/warehouse.service';
@@ -12,7 +13,7 @@ import { Batch } from '../../../core/models/warehouse.model';
 @Component({
   selector: 'app-batches',
   standalone: true,
-  imports: [DecimalPipe, DatePipe, FormsModule, TableModule, InputText, PageHeaderComponent, StatusBadgeComponent],
+  imports: [DecimalPipe, DatePipe, FormsModule, TableModule, InputText, Button, PageHeaderComponent, StatusBadgeComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './batches.component.html',
   styleUrl: './batches.component.scss'

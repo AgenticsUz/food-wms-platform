@@ -1,0 +1,55 @@
+<div class="page-enter">
+  <h2 class="section-title">My Transfers</h2>
+
+  <div class="wms-card filters-bar">
+    <div class="filter-group">
+      <label>From:</label>
+      <p-datepicker [ngModel]="dateFrom()" (ngModelChange)="dateFrom.set($event); onDateChange()" dateFormat="yy-mm-dd" [showIcon]="true" placeholder="Start date" />
+    </div>
+    <div class="filter-group">
+      <label>To:</label>
+      <p-datepicker [ngModel]="dateTo()" (ngModelChange)="dateTo.set($event); onDateChange()" dateFormat="yy-mm-dd" [showIcon]="true" placeholder="End date" />
+    </div>
+    <p-button label="Reset" icon="pi pi-times" [text]="true" size="small"
+              (onClick)="dateFrom.set(null); dateTo.set(null); onDateChange()" />
+  </div>
+
+  <div class="wms-card table-wrapper">
+    @if (transfers().length > 0) {
+      <p-table [value]="transfers()" [loading]="loading()" [paginator]="true" [rows]="10"
+               styleClass="p-datatable-sm p-datatable-striped">
+        <ng-template #header>
+          <tr>
+            <th>ID</th>
+            <th>Type</th>
+            <th>Counterparty</th>
+            <th class="text-right">Amount</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th></th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-t>
+          <tr>
+            <td class="number">#{{ t.id }}</td>
+            <td>{{ getTypeName(t.type) }}</td>
+            <td>{{ t.counterpartyName ?? '-' }}</td>
+            <td class="text-right number">{{ t.totalAmount | number:'1.0-2' }}</td>
+            <td>
+              <app-status-badge [status]="getStatusLabel(t.status)" [label]="getStatusLabel(t.status)" />
+            </td>
+            <td>{{ t.createdAt | date:'mediumDate' }}</td>
+            <td>
+              <p-button icon="pi pi-eye" [text]="true" size="small" [routerLink]="['/portal/transfers', t.id]" />
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    } @else if (!loading()) {
+      <div class="empty-state">
+        <i class="pi pi-inbox"></i>
+        <p>No transfers found</p>
+      </div>
+    }
+  </div>
+</div>

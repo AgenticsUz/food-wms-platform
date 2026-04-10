@@ -1,0 +1,16 @@
+@use '../../../shared/styles/module-common';
+
+.roles-text {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-field.full-width {
+  grid-column: 1 / -1;
+}

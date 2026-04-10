@@ -17,30 +17,78 @@
 
   <!-- Navigation -->
   <nav class="sidebar-nav">
-    @for (item of visibleNavItems(); track item.route) {
-      <a class="nav-item"
-         [routerLink]="item.route"
-         routerLinkActive="active"
-         [title]="collapsed() ? item.label : ''">
-        <i [class]="item.icon"></i>
-        @if (!collapsed()) {
-          <span class="nav-label">{{ item.label }}</span>
-        }
-      </a>
+    @for (item of visibleNavItems(); track item.label) {
+      <!-- Simple link (no children) -->
+      @if (!item.children) {
+        <a class="nav-item"
+           [routerLink]="item.route"
+           routerLinkActive="active"
+           [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
+           [title]="collapsed() ? item.label : ''">
+          <i [class]="item.icon"></i>
+          @if (!collapsed()) {
+            <span class="nav-label">{{ item.label }}</span>
+          }
+        </a>
+      }
+
+      <!-- Expandable group (has children) -->
+      @if (item.children) {
+        <div class="nav-group" [class.expanded]="isExpanded(item.label)" [class.group-active]="isMenuActive(item)">
+          <button class="nav-item nav-group-toggle"
+                  (click)="toggleMenu(item.label)"
+                  [title]="collapsed() ? item.label : ''">
+            <i [class]="item.icon"></i>
+            @if (!collapsed()) {
+              <span class="nav-label">{{ item.label }}</span>
+              <i class="pi pi-chevron-down expand-icon" [class.rotated]="isExpanded(item.label)"></i>
+            }
+          </button>
+          @if (!collapsed() && isExpanded(item.label)) {
+            <div class="nav-children">
+              @for (child of item.children; track child.route) {
+                <a class="nav-child"
+                   [routerLink]="child.route"
+                   routerLinkActive="child-active"
+                   [routerLinkActiveOptions]="{ exact: true }">
+                  <span class="child-dot"></span>
+                  <span class="child-label">{{ child.label }}</span>
+                </a>
+              }
+            </div>
+          }
+        </div>
+      }
     }
   </nav>
 
   <!-- Bottom section -->
   <div class="sidebar-footer">
-    <a class="nav-item"
-       routerLink="/settings"
-       routerLinkActive="active"
-       [title]="collapsed() ? 'Settings' : ''">
-      <i class="pi pi-sliders-h"></i>
-      @if (!collapsed()) {
-        <span class="nav-label">Settings</span>
+    <!-- Settings (expandable) -->
+    <div class="nav-group" [class.expanded]="isExpanded('Settings')" [class.group-active]="isMenuActive(settingsItem)">
+      <button class="nav-item nav-group-toggle"
+              (click)="toggleMenu('Settings')"
+              [title]="collapsed() ? 'Settings' : ''">
+        <i class="pi pi-sliders-h"></i>
+        @if (!collapsed()) {
+          <span class="nav-label">Settings</span>
+          <i class="pi pi-chevron-down expand-icon" [class.rotated]="isExpanded('Settings')"></i>
+        }
+      </button>
+      @if (!collapsed() && isExpanded('Settings')) {
+        <div class="nav-children">
+          @for (child of settingsItem.children; track child.route) {
+            <a class="nav-child"
+               [routerLink]="child.route"
+               routerLinkActive="child-active"
+               [routerLinkActiveOptions]="{ exact: true }">
+              <span class="child-dot"></span>
+              <span class="child-label">{{ child.label }}</span>
+            </a>
+          }
+        </div>
       }
-    </a>
+    </div>
 
     <div class="user-section">
       <div class="user-avatar">

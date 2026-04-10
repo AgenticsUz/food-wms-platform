@@ -1,0 +1,20 @@
+<div class="portal-login-page">
+  <div class="login-card wms-card">
+    <div class="login-header">
+      <i class="pi pi-warehouse login-logo"></i>
+      <h1>WMS Portal</h1>
+      <p>Sign in to your portal account</p>
+    </div>
+    <div class="login-form">
+      <div class="form-field">
+        <label>Phone</label>
+        <input pInputText [ngModel]="phone()" (ngModelChange)="phone.set($event)" class="w-full" placeholder="Enter phone number" />
+      </div>
+      <div class="form-field">
+        <label>Password</label>
+        <p-password [ngModel]="password()" (ngModelChange)="password.set($event)" [toggleMask]="true" [feedback]="false" styleClass="w-full" />
+      </div>
+      <p-button label="Sign In" icon="pi pi-sign-in" (onClick)="login()" [loading]="loading()" styleClass="w-full" />
+    </div>
+  </div>
+</div>

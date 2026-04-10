@@ -42,19 +42,26 @@ public class WarehouseService : IWarehouseService
 
     public async Task<List<StockDto>> GetStockAsync(int tenantId, int warehouseId)
     {
-        return await _db.WarehouseStocks
+        var stocks = await _db.WarehouseStocks
             .Where(s => s.TenantId == tenantId && s.WarehouseId == warehouseId)
             .Include(s => s.Product).ThenInclude(p => p.Unit)
-            .GroupBy(s => new { s.ProductId, s.Product.Name, s.Product.Unit.ShortName })
-            .Select(g => new StockDto
+            .ToListAsync();
+
+        return stocks
+            .GroupBy(s => s.ProductId)
+            .Select(g =>
             {
-                ProductId = g.Key.ProductId,
-                ProductName = g.Key.Name,
-                UnitShortName = g.Key.ShortName,
-                TotalQuantity = g.Sum(s => s.Quantity),
-                ReservedQuantity = g.Sum(s => s.ReservedQuantity),
-                AvailableQuantity = g.Sum(s => s.Quantity - s.ReservedQuantity)
-            }).ToListAsync();
+                var first = g.First();
+                return new StockDto
+                {
+                    ProductId = g.Key,
+                    ProductName = first.Product.Name,
+                    UnitShortName = first.Product.Unit.ShortName,
+                    TotalQuantity = g.Sum(s => s.Quantity),
+                    ReservedQuantity = g.Sum(s => s.ReservedQuantity),
+                    AvailableQuantity = g.Sum(s => s.Quantity - s.ReservedQuantity)
+                };
+            }).ToList();
     }
 
     public async Task<List<StockDetailDto>> GetStockDetailAsync(int tenantId, int warehouseId)

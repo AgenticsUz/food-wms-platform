@@ -1,12 +1,16 @@
 import { Injectable, inject } from '@angular/core';
+import { Observable, forkJoin, of, map } from 'rxjs';
 import { ApiService } from './api.service';
+import { ApiResponse } from '../models/api-response.model';
 import {
   Warehouse,
   WarehouseCreateDto,
   Location,
   LocationCreateDto,
   Batch,
-  WarehouseStock,
+  WarehouseStockGrouped,
+  WarehouseStockDetail,
+  WarehouseStockRow,
   StockMovement
 } from '../models/warehouse.model';
 
@@ -27,13 +31,36 @@ export class WarehouseService {
     return this.api.put<Warehouse>(`warehouses/${id}`, dto);
   }
 
-  // Stock
-  getStock(warehouseId: number) {
-    return this.api.get<WarehouseStock[]>(`warehouses/${warehouseId}/stock/detail`);
+  // Stock — grouped by product for a single warehouse
+  getStock(warehouseId: number): Observable<ApiResponse<WarehouseStockGrouped[]>> {
+    return this.api.get<WarehouseStockGrouped[]>(`warehouses/${warehouseId}/stock`);
   }
 
-  getAllStock() {
-    return this.api.get<WarehouseStock[]>('warehouses/0/stock/detail');
+  // Stock — grouped, enriched with warehouse name, for a single warehouse
+  getStockRows(warehouse: Warehouse): Observable<WarehouseStockRow[]> {
+    return this.getStock(warehouse.id).pipe(
+      map(res => {
+        if (!res.success || !res.data) return [];
+        return res.data.map(s => ({
+          ...s,
+          warehouseId: warehouse.id,
+          warehouseName: warehouse.name
+        }));
+      })
+    );
+  }
+
+  // Stock — load from ALL warehouses and merge
+  getAllStockRows(warehouses: Warehouse[]): Observable<WarehouseStockRow[]> {
+    if (warehouses.length === 0) return of([]);
+    return forkJoin(warehouses.map(w => this.getStockRows(w))).pipe(
+      map(arrays => arrays.flat())
+    );
+  }
+
+  // Detailed stock (by batch/location)
+  getStockDetail(warehouseId: number) {
+    return this.api.get<WarehouseStockDetail[]>(`warehouses/${warehouseId}/stock/detail`);
   }
 
   // Movements
