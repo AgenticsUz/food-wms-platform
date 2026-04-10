@@ -3,6 +3,7 @@ import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { TenantService } from '../../core/services/tenant.service';
 import { AuthService } from '../../core/services/auth.service';
+import { NotificationService } from '../../shared/services/notification.service';
 
 export interface NavChild {
   key: string;
@@ -29,12 +30,20 @@ export class SidebarComponent {
   private tenantService = inject(TenantService);
   private authService = inject(AuthService);
   private router = inject(Router);
+  private notify = inject(NotificationService);
 
   collapsed = signal(false);
   collapseToggled = output<boolean>();
   expandedMenu = signal<string | null>(null);
 
   currentUser = this.authService.currentUser;
+
+  userInitials = computed(() => {
+    const name = this.currentUser()?.fullName ?? '';
+    const parts = name.split(' ').filter(Boolean);
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return name.substring(0, 2).toUpperCase() || 'U';
+  });
 
   allNavItems: NavItem[] = [
     { key: 'nav.dashboard', icon: 'pi pi-th-large', route: '/dashboard' },
@@ -142,6 +151,10 @@ export class SidebarComponent {
   }
 
   logout() {
-    this.authService.logout();
+    this.notify.confirmAction(
+      'Tizimdan chiqmoqchimisiz?',
+      'Chiqish',
+      () => this.authService.logout()
+    );
   }
 }
