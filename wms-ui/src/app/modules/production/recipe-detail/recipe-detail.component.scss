@@ -1,0 +1,68 @@
+@use '../../../shared/styles/module-common';
+
+.unit-label {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  font-family: 'DM Sans', sans-serif;
+}
+
+.stage-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.stage-title {
+  margin: 0 0 16px;
+}
+
+.stage-badges {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.output-info {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--bg-muted);
+  padding: 4px 12px;
+  border-radius: 12px;
+
+  .number {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .output-product {
+    font-weight: 600;
+    color: var(--primary-600);
+    margin-left: 4px;
+  }
+}
+
+.warehouse-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--info);
+  background: #dbeafe;
+  padding: 4px 12px;
+  border-radius: 12px;
+}
+
+.no-inputs-text {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin: 0;
+}
+
+.detail-card-value.small {
+  font-size: 18px;
+}

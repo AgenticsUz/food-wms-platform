@@ -1,0 +1,55 @@
+<div class="page-enter">
+  <app-page-header title="Debts" subtitle="Debt overview per counterparty" />
+
+  <div class="wms-card table-wrapper">
+    <p-table
+      [value]="debts()"
+      [loading]="loading()"
+      [paginator]="true"
+      [rows]="15"
+      [rowsPerPageOptions]="[10, 15, 25, 50]"
+      [scrollable]="true"
+      styleClass="p-datatable-sm p-datatable-striped">
+      <ng-template #header>
+        <tr>
+          <th pSortableColumn="counterpartyName">Counterparty <p-sortIcon field="counterpartyName" /></th>
+          <th>Type</th>
+          <th class="text-right" pSortableColumn="amount">Amount <p-sortIcon field="amount" /></th>
+          <th>Direction</th>
+          <th pSortableColumn="updatedAt">Last Updated <p-sortIcon field="updatedAt" /></th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-d>
+        <tr>
+          <td>
+            <span class="item-name">{{ d.counterpartyName }}</span>
+          </td>
+          <td>
+            <app-status-badge [status]="getTypeBadgeStatus(d.counterpartyType)" [label]="d.counterpartyType" />
+          </td>
+          <td class="text-right">
+            <span class="number" [class.debt-positive]="d.amount >= 0" [class.debt-negative]="d.amount < 0">
+              {{ (d.amount >= 0 ? d.amount : -d.amount) | number:'1.0-2' }}
+            </span>
+          </td>
+          <td>
+            <span class="direction-label" [class.direction-positive]="d.amount >= 0" [class.direction-negative]="d.amount < 0">
+              {{ getDebtDirection(d.amount) }}
+            </span>
+          </td>
+          <td>{{ d.updatedAt | date:'MMM d, yyyy' }}</td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="5">
+            <div class="empty-state">
+              <i class="pi pi-wallet"></i>
+              <p>No debts found</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>

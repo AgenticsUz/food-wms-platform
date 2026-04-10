@@ -1,0 +1,85 @@
+<div class="page-enter">
+  <app-page-header title="Finance Overview" subtitle="Income, expenses and debt summary" />
+
+  <!-- Summary Cards -->
+  <div class="detail-grid">
+    @if (loading()) {
+      @for (i of [1,2,3,4]; track i) {
+        <div class="wms-card summary-card">
+          <div class="skeleton skeleton-icon"></div>
+          <div class="skeleton skeleton-number"></div>
+          <div class="skeleton skeleton-label"></div>
+        </div>
+      }
+    } @else {
+      <!-- Income -->
+      <div class="wms-card summary-card">
+        <div class="card-icon icon-green">
+          <i class="pi pi-arrow-down"></i>
+        </div>
+        <div class="card-content">
+          <span class="card-value number">{{ (summary()?.totalIncome ?? 0) | number:'1.0-0' }}</span>
+        </div>
+        <span class="card-label">Total Income</span>
+      </div>
+
+      <!-- Expense -->
+      <div class="wms-card summary-card">
+        <div class="card-icon icon-red">
+          <i class="pi pi-arrow-up"></i>
+        </div>
+        <div class="card-content">
+          <span class="card-value number">{{ (summary()?.totalExpense ?? 0) | number:'1.0-0' }}</span>
+        </div>
+        <span class="card-label">Total Expense</span>
+      </div>
+
+      <!-- Net -->
+      <div class="wms-card summary-card">
+        <div class="card-icon icon-blue">
+          <i class="pi pi-chart-line"></i>
+        </div>
+        <div class="card-content">
+          <span class="card-value number" [class.text-green]="(summary()?.netAmount ?? 0) >= 0" [class.text-red]="(summary()?.netAmount ?? 0) < 0">
+            {{ (summary()?.netAmount ?? 0) | number:'1.0-0' }}
+          </span>
+        </div>
+        <span class="card-label">Net Amount</span>
+      </div>
+
+      <!-- Total Debt -->
+      <div class="wms-card summary-card">
+        <div class="card-icon icon-orange">
+          <i class="pi pi-wallet"></i>
+        </div>
+        <div class="card-content">
+          <span class="card-value number">{{ (summary()?.totalDebt ?? 0) | number:'1.0-0' }}</span>
+        </div>
+        <span class="card-label">Total Debt</span>
+      </div>
+    }
+  </div>
+
+  <!-- Income vs Expense Chart -->
+  <div class="wms-card chart-card">
+    <h3 class="chart-title">Income vs Expense (30 days)</h3>
+    @if (chartConfig()) {
+      <apx-chart
+        [series]="$any(chartConfig())['series']"
+        [chart]="$any(chartConfig())['chart']"
+        [xaxis]="$any(chartConfig())['xaxis']"
+        [colors]="$any(chartConfig())['colors']"
+        [grid]="$any(chartConfig())['grid']"
+        [tooltip]="$any(chartConfig())['tooltip']"
+        [fill]="$any(chartConfig())['fill']"
+        [stroke]="$any(chartConfig())['stroke']"
+        [legend]="$any(chartConfig())['legend']"
+      ></apx-chart>
+    } @else {
+      <div class="chart-empty">
+        <i class="pi pi-chart-line"></i>
+        <p>No financial data available</p>
+      </div>
+    }
+  </div>
+</div>

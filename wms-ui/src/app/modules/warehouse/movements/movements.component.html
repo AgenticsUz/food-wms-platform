@@ -4,11 +4,11 @@
   <div class="filters-bar wms-card">
     <div class="filter-group">
       <label class="filter-label">From:</label>
-      <p-datepicker [ngModel]="dateFrom()" (ngModelChange)="dateFrom.set($event); onDateChange()" dateFormat="yy-mm-dd" [showIcon]="true" placeholder="Start date" />
+      <p-datepicker [ngModel]="dateFrom()" (ngModelChange)="dateFrom.set($event); onDateChange()" dateFormat="yy-mm-dd" [showIcon]="true" placeholder="Start date"></p-datepicker>
     </div>
     <div class="filter-group">
       <label class="filter-label">To:</label>
-      <p-datepicker [ngModel]="dateTo()" (ngModelChange)="dateTo.set($event); onDateChange()" dateFormat="yy-mm-dd" [showIcon]="true" placeholder="End date" />
+      <p-datepicker [ngModel]="dateTo()" (ngModelChange)="dateTo.set($event); onDateChange()" dateFormat="yy-mm-dd" [showIcon]="true" placeholder="End date"></p-datepicker>
     </div>
   </div>
 

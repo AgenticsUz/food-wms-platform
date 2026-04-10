@@ -1,0 +1,45 @@
+<div class="page-enter">
+  <app-page-header title="New Production Order" subtitle="Create a new production order from a recipe">
+    <p-button icon="pi pi-arrow-left" label="Back" [text]="true" (onClick)="goBack()" />
+  </app-page-header>
+
+  <div class="wms-card section-card">
+    <h3 class="section-title">Order Details</h3>
+    <div class="form-grid">
+      <div class="form-field">
+        <label>Recipe *</label>
+        <p-select [options]="recipes()" [ngModel]="recipeId()" (ngModelChange)="recipeId.set($event)"
+          optionLabel="name" optionValue="id" placeholder="Select recipe" [filter]="true" [style]="{ width: '100%' }" />
+      </div>
+      <div class="form-field">
+        <label>Planned Quantity *</label>
+        <p-inputNumber [ngModel]="plannedQuantity()" (ngModelChange)="plannedQuantity.set($event ?? 0)"
+          placeholder="Quantity" [min]="0" [minFractionDigits]="0" [maxFractionDigits]="2" [style]="{ width: '100%' }" />
+      </div>
+      <div class="form-field">
+        <label>Start Date *</label>
+        <p-datepicker [ngModel]="plannedStartDate()" (ngModelChange)="plannedStartDate.set($event)"
+          dateFormat="yy-mm-dd" [showIcon]="true" placeholder="Select start date" [style]="{ width: '100%' }" />
+      </div>
+      <div class="form-field">
+        <label>End Date</label>
+        <p-datepicker [ngModel]="plannedEndDate()" (ngModelChange)="plannedEndDate.set($event)"
+          dateFormat="yy-mm-dd" [showIcon]="true" placeholder="Optional end date" [style]="{ width: '100%' }" />
+      </div>
+      <div class="form-field">
+        <label>Assign To</label>
+        <p-select [options]="users()" [ngModel]="assignedToUserId()" (ngModelChange)="assignedToUserId.set($event)"
+          optionLabel="fullName" optionValue="id" placeholder="Optional" [filter]="true" [showClear]="true" [style]="{ width: '100%' }" />
+      </div>
+      <div class="form-field full-width">
+        <label>Note</label>
+        <textarea pTextarea [ngModel]="note()" (ngModelChange)="note.set($event)" class="w-full" rows="3" placeholder="Optional notes..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="action-bar">
+    <p-button label="Cancel" [text]="true" severity="secondary" (onClick)="goBack()" />
+    <p-button label="Create Order" icon="pi pi-check" (onClick)="submit()" [loading]="saving()" />
+  </div>
+</div>

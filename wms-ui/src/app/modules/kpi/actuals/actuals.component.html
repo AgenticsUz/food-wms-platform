@@ -1,0 +1,152 @@
+<div class="page-enter">
+  <app-page-header title="Shift Actuals" subtitle="Record actual production output">
+    <p-button icon="pi pi-plus" label="Record Actual" (onClick)="openNew()" />
+  </app-page-header>
+
+  <div class="wms-card table-wrapper">
+    <p-table
+      [value]="actuals()"
+      [loading]="loading()"
+      [paginator]="true"
+      [rows]="20"
+      [scrollable]="true"
+      styleClass="p-datatable-sm p-datatable-striped"
+    >
+      <ng-template #header>
+        <tr>
+          <th pSortableColumn="shiftName">Shift <p-sortIcon field="shiftName" /></th>
+          <th pSortableColumn="productName">Product <p-sortIcon field="productName" /></th>
+          <th class="text-right">Actual Qty</th>
+          <th class="text-right">Waste Qty</th>
+          <th pSortableColumn="date">Date <p-sortIcon field="date" /></th>
+          <th>Note</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-actual>
+        <tr>
+          <td>
+            <span class="item-name">{{ actual.shiftName }}</span>
+          </td>
+          <td>{{ actual.productName }}</td>
+          <td class="text-right">
+            <span class="number">{{ actual.actualQuantity | number:'1.0-2' }}</span>
+          </td>
+          <td class="text-right">
+            @if (actual.wasteQuantity > 0) {
+              <span class="number waste-qty">{{ actual.wasteQuantity | number:'1.0-2' }}</span>
+            } @else {
+              <span class="text-muted">0</span>
+            }
+          </td>
+          <td>{{ actual.date | date:'mediumDate' }}</td>
+          <td>
+            <span class="note-text">{{ actual.note || '—' }}</span>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="6">
+            <div class="empty-state">
+              <i class="pi pi-chart-bar"></i>
+              <p>No actuals recorded</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>
+
+<!-- Actual Form Dialog -->
+<p-dialog
+  header="Record Actual"
+  [(visible)]="dialogVisible"
+  [modal]="true"
+  [style]="{ width: '500px' }"
+  [draggable]="false"
+>
+  <div class="form-grid">
+    <div class="form-field">
+      <label>Shift *</label>
+      <p-select
+        [options]="shifts()"
+        optionLabel="name"
+        optionValue="id"
+        [ngModel]="form().shiftId"
+        (ngModelChange)="updateForm('shiftId', $event)"
+        placeholder="Select shift"
+        class="w-full"
+      />
+    </div>
+
+    <div class="form-field">
+      <label>Product *</label>
+      <p-select
+        [options]="products()"
+        optionLabel="name"
+        optionValue="id"
+        [ngModel]="form().productId"
+        (ngModelChange)="updateForm('productId', $event)"
+        placeholder="Select product"
+        [filter]="true"
+        filterPlaceholder="Search..."
+        class="w-full"
+      />
+    </div>
+
+    <div class="form-field">
+      <label>Actual Quantity *</label>
+      <p-inputNumber
+        [ngModel]="form().actualQuantity"
+        (ngModelChange)="updateForm('actualQuantity', $event)"
+        [minFractionDigits]="0"
+        [maxFractionDigits]="2"
+        [min]="0"
+        placeholder="0"
+        class="w-full"
+      />
+    </div>
+
+    <div class="form-field">
+      <label>Waste Quantity</label>
+      <p-inputNumber
+        [ngModel]="form().wasteQuantity"
+        (ngModelChange)="updateForm('wasteQuantity', $event)"
+        [minFractionDigits]="0"
+        [maxFractionDigits]="2"
+        [min]="0"
+        placeholder="0"
+        class="w-full"
+      />
+    </div>
+
+    <div class="form-field">
+      <label>Date *</label>
+      <p-datePicker
+        [ngModel]="form().date"
+        (ngModelChange)="updateForm('date', $event)"
+        dateFormat="yy-mm-dd"
+        placeholder="Select date"
+        class="w-full"
+      />
+    </div>
+
+    <div class="form-field">
+      <label>Note</label>
+      <textarea
+        pTextarea
+        [ngModel]="form().note"
+        (ngModelChange)="updateForm('note', $event)"
+        [rows]="3"
+        class="w-full"
+        placeholder="Optional notes..."
+      ></textarea>
+    </div>
+  </div>
+
+  <ng-template #footer>
+    <p-button label="Cancel" [text]="true" (onClick)="dialogVisible.set(false)" />
+    <p-button label="Record" icon="pi pi-check" (onClick)="save()" [loading]="saving()" />
+  </ng-template>
+</p-dialog>

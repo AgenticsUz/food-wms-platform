@@ -1,0 +1,73 @@
+<div class="page-enter">
+  <app-page-header title="Production Stages" subtitle="Configure and reorder production stages">
+    <p-button icon="pi pi-plus" label="Add Stage" (onClick)="openNew()" />
+  </app-page-header>
+
+  <div class="wms-card table-wrapper">
+    <p-table [value]="stages()" [loading]="loading()" [scrollable]="true"
+      styleClass="p-datatable-sm p-datatable-striped">
+      <ng-template #header>
+        <tr>
+          <th style="width: 80px">#</th>
+          <th>Name</th>
+          <th>Description</th>
+          <th class="text-center" style="width: 200px">Actions</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-stage let-i="rowIndex">
+        <tr>
+          <td><span class="order-number">{{ i + 1 }}</span></td>
+          <td><span class="item-name">{{ stage.name }}</span></td>
+          <td><span class="description-text">{{ stage.description || '—' }}</span></td>
+          <td class="text-center actions-cell">
+            <p-button icon="pi pi-arrow-up" [rounded]="true" [text]="true" severity="secondary"
+              (onClick)="moveUp(stage)" [disabled]="isFirst(stage)" />
+            <p-button icon="pi pi-arrow-down" [rounded]="true" [text]="true" severity="secondary"
+              (onClick)="moveDown(stage)" [disabled]="isLast(stage)" />
+            <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info"
+              (onClick)="openEdit(stage)" />
+            <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger"
+              (onClick)="deleteStage(stage)" />
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="4">
+            <div class="empty-state">
+              <i class="pi pi-cog"></i>
+              <p>No production stages found</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>
+
+<p-dialog [header]="editing() ? 'Edit Stage' : 'New Stage'" [(visible)]="dialogVisible"
+  [modal]="true" [style]="{ width: '460px' }" [draggable]="false">
+  <div class="form-col">
+    <div class="form-field">
+      <label>Name *</label>
+      <input pInputText [ngModel]="form().name" (ngModelChange)="updateForm('name', $event)"
+        class="w-full" placeholder="e.g. Mixing, Cooking, Freezing" />
+    </div>
+    <div class="form-field">
+      <label>Order Number</label>
+      <p-inputNumber [ngModel]="form().orderNumber" (ngModelChange)="updateForm('orderNumber', $event)"
+        [min]="1" [style]="{ width: '100%' }" />
+    </div>
+    <div class="form-field">
+      <label>Description</label>
+      <textarea pInputText [ngModel]="form().description ?? ''"
+        (ngModelChange)="updateForm('description', $event || null)"
+        class="w-full" rows="3" placeholder="Optional description..."></textarea>
+    </div>
+  </div>
+  <ng-template #footer>
+    <p-button label="Cancel" [text]="true" (onClick)="dialogVisible.set(false)" />
+    <p-button [label]="editing() ? 'Update' : 'Create'" icon="pi pi-check"
+      (onClick)="save()" [loading]="saving()" />
+  </ng-template>
+</p-dialog>

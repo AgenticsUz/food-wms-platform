@@ -1,0 +1,56 @@
+@use '../../../shared/styles/module-common';
+
+.stage-card {
+  margin-bottom: 16px;
+}
+
+.stage-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+
+  .section-title {
+    margin: 0;
+  }
+}
+
+.inputs-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin: 20px 0 12px;
+}
+
+.input-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.input-field {
+  flex: 1;
+  min-width: 180px;
+
+  &.small {
+    flex: 0 0 140px;
+    min-width: 120px;
+  }
+}
+
+.empty-state.small {
+  padding: 16px;
+}
+
+.add-stage-btn {
+  margin-bottom: 20px;
+}
+
+.action-bar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 8px;
+}

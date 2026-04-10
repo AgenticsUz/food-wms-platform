@@ -1,0 +1,99 @@
+<div class="page-enter">
+  <app-page-header [title]="recipe()?.name ?? 'Recipe Detail'" subtitle="Recipe configuration and stages">
+    <p-button icon="pi pi-arrow-left" label="Back" [text]="true" (onClick)="goBack()" />
+  </app-page-header>
+
+  @if (loading()) {
+    <div class="detail-grid">
+      @for (i of [1,2,3]; track i) {
+        <div class="wms-card detail-card"><div class="skeleton" style="height:60px;width:100%"></div></div>
+      }
+    </div>
+  } @else if (recipe(); as r) {
+    <!-- Recipe Info -->
+    <div class="detail-grid">
+      <div class="wms-card detail-card">
+        <p class="detail-card-title">Output Product</p>
+        <p class="detail-card-value small">{{ r.outputProductName || '—' }}</p>
+      </div>
+      <div class="wms-card detail-card">
+        <p class="detail-card-title">Output Quantity</p>
+        <p class="detail-card-value">{{ r.outputQuantity | number:'1.0-2' }}
+          <span class="unit-label">{{ r.outputUnitName }}</span>
+        </p>
+      </div>
+      <div class="wms-card detail-card">
+        <p class="detail-card-title">Status</p>
+        <app-status-badge
+          [status]="r.isActive ? 'Confirmed' : 'Cancelled'"
+          [label]="r.isActive ? 'Active' : 'Inactive'" />
+      </div>
+    </div>
+
+    <!-- Recipe Stages -->
+    @if (r.recipeStages && r.recipeStages.length > 0) {
+      @for (stage of r.recipeStages; track stage.id) {
+        <div class="wms-card section-card">
+          <div class="stage-header">
+            <h3 class="section-title stage-title">Stage {{ stage.orderNumber }}: {{ stage.stageName }}</h3>
+            <div class="stage-badges">
+              @if (stage.expectedOutputQty) {
+                <span class="output-info">
+                  Output: <span class="number">{{ stage.expectedOutputQty | number:'1.0-2' }}</span>
+                  @if (stage.outputProductName) {
+                    <span class="output-product">{{ stage.outputProductName }}</span>
+                  }
+                </span>
+              }
+              @if (stage.allowWarehouseOutput) {
+                <app-status-badge status="Confirmed" label="Warehouse Output" />
+              }
+              @if (stage.outputWarehouseName) {
+                <span class="warehouse-label">{{ stage.outputWarehouseName }}</span>
+              }
+            </div>
+          </div>
+
+          @if (stage.inputs && stage.inputs.length > 0) {
+            <p-table [value]="stage.inputs" [scrollable]="true"
+              styleClass="p-datatable-sm p-datatable-striped">
+              <ng-template #header>
+                <tr>
+                  <th>Product</th>
+                  <th class="text-right">Quantity</th>
+                  <th>Unit</th>
+                </tr>
+              </ng-template>
+              <ng-template #body let-input>
+                <tr>
+                  <td><span class="item-name">{{ input.productName || 'Product #' + input.productId }}</span></td>
+                  <td class="text-right"><span class="number">{{ input.quantity | number:'1.0-2' }}</span></td>
+                  <td>{{ input.unitName || '—' }}</td>
+                </tr>
+              </ng-template>
+              <ng-template #emptymessage>
+                <tr>
+                  <td colspan="3">
+                    <div class="empty-state">
+                      <i class="pi pi-inbox"></i>
+                      <p>No inputs for this stage</p>
+                    </div>
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
+          } @else {
+            <p class="no-inputs-text">No inputs defined for this stage</p>
+          }
+        </div>
+      }
+    } @else {
+      <div class="wms-card section-card">
+        <div class="empty-state">
+          <i class="pi pi-sitemap"></i>
+          <p>No stages defined for this recipe</p>
+        </div>
+      </div>
+    }
+  }
+</div>

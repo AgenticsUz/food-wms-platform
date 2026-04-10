@@ -1,0 +1,130 @@
+<div class="page-enter">
+  <app-page-header title="Attendance" subtitle="Track worker check-in and check-out">
+    <p-button icon="pi pi-plus" label="Check In" (onClick)="openNew()" />
+  </app-page-header>
+
+  <div class="wms-card table-wrapper">
+    <p-table
+      [value]="logs()"
+      [loading]="loading()"
+      [paginator]="true"
+      [rows]="20"
+      [scrollable]="true"
+      styleClass="p-datatable-sm p-datatable-striped"
+    >
+      <ng-template #header>
+        <tr>
+          <th pSortableColumn="userName">Worker <p-sortIcon field="userName" /></th>
+          <th pSortableColumn="shiftName">Shift <p-sortIcon field="shiftName" /></th>
+          <th>Check In</th>
+          <th>Check Out</th>
+          <th>Method</th>
+          <th class="text-center">Actions</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-log>
+        <tr>
+          <td>
+            <span class="item-name">{{ log.userName }}</span>
+          </td>
+          <td>{{ log.shiftName }}</td>
+          <td>
+            <span class="number">{{ log.checkIn | date:'MMM d, HH:mm' }}</span>
+          </td>
+          <td>
+            @if (log.checkOut) {
+              <span class="number">{{ log.checkOut | date:'MMM d, HH:mm' }}</span>
+            } @else {
+              <span class="active-badge">Active</span>
+            }
+          </td>
+          <td>
+            <app-status-badge
+              [status]="getMethodStatus(log.method)"
+              [label]="getMethodLabel(log.method)"
+            />
+          </td>
+          <td class="text-center actions-cell">
+            @if (!log.checkOut) {
+              <p-button
+                icon="pi pi-sign-out"
+                label="Check Out"
+                [rounded]="true"
+                [text]="true"
+                severity="warn"
+                (onClick)="checkOut(log)"
+              />
+            }
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="6">
+            <div class="empty-state">
+              <i class="pi pi-id-card"></i>
+              <p>No attendance logs found</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>
+
+<!-- Check In Dialog -->
+<p-dialog
+  header="Check In"
+  [(visible)]="dialogVisible"
+  [modal]="true"
+  [style]="{ width: '450px' }"
+  [draggable]="false"
+>
+  <div class="form-col">
+    <div class="form-field">
+      <label>Worker *</label>
+      <p-select
+        [options]="users()"
+        optionLabel="fullName"
+        optionValue="id"
+        [ngModel]="form().userId"
+        (ngModelChange)="updateForm('userId', $event)"
+        placeholder="Select worker"
+        [filter]="true"
+        filterPlaceholder="Search..."
+        class="w-full"
+      />
+    </div>
+
+    <div class="form-field">
+      <label>Shift *</label>
+      <p-select
+        [options]="shifts()"
+        optionLabel="name"
+        optionValue="id"
+        [ngModel]="form().shiftId"
+        (ngModelChange)="updateForm('shiftId', $event)"
+        placeholder="Select shift"
+        class="w-full"
+      />
+    </div>
+
+    <div class="form-field">
+      <label>Method *</label>
+      <p-select
+        [options]="methodOptions"
+        optionLabel="label"
+        optionValue="value"
+        [ngModel]="form().method"
+        (ngModelChange)="updateForm('method', $event)"
+        placeholder="Select method"
+        class="w-full"
+      />
+    </div>
+  </div>
+
+  <ng-template #footer>
+    <p-button label="Cancel" [text]="true" (onClick)="dialogVisible.set(false)" />
+    <p-button label="Check In" icon="pi pi-check" (onClick)="save()" [loading]="saving()" />
+  </ng-template>
+</p-dialog>

@@ -1,0 +1,47 @@
+<div class="page-enter">
+  <app-page-header title="KPI Dashboard" subtitle="Shift efficiency and production analytics" />
+
+  <div class="chart-row">
+    <!-- Shift Efficiency Radial -->
+    <div class="wms-card chart-card">
+      <h3 class="chart-title">Shift Efficiency</h3>
+      @if (efficiencyChart()) {
+        <apx-chart
+          [series]="$any(efficiencyChart())['series']"
+          [chart]="$any(efficiencyChart())['chart']"
+          [labels]="$any(efficiencyChart())['labels']"
+          [colors]="$any(efficiencyChart())['colors']"
+          [plotOptions]="$any(efficiencyChart())['plotOptions']"
+        ></apx-chart>
+      } @else {
+        <div class="chart-empty">
+          <i class="pi pi-chart-bar"></i>
+          <p>No efficiency data available</p>
+        </div>
+      }
+    </div>
+
+    <!-- Plan vs Actual Line -->
+    <div class="wms-card chart-card">
+      <h3 class="chart-title">Plan vs Actual (7 days)</h3>
+      @if (planVsActualChart()) {
+        <apx-chart
+          [series]="$any(planVsActualChart())['series']"
+          [chart]="$any(planVsActualChart())['chart']"
+          [xaxis]="$any(planVsActualChart())['xaxis']"
+          [colors]="$any(planVsActualChart())['colors']"
+          [grid]="$any(planVsActualChart())['grid']"
+          [tooltip]="$any(planVsActualChart())['tooltip']"
+          [stroke]="$any(planVsActualChart())['stroke']"
+          [markers]="$any(planVsActualChart())['markers']"
+          [legend]="$any(planVsActualChart())['legend']"
+        ></apx-chart>
+      } @else {
+        <div class="chart-empty">
+          <i class="pi pi-chart-line"></i>
+          <p>No production data available</p>
+        </div>
+      }
+    </div>
+  </div>
+</div>

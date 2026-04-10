@@ -1,0 +1,17 @@
+@use '../../../shared/styles/module-common';
+
+.active-badge {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: 12px;
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.form-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
