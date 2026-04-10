@@ -1,0 +1,57 @@
+{
+  "common": {
+    "save": "Сохранить",
+    "cancel": "Отмена",
+    "delete": "Удалить",
+    "confirm": "Подтвердить",
+    "search": "Поиск",
+    "add": "Добавить",
+    "edit": "Редактировать",
+    "actions": "Действия",
+    "loading": "Загрузка...",
+    "noData": "Данные не найдены",
+    "yes": "Да",
+    "no": "Нет",
+    "back": "Назад",
+    "submit": "Отправить",
+    "close": "Закрыть"
+  },
+  "nav": {
+    "dashboard": "Главная",
+    "warehouse": "Склад",
+    "production": "Производство",
+    "transfers": "Перемещения",
+    "finance": "Финансы",
+    "kpi": "KPI",
+    "counterparties": "Контрагенты",
+    "products": "Продукты",
+    "settings": "Настройки"
+  },
+  "auth": {
+    "login": "Вход",
+    "phone": "Номер телефона",
+    "password": "Пароль",
+    "tenantSlug": "Код организации",
+    "loginButton": "Войти в систему",
+    "loginTitle": "Вход в WMS Платформу",
+    "loginSubtitle": "Введите данные для входа в систему"
+  },
+  "status": {
+    "pending": "Ожидает",
+    "confirmed": "Подтверждено",
+    "rejected": "Отклонено",
+    "cancelled": "Отменено",
+    "draft": "Черновик",
+    "inProgress": "В процессе",
+    "completed": "Завершено"
+  },
+  "dashboard": {
+    "title": "Главная",
+    "greeting": "Добро пожаловать",
+    "totalStock": "Общий запас",
+    "efficiency": "Эффективность",
+    "activeTransfers": "Активные перемещения",
+    "revenue": "Доход",
+    "lowStock": "Низкий запас"
+  }
+}

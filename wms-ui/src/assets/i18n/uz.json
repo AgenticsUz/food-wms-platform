@@ -1,0 +1,57 @@
+{
+  "common": {
+    "save": "Saqlash",
+    "cancel": "Bekor qilish",
+    "delete": "O'chirish",
+    "confirm": "Tasdiqlash",
+    "search": "Qidirish",
+    "add": "Qo'shish",
+    "edit": "Tahrirlash",
+    "actions": "Amallar",
+    "loading": "Yuklanmoqda...",
+    "noData": "Ma'lumot topilmadi",
+    "yes": "Ha",
+    "no": "Yo'q",
+    "back": "Orqaga",
+    "submit": "Yuborish",
+    "close": "Yopish"
+  },
+  "nav": {
+    "dashboard": "Bosh sahifa",
+    "warehouse": "Ombor",
+    "production": "Ishlab chiqarish",
+    "transfers": "O'tkazmalar",
+    "finance": "Moliya",
+    "kpi": "KPI",
+    "counterparties": "Hamkorlar",
+    "products": "Mahsulotlar",
+    "settings": "Sozlamalar"
+  },
+  "auth": {
+    "login": "Kirish",
+    "phone": "Telefon raqam",
+    "password": "Parol",
+    "tenantSlug": "Tashkilot kodi",
+    "loginButton": "Tizimga kirish",
+    "loginTitle": "WMS Platformaga kirish",
+    "loginSubtitle": "Tizimga kirish uchun ma'lumotlaringizni kiriting"
+  },
+  "status": {
+    "pending": "Kutilmoqda",
+    "confirmed": "Tasdiqlangan",
+    "rejected": "Rad etilgan",
+    "cancelled": "Bekor qilingan",
+    "draft": "Qoralama",
+    "inProgress": "Jarayonda",
+    "completed": "Bajarildi"
+  },
+  "dashboard": {
+    "title": "Bosh sahifa",
+    "greeting": "Xush kelibsiz",
+    "totalStock": "Umumiy zaxira",
+    "efficiency": "Samaradorlik",
+    "activeTransfers": "Faol o'tkazmalar",
+    "revenue": "Daromad",
+    "lowStock": "Kam zaxira"
+  }
+}

@@ -1,0 +1,60 @@
+<aside class="sidebar" [class.collapsed]="collapsed()">
+  <!-- Logo -->
+  <div class="sidebar-header">
+    <div class="logo-area">
+      <i class="pi pi-warehouse logo-icon"></i>
+      @if (!collapsed()) {
+        <div class="logo-text">
+          <span class="brand">WMS</span>
+          <span class="tenant-name">Platform</span>
+        </div>
+      }
+    </div>
+    <button class="collapse-btn" (click)="toggleCollapse()">
+      <i class="pi" [class.pi-chevron-left]="!collapsed()" [class.pi-chevron-right]="collapsed()"></i>
+    </button>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="sidebar-nav">
+    @for (item of visibleNavItems(); track item.route) {
+      <a class="nav-item"
+         [routerLink]="item.route"
+         routerLinkActive="active"
+         [title]="collapsed() ? item.label : ''">
+        <i [class]="item.icon"></i>
+        @if (!collapsed()) {
+          <span class="nav-label">{{ item.label }}</span>
+        }
+      </a>
+    }
+  </nav>
+
+  <!-- Bottom section -->
+  <div class="sidebar-footer">
+    <a class="nav-item"
+       routerLink="/settings"
+       routerLinkActive="active"
+       [title]="collapsed() ? 'Settings' : ''">
+      <i class="pi pi-sliders-h"></i>
+      @if (!collapsed()) {
+        <span class="nav-label">Settings</span>
+      }
+    </a>
+
+    <div class="user-section">
+      <div class="user-avatar">
+        <i class="pi pi-user"></i>
+      </div>
+      @if (!collapsed()) {
+        <div class="user-info">
+          <span class="user-name">{{ currentUser()?.fullName ?? 'User' }}</span>
+          <button class="logout-btn" (click)="logout()">
+            <i class="pi pi-sign-out"></i>
+            <span>Logout</span>
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+</aside>

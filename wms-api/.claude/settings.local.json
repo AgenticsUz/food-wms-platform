@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rm -f Program.cs WeatherForecast.cs wms-api.csproj wms-api.csproj.user wms-api.http wms-api.sln appsettings.json appsettings.Development.json)",
+      "Bash(rm -rf Controllers Properties bin obj .vs .idea)",
+      "Bash(dotnet new:*)",
+      "Bash(dotnet sln:*)",
+      "Bash(dotnet add:*)",
+      "Bash(dotnet:*)",
+      "Bash(rm:*)",
+      "Bash(mkdir:*)",
+      "Bash(ls \"C:\\\\Users\\\\g.turaqulov\\\\Desktop\\\\Personal-Project\\\\projects\\\\wms\\\\wms-api\\\\WMS.API\"/*.db)",
+      "Bash(DOTNET_ROLL_FORWARD=Major dotnet ef migrations:*)",
+      "Bash(DOTNET_ROLL_FORWARD=Major dotnet ef database:*)",
+      "Bash(export DOTNET_ROLL_FORWARD=Major)",
+      "Bash(rm \"C:\\\\Users\\\\g.turaqulov\\\\Desktop\\\\Personal-Project\\\\projects\\\\wms\\\\wms-api\\\\WMS.Infrastructure\\\\Migrations\"/*)",
+      "Bash(rm \"C:\\\\Users\\\\g.turaqulov\\\\Desktop\\\\Personal-Project\\\\projects\\\\wms\\\\wms-api\\\\WMS.API\\\\wms.db\"*)",
+      "Bash(ls -la \"C:\\\\Users\\\\g.turaqulov\\\\Desktop\\\\Personal-Project\\\\projects\\\\wms\\\\wms-api\\\\WMS.API\"/*.db*)",
+      "Bash(rm -f \"C:\\\\Users\\\\g.turaqulov\\\\Desktop\\\\Personal-Project\\\\projects\\\\wms\\\\wms-api\\\\WMS.API\"/wms.db*)",
+      "Read(//c/Program Files/dotnet/sdk/**)",
+      "Read(//c/Users/g.turaqulov/.dotnet/sdk/**)",
+      "Bash(where dotnet:*)",
+      "Bash(\"C:/Program Files/dotnet/dotnet.exe\" --list-sdks)",
+      "Bash(\"C:/Program Files/dotnet/dotnet.exe\" --list-runtimes)",
+      "Bash(DOTNET_EnableWriteXorExecute=0 dotnet build)",
+      "Bash(DOTNET_EnableCETCompat=0 dotnet build)",
+      "Bash(export DOTNET_EnableWriteXorExecute=0)",
+      "Bash(export COMPlus_EnableWriteXorExecute=0)",
+      "Bash(cmd.exe /c \"set DOTNET_EnableWriteXorExecute=0 && dotnet build\")",
+      "Bash(cmd.exe:*)",
+      "Bash(DOTNET_CETCompat=0 dotnet build:*)",
+      "Bash(DOTNET_EnableWriteXorExecute=0 timeout 12 dotnet run)",
+      "Bash(DOTNET_ROLL_FORWARD=Disable timeout 12 dotnet run --framework net9.0)"
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Application\bin\Debug\net8.0\WMS.Application.deps.json
+C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Application\bin\Debug\net8.0\WMS.Application.dll
+C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Application\bin\Debug\net8.0\WMS.Application.pdb
+C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Application\bin\Debug\net8.0\WMS.Domain.dll
+C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Application\bin\Debug\net8.0\WMS.Domain.pdb
+C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Application\obj\Debug\net8.0\WMS.Application.csproj.AssemblyReference.cache
+C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Application\obj\Debug\net8.0\WMS.Application.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Application\obj\Debug\net8.0\WMS.Application.AssemblyInfoInputs.cache
+C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Application\obj\Debug\net8.0\WMS.Application.AssemblyInfo.cs
+C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Application\obj\Debug\net8.0\WMS.Application.csproj.CoreCompileInputs.cache
+C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Application\obj\Debug\net8.0\WMS.Appl.21886158.Up2Date
+C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Application\obj\Debug\net8.0\WMS.Application.dll
+C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Application\obj\Debug\net8.0\refint\WMS.Application.dll
+C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Application\obj\Debug\net8.0\WMS.Application.pdb
+C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Application\obj\Debug\net8.0\ref\WMS.Application.dll

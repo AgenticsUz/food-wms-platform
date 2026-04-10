@@ -1,0 +1,75 @@
+import { Routes } from '@angular/router';
+import { ShellComponent } from './layout/shell/shell.component';
+import { authGuard } from './core/guards/auth.guard';
+import { moduleGuard } from './core/guards/module.guard';
+import { portalGuard } from './core/guards/portal.guard';
+
+export const routes: Routes = [
+  {
+    path: 'auth',
+    loadChildren: () => import('./modules/auth/auth.routes')
+  },
+  {
+    path: '',
+    component: ShellComponent,
+    canActivate: [authGuard],
+    children: [
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      {
+        path: 'dashboard',
+        loadComponent: () => import('./modules/dashboard/dashboard.component')
+      },
+      {
+        path: 'warehouse',
+        canActivate: [moduleGuard('WAREHOUSE_RAW')],
+        loadChildren: () => import('./modules/warehouse/warehouse.routes')
+      },
+      {
+        path: 'production',
+        canActivate: [moduleGuard('PRODUCTION')],
+        loadChildren: () => import('./modules/production/production.routes')
+      },
+      {
+        path: 'transfers',
+        canActivate: [moduleGuard('TRANSFERS')],
+        loadChildren: () => import('./modules/transfers/transfers.routes')
+      },
+      {
+        path: 'finance',
+        canActivate: [moduleGuard('FINANCE')],
+        loadChildren: () => import('./modules/finance/finance.routes')
+      },
+      {
+        path: 'kpi',
+        canActivate: [moduleGuard('KPI')],
+        loadChildren: () => import('./modules/kpi/kpi.routes')
+      },
+      {
+        path: 'counterparties',
+        loadChildren: () => import('./modules/counterparties/counterparties.routes')
+      },
+      {
+        path: 'products',
+        loadChildren: () => import('./modules/products/products.routes')
+      },
+      {
+        path: 'settings',
+        loadChildren: () => import('./modules/settings/settings.routes')
+      }
+    ]
+  },
+  {
+    path: 'portal',
+    children: [
+      {
+        path: 'login',
+        loadComponent: () => import('./modules/portal/portal-login.component')
+      },
+      {
+        path: '',
+        canActivate: [portalGuard],
+        loadChildren: () => import('./modules/portal/portal.routes')
+      }
+    ]
+  }
+];

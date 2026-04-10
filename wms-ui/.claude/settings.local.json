@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npm ls:*)",
+      "Bash(node -e \"const p = require\\('primeng/package.json'\\); console.log\\(p.version\\); console.log\\(Object.keys\\(p.exports || {}\\).filter\\(k => k.includes\\('config'\\) || k.includes\\('provid'\\)\\).join\\('\\\\n'\\)\\)\")",
+      "Bash(node -e \"const p = require\\('primeng/package.json'\\); const keys = Object.keys\\(p.exports || {}\\); keys.filter\\(k => k.includes\\('api'\\) || k.includes\\('toast'\\) || k.includes\\('confirm'\\)\\).forEach\\(k => console.log\\(k\\)\\)\")",
+      "Bash(node -e \"const p = require\\('primeng/package.json'\\); const keys = Object.keys\\(p.exports || {}\\); keys.filter\\(k => k.includes\\('theme'\\) || k.includes\\('aura'\\)\\).forEach\\(k => console.log\\(k\\)\\)\")",
+      "Bash(node -e \"const p = require\\('primeng/package.json'\\); const keys = Object.keys\\(p.exports || {}\\); keys.filter\\(k => k.includes\\('themes'\\) || k.includes\\('preset'\\)\\).forEach\\(k => console.log\\(k\\)\\)\")",
+      "Bash(ls node_modules/@primeng)",
+      "Bash(node -e \"const d=require\\('fs'\\).readFileSync\\('/dev/stdin','utf8'\\); const p=JSON.parse\\(d\\); console.log\\('version:', p.version\\); const keys = Object.keys\\(p.exports||{}\\); keys.filter\\(k=>!k.includes\\('package'\\)\\).forEach\\(k=>console.log\\(k\\)\\)\")",
+      "Bash(node -e \"const p = require\\('@jsverse/transloco/package.json'\\); console.log\\('version:', p.version\\);\")",
+      "Bash(grep \"export.*provideTransloco\\\\|export.*TranslocoHttpLoader\\\\|export.*TranslocoLoader\" node_modules/@jsverse/transloco/lib/*.d.ts)",
+      "Bash(npx ng:*)"
+    ]
+  }
+}

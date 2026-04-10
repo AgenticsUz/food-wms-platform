@@ -1,0 +1,30 @@
+<header class="app-header">
+  <div class="header-left">
+    <h2 class="page-title">WMS Platform</h2>
+  </div>
+
+  <div class="header-right">
+    <!-- Language Switcher -->
+    <div class="lang-switcher">
+      <button class="lang-btn"
+              [class.active]="(currentLang | async) === 'uz'"
+              (click)="switchLang('uz')">UZ</button>
+      <button class="lang-btn"
+              [class.active]="(currentLang | async) === 'ru'"
+              (click)="switchLang('ru')">RU</button>
+    </div>
+
+    <!-- Theme Toggle -->
+    <button class="theme-toggle" (click)="toggleTheme()">
+      <i class="pi" [class.pi-moon]="!themeService.isDark()" [class.pi-sun]="themeService.isDark()"></i>
+    </button>
+
+    <!-- User -->
+    <div class="user-badge">
+      <div class="avatar">
+        <i class="pi pi-user"></i>
+      </div>
+      <span class="user-name">{{ currentUser()?.fullName ?? 'User' }}</span>
+    </div>
+  </div>
+</header>

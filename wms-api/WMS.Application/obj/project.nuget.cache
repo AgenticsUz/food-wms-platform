@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "BN4t1jvTEh4=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\g.turaqulov\\Desktop\\Personal-Project\\projects\\wms\\wms-api\\WMS.Application\\WMS.Application.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\g.turaqulov\\.nuget\\packages\\bcrypt.net-next\\4.1.0\\bcrypt.net-next.4.1.0.nupkg.sha512"
+  ],
+  "logs": []
+}

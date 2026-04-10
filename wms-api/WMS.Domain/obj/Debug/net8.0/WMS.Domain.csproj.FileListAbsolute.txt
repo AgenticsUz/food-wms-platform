@@ -1,0 +1,11 @@
+C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Domain\bin\Debug\net8.0\WMS.Domain.deps.json
+C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Domain\bin\Debug\net8.0\WMS.Domain.dll
+C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Domain\bin\Debug\net8.0\WMS.Domain.pdb
+C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Domain\obj\Debug\net8.0\WMS.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Domain\obj\Debug\net8.0\WMS.Domain.AssemblyInfoInputs.cache
+C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Domain\obj\Debug\net8.0\WMS.Domain.AssemblyInfo.cs
+C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Domain\obj\Debug\net8.0\WMS.Domain.csproj.CoreCompileInputs.cache
+C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Domain\obj\Debug\net8.0\WMS.Domain.dll
+C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Domain\obj\Debug\net8.0\refint\WMS.Domain.dll
+C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Domain\obj\Debug\net8.0\WMS.Domain.pdb
+C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Domain\obj\Debug\net8.0\ref\WMS.Domain.dll

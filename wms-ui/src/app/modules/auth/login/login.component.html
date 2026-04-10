@@ -1,0 +1,56 @@
+<div class="login-page">
+  <div class="login-card">
+    <!-- Logo / Brand -->
+    <div class="login-header">
+      <div class="logo-circle">
+        <i class="pi pi-warehouse"></i>
+      </div>
+      <h1 class="login-title">WMS Platform</h1>
+      <p class="login-subtitle">Enter your credentials to access the system</p>
+    </div>
+
+    <!-- Form -->
+    <form class="login-form" (ngSubmit)="login()">
+      <div class="field">
+        <label for="tenantSlug">Organization Code</label>
+        <input pInputText
+               id="tenantSlug"
+               [ngModel]="tenantSlug()"
+               (ngModelChange)="tenantSlug.set($event)"
+               name="tenantSlug"
+               placeholder="e.g. sarvar-zavod"
+               class="w-full" />
+      </div>
+
+      <div class="field">
+        <label for="phone">Phone Number</label>
+        <input pInputText
+               id="phone"
+               [ngModel]="phone()"
+               (ngModelChange)="phone.set($event)"
+               name="phone"
+               placeholder="+998 90 123 45 67"
+               class="w-full" />
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <p-password id="password"
+                    [ngModel]="password()"
+                    (ngModelChange)="password.set($event)"
+                    name="password"
+                    [toggleMask]="true"
+                    [feedback]="false"
+                    placeholder="Enter your password"
+                    styleClass="w-full"
+                    inputStyleClass="w-full" />
+      </div>
+
+      <p-button type="submit"
+                label="Sign In"
+                icon="pi pi-sign-in"
+                styleClass="w-full"
+                [loading]="loading()" />
+    </form>
+  </div>
+</div>

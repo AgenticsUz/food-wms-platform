@@ -1,0 +1,9 @@
+<div class="shell" [class.sidebar-collapsed]="sidebarCollapsed()">
+  <app-sidebar (collapseToggled)="onSidebarToggle($event)" />
+  <div class="main-area">
+    <app-header />
+    <main class="content page-enter">
+      <router-outlet />
+    </main>
+  </div>
+</div>
