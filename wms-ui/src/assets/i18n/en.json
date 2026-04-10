@@ -1,0 +1,144 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "reject": "Reject",
+    "search": "Search",
+    "add": "Add",
+    "edit": "Edit",
+    "create": "Create",
+    "actions": "Actions",
+    "loading": "Loading...",
+    "noData": "No data found",
+    "yes": "Yes",
+    "no": "No",
+    "back": "Back",
+    "submit": "Submit",
+    "close": "Close",
+    "status": "Status",
+    "note": "Note",
+    "date": "Date",
+    "refresh": "Refresh",
+    "all": "All",
+    "name": "Name",
+    "description": "Description",
+    "type": "Type",
+    "phone": "Phone",
+    "address": "Address",
+    "required": "This field is required"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "warehouse": "Warehouse",
+    "production": "Production",
+    "transfers": "Transfers",
+    "finance": "Finance",
+    "kpi": "KPI",
+    "counterparties": "Partners",
+    "products": "Products",
+    "settings": "Settings"
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "phone": "Phone number",
+    "password": "Password",
+    "tenantSlug": "Organization code",
+    "loginButton": "Sign In",
+    "loginTitle": "Sign in to WMS Platform",
+    "loginSubtitle": "Enter your credentials to continue",
+    "signIn": "Sign In"
+  },
+  "status": {
+    "pending": "Pending",
+    "confirmed": "Confirmed",
+    "rejected": "Rejected",
+    "cancelled": "Cancelled",
+    "draft": "Draft",
+    "inProgress": "In Progress",
+    "completed": "Completed",
+    "active": "Active",
+    "inactive": "Inactive",
+    "inStock": "In Stock",
+    "lowStock": "Low Stock",
+    "expired": "Expired",
+    "expiringSoon": "Expiring Soon"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "greeting": "Welcome",
+    "totalStock": "Total Stock",
+    "efficiency": "Efficiency",
+    "activeTransfers": "Active Transfers",
+    "revenue": "Revenue",
+    "lowStock": "Low Stock"
+  },
+  "warehouse": {
+    "stockOverview": "Stock Overview",
+    "warehouses": "Warehouses",
+    "locations": "Locations",
+    "batches": "Batches",
+    "movements": "Movements",
+    "allWarehouses": "All Warehouses"
+  },
+  "production": {
+    "orders": "Orders",
+    "recipes": "Recipes",
+    "stages": "Stages",
+    "newOrder": "New Order",
+    "newRecipe": "New Recipe",
+    "startOrder": "Start Order",
+    "completeOrder": "Complete Order",
+    "executeStage": "Execute Stage"
+  },
+  "transfers": {
+    "incoming": "Incoming",
+    "outgoing": "Outgoing",
+    "internal": "Internal",
+    "newTransfer": "New Transfer",
+    "confirmTransfer": "Confirm Transfer",
+    "rejectTransfer": "Reject Transfer"
+  },
+  "finance": {
+    "overview": "Overview",
+    "transactions": "Transactions",
+    "debts": "Debts",
+    "payments": "Payments",
+    "income": "Income",
+    "expense": "Expense",
+    "net": "Net",
+    "totalDebt": "Total Debt",
+    "recordPayment": "Record Payment"
+  },
+  "kpi": {
+    "dashboard": "Dashboard",
+    "shifts": "Shifts",
+    "plans": "Plans",
+    "actuals": "Actuals",
+    "attendance": "Attendance",
+    "checkIn": "Check In",
+    "checkOut": "Check Out"
+  },
+  "partners": {
+    "suppliers": "Suppliers",
+    "clients": "Clients"
+  },
+  "products": {
+    "products": "Products",
+    "categories": "Categories",
+    "units": "Units",
+    "raw": "Raw Material",
+    "semiFinished": "Semi-Finished",
+    "finished": "Finished"
+  },
+  "settings": {
+    "users": "Users",
+    "roles": "Roles",
+    "modules": "Modules",
+    "qcParameters": "QC Parameters",
+    "profile": "My Profile",
+    "changePassword": "Change Password"
+  }
+}

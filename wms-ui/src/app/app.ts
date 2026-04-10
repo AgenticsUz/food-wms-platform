@@ -3,6 +3,7 @@ import { RouterOutlet } from '@angular/router';
 import { Toast } from 'primeng/toast';
 import { ConfirmDialog } from 'primeng/confirmdialog';
 import { ThemeService } from './core/services/theme.service';
+import { TranslocoService } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-root',
@@ -12,8 +13,13 @@ import { ThemeService } from './core/services/theme.service';
 })
 export class App implements OnInit {
   private themeService = inject(ThemeService);
+  private transloco = inject(TranslocoService);
 
   ngOnInit() {
     this.themeService.init();
+    const savedLang = localStorage.getItem('lang');
+    if (savedLang && ['uz', 'ru', 'en'].includes(savedLang)) {
+      this.transloco.setActiveLang(savedLang);
+    }
   }
 }

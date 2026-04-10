@@ -51,7 +51,7 @@ export default class TransferListComponent implements OnInit {
 
   loadTransfers() {
     this.loading.set(true);
-    const params: Record<string, string | number | boolean> = {};
+    const params: Record<string, string | number | boolean> = { pageSize: 100 };
     if (this.typeFilter()) params['type'] = this.typeFilter()!;
     if (this.statusFilter()) params['status'] = this.statusFilter()!;
     if (this.dateFrom()) params['from'] = this.dateFrom()!.toISOString().split('T')[0];

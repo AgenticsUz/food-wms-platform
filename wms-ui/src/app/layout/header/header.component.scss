@@ -18,6 +18,28 @@
 .header-left {
   display: flex;
   align-items: center;
+  gap: 12px;
+}
+
+.mobile-menu-btn {
+  display: none;
+  background: none;
+  border: 1px solid var(--border);
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: var(--bg-muted);
+    color: var(--primary-500);
+  }
+
+  i { font-size: 18px; }
 }
 
 .page-title {
@@ -43,7 +65,7 @@
 .lang-btn {
   background: none;
   border: none;
-  padding: 6px 12px;
+  padding: 6px 10px;
   font-size: 12px;
   font-weight: 600;
   color: var(--text-muted);
@@ -106,4 +128,27 @@
   font-size: 13px;
   font-weight: 500;
   color: var(--text-primary);
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .mobile-menu-btn {
+    display: flex;
+  }
+
+  .user-name {
+    display: none;
+  }
+
+  .app-header {
+    padding: 0 12px;
+  }
+
+  .header-right {
+    gap: 8px;
+  }
+
+  .lang-btn {
+    padding: 6px 8px;
+  }
 }

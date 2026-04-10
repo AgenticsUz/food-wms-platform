@@ -1,18 +1,18 @@
-<div class="login-page">
+<div class="login-page" *transloco="let t">
   <div class="login-card">
     <!-- Logo / Brand -->
     <div class="login-header">
       <div class="logo-circle">
         <i class="pi pi-warehouse"></i>
       </div>
-      <h1 class="login-title">WMS Platform</h1>
-      <p class="login-subtitle">Enter your credentials to access the system</p>
+      <h1 class="login-title">{{ t('auth.loginTitle') }}</h1>
+      <p class="login-subtitle">{{ t('auth.loginSubtitle') }}</p>
     </div>
 
     <!-- Form -->
     <form class="login-form" (ngSubmit)="login()">
       <div class="field">
-        <label for="tenantSlug">Organization Code</label>
+        <label for="tenantSlug">{{ t('auth.tenantSlug') }}</label>
         <input pInputText
                id="tenantSlug"
                [ngModel]="tenantSlug()"
@@ -23,7 +23,7 @@
       </div>
 
       <div class="field">
-        <label for="phone">Phone Number</label>
+        <label for="phone">{{ t('auth.phone') }}</label>
         <input pInputText
                id="phone"
                [ngModel]="phone()"
@@ -34,20 +34,19 @@
       </div>
 
       <div class="field">
-        <label for="password">Password</label>
+        <label for="password">{{ t('auth.password') }}</label>
         <p-password id="password"
                     [ngModel]="password()"
                     (ngModelChange)="password.set($event)"
                     name="password"
                     [toggleMask]="true"
                     [feedback]="false"
-                    placeholder="Enter your password"
                     styleClass="w-full"
                     inputStyleClass="w-full" />
       </div>
 
       <p-button type="submit"
-                label="Sign In"
+                [label]="t('auth.signIn')"
                 icon="pi pi-sign-in"
                 styleClass="w-full"
                 [loading]="loading()" />

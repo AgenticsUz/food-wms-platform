@@ -1,20 +1,26 @@
 import { Component, inject, signal, computed, ChangeDetectionStrategy, output } from '@angular/core';
 import { RouterLink, RouterLinkActive, Router } from '@angular/router';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { TenantService } from '../../core/services/tenant.service';
 import { AuthService } from '../../core/services/auth.service';
 
+export interface NavChild {
+  key: string;
+  route: string;
+}
+
 export interface NavItem {
-  label: string;
+  key: string;
   icon: string;
   route?: string;
   moduleCode?: string;
-  children?: { label: string; route: string }[];
+  children?: NavChild[];
 }
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive, TranslocoDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss'
@@ -31,73 +37,73 @@ export class SidebarComponent {
   currentUser = this.authService.currentUser;
 
   allNavItems: NavItem[] = [
-    { label: 'Dashboard', icon: 'pi pi-th-large', route: '/dashboard' },
+    { key: 'nav.dashboard', icon: 'pi pi-th-large', route: '/dashboard' },
     {
-      label: 'Warehouse', icon: 'pi pi-box', moduleCode: 'WAREHOUSE_RAW',
+      key: 'nav.warehouse', icon: 'pi pi-box', moduleCode: 'WAREHOUSE_RAW',
       children: [
-        { label: 'Stock Overview', route: '/warehouse' },
-        { label: 'Warehouses', route: '/warehouse/warehouses' },
-        { label: 'Locations', route: '/warehouse/locations' },
-        { label: 'Batches', route: '/warehouse/batches' },
-        { label: 'Movements', route: '/warehouse/movements' }
+        { key: 'warehouse.stockOverview', route: '/warehouse' },
+        { key: 'warehouse.warehouses', route: '/warehouse/warehouses' },
+        { key: 'warehouse.locations', route: '/warehouse/locations' },
+        { key: 'warehouse.batches', route: '/warehouse/batches' },
+        { key: 'warehouse.movements', route: '/warehouse/movements' }
       ]
     },
     {
-      label: 'Production', icon: 'pi pi-cog', moduleCode: 'PRODUCTION',
+      key: 'nav.production', icon: 'pi pi-cog', moduleCode: 'PRODUCTION',
       children: [
-        { label: 'Orders', route: '/production/orders' },
-        { label: 'Recipes', route: '/production/recipes' },
-        { label: 'Stages', route: '/production/stages' }
+        { key: 'production.orders', route: '/production/orders' },
+        { key: 'production.recipes', route: '/production/recipes' },
+        { key: 'production.stages', route: '/production/stages' }
       ]
     },
     {
-      label: 'Transfers', icon: 'pi pi-arrow-right-arrow-left', moduleCode: 'TRANSFERS',
+      key: 'nav.transfers', icon: 'pi pi-arrow-right-arrow-left', moduleCode: 'TRANSFERS',
       route: '/transfers'
     },
     {
-      label: 'Finance', icon: 'pi pi-wallet', moduleCode: 'FINANCE',
+      key: 'nav.finance', icon: 'pi pi-wallet', moduleCode: 'FINANCE',
       children: [
-        { label: 'Overview', route: '/finance' },
-        { label: 'Transactions', route: '/finance/transactions' },
-        { label: 'Debts', route: '/finance/debts' },
-        { label: 'Payments', route: '/finance/payments' }
+        { key: 'finance.overview', route: '/finance' },
+        { key: 'finance.transactions', route: '/finance/transactions' },
+        { key: 'finance.debts', route: '/finance/debts' },
+        { key: 'finance.payments', route: '/finance/payments' }
       ]
     },
     {
-      label: 'KPI', icon: 'pi pi-chart-line', moduleCode: 'KPI',
+      key: 'nav.kpi', icon: 'pi pi-chart-line', moduleCode: 'KPI',
       children: [
-        { label: 'Dashboard', route: '/kpi' },
-        { label: 'Shifts', route: '/kpi/shifts' },
-        { label: 'Plans', route: '/kpi/plans' },
-        { label: 'Actuals', route: '/kpi/actuals' },
-        { label: 'Attendance', route: '/kpi/attendance' }
+        { key: 'kpi.dashboard', route: '/kpi' },
+        { key: 'kpi.shifts', route: '/kpi/shifts' },
+        { key: 'kpi.plans', route: '/kpi/plans' },
+        { key: 'kpi.actuals', route: '/kpi/actuals' },
+        { key: 'kpi.attendance', route: '/kpi/attendance' }
       ]
     },
     {
-      label: 'Partners', icon: 'pi pi-users',
+      key: 'nav.counterparties', icon: 'pi pi-users',
       children: [
-        { label: 'Suppliers', route: '/counterparties/suppliers' },
-        { label: 'Clients', route: '/counterparties/clients' }
+        { key: 'partners.suppliers', route: '/counterparties/suppliers' },
+        { key: 'partners.clients', route: '/counterparties/clients' }
       ]
     },
     {
-      label: 'Products', icon: 'pi pi-tags',
+      key: 'nav.products', icon: 'pi pi-tags',
       children: [
-        { label: 'Products', route: '/products' },
-        { label: 'Categories', route: '/products/categories' },
-        { label: 'Units', route: '/products/units' }
+        { key: 'products.products', route: '/products' },
+        { key: 'products.categories', route: '/products/categories' },
+        { key: 'products.units', route: '/products/units' }
       ]
     },
   ];
 
   settingsItem: NavItem = {
-    label: 'Settings', icon: 'pi pi-sliders-h',
+    key: 'nav.settings', icon: 'pi pi-sliders-h',
     children: [
-      { label: 'Users', route: '/settings/users' },
-      { label: 'Roles', route: '/settings/roles' },
-      { label: 'Modules', route: '/settings/modules' },
-      { label: 'QC Parameters', route: '/settings/qc-parameters' },
-      { label: 'My Profile', route: '/settings/profile' }
+      { key: 'settings.users', route: '/settings/users' },
+      { key: 'settings.roles', route: '/settings/roles' },
+      { key: 'settings.modules', route: '/settings/modules' },
+      { key: 'settings.qcParameters', route: '/settings/qc-parameters' },
+      { key: 'settings.profile', route: '/settings/profile' }
     ]
   };
 
@@ -114,18 +120,18 @@ export class SidebarComponent {
     this.collapseToggled.emit(this.collapsed());
   }
 
-  toggleMenu(label: string) {
+  toggleMenu(key: string) {
     if (this.collapsed()) {
       this.collapsed.set(false);
       this.collapseToggled.emit(false);
-      this.expandedMenu.set(label);
+      this.expandedMenu.set(key);
       return;
     }
-    this.expandedMenu.update(v => v === label ? null : label);
+    this.expandedMenu.update(v => v === key ? null : key);
   }
 
-  isExpanded(label: string): boolean {
-    return this.expandedMenu() === label;
+  isExpanded(key: string): boolean {
+    return this.expandedMenu() === key;
   }
 
   isMenuActive(item: NavItem): boolean {

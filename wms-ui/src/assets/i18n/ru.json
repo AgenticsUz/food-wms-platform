@@ -1,57 +1,15 @@
 {
-  "common": {
-    "save": "Сохранить",
-    "cancel": "Отмена",
-    "delete": "Удалить",
-    "confirm": "Подтвердить",
-    "search": "Поиск",
-    "add": "Добавить",
-    "edit": "Редактировать",
-    "actions": "Действия",
-    "loading": "Загрузка...",
-    "noData": "Данные не найдены",
-    "yes": "Да",
-    "no": "Нет",
-    "back": "Назад",
-    "submit": "Отправить",
-    "close": "Закрыть"
-  },
-  "nav": {
-    "dashboard": "Главная",
-    "warehouse": "Склад",
-    "production": "Производство",
-    "transfers": "Перемещения",
-    "finance": "Финансы",
-    "kpi": "KPI",
-    "counterparties": "Контрагенты",
-    "products": "Продукты",
-    "settings": "Настройки"
-  },
-  "auth": {
-    "login": "Вход",
-    "phone": "Номер телефона",
-    "password": "Пароль",
-    "tenantSlug": "Код организации",
-    "loginButton": "Войти в систему",
-    "loginTitle": "Вход в WMS Платформу",
-    "loginSubtitle": "Введите данные для входа в систему"
-  },
-  "status": {
-    "pending": "Ожидает",
-    "confirmed": "Подтверждено",
-    "rejected": "Отклонено",
-    "cancelled": "Отменено",
-    "draft": "Черновик",
-    "inProgress": "В процессе",
-    "completed": "Завершено"
-  },
-  "dashboard": {
-    "title": "Главная",
-    "greeting": "Добро пожаловать",
-    "totalStock": "Общий запас",
-    "efficiency": "Эффективность",
-    "activeTransfers": "Активные перемещения",
-    "revenue": "Доход",
-    "lowStock": "Низкий запас"
-  }
+  "common": { "save": "Сохранить", "cancel": "Отмена", "delete": "Удалить", "confirm": "Подтвердить", "reject": "Отклонить", "search": "Поиск", "add": "Добавить", "edit": "Редактировать", "create": "Создать", "actions": "Действия", "loading": "Загрузка...", "noData": "Данные не найдены", "yes": "Да", "no": "Нет", "back": "Назад", "submit": "Отправить", "close": "Закрыть", "status": "Статус", "note": "Примечание", "date": "Дата", "refresh": "Обновить", "all": "Все", "name": "Название", "description": "Описание", "type": "Тип", "phone": "Телефон", "address": "Адрес", "required": "Это поле обязательно" },
+  "nav": { "dashboard": "Главная", "warehouse": "Склад", "production": "Производство", "transfers": "Перемещения", "finance": "Финансы", "kpi": "KPI", "counterparties": "Контрагенты", "products": "Продукты", "settings": "Настройки" },
+  "auth": { "login": "Вход", "logout": "Выход", "phone": "Номер телефона", "password": "Пароль", "tenantSlug": "Код организации", "loginButton": "Войти в систему", "loginTitle": "Вход в WMS Платформу", "loginSubtitle": "Введите данные для входа в систему", "signIn": "Войти" },
+  "status": { "pending": "Ожидает", "confirmed": "Подтверждено", "rejected": "Отклонено", "cancelled": "Отменено", "draft": "Черновик", "inProgress": "В процессе", "completed": "Завершено", "active": "Активно", "inactive": "Неактивно", "inStock": "В наличии", "lowStock": "Мало на складе", "expired": "Просрочено", "expiringSoon": "Скоро истекает" },
+  "dashboard": { "title": "Главная", "greeting": "Добро пожаловать", "totalStock": "Общий запас", "efficiency": "Эффективность", "activeTransfers": "Активные перемещения", "revenue": "Доход", "lowStock": "Низкий запас" },
+  "warehouse": { "stockOverview": "Обзор запасов", "warehouses": "Склады", "locations": "Местоположения", "batches": "Партии", "movements": "Движения", "allWarehouses": "Все склады" },
+  "production": { "orders": "Заказы", "recipes": "Рецепты", "stages": "Этапы", "newOrder": "Новый заказ", "newRecipe": "Новый рецепт", "startOrder": "Начать заказ", "completeOrder": "Завершить заказ", "executeStage": "Выполнить этап" },
+  "transfers": { "incoming": "Приход", "outgoing": "Расход", "internal": "Внутренний", "newTransfer": "Новое перемещение", "confirmTransfer": "Подтвердить перемещение", "rejectTransfer": "Отклонить перемещение" },
+  "finance": { "overview": "Обзор", "transactions": "Транзакции", "debts": "Долги", "payments": "Платежи", "income": "Доход", "expense": "Расход", "net": "Чистый доход", "totalDebt": "Общий долг", "recordPayment": "Записать платёж" },
+  "kpi": { "dashboard": "Панель управления", "shifts": "Смены", "plans": "Планы", "actuals": "Фактические данные", "attendance": "Посещаемость", "checkIn": "Приход", "checkOut": "Уход" },
+  "partners": { "suppliers": "Поставщики", "clients": "Клиенты" },
+  "products": { "products": "Продукты", "categories": "Категории", "units": "Единицы", "raw": "Сырьё", "semiFinished": "Полуфабрикат", "finished": "Готовая продукция" },
+  "settings": { "users": "Пользователи", "roles": "Роли", "modules": "Модули", "qcParameters": "Параметры качества", "profile": "Мой профиль", "changePassword": "Сменить пароль" }
 }

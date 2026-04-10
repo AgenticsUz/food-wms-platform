@@ -1,4 +1,4 @@
-<aside class="sidebar" [class.collapsed]="collapsed()">
+<aside class="sidebar" [class.collapsed]="collapsed()" *transloco="let t">
   <!-- Logo -->
   <div class="sidebar-header">
     <div class="logo-area">
@@ -17,34 +17,34 @@
 
   <!-- Navigation -->
   <nav class="sidebar-nav">
-    @for (item of visibleNavItems(); track item.label) {
+    @for (item of visibleNavItems(); track item.key) {
       <!-- Simple link (no children) -->
       @if (!item.children) {
         <a class="nav-item"
            [routerLink]="item.route"
            routerLinkActive="active"
            [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
-           [title]="collapsed() ? item.label : ''">
+           [title]="collapsed() ? t(item.key) : ''">
           <i [class]="item.icon"></i>
           @if (!collapsed()) {
-            <span class="nav-label">{{ item.label }}</span>
+            <span class="nav-label">{{ t(item.key) }}</span>
           }
         </a>
       }
 
       <!-- Expandable group (has children) -->
       @if (item.children) {
-        <div class="nav-group" [class.expanded]="isExpanded(item.label)" [class.group-active]="isMenuActive(item)">
+        <div class="nav-group" [class.expanded]="isExpanded(item.key)" [class.group-active]="isMenuActive(item)">
           <button class="nav-item nav-group-toggle"
-                  (click)="toggleMenu(item.label)"
-                  [title]="collapsed() ? item.label : ''">
+                  (click)="toggleMenu(item.key)"
+                  [title]="collapsed() ? t(item.key) : ''">
             <i [class]="item.icon"></i>
             @if (!collapsed()) {
-              <span class="nav-label">{{ item.label }}</span>
-              <i class="pi pi-chevron-down expand-icon" [class.rotated]="isExpanded(item.label)"></i>
+              <span class="nav-label">{{ t(item.key) }}</span>
+              <i class="pi pi-chevron-down expand-icon" [class.rotated]="isExpanded(item.key)"></i>
             }
           </button>
-          @if (!collapsed() && isExpanded(item.label)) {
+          @if (!collapsed() && isExpanded(item.key)) {
             <div class="nav-children">
               @for (child of item.children; track child.route) {
                 <a class="nav-child"
@@ -52,7 +52,7 @@
                    routerLinkActive="child-active"
                    [routerLinkActiveOptions]="{ exact: true }">
                   <span class="child-dot"></span>
-                  <span class="child-label">{{ child.label }}</span>
+                  <span class="child-label">{{ t(child.key) }}</span>
                 </a>
               }
             </div>
@@ -65,17 +65,17 @@
   <!-- Bottom section -->
   <div class="sidebar-footer">
     <!-- Settings (expandable) -->
-    <div class="nav-group" [class.expanded]="isExpanded('Settings')" [class.group-active]="isMenuActive(settingsItem)">
+    <div class="nav-group" [class.expanded]="isExpanded(settingsItem.key)" [class.group-active]="isMenuActive(settingsItem)">
       <button class="nav-item nav-group-toggle"
-              (click)="toggleMenu('Settings')"
-              [title]="collapsed() ? 'Settings' : ''">
+              (click)="toggleMenu(settingsItem.key)"
+              [title]="collapsed() ? t(settingsItem.key) : ''">
         <i class="pi pi-sliders-h"></i>
         @if (!collapsed()) {
-          <span class="nav-label">Settings</span>
-          <i class="pi pi-chevron-down expand-icon" [class.rotated]="isExpanded('Settings')"></i>
+          <span class="nav-label">{{ t(settingsItem.key) }}</span>
+          <i class="pi pi-chevron-down expand-icon" [class.rotated]="isExpanded(settingsItem.key)"></i>
         }
       </button>
-      @if (!collapsed() && isExpanded('Settings')) {
+      @if (!collapsed() && isExpanded(settingsItem.key)) {
         <div class="nav-children">
           @for (child of settingsItem.children; track child.route) {
             <a class="nav-child"
@@ -83,7 +83,7 @@
                routerLinkActive="child-active"
                [routerLinkActiveOptions]="{ exact: true }">
               <span class="child-dot"></span>
-              <span class="child-label">{{ child.label }}</span>
+              <span class="child-label">{{ t(child.key) }}</span>
             </a>
           }
         </div>
@@ -99,7 +99,7 @@
           <span class="user-name">{{ currentUser()?.fullName ?? 'User' }}</span>
           <button class="logout-btn" (click)="logout()">
             <i class="pi pi-sign-out"></i>
-            <span>Logout</span>
+            <span>{{ t('auth.logout') }}</span>
           </button>
         </div>
       }

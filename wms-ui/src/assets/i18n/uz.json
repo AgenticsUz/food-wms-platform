@@ -1,57 +1,15 @@
 {
-  "common": {
-    "save": "Saqlash",
-    "cancel": "Bekor qilish",
-    "delete": "O'chirish",
-    "confirm": "Tasdiqlash",
-    "search": "Qidirish",
-    "add": "Qo'shish",
-    "edit": "Tahrirlash",
-    "actions": "Amallar",
-    "loading": "Yuklanmoqda...",
-    "noData": "Ma'lumot topilmadi",
-    "yes": "Ha",
-    "no": "Yo'q",
-    "back": "Orqaga",
-    "submit": "Yuborish",
-    "close": "Yopish"
-  },
-  "nav": {
-    "dashboard": "Bosh sahifa",
-    "warehouse": "Ombor",
-    "production": "Ishlab chiqarish",
-    "transfers": "O'tkazmalar",
-    "finance": "Moliya",
-    "kpi": "KPI",
-    "counterparties": "Hamkorlar",
-    "products": "Mahsulotlar",
-    "settings": "Sozlamalar"
-  },
-  "auth": {
-    "login": "Kirish",
-    "phone": "Telefon raqam",
-    "password": "Parol",
-    "tenantSlug": "Tashkilot kodi",
-    "loginButton": "Tizimga kirish",
-    "loginTitle": "WMS Platformaga kirish",
-    "loginSubtitle": "Tizimga kirish uchun ma'lumotlaringizni kiriting"
-  },
-  "status": {
-    "pending": "Kutilmoqda",
-    "confirmed": "Tasdiqlangan",
-    "rejected": "Rad etilgan",
-    "cancelled": "Bekor qilingan",
-    "draft": "Qoralama",
-    "inProgress": "Jarayonda",
-    "completed": "Bajarildi"
-  },
-  "dashboard": {
-    "title": "Bosh sahifa",
-    "greeting": "Xush kelibsiz",
-    "totalStock": "Umumiy zaxira",
-    "efficiency": "Samaradorlik",
-    "activeTransfers": "Faol o'tkazmalar",
-    "revenue": "Daromad",
-    "lowStock": "Kam zaxira"
-  }
+  "common": { "save": "Saqlash", "cancel": "Bekor qilish", "delete": "O'chirish", "confirm": "Tasdiqlash", "reject": "Rad etish", "search": "Qidirish", "add": "Qo'shish", "edit": "Tahrirlash", "create": "Yaratish", "actions": "Amallar", "loading": "Yuklanmoqda...", "noData": "Ma'lumot topilmadi", "yes": "Ha", "no": "Yo'q", "back": "Orqaga", "submit": "Yuborish", "close": "Yopish", "status": "Holat", "note": "Izoh", "date": "Sana", "refresh": "Yangilash", "all": "Barchasi", "name": "Nomi", "description": "Tavsif", "type": "Turi", "phone": "Telefon", "address": "Manzil", "required": "Bu maydon talab qilinadi" },
+  "nav": { "dashboard": "Bosh sahifa", "warehouse": "Ombor", "production": "Ishlab chiqarish", "transfers": "O'tkazmalar", "finance": "Moliya", "kpi": "KPI", "counterparties": "Hamkorlar", "products": "Mahsulotlar", "settings": "Sozlamalar" },
+  "auth": { "login": "Kirish", "logout": "Chiqish", "phone": "Telefon raqam", "password": "Parol", "tenantSlug": "Tashkilot kodi", "loginButton": "Tizimga kirish", "loginTitle": "WMS Platformaga kirish", "loginSubtitle": "Tizimga kirish uchun ma'lumotlaringizni kiriting", "signIn": "Kirish" },
+  "status": { "pending": "Kutilmoqda", "confirmed": "Tasdiqlangan", "rejected": "Rad etilgan", "cancelled": "Bekor qilingan", "draft": "Qoralama", "inProgress": "Jarayonda", "completed": "Bajarildi", "active": "Faol", "inactive": "Nofaol", "inStock": "Mavjud", "lowStock": "Kam zaxira", "expired": "Muddati o'tgan", "expiringSoon": "Muddati yaqin" },
+  "dashboard": { "title": "Bosh sahifa", "greeting": "Xush kelibsiz", "totalStock": "Umumiy zaxira", "efficiency": "Samaradorlik", "activeTransfers": "Faol o'tkazmalar", "revenue": "Daromad", "lowStock": "Kam zaxira" },
+  "warehouse": { "stockOverview": "Zaxira ko'rinishi", "warehouses": "Omborlar", "locations": "Joylar", "batches": "Partiyalar", "movements": "Harakatlar", "allWarehouses": "Barcha omborlar" },
+  "production": { "orders": "Buyurtmalar", "recipes": "Retseptlar", "stages": "Bosqichlar", "newOrder": "Yangi buyurtma", "newRecipe": "Yangi retsept", "startOrder": "Ishni boshlash", "completeOrder": "Ishni yakunlash", "executeStage": "Bosqichni bajarish" },
+  "transfers": { "incoming": "Kirim", "outgoing": "Chiqim", "internal": "Ichki", "newTransfer": "Yangi o'tkazma", "confirmTransfer": "O'tkazmani tasdiqlash", "rejectTransfer": "O'tkazmani rad etish" },
+  "finance": { "overview": "Umumiy ko'rinish", "transactions": "Tranzaksiyalar", "debts": "Qarzlar", "payments": "To'lovlar", "income": "Daromad", "expense": "Xarajat", "net": "Sof foyda", "totalDebt": "Umumiy qarz", "recordPayment": "To'lov qayd etish" },
+  "kpi": { "dashboard": "Boshqaruv paneli", "shifts": "Smenalar", "plans": "Rejalar", "actuals": "Haqiqiy", "attendance": "Davomat", "checkIn": "Kirish", "checkOut": "Chiqish" },
+  "partners": { "suppliers": "Yetkazib beruvchilar", "clients": "Mijozlar" },
+  "products": { "products": "Mahsulotlar", "categories": "Kategoriyalar", "units": "Birliklar", "raw": "Xom ashyo", "semiFinished": "Yarim tayyor", "finished": "Tayyor mahsulot" },
+  "settings": { "users": "Foydalanuvchilar", "roles": "Rollar", "modules": "Modullar", "qcParameters": "Sifat parametrlari", "profile": "Mening profilim", "changePassword": "Parolni o'zgartirish" }
 }

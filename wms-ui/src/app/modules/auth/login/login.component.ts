@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { InputText } from 'primeng/inputtext';
 import { Password } from 'primeng/password';
 import { Button } from 'primeng/button';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { AuthService } from '../../../core/services/auth.service';
 import { TenantService } from '../../../core/services/tenant.service';
 import { NotificationService } from '../../../shared/services/notification.service';
@@ -11,7 +12,7 @@ import { NotificationService } from '../../../shared/services/notification.servi
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [FormsModule, InputText, Password, Button],
+  imports: [FormsModule, InputText, Password, Button, TranslocoDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'

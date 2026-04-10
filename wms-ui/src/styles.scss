@@ -167,6 +167,62 @@ h3 { font-size: 18px; font-weight: 600; }
   font-weight: 600 !important;
 }
 
+/* ===== FORM VALIDATION ===== */
+.field-error {
+  color: var(--danger);
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.p-inputtext.ng-invalid.ng-touched {
+  border-color: var(--danger) !important;
+}
+
+/* ===== MOBILE RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .form-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .form-field.full-width {
+    grid-column: 1 !important;
+  }
+
+  .detail-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .filters-bar {
+    flex-direction: column;
+    align-items: stretch !important;
+  }
+
+  .filter-group {
+    width: 100%;
+  }
+
+  .p-input-icon-left input {
+    min-width: unset !important;
+    width: 100%;
+  }
+
+  .summary-cards {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .chart-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  h1 { font-size: 22px; }
+}
+
+@media (max-width: 480px) {
+  .summary-cards {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 /* ===== SCROLLBAR ===== */
 ::-webkit-scrollbar {
   width: 6px;

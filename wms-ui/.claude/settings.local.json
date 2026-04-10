@@ -13,7 +13,13 @@
       "Bash(grep \"export.*provideTransloco\\\\|export.*TranslocoHttpLoader\\\\|export.*TranslocoLoader\" node_modules/@jsverse/transloco/lib/*.d.ts)",
       "Bash(npx ng:*)",
       "Bash(ls \"C:\\\\Users\\\\g.turaqulov\\\\Desktop\\\\Personal-Project\\\\projects\\\\wms\\\\wms-ui\\\\src\\\\app\\\\modules\\\\settings\"/*/*.ts)",
-      "Bash(ls \"C:\\\\Users\\\\g.turaqulov\\\\Desktop\\\\Personal-Project\\\\projects\\\\wms\\\\wms-ui\\\\src\\\\app\\\\modules\\\\portal\"/*/*.ts)"
+      "Bash(ls \"C:\\\\Users\\\\g.turaqulov\\\\Desktop\\\\Personal-Project\\\\projects\\\\wms\\\\wms-ui\\\\src\\\\app\\\\modules\\\\portal\"/*/*.ts)",
+      "Bash(python3 -c \"import json; json.load\\(open\\('C:/Users/g.turaqulov/Desktop/Personal-Project/projects/wms/wms-ui/src/assets/i18n/uz.json'\\)\\); print\\('uz.json: VALID'\\)\")",
+      "Bash(python3 -c \"import json; json.load\\(open\\('C:/Users/g.turaqulov/Desktop/Personal-Project/projects/wms/wms-ui/src/assets/i18n/ru.json'\\)\\); print\\('ru.json: VALID'\\)\")",
+      "Bash(python3 -c \"import json; json.load\\(open\\('C:/Users/g.turaqulov/Desktop/Personal-Project/projects/wms/wms-ui/src/assets/i18n/en.json'\\)\\); print\\('en.json: VALID'\\)\")",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('C:/Users/g.turaqulov/Desktop/Personal-Project/projects/wms/wms-ui/src/assets/i18n/uz.json','utf8'\\)\\); console.log\\('uz: VALID'\\)\")",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('C:/Users/g.turaqulov/Desktop/Personal-Project/projects/wms/wms-ui/src/assets/i18n/ru.json','utf8'\\)\\); console.log\\('ru: VALID'\\)\")",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('C:/Users/g.turaqulov/Desktop/Personal-Project/projects/wms/wms-ui/src/assets/i18n/en.json','utf8'\\)\\); console.log\\('en: VALID'\\)\")"
     ]
   }
 }

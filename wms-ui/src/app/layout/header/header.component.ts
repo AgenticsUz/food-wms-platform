@@ -1,4 +1,4 @@
-import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, output } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { TranslocoService } from '@jsverse/transloco';
 import { ThemeService } from '../../core/services/theme.service';
@@ -19,6 +19,7 @@ export class HeaderComponent {
 
   currentUser = this.authService.currentUser;
   currentLang = this.translocoService.langChanges$;
+  menuToggled = output<void>();
 
   toggleTheme() {
     this.themeService.toggle();
@@ -27,5 +28,9 @@ export class HeaderComponent {
   switchLang(lang: string) {
     this.translocoService.setActiveLang(lang);
     localStorage.setItem('lang', lang);
+  }
+
+  toggleMobileMenu() {
+    this.menuToggled.emit();
   }
 }
