@@ -60,8 +60,12 @@ public class RolesController : BaseController
         => Ok(ApiResponse<List<PermissionDto>>.Ok(await _users.GetRolePermissionsAsync(TenantId, id)));
 
     [HttpPut("{id}/permissions")]
-    public async Task<IActionResult> AssignPermissions(int id, [FromBody] AssignPermissionsDto dto)
-    { await _users.AssignPermissionsAsync(TenantId, id, dto); return Ok(ApiResponse<object>.Ok(null!, "Permissions assigned")); }
+    public async Task<IActionResult> AssignPermissions(int id, [FromBody] AssignPermissionsDto? dto)
+    {
+        dto ??= new AssignPermissionsDto();
+        await _users.AssignPermissionsAsync(TenantId, id, dto);
+        return Ok(ApiResponse<object>.Ok(null!, "Permissions assigned"));
+    }
 }
 
 [ApiController]

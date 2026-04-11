@@ -7,9 +7,12 @@ public static class DataInitializer
 {
     public static async Task SeedAsync(WmsDbContext db)
     {
-        // Only seed if no tenants exist (idempotent)
         if (await db.Tenants.AnyAsync())
+        {
+            // Backfill: ensure Admin role has all permissions assigned
+            await EnsureAdminPermissionsAsync(db);
             return;
+        }
 
         // 1. Create default tenant
         var tenant = new Tenant
@@ -65,12 +68,45 @@ public static class DataInitializer
         await db.SaveChangesAsync();
 
         // 6. Assign ALL permissions to Admin role
+        await AssignAllPermissionsToRole(db, role.Id);
+    }
+
+    private static async Task EnsureAdminPermissionsAsync(WmsDbContext db)
+    {
+        // Find Admin roles that are missing permissions
+        var adminRoles = await db.Roles.Where(r => r.Name == "Admin").ToListAsync();
+        var allPermissionIds = await db.Permissions.Select(p => p.Id).ToListAsync();
+
+        foreach (var role in adminRoles)
+        {
+            var existingPermIds = await db.RolePermissions
+                .Where(rp => rp.RoleId == role.Id)
+                .Select(rp => rp.PermissionId)
+                .ToListAsync();
+
+            var missingIds = allPermissionIds.Except(existingPermIds).ToList();
+            if (missingIds.Count == 0) continue;
+
+            foreach (var permId in missingIds)
+            {
+                db.RolePermissions.Add(new RolePermission
+                {
+                    RoleId = role.Id,
+                    PermissionId = permId
+                });
+            }
+            await db.SaveChangesAsync();
+        }
+    }
+
+    private static async Task AssignAllPermissionsToRole(WmsDbContext db, int roleId)
+    {
         var permissions = await db.Permissions.ToListAsync();
         foreach (var permission in permissions)
         {
             db.RolePermissions.Add(new RolePermission
             {
-                RoleId = role.Id,
+                RoleId = roleId,
                 PermissionId = permission.Id
             });
         }

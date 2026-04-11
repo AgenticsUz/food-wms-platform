@@ -1,3 +1,6 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
 namespace WMS.Application.DTOs.Users;
 
 public class UserDto
@@ -59,5 +62,40 @@ public class PermissionDto
 
 public class AssignPermissionsDto
 {
+    [JsonConverter(typeof(FlexibleIntListConverter))]
     public List<int> PermissionIds { get; set; } = new();
+}
+
+/// <summary>
+/// Accepts both [1,2,3] and ["1","2","3"] from JSON.
+/// </summary>
+public class FlexibleIntListConverter : JsonConverter<List<int>>
+{
+    public override List<int> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        var list = new List<int>();
+        if (reader.TokenType != JsonTokenType.StartArray)
+            throw new JsonException("Expected array");
+
+        while (reader.Read())
+        {
+            if (reader.TokenType == JsonTokenType.EndArray) break;
+            if (reader.TokenType == JsonTokenType.Null)
+                continue;
+            if (reader.TokenType == JsonTokenType.Number)
+                list.Add(reader.GetInt32());
+            else if (reader.TokenType == JsonTokenType.String && int.TryParse(reader.GetString(), out var val))
+                list.Add(val);
+            else
+                continue; // skip unrecognized values
+        }
+        return list;
+    }
+
+    public override void Write(Utf8JsonWriter writer, List<int> value, JsonSerializerOptions options)
+    {
+        writer.WriteStartArray();
+        foreach (var v in value) writer.WriteNumberValue(v);
+        writer.WriteEndArray();
+    }
 }

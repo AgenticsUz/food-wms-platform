@@ -64,18 +64,24 @@ public class TenantService : ITenantService
     public async Task ToggleModulesAsync(int tenantId, List<ToggleModuleDto> modules)
     {
         foreach (var dto in modules)
+            await ToggleModuleAsync(tenantId, dto);
+    }
+
+    public async Task ToggleModuleAsync(int tenantId, ToggleModuleDto dto)
+    {
+        var moduleExists = await _db.Modules.AnyAsync(m => m.Id == dto.ModuleId);
+        if (!moduleExists) return;
+
+        var tm = await _db.TenantModules
+            .FirstOrDefaultAsync(x => x.TenantId == tenantId && x.ModuleId == dto.ModuleId);
+        if (tm != null)
         {
-            var tm = await _db.TenantModules
-                .FirstOrDefaultAsync(x => x.TenantId == tenantId && x.ModuleId == dto.ModuleId);
-            if (tm == null)
-            {
-                _db.TenantModules.Add(new TenantModule
-                    { TenantId = tenantId, ModuleId = dto.ModuleId, IsEnabled = dto.IsEnabled });
-            }
-            else
-            {
-                tm.IsEnabled = dto.IsEnabled;
-            }
+            tm.IsEnabled = dto.IsEnabled;
+        }
+        else if (dto.IsEnabled)
+        {
+            _db.TenantModules.Add(new TenantModule
+                { TenantId = tenantId, ModuleId = dto.ModuleId, IsEnabled = true });
         }
         await _db.SaveChangesAsync();
     }

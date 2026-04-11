@@ -10,4 +10,5 @@ public interface ITenantService
     Task DeleteAsync(int id);
     Task<List<TenantModuleDto>> GetModulesAsync(int tenantId);
     Task ToggleModulesAsync(int tenantId, List<ToggleModuleDto> modules);
+    Task ToggleModuleAsync(int tenantId, ToggleModuleDto dto);
 }

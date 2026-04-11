@@ -30,7 +30,14 @@
       "Bash(cmd.exe:*)",
       "Bash(DOTNET_CETCompat=0 dotnet build:*)",
       "Bash(DOTNET_EnableWriteXorExecute=0 timeout 12 dotnet run)",
-      "Bash(DOTNET_ROLL_FORWARD=Disable timeout 12 dotnet run --framework net9.0)"
+      "Bash(DOTNET_ROLL_FORWARD=Disable timeout 12 dotnet run --framework net9.0)",
+      "Bash(sqlite3 wms.db \"SELECT COUNT\\(*\\) FROM RolePermissions;\")",
+      "Bash(curl -s -X POST http://localhost:7040/api/auth/login -H \"Content-Type: application/json\" -d '{\"phone\":\"998901234567\",\"password\":\"Admin123456\",\"tenantSlug\":\"admin\"}')",
+      "Bash(curl:*)",
+      "Bash(pkill -f \"dotnet.*WMS.API\")",
+      "Bash(netstat -ano)",
+      "Bash(taskkill:*)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); p=d.get\\('paths',{}\\).get\\('/api/roles/{id}/permissions',{}\\); print\\(json.dumps\\(p.get\\('put',{}\\), indent=2\\)\\)\")"
     ]
   }
 }

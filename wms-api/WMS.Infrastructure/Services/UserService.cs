@@ -144,7 +144,8 @@ public class UserService : IUserService
         var existing = await _db.RolePermissions.Where(rp => rp.RoleId == roleId).ToListAsync();
         _db.RolePermissions.RemoveRange(existing);
 
-        foreach (var permId in dto.PermissionIds)
+        var validIds = dto.PermissionIds.Where(x => x > 0).Distinct().ToList();
+        foreach (var permId in validIds)
             _db.RolePermissions.Add(new RolePermission { RoleId = roleId, PermissionId = permId });
 
         await _db.SaveChangesAsync();
