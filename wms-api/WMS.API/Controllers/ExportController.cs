@@ -10,7 +10,9 @@ namespace WMS.API.Controllers;
 public class ExportController : BaseController
 {
     private readonly IExportService _export;
-    public ExportController(IExportService export) => _export = export;
+    private readonly ITransferPdfService _transferPdf;
+    public ExportController(IExportService export, ITransferPdfService transferPdf)
+    { _export = export; _transferPdf = transferPdf; }
 
     private const string ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
@@ -47,5 +49,19 @@ public class ExportController : BaseController
     {
         var bytes = await _export.ExportCounterpartiesAsync(TenantId, type);
         return File(bytes, ContentType, $"counterparties-{DateTime.UtcNow:yyyy-MM-dd}.xlsx");
+    }
+
+    [HttpGet("transfers/{id}/pdf")]
+    public async Task<IActionResult> ExportTransferPdf(int id)
+    {
+        try
+        {
+            var bytes = await _transferPdf.GenerateTransferPdfAsync(id, TenantId);
+            return File(bytes, "application/pdf", $"transfer-{id}.pdf");
+        }
+        catch (Exception ex)
+        {
+            return NotFound(new { success = false, message = ex.Message });
+        }
     }
 }
