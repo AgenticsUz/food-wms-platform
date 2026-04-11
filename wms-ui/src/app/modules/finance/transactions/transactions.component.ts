@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { DecimalPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
@@ -8,6 +8,8 @@ import { InputNumber } from 'primeng/inputnumber';
 import { Dialog } from 'primeng/dialog';
 import { DatePicker } from 'primeng/datepicker';
 import { Textarea } from 'primeng/textarea';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { NotificationService } from '../../../shared/services/notification.service';
@@ -22,7 +24,7 @@ import { Counterparty } from '../../../core/models/counterparty.model';
   imports: [
     DecimalPipe, DatePipe, FormsModule, TableModule, Button,
     Select, InputNumber, Dialog, DatePicker, Textarea,
-    PageHeaderComponent, StatusBadgeComponent
+    PageHeaderComponent, StatusBadgeComponent, TranslocoDirective
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './transactions.component.html',
@@ -32,6 +34,8 @@ export default class TransactionsComponent implements OnInit {
   private financeSvc = inject(FinanceService);
   private counterpartySvc = inject(CounterpartyService);
   private notify = inject(NotificationService);
+  private transloco = inject(TranslocoService);
+  private lang = toSignal(this.transloco.langChanges$, { initialValue: this.transloco.getActiveLang() });
 
   transactions = signal<Transaction[]>([]);
   counterparties = signal<Counterparty[]>([]);
@@ -44,11 +48,14 @@ export default class TransactionsComponent implements OnInit {
   editing = signal(false);
   saving = signal(false);
 
-  typeOptions = [
-    { label: 'All', value: null },
-    { label: 'Income', value: 1 },
-    { label: 'Expense', value: 2 }
-  ];
+  typeOptions = computed(() => {
+    this.lang();
+    return [
+      { label: this.transloco.translate('finance.allTypes'), value: null },
+      { label: this.transloco.translate('finance.income'), value: 1 },
+      { label: this.transloco.translate('finance.expense'), value: 2 }
+    ];
+  });
 
   form = signal<TransactionCreateDto & { id?: number }>({
     type: TransactionType.Income,
@@ -154,7 +161,9 @@ export default class TransactionsComponent implements OnInit {
   }
 
   getTypeName(type: TransactionType): string {
-    return type === TransactionType.Income ? 'Income' : 'Expense';
+    return type === TransactionType.Income
+      ? this.transloco.translate('finance.income')
+      : this.transloco.translate('finance.expense');
   }
 
   getTypeStatus(type: TransactionType): string {

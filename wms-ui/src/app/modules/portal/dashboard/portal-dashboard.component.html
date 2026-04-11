@@ -1,29 +1,29 @@
-<div class="page-enter">
-  <h1 class="page-title">Welcome, {{ counterpartyName }}</h1>
+<div class="page-enter" *transloco="let t">
+  <h1 class="page-title">{{ t('auth.welcome') }}, {{ counterpartyName }}</h1>
 
   <div class="detail-grid">
     <div class="wms-card detail-card">
-      <p class="detail-card-title">Balance</p>
+      <p class="detail-card-title">{{ t('partners.balance') }}</p>
       <p class="detail-card-value">{{ finance()?.balance ?? 0 | number:'1.0-2' }}</p>
     </div>
     <div class="wms-card detail-card">
-      <p class="detail-card-title">Total Debt</p>
+      <p class="detail-card-title">{{ t('finance.totalDebt') }}</p>
       <p class="detail-card-value debt-value">{{ finance()?.totalDebt ?? 0 | number:'1.0-2' }}</p>
     </div>
   </div>
 
   <div class="wms-card section-card">
-    <h3 class="section-title">Recent Transfers</h3>
+    <h3 class="section-title">{{ t('dashboard.recentTransfers') }}</h3>
 
     @if (transfers().length > 0) {
       <p-table [value]="transfers()" [loading]="loading()" styleClass="p-datatable-sm p-datatable-striped">
         <ng-template #header>
           <tr>
             <th>ID</th>
-            <th>Type</th>
-            <th class="text-right">Amount</th>
-            <th>Status</th>
-            <th>Date</th>
+            <th>{{ t('common.type') }}</th>
+            <th class="text-right">{{ t('common.amount') }}</th>
+            <th>{{ t('common.status') }}</th>
+            <th>{{ t('common.date') }}</th>
             <th></th>
           </tr>
         </ng-template>
@@ -45,7 +45,7 @@
     } @else if (!loading()) {
       <div class="empty-state">
         <i class="pi pi-inbox"></i>
-        <p>No transfers yet</p>
+        <p>{{ t('transfer.noTransfers') }}</p>
       </div>
     }
   </div>

@@ -55,7 +55,7 @@
           class="w-full" placeholder="e.g. Mixing, Cooking, Freezing" />
       </div>
       <div class="form-field">
-        <label>Order Number</label>
+        <label>{{ t('common.code') }}</label>
         <p-inputNumber [ngModel]="form().orderNumber" (ngModelChange)="updateForm('orderNumber', $event)"
           [min]="1" [style]="{ width: '100%' }" />
       </div>

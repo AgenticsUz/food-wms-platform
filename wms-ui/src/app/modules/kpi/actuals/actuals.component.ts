@@ -1,5 +1,6 @@
 import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { DecimalPipe, DatePipe } from '@angular/common';
 import { TableModule } from 'primeng/table';
 import { Button } from 'primeng/button';
@@ -19,7 +20,7 @@ import { Product } from '../../../core/models/product.model';
   selector: 'app-actuals',
   standalone: true,
   imports: [
-    FormsModule, DecimalPipe, DatePipe, TableModule, Button,
+    FormsModule, TranslocoDirective, DecimalPipe, DatePipe, TableModule, Button,
     Dialog, Select, InputNumber, DatePicker, Textarea, PageHeaderComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,

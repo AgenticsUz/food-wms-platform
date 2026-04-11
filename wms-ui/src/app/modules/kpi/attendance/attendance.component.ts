@@ -1,5 +1,6 @@
 import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { DatePipe } from '@angular/common';
 import { TableModule } from 'primeng/table';
 import { Button } from 'primeng/button';
@@ -21,7 +22,7 @@ interface SimpleUser {
   selector: 'app-attendance',
   standalone: true,
   imports: [
-    FormsModule, DatePipe, TableModule, Button, Dialog, Select,
+    FormsModule, TranslocoDirective, DatePipe, TableModule, Button, Dialog, Select,
     PageHeaderComponent, StatusBadgeComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,

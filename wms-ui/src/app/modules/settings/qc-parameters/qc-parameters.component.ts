@@ -1,5 +1,6 @@
 import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { DecimalPipe, DatePipe } from '@angular/common';
 import { TableModule } from 'primeng/table';
 import { Button } from 'primeng/button';
@@ -18,7 +19,8 @@ import { QcParameter, QcParameterCreateDto, QcParameterType } from '../../../cor
   standalone: true,
   imports: [
     FormsModule, DecimalPipe, DatePipe, TableModule, Button, InputText,
-    InputNumber, Select, Dialog, PageHeaderComponent, StatusBadgeComponent
+    InputNumber, Select, Dialog, PageHeaderComponent, StatusBadgeComponent,
+    TranslocoDirective
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './qc-parameters.component.html',

@@ -1,5 +1,6 @@
 import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { NgApexchartsModule } from 'ng-apexcharts';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { KpiService } from '../../../core/services/kpi.service';
 import { ShiftEfficiencyDto, PlanVsActualDto } from '../../../core/models/analytics.model';
@@ -8,7 +9,7 @@ import { APEX_DEFAULTS } from '../../../core/config/apex-defaults';
 @Component({
   selector: 'app-kpi-dashboard',
   standalone: true,
-  imports: [NgApexchartsModule, PageHeaderComponent],
+  imports: [NgApexchartsModule, TranslocoDirective, PageHeaderComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './kpi-dashboard.component.html',
   styleUrl: './kpi-dashboard.component.scss'

@@ -4,13 +4,14 @@ import { Router } from '@angular/router';
 import { InputText } from 'primeng/inputtext';
 import { Password } from 'primeng/password';
 import { Button } from 'primeng/button';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { PortalService } from '../../../core/services/portal.service';
 import { NotificationService } from '../../../shared/services/notification.service';
 
 @Component({
   selector: 'app-portal-login',
   standalone: true,
-  imports: [FormsModule, InputText, Password, Button],
+  imports: [FormsModule, InputText, Password, Button, TranslocoDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './portal-login.component.html',
   styleUrl: './portal-login.component.scss'

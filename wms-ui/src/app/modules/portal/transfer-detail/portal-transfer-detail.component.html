@@ -1,48 +1,48 @@
-<div class="page-enter">
+<div class="page-enter" *transloco="let t">
   <div class="page-header">
-    <p-button icon="pi pi-arrow-left" label="Back" [text]="true" routerLink="/portal/transfers" />
-    <h2 class="section-title">Transfer #{{ transfer()?.id }}</h2>
+    <p-button icon="pi pi-arrow-left" [label]="t('common.back')" [text]="true" routerLink="/portal/transfers" />
+    <h2 class="section-title">{{ t('transfer.transferDetail') }} #{{ transfer()?.id }}</h2>
   </div>
 
-  @if (transfer(); as t) {
+  @if (transfer(); as tr) {
     <div class="detail-grid">
       <div class="wms-card detail-card">
-        <p class="detail-card-title">Status</p>
-        <app-status-badge [status]="getStatusLabel(t.status)" [label]="getStatusLabel(t.status)" />
+        <p class="detail-card-title">{{ t('common.status') }}</p>
+        <app-status-badge [status]="getStatusLabel(tr.status)" [label]="getStatusLabel(tr.status)" />
       </div>
       <div class="wms-card detail-card">
-        <p class="detail-card-title">Total Amount</p>
-        <p class="detail-card-value">{{ t.totalAmount | number:'1.0-2' }}</p>
+        <p class="detail-card-title">{{ t('transfer.totalAmount') }}</p>
+        <p class="detail-card-value">{{ tr.totalAmount | number:'1.0-2' }}</p>
       </div>
       <div class="wms-card detail-card">
-        <p class="detail-card-title">Type</p>
-        <p class="detail-card-label">{{ getTypeName(t.type) }}</p>
+        <p class="detail-card-title">{{ t('common.type') }}</p>
+        <p class="detail-card-label">{{ getTypeName(tr.type) }}</p>
       </div>
       <div class="wms-card detail-card">
-        <p class="detail-card-title">Date</p>
-        <p class="detail-card-label">{{ t.createdAt | date:'medium' }}</p>
+        <p class="detail-card-title">{{ t('common.date') }}</p>
+        <p class="detail-card-label">{{ tr.createdAt | date:'medium' }}</p>
       </div>
     </div>
 
-    @if (t.note) {
+    @if (tr.note) {
       <div class="wms-card note-card">
-        <p class="detail-card-title">Note</p>
-        <p class="note-text">{{ t.note }}</p>
+        <p class="detail-card-title">{{ t('common.note') }}</p>
+        <p class="note-text">{{ tr.note }}</p>
       </div>
     }
 
     <div class="wms-card section-card">
-      <h3 class="section-title">Items</h3>
+      <h3 class="section-title">{{ t('transfer.items') }}</h3>
 
-      @if (t.items && t.items.length > 0) {
-        <p-table [value]="t.items" styleClass="p-datatable-sm p-datatable-striped">
+      @if (tr.items && tr.items.length > 0) {
+        <p-table [value]="tr.items" styleClass="p-datatable-sm p-datatable-striped">
           <ng-template #header>
             <tr>
-              <th>Product</th>
-              <th>Lot #</th>
-              <th class="text-right">Quantity</th>
-              <th class="text-right">Unit Price</th>
-              <th class="text-right">Total</th>
+              <th>{{ t('nav.products') }}</th>
+              <th>{{ t('warehouse.lotNumber') }}</th>
+              <th class="text-right">{{ t('common.quantity') }}</th>
+              <th class="text-right">{{ t('common.price') }}</th>
+              <th class="text-right">{{ t('common.total') }}</th>
             </tr>
           </ng-template>
           <ng-template #body let-item>
@@ -58,7 +58,7 @@
       } @else {
         <div class="empty-state">
           <i class="pi pi-inbox"></i>
-          <p>No items in this transfer</p>
+          <p>{{ t('transfer.noItems') }}</p>
         </div>
       }
     </div>
@@ -66,7 +66,7 @@
     <div class="wms-card">
       <div class="empty-state">
         <i class="pi pi-exclamation-triangle"></i>
-        <p>Transfer not found</p>
+        <p>{{ t('common.noData') }}</p>
       </div>
     </div>
   }

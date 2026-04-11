@@ -8,7 +8,7 @@
     <div class="form-grid">
       <div class="form-field full-width">
         <label>{{ t('transfer.selectType') }} *</label>
-        <p-select [options]="typeOptions" [ngModel]="transferType()" (ngModelChange)="transferType.set($event)"
+        <p-select [options]="typeOptions()" [ngModel]="transferType()" (ngModelChange)="transferType.set($event)"
           optionLabel="label" optionValue="value" [style]="{ width: '100%' }" />
       </div>
 

@@ -3,6 +3,7 @@ import { DecimalPipe, DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { TableModule } from 'primeng/table';
 import { Button } from 'primeng/button';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { PortalService } from '../../../core/services/portal.service';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { PortalFinance } from '../../../core/models/settings.model';
@@ -11,7 +12,7 @@ import { Transfer, TransferStatus } from '../../../core/models/transfer.model';
 @Component({
   selector: 'app-portal-dashboard',
   standalone: true,
-  imports: [DecimalPipe, DatePipe, RouterLink, TableModule, Button, StatusBadgeComponent],
+  imports: [DecimalPipe, DatePipe, RouterLink, TableModule, Button, StatusBadgeComponent, TranslocoDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './portal-dashboard.component.html',
   styleUrl: './portal-dashboard.component.scss'

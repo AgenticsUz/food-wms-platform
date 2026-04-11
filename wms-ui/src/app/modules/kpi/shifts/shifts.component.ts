@@ -1,5 +1,6 @@
 import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { TableModule } from 'primeng/table';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
@@ -12,7 +13,7 @@ import { Shift, ShiftCreateDto } from '../../../core/models/kpi.model';
 @Component({
   selector: 'app-shifts',
   standalone: true,
-  imports: [FormsModule, TableModule, Button, InputText, Dialog, PageHeaderComponent],
+  imports: [FormsModule, TranslocoDirective, TableModule, Button, InputText, Dialog, PageHeaderComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './shifts.component.html',
   styleUrl: './shifts.component.scss'

@@ -1,6 +1,7 @@
 import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { TableModule } from 'primeng/table';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
@@ -14,7 +15,7 @@ import { RoleInfo, RoleCreateDto } from '../../../core/models/settings.model';
 @Component({
   selector: 'app-roles',
   standalone: true,
-  imports: [FormsModule, DatePipe, TableModule, Button, InputText, Dialog, Textarea, PageHeaderComponent],
+  imports: [FormsModule, DatePipe, TableModule, Button, InputText, Dialog, Textarea, PageHeaderComponent, TranslocoDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './roles.component.html',
   styleUrl: './roles.component.scss'

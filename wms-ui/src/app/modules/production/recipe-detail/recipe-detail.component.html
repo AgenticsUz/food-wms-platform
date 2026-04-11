@@ -1,5 +1,5 @@
 <div class="page-enter" *transloco="let t">
-  <app-page-header [title]="recipe()?.name ?? 'Recipe Detail'" subtitle="Recipe configuration and stages">
+  <app-page-header [title]="recipe()?.name ?? t('production.recipes')" [subtitle]="t('production.recipeInfo')">
     <p-button icon="pi pi-arrow-left" [label]="t('common.back')" [text]="true" (onClick)="goBack()" />
   </app-page-header>
 
@@ -39,14 +39,14 @@
             <div class="stage-badges">
               @if (stage.expectedOutputQty) {
                 <span class="output-info">
-                  Output: <span class="number">{{ stage.expectedOutputQty | number:'1.0-2' }}</span>
+                  {{ t('production.outputQty') }}: <span class="number">{{ stage.expectedOutputQty | number:'1.0-2' }}</span>
                   @if (stage.outputProductName) {
                     <span class="output-product">{{ stage.outputProductName }}</span>
                   }
                 </span>
               }
               @if (stage.allowWarehouseOutput) {
-                <app-status-badge status="Confirmed" label="Warehouse Output" />
+                <app-status-badge status="Confirmed" [label]="t('nav.warehouse')" />
               }
               @if (stage.outputWarehouseName) {
                 <span class="warehouse-label">{{ stage.outputWarehouseName }}</span>

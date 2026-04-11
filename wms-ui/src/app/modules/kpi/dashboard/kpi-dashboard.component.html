@@ -1,10 +1,10 @@
-<div class="page-enter">
-  <app-page-header title="KPI Dashboard" subtitle="Shift efficiency and production analytics" />
+<div class="page-enter" *transloco="let t">
+  <app-page-header [title]="t('kpi.dashboard')" [subtitle]="t('kpi.shiftEfficiency')" />
 
   <div class="chart-row">
     <!-- Shift Efficiency Radial -->
     <div class="wms-card chart-card">
-      <h3 class="chart-title">Shift Efficiency</h3>
+      <h3 class="chart-title">{{ t('kpi.shiftEfficiency') }}</h3>
       @if (efficiencyChart()) {
         <apx-chart
           [series]="$any(efficiencyChart())['series']"
@@ -16,14 +16,14 @@
       } @else {
         <div class="chart-empty">
           <i class="pi pi-chart-bar"></i>
-          <p>No efficiency data available</p>
+          <p>{{ t('common.noData') }}</p>
         </div>
       }
     </div>
 
     <!-- Plan vs Actual Line -->
     <div class="wms-card chart-card">
-      <h3 class="chart-title">Plan vs Actual (7 days)</h3>
+      <h3 class="chart-title">{{ t('kpi.planVsActual') }}</h3>
       @if (planVsActualChart()) {
         <apx-chart
           [series]="$any(planVsActualChart())['series']"
@@ -39,7 +39,7 @@
       } @else {
         <div class="chart-empty">
           <i class="pi pi-chart-line"></i>
-          <p>No production data available</p>
+          <p>{{ t('common.noData') }}</p>
         </div>
       }
     </div>

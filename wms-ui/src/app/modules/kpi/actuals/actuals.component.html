@@ -1,6 +1,6 @@
-<div class="page-enter">
-  <app-page-header title="Shift Actuals" subtitle="Record actual production output">
-    <p-button icon="pi pi-plus" label="Record Actual" (onClick)="openNew()" />
+<div class="page-enter" *transloco="let t">
+  <app-page-header [title]="t('kpi.actuals')" [subtitle]="t('kpi.enterActuals')">
+    <p-button icon="pi pi-plus" [label]="t('kpi.recordActual')" (onClick)="openNew()" />
   </app-page-header>
 
   <div class="wms-card table-wrapper">
@@ -14,12 +14,12 @@
     >
       <ng-template #header>
         <tr>
-          <th pSortableColumn="shiftName">Shift <p-sortIcon field="shiftName" /></th>
-          <th pSortableColumn="productName">Product <p-sortIcon field="productName" /></th>
-          <th class="text-right">Actual Qty</th>
-          <th class="text-right">Waste Qty</th>
-          <th pSortableColumn="date">Date <p-sortIcon field="date" /></th>
-          <th>Note</th>
+          <th pSortableColumn="shiftName">{{ t('kpi.shift') }} <p-sortIcon field="shiftName" /></th>
+          <th pSortableColumn="productName">{{ t('nav.products') }} <p-sortIcon field="productName" /></th>
+          <th class="text-right">{{ t('kpi.actual') }}</th>
+          <th class="text-right">{{ t('kpi.waste') }}</th>
+          <th pSortableColumn="date">{{ t('common.date') }} <p-sortIcon field="date" /></th>
+          <th>{{ t('common.note') }}</th>
         </tr>
       </ng-template>
       <ng-template #body let-actual>
@@ -49,7 +49,7 @@
           <td colspan="6">
             <div class="empty-state">
               <i class="pi pi-chart-bar"></i>
-              <p>No actuals recorded</p>
+              <p>{{ t('kpi.noActuals') }}</p>
             </div>
           </td>
         </tr>
@@ -59,94 +59,96 @@
 </div>
 
 <!-- Actual Form Dialog -->
-<p-dialog
-  header="Record Actual"
-  [(visible)]="dialogVisible"
-  [modal]="true"
-  [style]="{ width: '500px' }"
-  [draggable]="false"
->
-  <div class="form-grid">
-    <div class="form-field">
-      <label>Shift *</label>
-      <p-select
-        [options]="shifts()"
-        optionLabel="name"
-        optionValue="id"
-        [ngModel]="form().shiftId"
-        (ngModelChange)="updateForm('shiftId', $event)"
-        placeholder="Select shift"
-        class="w-full"
-      />
+<ng-container *transloco="let t">
+  <p-dialog
+    [header]="t('kpi.recordActual')"
+    [(visible)]="dialogVisible"
+    [modal]="true"
+    [style]="{ width: '500px' }"
+    [draggable]="false"
+  >
+    <div class="form-grid">
+      <div class="form-field">
+        <label>{{ t('kpi.shift') }} *</label>
+        <p-select
+          [options]="shifts()"
+          optionLabel="name"
+          optionValue="id"
+          [ngModel]="form().shiftId"
+          (ngModelChange)="updateForm('shiftId', $event)"
+          placeholder="Select shift"
+          class="w-full"
+        />
+      </div>
+
+      <div class="form-field">
+        <label>{{ t('nav.products') }} *</label>
+        <p-select
+          [options]="products()"
+          optionLabel="name"
+          optionValue="id"
+          [ngModel]="form().productId"
+          (ngModelChange)="updateForm('productId', $event)"
+          placeholder="Select product"
+          [filter]="true"
+          filterPlaceholder="Search..."
+          class="w-full"
+        />
+      </div>
+
+      <div class="form-field">
+        <label>{{ t('kpi.actual') }} *</label>
+        <p-inputNumber
+          [ngModel]="form().actualQuantity"
+          (ngModelChange)="updateForm('actualQuantity', $event)"
+          [minFractionDigits]="0"
+          [maxFractionDigits]="2"
+          [min]="0"
+          placeholder="0"
+          class="w-full"
+        />
+      </div>
+
+      <div class="form-field">
+        <label>{{ t('kpi.waste') }}</label>
+        <p-inputNumber
+          [ngModel]="form().wasteQuantity"
+          (ngModelChange)="updateForm('wasteQuantity', $event)"
+          [minFractionDigits]="0"
+          [maxFractionDigits]="2"
+          [min]="0"
+          placeholder="0"
+          class="w-full"
+        />
+      </div>
+
+      <div class="form-field">
+        <label>{{ t('common.date') }} *</label>
+        <p-datePicker
+          [ngModel]="form().date"
+          (ngModelChange)="updateForm('date', $event)"
+          dateFormat="yy-mm-dd"
+          placeholder="Select date"
+          class="w-full"
+        />
+      </div>
+
+      <div class="form-field">
+        <label>{{ t('common.note') }}</label>
+        <textarea
+          pTextarea
+          [ngModel]="form().note"
+          (ngModelChange)="updateForm('note', $event)"
+          [rows]="3"
+          class="w-full"
+          placeholder="Optional notes..."
+        ></textarea>
+      </div>
     </div>
 
-    <div class="form-field">
-      <label>Product *</label>
-      <p-select
-        [options]="products()"
-        optionLabel="name"
-        optionValue="id"
-        [ngModel]="form().productId"
-        (ngModelChange)="updateForm('productId', $event)"
-        placeholder="Select product"
-        [filter]="true"
-        filterPlaceholder="Search..."
-        class="w-full"
-      />
-    </div>
-
-    <div class="form-field">
-      <label>Actual Quantity *</label>
-      <p-inputNumber
-        [ngModel]="form().actualQuantity"
-        (ngModelChange)="updateForm('actualQuantity', $event)"
-        [minFractionDigits]="0"
-        [maxFractionDigits]="2"
-        [min]="0"
-        placeholder="0"
-        class="w-full"
-      />
-    </div>
-
-    <div class="form-field">
-      <label>Waste Quantity</label>
-      <p-inputNumber
-        [ngModel]="form().wasteQuantity"
-        (ngModelChange)="updateForm('wasteQuantity', $event)"
-        [minFractionDigits]="0"
-        [maxFractionDigits]="2"
-        [min]="0"
-        placeholder="0"
-        class="w-full"
-      />
-    </div>
-
-    <div class="form-field">
-      <label>Date *</label>
-      <p-datePicker
-        [ngModel]="form().date"
-        (ngModelChange)="updateForm('date', $event)"
-        dateFormat="yy-mm-dd"
-        placeholder="Select date"
-        class="w-full"
-      />
-    </div>
-
-    <div class="form-field">
-      <label>Note</label>
-      <textarea
-        pTextarea
-        [ngModel]="form().note"
-        (ngModelChange)="updateForm('note', $event)"
-        [rows]="3"
-        class="w-full"
-        placeholder="Optional notes..."
-      ></textarea>
-    </div>
-  </div>
-
-  <ng-template #footer>
-    <p-button label="Cancel" [text]="true" (onClick)="dialogVisible.set(false)" />
-    <p-button label="Record" icon="pi pi-check" (onClick)="save()" [loading]="saving()" />
-  </ng-template>
-</p-dialog>
+    <ng-template #footer>
+      <p-button [label]="t('common.cancel')" [text]="true" (onClick)="dialogVisible.set(false)" />
+      <p-button [label]="t('kpi.recordActual')" icon="pi pi-check" (onClick)="save()" [loading]="saving()" />
+    </ng-template>
+  </p-dialog>
+</ng-container>

@@ -1,18 +1,18 @@
-<div class="page-enter">
-  <app-page-header title="Transactions" subtitle="Track income and expenses">
-    <p-button icon="pi pi-plus" label="Add Transaction" (onClick)="openNew()" />
+<div class="page-enter" *transloco="let t">
+  <app-page-header [title]="t('finance.transactions')" [subtitle]="t('finance.transactions')">
+    <p-button icon="pi pi-plus" [label]="t('finance.addTransaction')" (onClick)="openNew()" />
   </app-page-header>
 
   <!-- Filters -->
   <div class="filters-bar wms-card">
     <div class="filter-group">
       <p-select
-        [options]="typeOptions"
+        [options]="typeOptions()"
         [ngModel]="typeFilter()"
         (ngModelChange)="typeFilter.set($event); onFilterChange()"
         optionLabel="label"
         optionValue="value"
-        placeholder="Type"
+        [placeholder]="t('common.type')"
         [style]="{ minWidth: '160px' }" />
     </div>
     <div class="filter-group">
@@ -21,7 +21,7 @@
         (ngModelChange)="dateFrom.set($event); onFilterChange()"
         dateFormat="yy-mm-dd"
         [showIcon]="true"
-        placeholder="From" />
+        [placeholder]="t('common.from')" />
     </div>
     <div class="filter-group">
       <p-datepicker
@@ -29,7 +29,7 @@
         (ngModelChange)="dateTo.set($event); onFilterChange()"
         dateFormat="yy-mm-dd"
         [showIcon]="true"
-        placeholder="To" />
+        [placeholder]="t('common.to')" />
     </div>
   </div>
 
@@ -45,12 +45,12 @@
       styleClass="p-datatable-sm p-datatable-striped">
       <ng-template #header>
         <tr>
-          <th>Type</th>
-          <th class="text-right" pSortableColumn="amount">Amount <p-sortIcon field="amount" /></th>
-          <th>Counterparty</th>
-          <th>Description</th>
-          <th pSortableColumn="date">Date <p-sortIcon field="date" /></th>
-          <th class="text-center">Actions</th>
+          <th>{{ t('common.type') }}</th>
+          <th class="text-right" pSortableColumn="amount">{{ t('common.amount') }} <p-sortIcon field="amount" /></th>
+          <th>{{ t('finance.counterparty') }}</th>
+          <th>{{ t('common.description') }}</th>
+          <th pSortableColumn="date">{{ t('common.date') }} <p-sortIcon field="date" /></th>
+          <th class="text-center">{{ t('common.actions') }}</th>
         </tr>
       </ng-template>
       <ng-template #body let-t>
@@ -76,7 +76,7 @@
           <td colspan="6">
             <div class="empty-state">
               <i class="pi pi-wallet"></i>
-              <p>No transactions found</p>
+              <p>{{ t('finance.noTransactions') }}</p>
             </div>
           </td>
         </tr>
@@ -86,71 +86,73 @@
 </div>
 
 <!-- Transaction Form Dialog -->
-<p-dialog
-  header="New Transaction"
-  [(visible)]="dialogVisible"
-  [modal]="true"
-  [style]="{ width: '480px' }"
-  [draggable]="false">
-  <div class="form-grid">
-    <div class="form-field">
-      <label>Type *</label>
-      <p-select
-        [options]="typeOptions.slice(1)"
-        [ngModel]="form().type"
-        (ngModelChange)="updateForm('type', $event)"
-        optionLabel="label"
-        optionValue="value"
-        [style]="{ width: '100%' }" />
+<ng-container *transloco="let t">
+  <p-dialog
+    [header]="t('finance.addTransaction')"
+    [(visible)]="dialogVisible"
+    [modal]="true"
+    [style]="{ width: '480px' }"
+    [draggable]="false">
+    <div class="form-grid">
+      <div class="form-field">
+        <label>{{ t('common.type') }} *</label>
+        <p-select
+          [options]="typeOptions().slice(1)"
+          [ngModel]="form().type"
+          (ngModelChange)="updateForm('type', $event)"
+          optionLabel="label"
+          optionValue="value"
+          [style]="{ width: '100%' }" />
+      </div>
+
+      <div class="form-field">
+        <label>{{ t('common.amount') }} *</label>
+        <p-inputNumber
+          [ngModel]="form().amount"
+          (ngModelChange)="updateForm('amount', $event)"
+          [minFractionDigits]="0"
+          [maxFractionDigits]="2"
+          mode="decimal"
+          [style]="{ width: '100%' }" />
+      </div>
+
+      <div class="form-field">
+        <label>{{ t('finance.counterparty') }}</label>
+        <p-select
+          [options]="counterparties()"
+          [ngModel]="form().counterpartyId"
+          (ngModelChange)="updateForm('counterpartyId', $event)"
+          optionLabel="name"
+          optionValue="id"
+          placeholder="Select counterparty"
+          [showClear]="true"
+          [style]="{ width: '100%' }" />
+      </div>
+
+      <div class="form-field">
+        <label>{{ t('common.date') }} *</label>
+        <p-datepicker
+          [ngModel]="formDate()"
+          (ngModelChange)="formDate.set($event)"
+          dateFormat="yy-mm-dd"
+          [showIcon]="true"
+          [style]="{ width: '100%' }" />
+      </div>
+
+      <div class="form-field full-width">
+        <label>{{ t('common.description') }}</label>
+        <textarea pTextarea
+          [ngModel]="form().description ?? ''"
+          (ngModelChange)="updateForm('description', $event || null)"
+          rows="3"
+          class="w-full"
+          placeholder="Optional description..."></textarea>
+      </div>
     </div>
 
-    <div class="form-field">
-      <label>Amount *</label>
-      <p-inputNumber
-        [ngModel]="form().amount"
-        (ngModelChange)="updateForm('amount', $event)"
-        [minFractionDigits]="0"
-        [maxFractionDigits]="2"
-        mode="decimal"
-        [style]="{ width: '100%' }" />
-    </div>
-
-    <div class="form-field">
-      <label>Counterparty</label>
-      <p-select
-        [options]="counterparties()"
-        [ngModel]="form().counterpartyId"
-        (ngModelChange)="updateForm('counterpartyId', $event)"
-        optionLabel="name"
-        optionValue="id"
-        placeholder="Select counterparty"
-        [showClear]="true"
-        [style]="{ width: '100%' }" />
-    </div>
-
-    <div class="form-field">
-      <label>Date *</label>
-      <p-datepicker
-        [ngModel]="formDate()"
-        (ngModelChange)="formDate.set($event)"
-        dateFormat="yy-mm-dd"
-        [showIcon]="true"
-        [style]="{ width: '100%' }" />
-    </div>
-
-    <div class="form-field full-width">
-      <label>Description</label>
-      <textarea pTextarea
-        [ngModel]="form().description ?? ''"
-        (ngModelChange)="updateForm('description', $event || null)"
-        rows="3"
-        class="w-full"
-        placeholder="Optional description..."></textarea>
-    </div>
-  </div>
-
-  <ng-template #footer>
-    <p-button label="Cancel" [text]="true" (onClick)="dialogVisible.set(false)" />
-    <p-button label="Create" icon="pi pi-check" (onClick)="save()" [loading]="saving()" />
-  </ng-template>
-</p-dialog>
+    <ng-template #footer>
+      <p-button [label]="t('common.cancel')" [text]="true" (onClick)="dialogVisible.set(false)" />
+      <p-button [label]="t('common.create')" icon="pi pi-check" (onClick)="save()" [loading]="saving()" />
+    </ng-template>
+  </p-dialog>
+</ng-container>

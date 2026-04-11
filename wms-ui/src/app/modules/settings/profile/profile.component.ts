@@ -1,5 +1,6 @@
 import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Password } from 'primeng/password';
@@ -12,7 +13,7 @@ import { ChangePasswordDto } from '../../../core/models/settings.model';
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [FormsModule, Button, InputText, Password, PageHeaderComponent],
+  imports: [FormsModule, Button, InputText, Password, PageHeaderComponent, TranslocoDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss'

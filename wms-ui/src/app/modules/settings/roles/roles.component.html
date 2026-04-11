@@ -1,6 +1,6 @@
-<div class="page-enter">
-  <app-page-header title="Roles" subtitle="Manage user roles">
-    <p-button icon="pi pi-plus" label="Add Role" (onClick)="openNew()" />
+<div class="page-enter" *transloco="let t">
+  <app-page-header [title]="t('settings.roles')" [subtitle]="t('settings.manageRoles')">
+    <p-button icon="pi pi-plus" [label]="t('settings.addRole')" (onClick)="openNew()" />
   </app-page-header>
 
   <div class="wms-card table-wrapper">
@@ -14,10 +14,10 @@
     >
       <ng-template #header>
         <tr>
-          <th pSortableColumn="name">Name <p-sortIcon field="name" /></th>
-          <th>Description</th>
-          <th>Created</th>
-          <th class="text-center">Actions</th>
+          <th pSortableColumn="name">{{ t('common.name') }} <p-sortIcon field="name" /></th>
+          <th>{{ t('common.description') }}</th>
+          <th>{{ t('common.date') }}</th>
+          <th class="text-center">{{ t('common.actions') }}</th>
         </tr>
       </ng-template>
       <ng-template #body let-role>
@@ -40,7 +40,7 @@
           <td colspan="4">
             <div class="empty-state">
               <i class="pi pi-shield"></i>
-              <p>No roles found</p>
+              <p>{{ t('common.noData') }}</p>
             </div>
           </td>
         </tr>
@@ -49,28 +49,30 @@
   </div>
 </div>
 
-<!-- Role Form Dialog -->
-<p-dialog
-  [header]="editing() ? 'Edit Role' : 'New Role'"
-  [(visible)]="dialogVisible"
-  [modal]="true"
-  [style]="{ width: '450px' }"
-  [draggable]="false"
->
-  <div class="form-col">
-    <div class="form-field">
-      <label>Name *</label>
-      <input pInputText [ngModel]="form().name" (ngModelChange)="updateForm('name', $event)" class="w-full" placeholder="e.g. Admin" />
+<ng-container *transloco="let t">
+  <!-- Role Form Dialog -->
+  <p-dialog
+    [header]="editing() ? t('common.edit') + ' ' + t('settings.roles') : t('settings.addRole')"
+    [(visible)]="dialogVisible"
+    [modal]="true"
+    [style]="{ width: '450px' }"
+    [draggable]="false"
+  >
+    <div class="form-col">
+      <div class="form-field">
+        <label>{{ t('common.name') }} *</label>
+        <input pInputText [ngModel]="form().name" (ngModelChange)="updateForm('name', $event)" class="w-full" placeholder="e.g. Admin" />
+      </div>
+
+      <div class="form-field">
+        <label>{{ t('common.description') }}</label>
+        <textarea pTextarea [ngModel]="form().description" (ngModelChange)="updateForm('description', $event)" class="w-full" [rows]="3" placeholder="Optional description"></textarea>
+      </div>
     </div>
 
-    <div class="form-field">
-      <label>Description</label>
-      <textarea pTextarea [ngModel]="form().description" (ngModelChange)="updateForm('description', $event)" class="w-full" [rows]="3" placeholder="Optional description"></textarea>
-    </div>
-  </div>
-
-  <ng-template #footer>
-    <p-button label="Cancel" [text]="true" (onClick)="dialogVisible.set(false)" />
-    <p-button [label]="editing() ? 'Update' : 'Create'" icon="pi pi-check" (onClick)="save()" [loading]="saving()" />
-  </ng-template>
-</p-dialog>
+    <ng-template #footer>
+      <p-button [label]="t('common.cancel')" [text]="true" (onClick)="dialogVisible.set(false)" />
+      <p-button [label]="editing() ? t('common.update') : t('common.create')" icon="pi pi-check" (onClick)="save()" [loading]="saving()" />
+    </ng-template>
+  </p-dialog>
+</ng-container>

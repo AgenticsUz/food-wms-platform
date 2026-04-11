@@ -1,29 +1,29 @@
-<div class="page-enter">
-  <h2 class="section-title">Finance Overview</h2>
+<div class="page-enter" *transloco="let t">
+  <h2 class="section-title">{{ t('finance.overview') }}</h2>
 
   <div class="detail-grid">
     <div class="wms-card detail-card">
-      <p class="detail-card-title">Balance</p>
+      <p class="detail-card-title">{{ t('partners.balance') }}</p>
       <p class="detail-card-value balance-value">{{ finance()?.balance ?? 0 | number:'1.0-2' }}</p>
     </div>
     <div class="wms-card detail-card">
-      <p class="detail-card-title">Total Debt</p>
+      <p class="detail-card-title">{{ t('finance.totalDebt') }}</p>
       <p class="detail-card-value debt-value">{{ finance()?.totalDebt ?? 0 | number:'1.0-2' }}</p>
     </div>
   </div>
 
   <div class="wms-card section-card">
-    <h3 class="section-title">Payment History</h3>
+    <h3 class="section-title">{{ t('partners.paymentHistory') }}</h3>
 
     @if (payments().length > 0) {
       <p-table [value]="payments()" [loading]="loading()" [paginator]="true" [rows]="10"
                styleClass="p-datatable-sm p-datatable-striped">
         <ng-template #header>
           <tr>
-            <th class="text-right">Amount</th>
-            <th>Method</th>
-            <th>Date</th>
-            <th>Note</th>
+            <th class="text-right">{{ t('common.amount') }}</th>
+            <th>{{ t('finance.paymentMethod') }}</th>
+            <th>{{ t('common.date') }}</th>
+            <th>{{ t('common.note') }}</th>
           </tr>
         </ng-template>
         <ng-template #body let-p>
@@ -40,7 +40,7 @@
     } @else if (!loading()) {
       <div class="empty-state">
         <i class="pi pi-wallet"></i>
-        <p>No payment history</p>
+        <p>{{ t('finance.noPayments') }}</p>
       </div>
     }
   </div>

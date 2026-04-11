@@ -3,6 +3,7 @@ import { DecimalPipe, DatePipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TableModule } from 'primeng/table';
 import { Button } from 'primeng/button';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { PortalService } from '../../../core/services/portal.service';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { Transfer, TransferType, TransferStatus } from '../../../core/models/transfer.model';
@@ -10,7 +11,7 @@ import { Transfer, TransferType, TransferStatus } from '../../../core/models/tra
 @Component({
   selector: 'app-portal-transfer-detail',
   standalone: true,
-  imports: [DecimalPipe, DatePipe, RouterLink, TableModule, Button, StatusBadgeComponent],
+  imports: [DecimalPipe, DatePipe, RouterLink, TableModule, Button, StatusBadgeComponent, TranslocoDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './portal-transfer-detail.component.html',
   styleUrl: './portal-transfer-detail.component.scss'

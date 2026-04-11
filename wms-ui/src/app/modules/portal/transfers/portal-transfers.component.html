@@ -1,16 +1,16 @@
-<div class="page-enter">
-  <h2 class="section-title">My Transfers</h2>
+<div class="page-enter" *transloco="let t">
+  <h2 class="section-title">{{ t('transfer.transfers') }}</h2>
 
   <div class="wms-card filters-bar">
     <div class="filter-group">
-      <label>From:</label>
-      <p-datepicker [ngModel]="dateFrom()" (ngModelChange)="dateFrom.set($event); onDateChange()" dateFormat="yy-mm-dd" [showIcon]="true" placeholder="Start date" />
+      <label>{{ t('common.from') }}:</label>
+      <p-datepicker [ngModel]="dateFrom()" (ngModelChange)="dateFrom.set($event); onDateChange()" dateFormat="yy-mm-dd" [showIcon]="true" />
     </div>
     <div class="filter-group">
-      <label>To:</label>
-      <p-datepicker [ngModel]="dateTo()" (ngModelChange)="dateTo.set($event); onDateChange()" dateFormat="yy-mm-dd" [showIcon]="true" placeholder="End date" />
+      <label>{{ t('common.to') }}:</label>
+      <p-datepicker [ngModel]="dateTo()" (ngModelChange)="dateTo.set($event); onDateChange()" dateFormat="yy-mm-dd" [showIcon]="true" />
     </div>
-    <p-button label="Reset" icon="pi pi-times" [text]="true" size="small"
+    <p-button icon="pi pi-times" [text]="true" size="small"
               (onClick)="dateFrom.set(null); dateTo.set(null); onDateChange()" />
   </div>
 
@@ -21,11 +21,11 @@
         <ng-template #header>
           <tr>
             <th>ID</th>
-            <th>Type</th>
-            <th>Counterparty</th>
-            <th class="text-right">Amount</th>
-            <th>Status</th>
-            <th>Date</th>
+            <th>{{ t('common.type') }}</th>
+            <th>{{ t('transfer.counterparty') }}</th>
+            <th class="text-right">{{ t('common.amount') }}</th>
+            <th>{{ t('common.status') }}</th>
+            <th>{{ t('common.date') }}</th>
             <th></th>
           </tr>
         </ng-template>
@@ -48,7 +48,7 @@
     } @else if (!loading()) {
       <div class="empty-state">
         <i class="pi pi-inbox"></i>
-        <p>No transfers found</p>
+        <p>{{ t('transfer.noTransfers') }}</p>
       </div>
     }
   </div>

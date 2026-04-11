@@ -80,6 +80,18 @@ export default class WarehouseListComponent implements OnInit {
     });
   }
 
+  deleteWarehouse(w: Warehouse) {
+    this.notify.confirmDelete(`Delete "${w.name}"?`, () => {
+      this.warehouseService.deleteWarehouse(w.id).subscribe({
+        next: () => {
+          this.notify.success('Warehouse deleted');
+          this.loadData();
+        },
+        error: () => this.notify.error('Failed to delete warehouse')
+      });
+    });
+  }
+
   getTypeName(type: WarehouseType): string {
     switch (type) {
       case WarehouseType.Raw: return 'Raw';

@@ -5,11 +5,11 @@
 
   <div class="filters-bar wms-card">
     <div class="filter-group">
-      <p-select [options]="typeOptions" [ngModel]="typeFilter()" (ngModelChange)="typeFilter.set($event); onFilterChange()"
+      <p-select [options]="typeOptions()" [ngModel]="typeFilter()" (ngModelChange)="typeFilter.set($event); onFilterChange()"
         optionLabel="label" optionValue="value" [placeholder]="t('common.type')" [style]="{ minWidth: '160px' }" />
     </div>
     <div class="filter-group">
-      <p-select [options]="statusOptions" [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event); onFilterChange()"
+      <p-select [options]="statusOptions()" [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event); onFilterChange()"
         optionLabel="label" optionValue="value" [placeholder]="t('common.status')" [style]="{ minWidth: '160px' }" />
     </div>
     <div class="filter-group">
@@ -34,18 +34,18 @@
           <th class="text-center">{{ t('common.actions') }}</th>
         </tr>
       </ng-template>
-      <ng-template #body let-t>
+      <ng-template #body let-row>
         <tr>
-          <td><span class="number">#{{ t.id }}</span></td>
-          <td><span class="type-label">{{ getTypeName(t.type) }}</span></td>
-          <td>{{ t.counterpartyName || t.fromWarehouseName || t.toWarehouseName || '—' }}</td>
-          <td class="text-right"><span class="number">{{ t.totalAmount | number:'1.0-2' }}</span></td>
+          <td><span class="number">#{{ row.id }}</span></td>
+          <td><span class="type-label">{{ getTypeName(row.type) }}</span></td>
+          <td>{{ row.counterpartyName || row.fromWarehouseName || row.toWarehouseName || '—' }}</td>
+          <td class="text-right"><span class="number">{{ row.totalAmount | number:'1.0-2' }}</span></td>
           <td>
-            <app-status-badge [status]="getStatusKey(t.status)" [label]="getStatusName(t.status)" />
+            <app-status-badge [status]="getStatusKey(row.status)" [label]="getStatusName(row.status)" />
           </td>
-          <td>{{ t.createdAt | date:'MMM d, yyyy HH:mm' }}</td>
+          <td>{{ row.createdAt | date:'MMM d, yyyy HH:mm' }}</td>
           <td class="text-center actions-cell">
-            <p-button icon="pi pi-eye" [rounded]="true" [text]="true" severity="secondary" (onClick)="viewDetail(t)" />
+            <p-button icon="pi pi-eye" [rounded]="true" [text]="true" severity="secondary" (onClick)="viewDetail(row)" />
           </td>
         </tr>
       </ng-template>

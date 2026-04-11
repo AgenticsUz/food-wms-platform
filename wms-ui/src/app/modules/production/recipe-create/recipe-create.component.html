@@ -48,7 +48,7 @@
             optionLabel="name" optionValue="id" placeholder="Select stage" [style]="{ width: '100%' }" />
         </div>
         <div class="form-field">
-          <label>Order Number</label>
+          <label>{{ t('common.code') }}</label>
           <p-inputNumber [ngModel]="stage.orderNumber" (ngModelChange)="stage.orderNumber = $event ?? (i + 1)"
             [min]="1" [style]="{ width: '100%' }" />
         </div>
@@ -63,12 +63,12 @@
             optionLabel="name" optionValue="id" placeholder="Optional" [filter]="true" [showClear]="true" [style]="{ width: '100%' }" />
         </div>
         <div class="form-field">
-          <label>Allow Warehouse Output</label>
+          <label>{{ t('nav.warehouse') }}</label>
           <p-toggleSwitch [ngModel]="stage.allowWarehouseOutput" (ngModelChange)="stage.allowWarehouseOutput = $event" />
         </div>
         @if (stage.allowWarehouseOutput) {
           <div class="form-field">
-            <label>Output Warehouse</label>
+            <label>{{ t('transfer.selectWarehouse') }}</label>
             <p-select [options]="warehouses()" [ngModel]="stage.outputWarehouseId" (ngModelChange)="stage.outputWarehouseId = $event"
               optionLabel="name" optionValue="id" placeholder="Select warehouse" [style]="{ width: '100%' }" />
           </div>

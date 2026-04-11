@@ -1,5 +1,5 @@
-<div class="page-enter">
-  <app-page-header title="Debts" subtitle="Debt overview per counterparty" />
+<div class="page-enter" *transloco="let t">
+  <app-page-header [title]="t('finance.debts')" [subtitle]="t('finance.debt')" />
 
   <div class="wms-card table-wrapper">
     <p-table
@@ -12,11 +12,11 @@
       styleClass="p-datatable-sm p-datatable-striped">
       <ng-template #header>
         <tr>
-          <th pSortableColumn="counterpartyName">Counterparty <p-sortIcon field="counterpartyName" /></th>
-          <th>Type</th>
-          <th class="text-right" pSortableColumn="amount">Amount <p-sortIcon field="amount" /></th>
-          <th>Direction</th>
-          <th pSortableColumn="updatedAt">Last Updated <p-sortIcon field="updatedAt" /></th>
+          <th pSortableColumn="counterpartyName">{{ t('finance.counterparty') }} <p-sortIcon field="counterpartyName" /></th>
+          <th>{{ t('common.type') }}</th>
+          <th class="text-right" pSortableColumn="amount">{{ t('common.amount') }} <p-sortIcon field="amount" /></th>
+          <th>{{ t('finance.direction') }}</th>
+          <th pSortableColumn="updatedAt">{{ t('common.date') }} <p-sortIcon field="updatedAt" /></th>
         </tr>
       </ng-template>
       <ng-template #body let-d>
@@ -34,7 +34,7 @@
           </td>
           <td>
             <span class="direction-label" [class.direction-positive]="d.amount >= 0" [class.direction-negative]="d.amount < 0">
-              {{ getDebtDirection(d.amount) }}
+              {{ d.amount >= 0 ? t('finance.theyOweUs') : t('finance.weOweThem') }}
             </span>
           </td>
           <td>{{ d.updatedAt | date:'MMM d, yyyy' }}</td>
@@ -45,7 +45,7 @@
           <td colspan="5">
             <div class="empty-state">
               <i class="pi pi-wallet"></i>
-              <p>No debts found</p>
+              <p>{{ t('finance.noDebts') }}</p>
             </div>
           </td>
         </tr>

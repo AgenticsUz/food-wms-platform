@@ -1,6 +1,6 @@
-<div class="page-enter">
-  <app-page-header title="Attendance" subtitle="Track worker check-in and check-out">
-    <p-button icon="pi pi-plus" label="Check In" (onClick)="openNew()" />
+<div class="page-enter" *transloco="let t">
+  <app-page-header [title]="t('kpi.attendance')" [subtitle]="t('kpi.attendanceLog')">
+    <p-button icon="pi pi-plus" [label]="t('kpi.checkIn')" (onClick)="openNew()" />
   </app-page-header>
 
   <div class="wms-card table-wrapper">
@@ -14,12 +14,12 @@
     >
       <ng-template #header>
         <tr>
-          <th pSortableColumn="userName">Worker <p-sortIcon field="userName" /></th>
-          <th pSortableColumn="shiftName">Shift <p-sortIcon field="shiftName" /></th>
-          <th>Check In</th>
-          <th>Check Out</th>
-          <th>Method</th>
-          <th class="text-center">Actions</th>
+          <th pSortableColumn="userName">{{ t('kpi.worker') }} <p-sortIcon field="userName" /></th>
+          <th pSortableColumn="shiftName">{{ t('kpi.shift') }} <p-sortIcon field="shiftName" /></th>
+          <th>{{ t('kpi.checkIn') }}</th>
+          <th>{{ t('kpi.checkOut') }}</th>
+          <th>{{ t('kpi.method') }}</th>
+          <th class="text-center">{{ t('common.actions') }}</th>
         </tr>
       </ng-template>
       <ng-template #body let-log>
@@ -35,7 +35,7 @@
             @if (log.checkOut) {
               <span class="number">{{ log.checkOut | date:'MMM d, HH:mm' }}</span>
             } @else {
-              <span class="active-badge">Active</span>
+              <span class="active-badge">{{ t('common.active') }}</span>
             }
           </td>
           <td>
@@ -48,7 +48,7 @@
             @if (!log.checkOut) {
               <p-button
                 icon="pi pi-sign-out"
-                label="Check Out"
+                [label]="t('kpi.checkOut')"
                 [rounded]="true"
                 [text]="true"
                 severity="warn"
@@ -63,7 +63,7 @@
           <td colspan="6">
             <div class="empty-state">
               <i class="pi pi-id-card"></i>
-              <p>No attendance logs found</p>
+              <p>{{ t('kpi.noAttendance') }}</p>
             </div>
           </td>
         </tr>
@@ -73,58 +73,60 @@
 </div>
 
 <!-- Check In Dialog -->
-<p-dialog
-  header="Check In"
-  [(visible)]="dialogVisible"
-  [modal]="true"
-  [style]="{ width: '450px' }"
-  [draggable]="false"
->
-  <div class="form-col">
-    <div class="form-field">
-      <label>Worker *</label>
-      <p-select
-        [options]="users()"
-        optionLabel="fullName"
-        optionValue="id"
-        [ngModel]="form().userId"
-        (ngModelChange)="updateForm('userId', $event)"
-        placeholder="Select worker"
-        [filter]="true"
-        filterPlaceholder="Search..."
-        class="w-full"
-      />
+<ng-container *transloco="let t">
+  <p-dialog
+    [header]="t('kpi.checkIn')"
+    [(visible)]="dialogVisible"
+    [modal]="true"
+    [style]="{ width: '450px' }"
+    [draggable]="false"
+  >
+    <div class="form-col">
+      <div class="form-field">
+        <label>{{ t('kpi.worker') }} *</label>
+        <p-select
+          [options]="users()"
+          optionLabel="fullName"
+          optionValue="id"
+          [ngModel]="form().userId"
+          (ngModelChange)="updateForm('userId', $event)"
+          placeholder="Select worker"
+          [filter]="true"
+          filterPlaceholder="Search..."
+          class="w-full"
+        />
+      </div>
+
+      <div class="form-field">
+        <label>{{ t('kpi.shift') }} *</label>
+        <p-select
+          [options]="shifts()"
+          optionLabel="name"
+          optionValue="id"
+          [ngModel]="form().shiftId"
+          (ngModelChange)="updateForm('shiftId', $event)"
+          placeholder="Select shift"
+          class="w-full"
+        />
+      </div>
+
+      <div class="form-field">
+        <label>{{ t('kpi.method') }} *</label>
+        <p-select
+          [options]="methodOptions"
+          optionLabel="label"
+          optionValue="value"
+          [ngModel]="form().method"
+          (ngModelChange)="updateForm('method', $event)"
+          placeholder="Select method"
+          class="w-full"
+        />
+      </div>
     </div>
 
-    <div class="form-field">
-      <label>Shift *</label>
-      <p-select
-        [options]="shifts()"
-        optionLabel="name"
-        optionValue="id"
-        [ngModel]="form().shiftId"
-        (ngModelChange)="updateForm('shiftId', $event)"
-        placeholder="Select shift"
-        class="w-full"
-      />
-    </div>
-
-    <div class="form-field">
-      <label>Method *</label>
-      <p-select
-        [options]="methodOptions"
-        optionLabel="label"
-        optionValue="value"
-        [ngModel]="form().method"
-        (ngModelChange)="updateForm('method', $event)"
-        placeholder="Select method"
-        class="w-full"
-      />
-    </div>
-  </div>
-
-  <ng-template #footer>
-    <p-button label="Cancel" [text]="true" (onClick)="dialogVisible.set(false)" />
-    <p-button label="Check In" icon="pi pi-check" (onClick)="save()" [loading]="saving()" />
-  </ng-template>
-</p-dialog>
+    <ng-template #footer>
+      <p-button [label]="t('common.cancel')" [text]="true" (onClick)="dialogVisible.set(false)" />
+      <p-button [label]="t('kpi.checkIn')" icon="pi pi-check" (onClick)="save()" [loading]="saving()" />
+    </ng-template>
+  </p-dialog>
+</ng-container>

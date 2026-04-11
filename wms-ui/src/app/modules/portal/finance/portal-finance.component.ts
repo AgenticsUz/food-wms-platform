@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@angular/core';
 import { DecimalPipe, DatePipe } from '@angular/common';
 import { TableModule } from 'primeng/table';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { PortalService } from '../../../core/services/portal.service';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { PortalFinance } from '../../../core/models/settings.model';
@@ -9,7 +10,7 @@ import { PaymentHistory, PaymentMethod } from '../../../core/models/counterparty
 @Component({
   selector: 'app-portal-finance',
   standalone: true,
-  imports: [DecimalPipe, DatePipe, TableModule, StatusBadgeComponent],
+  imports: [DecimalPipe, DatePipe, TableModule, StatusBadgeComponent, TranslocoDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './portal-finance.component.html',
   styleUrl: './portal-finance.component.scss'

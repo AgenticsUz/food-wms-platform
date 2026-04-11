@@ -1,5 +1,6 @@
 import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { TableModule } from 'primeng/table';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
@@ -7,6 +8,7 @@ import { Dialog } from 'primeng/dialog';
 import { ToggleSwitch } from 'primeng/toggleswitch';
 import { Password } from 'primeng/password';
 import { MultiSelect } from 'primeng/multiselect';
+import { Tooltip } from 'primeng/tooltip';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { SettingsService } from '../../../core/services/settings.service';
@@ -18,8 +20,8 @@ import { UserDetail, UserCreateDto, UserUpdateDto, RoleInfo } from '../../../cor
   standalone: true,
   imports: [
     FormsModule, TableModule, Button, InputText, Dialog,
-    ToggleSwitch, Password, MultiSelect,
-    PageHeaderComponent, StatusBadgeComponent
+    ToggleSwitch, Password, MultiSelect, Tooltip,
+    PageHeaderComponent, StatusBadgeComponent, TranslocoDirective
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './users.component.html',

@@ -1,6 +1,7 @@
 import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { NgApexchartsModule } from 'ng-apexcharts';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { FinanceService } from '../../../core/services/finance.service';
 import { FinanceSummary } from '../../../core/models/finance.model';
@@ -10,7 +11,7 @@ import { APEX_DEFAULTS } from '../../../core/config/apex-defaults';
 @Component({
   selector: 'app-finance-summary',
   standalone: true,
-  imports: [DecimalPipe, NgApexchartsModule, PageHeaderComponent],
+  imports: [DecimalPipe, NgApexchartsModule, PageHeaderComponent, TranslocoDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './finance-summary.component.html',
   styleUrl: './finance-summary.component.scss'

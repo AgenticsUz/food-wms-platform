@@ -1,6 +1,7 @@
 import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { DecimalPipe, DatePipe } from '@angular/common';
 import { TableModule } from 'primeng/table';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { FinanceService } from '../../../core/services/finance.service';
@@ -10,7 +11,7 @@ import { Debt } from '../../../core/models/finance.model';
 @Component({
   selector: 'app-debts',
   standalone: true,
-  imports: [DecimalPipe, DatePipe, TableModule, PageHeaderComponent, StatusBadgeComponent],
+  imports: [DecimalPipe, DatePipe, TableModule, PageHeaderComponent, StatusBadgeComponent, TranslocoDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './debts.component.html',
   styleUrl: './debts.component.scss'

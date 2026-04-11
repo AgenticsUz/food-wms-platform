@@ -12,7 +12,7 @@
     <!-- Form -->
     <form class="login-form" (ngSubmit)="login()">
       <div class="field">
-        <label for="tenantSlug">{{ t('auth.tenantSlug') }}</label>
+        <label for="tenantSlug">{{ t('auth.organizationCode') }}</label>
         <input pInputText
                id="tenantSlug"
                [ngModel]="tenantSlug()"

@@ -1,16 +1,16 @@
-<div class="page-enter">
-  <app-page-header title="Module Configuration" subtitle="Enable or disable modules for your tenant" />
+<div class="page-enter" *transloco="let t">
+  <app-page-header [title]="t('settings.modules')" [subtitle]="t('settings.moduleSubtitle')" />
 
   <div class="wms-card module-list">
     @if (loading()) {
       <div class="loading-state">
         <i class="pi pi-spin pi-spinner"></i>
-        <p>Loading modules...</p>
+        <p>{{ t('common.loading') }}</p>
       </div>
     } @else if (modules().length === 0) {
       <div class="empty-state">
         <i class="pi pi-th-large"></i>
-        <p>No modules available</p>
+        <p>{{ t('common.noData') }}</p>
       </div>
     } @else {
       @for (module of modules(); track module.moduleId) {

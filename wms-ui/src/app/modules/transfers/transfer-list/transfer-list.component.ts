@@ -1,8 +1,9 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { DecimalPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { TranslocoDirective } from '@jsverse/transloco';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { TableModule } from 'primeng/table';
 import { Button } from 'primeng/button';
 import { Select } from 'primeng/select';
@@ -25,6 +26,8 @@ export default class TransferListComponent implements OnInit {
   private transferService = inject(TransferService);
   private notify = inject(NotificationService);
   private router = inject(Router);
+  private transloco = inject(TranslocoService);
+  private lang = toSignal(this.transloco.langChanges$, { initialValue: this.transloco.getActiveLang() });
 
   transfers = signal<Transfer[]>([]);
   loading = signal(true);
@@ -33,20 +36,26 @@ export default class TransferListComponent implements OnInit {
   dateFrom = signal<Date | null>(null);
   dateTo = signal<Date | null>(null);
 
-  typeOptions = [
-    { label: 'All Types', value: null },
-    { label: 'Incoming', value: TransferType.Incoming },
-    { label: 'Outgoing', value: TransferType.Outgoing },
-    { label: 'Internal', value: TransferType.Internal }
-  ];
+  typeOptions = computed(() => {
+    this.lang();
+    return [
+      { label: this.transloco.translate('transfer.allTypes'), value: null },
+      { label: this.transloco.translate('transfer.incoming'), value: TransferType.Incoming },
+      { label: this.transloco.translate('transfer.outgoing'), value: TransferType.Outgoing },
+      { label: this.transloco.translate('transfer.internal'), value: TransferType.Internal }
+    ];
+  });
 
-  statusOptions = [
-    { label: 'All Statuses', value: null },
-    { label: 'Pending', value: TransferStatus.Pending },
-    { label: 'Confirmed', value: TransferStatus.Confirmed },
-    { label: 'Rejected', value: TransferStatus.Rejected },
-    { label: 'Cancelled', value: TransferStatus.Cancelled }
-  ];
+  statusOptions = computed(() => {
+    this.lang();
+    return [
+      { label: this.transloco.translate('transfer.allStatuses'), value: null },
+      { label: this.transloco.translate('status.pending'), value: TransferStatus.Pending },
+      { label: this.transloco.translate('status.confirmed'), value: TransferStatus.Confirmed },
+      { label: this.transloco.translate('status.rejected'), value: TransferStatus.Rejected },
+      { label: this.transloco.translate('status.cancelled'), value: TransferStatus.Cancelled }
+    ];
+  });
 
   ngOnInit() { this.loadTransfers(); }
 

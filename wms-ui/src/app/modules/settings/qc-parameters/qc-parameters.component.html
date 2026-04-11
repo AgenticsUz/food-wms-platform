@@ -1,6 +1,6 @@
-<div class="page-enter">
-  <app-page-header title="QC Parameters" subtitle="Configure quality control check parameters">
-    <p-button icon="pi pi-plus" label="Add Parameter" (onClick)="openNew()" />
+<div class="page-enter" *transloco="let t">
+  <app-page-header [title]="t('settings.qcParameters')" [subtitle]="t('settings.manageQc')">
+    <p-button icon="pi pi-plus" [label]="t('settings.addParameter')" (onClick)="openNew()" />
   </app-page-header>
 
   <div class="wms-card table-wrapper">
@@ -14,13 +14,13 @@
     >
       <ng-template #header>
         <tr>
-          <th pSortableColumn="name">Name <p-sortIcon field="name" /></th>
-          <th>Unit</th>
-          <th class="text-right">Min Value</th>
-          <th class="text-right">Max Value</th>
-          <th class="text-center">Value Type</th>
-          <th>Created</th>
-          <th class="text-center">Actions</th>
+          <th pSortableColumn="name">{{ t('common.name') }} <p-sortIcon field="name" /></th>
+          <th>{{ t('common.unit') }}</th>
+          <th class="text-right">{{ t('settings.minValue') }}</th>
+          <th class="text-right">{{ t('settings.maxValue') }}</th>
+          <th class="text-center">{{ t('settings.valueType') }}</th>
+          <th>{{ t('common.date') }}</th>
+          <th class="text-center">{{ t('common.actions') }}</th>
         </tr>
       </ng-template>
       <ng-template #body let-param>
@@ -55,7 +55,7 @@
           <td colspan="7">
             <div class="empty-state">
               <i class="pi pi-check-square"></i>
-              <p>No QC parameters found</p>
+              <p>{{ t('common.noData') }}</p>
             </div>
           </td>
         </tr>
@@ -64,51 +64,53 @@
   </div>
 </div>
 
-<!-- QC Parameter Form Dialog -->
-<p-dialog
-  [header]="editing() ? 'Edit Parameter' : 'New Parameter'"
-  [(visible)]="dialogVisible"
-  [modal]="true"
-  [style]="{ width: '500px' }"
-  [draggable]="false"
->
-  <div class="form-grid">
-    <div class="form-field">
-      <label>Name *</label>
-      <input pInputText [ngModel]="form().name" (ngModelChange)="updateForm('name', $event)" class="w-full" placeholder="e.g. Temperature" />
+<ng-container *transloco="let t">
+  <!-- QC Parameter Form Dialog -->
+  <p-dialog
+    [header]="editing() ? t('common.edit') + ' ' + t('settings.qcParameters') : t('settings.addParameter')"
+    [(visible)]="dialogVisible"
+    [modal]="true"
+    [style]="{ width: '500px' }"
+    [draggable]="false"
+  >
+    <div class="form-grid">
+      <div class="form-field">
+        <label>{{ t('common.name') }} *</label>
+        <input pInputText [ngModel]="form().name" (ngModelChange)="updateForm('name', $event)" class="w-full" placeholder="e.g. Temperature" />
+      </div>
+
+      <div class="form-field">
+        <label>{{ t('common.unit') }}</label>
+        <input pInputText [ngModel]="form().unit" (ngModelChange)="updateForm('unit', $event)" class="w-full" placeholder="e.g. C, kg" />
+      </div>
+
+      <div class="form-field">
+        <label>{{ t('settings.minValue') }}</label>
+        <p-inputnumber [ngModel]="form().minValue" (ngModelChange)="updateForm('minValue', $event)" [minFractionDigits]="0" [maxFractionDigits]="2" class="w-full" styleClass="w-full" placeholder="Optional" />
+      </div>
+
+      <div class="form-field">
+        <label>{{ t('settings.maxValue') }}</label>
+        <p-inputnumber [ngModel]="form().maxValue" (ngModelChange)="updateForm('maxValue', $event)" [minFractionDigits]="0" [maxFractionDigits]="2" class="w-full" styleClass="w-full" placeholder="Optional" />
+      </div>
+
+      <div class="form-field full-width">
+        <label>{{ t('settings.valueType') }} *</label>
+        <p-select
+          [options]="typeOptions"
+          [ngModel]="form().valueType"
+          (ngModelChange)="updateForm('valueType', $event)"
+          optionLabel="label"
+          optionValue="value"
+          styleClass="w-full"
+          placeholder="Select type"
+        />
+      </div>
     </div>
 
-    <div class="form-field">
-      <label>Unit</label>
-      <input pInputText [ngModel]="form().unit" (ngModelChange)="updateForm('unit', $event)" class="w-full" placeholder="e.g. C, kg" />
-    </div>
-
-    <div class="form-field">
-      <label>Min Value</label>
-      <p-inputnumber [ngModel]="form().minValue" (ngModelChange)="updateForm('minValue', $event)" [minFractionDigits]="0" [maxFractionDigits]="2" class="w-full" styleClass="w-full" placeholder="Optional" />
-    </div>
-
-    <div class="form-field">
-      <label>Max Value</label>
-      <p-inputnumber [ngModel]="form().maxValue" (ngModelChange)="updateForm('maxValue', $event)" [minFractionDigits]="0" [maxFractionDigits]="2" class="w-full" styleClass="w-full" placeholder="Optional" />
-    </div>
-
-    <div class="form-field full-width">
-      <label>Value Type *</label>
-      <p-select
-        [options]="typeOptions"
-        [ngModel]="form().valueType"
-        (ngModelChange)="updateForm('valueType', $event)"
-        optionLabel="label"
-        optionValue="value"
-        styleClass="w-full"
-        placeholder="Select type"
-      />
-    </div>
-  </div>
-
-  <ng-template #footer>
-    <p-button label="Cancel" [text]="true" (onClick)="dialogVisible.set(false)" />
-    <p-button [label]="editing() ? 'Update' : 'Create'" icon="pi pi-check" (onClick)="save()" [loading]="saving()" />
-  </ng-template>
-</p-dialog>
+    <ng-template #footer>
+      <p-button [label]="t('common.cancel')" [text]="true" (onClick)="dialogVisible.set(false)" />
+      <p-button [label]="editing() ? t('common.update') : t('common.create')" icon="pi pi-check" (onClick)="save()" [loading]="saving()" />
+    </ng-template>
+  </p-dialog>
+</ng-container>

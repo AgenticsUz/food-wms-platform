@@ -1,5 +1,5 @@
-<div class="page-enter">
-  <app-page-header title="Finance Overview" subtitle="Income, expenses and debt summary" />
+<div class="page-enter" *transloco="let t">
+  <app-page-header [title]="t('finance.overview')" [subtitle]="t('finance.incomeExpenseChart')" />
 
   <!-- Summary Cards -->
   <div class="detail-grid">
@@ -20,7 +20,7 @@
         <div class="card-content">
           <span class="card-value number">{{ (summary()?.totalIncome ?? 0) | number:'1.0-0' }}</span>
         </div>
-        <span class="card-label">Total Income</span>
+        <span class="card-label">{{ t('finance.totalIncome') }}</span>
       </div>
 
       <!-- Expense -->
@@ -31,7 +31,7 @@
         <div class="card-content">
           <span class="card-value number">{{ (summary()?.totalExpense ?? 0) | number:'1.0-0' }}</span>
         </div>
-        <span class="card-label">Total Expense</span>
+        <span class="card-label">{{ t('finance.totalExpense') }}</span>
       </div>
 
       <!-- Net -->
@@ -44,7 +44,7 @@
             {{ (summary()?.netAmount ?? 0) | number:'1.0-0' }}
           </span>
         </div>
-        <span class="card-label">Net Amount</span>
+        <span class="card-label">{{ t('finance.netAmount') }}</span>
       </div>
 
       <!-- Total Debt -->
@@ -55,14 +55,14 @@
         <div class="card-content">
           <span class="card-value number">{{ (summary()?.totalDebt ?? 0) | number:'1.0-0' }}</span>
         </div>
-        <span class="card-label">Total Debt</span>
+        <span class="card-label">{{ t('finance.totalDebt') }}</span>
       </div>
     }
   </div>
 
   <!-- Income vs Expense Chart -->
   <div class="wms-card chart-card">
-    <h3 class="chart-title">Income vs Expense (30 days)</h3>
+    <h3 class="chart-title">{{ t('finance.incomeExpenseChart') }}</h3>
     @if (chartConfig()) {
       <apx-chart
         [series]="$any(chartConfig())['series']"
@@ -78,7 +78,7 @@
     } @else {
       <div class="chart-empty">
         <i class="pi pi-chart-line"></i>
-        <p>No financial data available</p>
+        <p>{{ t('finance.noTransactions') }}</p>
       </div>
     }
   </div>

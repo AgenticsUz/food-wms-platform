@@ -1,8 +1,9 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { TranslocoDirective } from '@jsverse/transloco';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { Button } from 'primeng/button';
 import { InputNumber } from 'primeng/inputnumber';
 import { Select } from 'primeng/select';
@@ -34,6 +35,8 @@ export default class TransferCreateComponent implements OnInit {
   private productService = inject(ProductService);
   private notify = inject(NotificationService);
   private router = inject(Router);
+  private transloco = inject(TranslocoService);
+  private lang = toSignal(this.transloco.langChanges$, { initialValue: this.transloco.getActiveLang() });
 
   saving = signal(false);
   transferType = signal<TransferType>(TransferType.Incoming);
@@ -52,11 +55,14 @@ export default class TransferCreateComponent implements OnInit {
   warehouses = signal<Warehouse[]>([]);
   products = signal<Product[]>([]);
 
-  typeOptions = [
-    { label: 'Incoming (from Supplier)', value: TransferType.Incoming },
-    { label: 'Outgoing (to Client)', value: TransferType.Outgoing },
-    { label: 'Internal (Warehouse to Warehouse)', value: TransferType.Internal }
-  ];
+  typeOptions = computed(() => {
+    this.lang();
+    return [
+      { label: this.transloco.translate('transfer.incoming'), value: TransferType.Incoming },
+      { label: this.transloco.translate('transfer.outgoing'), value: TransferType.Outgoing },
+      { label: this.transloco.translate('transfer.internal'), value: TransferType.Internal }
+    ];
+  });
 
   ngOnInit() {
     this.loadCounterparties();

@@ -41,7 +41,8 @@
     "phone": "Telefon",
     "address": "Manzil",
     "view": "Ko'rish",
-    "details": "Tafsilotlar"
+    "details": "Tafsilotlar",
+    "all": "Hammasi"
   },
   "auth": {
     "login": "Kirish",

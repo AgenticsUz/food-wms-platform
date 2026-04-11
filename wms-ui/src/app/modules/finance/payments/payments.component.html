@@ -1,6 +1,6 @@
-<div class="page-enter">
-  <app-page-header title="Payments" subtitle="Record and track payment history">
-    <p-button icon="pi pi-plus" label="Record Payment" (onClick)="openNew()" />
+<div class="page-enter" *transloco="let t">
+  <app-page-header [title]="t('finance.payments')" [subtitle]="t('finance.payment')">
+    <p-button icon="pi pi-plus" [label]="t('finance.recordPayment')" (onClick)="openNew()" />
   </app-page-header>
 
   <!-- Payments Table -->
@@ -15,11 +15,11 @@
       styleClass="p-datatable-sm p-datatable-striped">
       <ng-template #header>
         <tr>
-          <th pSortableColumn="counterpartyName">Counterparty <p-sortIcon field="counterpartyName" /></th>
-          <th class="text-right" pSortableColumn="amount">Amount <p-sortIcon field="amount" /></th>
-          <th>Method</th>
-          <th pSortableColumn="paidAt">Date <p-sortIcon field="paidAt" /></th>
-          <th>Note</th>
+          <th pSortableColumn="counterpartyName">{{ t('finance.counterparty') }} <p-sortIcon field="counterpartyName" /></th>
+          <th class="text-right" pSortableColumn="amount">{{ t('common.amount') }} <p-sortIcon field="amount" /></th>
+          <th>{{ t('finance.paymentMethod') }}</th>
+          <th pSortableColumn="paidAt">{{ t('common.date') }} <p-sortIcon field="paidAt" /></th>
+          <th>{{ t('common.note') }}</th>
         </tr>
       </ng-template>
       <ng-template #body let-p>
@@ -42,7 +42,7 @@
           <td colspan="5">
             <div class="empty-state">
               <i class="pi pi-wallet"></i>
-              <p>No payments recorded</p>
+              <p>{{ t('finance.noPayments') }}</p>
             </div>
           </td>
         </tr>
@@ -52,62 +52,64 @@
 </div>
 
 <!-- Record Payment Dialog -->
-<p-dialog
-  header="Record Payment"
-  [(visible)]="dialogVisible"
-  [modal]="true"
-  [style]="{ width: '480px' }"
-  [draggable]="false">
-  <div class="form-grid">
-    <div class="form-field full-width">
-      <label>Counterparty *</label>
-      <p-select
-        [options]="counterparties()"
-        [ngModel]="form().counterpartyId"
-        (ngModelChange)="updateForm('counterpartyId', $event)"
-        optionLabel="name"
-        optionValue="id"
-        placeholder="Select counterparty"
-        [filter]="true"
-        filterBy="name"
-        [style]="{ width: '100%' }" />
+<ng-container *transloco="let t">
+  <p-dialog
+    [header]="t('finance.recordPayment')"
+    [(visible)]="dialogVisible"
+    [modal]="true"
+    [style]="{ width: '480px' }"
+    [draggable]="false">
+    <div class="form-grid">
+      <div class="form-field full-width">
+        <label>{{ t('finance.counterparty') }} *</label>
+        <p-select
+          [options]="counterparties()"
+          [ngModel]="form().counterpartyId"
+          (ngModelChange)="updateForm('counterpartyId', $event)"
+          optionLabel="name"
+          optionValue="id"
+          placeholder="Select counterparty"
+          [filter]="true"
+          filterBy="name"
+          [style]="{ width: '100%' }" />
+      </div>
+
+      <div class="form-field">
+        <label>{{ t('common.amount') }} *</label>
+        <p-inputNumber
+          [ngModel]="form().amount"
+          (ngModelChange)="updateForm('amount', $event)"
+          [minFractionDigits]="0"
+          [maxFractionDigits]="2"
+          mode="decimal"
+          [style]="{ width: '100%' }" />
+      </div>
+
+      <div class="form-field">
+        <label>{{ t('finance.paymentMethod') }} *</label>
+        <p-select
+          [options]="methodOptions()"
+          [ngModel]="form().method"
+          (ngModelChange)="updateForm('method', $event)"
+          optionLabel="label"
+          optionValue="value"
+          [style]="{ width: '100%' }" />
+      </div>
+
+      <div class="form-field full-width">
+        <label>{{ t('common.note') }}</label>
+        <textarea pTextarea
+          [ngModel]="form().note ?? ''"
+          (ngModelChange)="updateForm('note', $event || null)"
+          rows="3"
+          class="w-full"
+          placeholder="Optional note..."></textarea>
+      </div>
     </div>
 
-    <div class="form-field">
-      <label>Amount *</label>
-      <p-inputNumber
-        [ngModel]="form().amount"
-        (ngModelChange)="updateForm('amount', $event)"
-        [minFractionDigits]="0"
-        [maxFractionDigits]="2"
-        mode="decimal"
-        [style]="{ width: '100%' }" />
-    </div>
-
-    <div class="form-field">
-      <label>Method *</label>
-      <p-select
-        [options]="methodOptions"
-        [ngModel]="form().method"
-        (ngModelChange)="updateForm('method', $event)"
-        optionLabel="label"
-        optionValue="value"
-        [style]="{ width: '100%' }" />
-    </div>
-
-    <div class="form-field full-width">
-      <label>Note</label>
-      <textarea pTextarea
-        [ngModel]="form().note ?? ''"
-        (ngModelChange)="updateForm('note', $event || null)"
-        rows="3"
-        class="w-full"
-        placeholder="Optional note..."></textarea>
-    </div>
-  </div>
-
-  <ng-template #footer>
-    <p-button label="Cancel" [text]="true" (onClick)="dialogVisible.set(false)" />
-    <p-button label="Record" icon="pi pi-check" (onClick)="save()" [loading]="saving()" />
-  </ng-template>
-</p-dialog>
+    <ng-template #footer>
+      <p-button [label]="t('common.cancel')" [text]="true" (onClick)="dialogVisible.set(false)" />
+      <p-button [label]="t('common.save')" icon="pi pi-check" (onClick)="save()" [loading]="saving()" />
+    </ng-template>
+  </p-dialog>
+</ng-container>

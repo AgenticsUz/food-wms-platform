@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { DecimalPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
@@ -7,6 +7,8 @@ import { Select } from 'primeng/select';
 import { InputNumber } from 'primeng/inputnumber';
 import { Dialog } from 'primeng/dialog';
 import { Textarea } from 'primeng/textarea';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { NotificationService } from '../../../shared/services/notification.service';
@@ -21,7 +23,7 @@ import { Counterparty, PaymentHistory, PaymentMethod } from '../../../core/model
   imports: [
     DecimalPipe, DatePipe, FormsModule, TableModule, Button,
     Select, InputNumber, Dialog, Textarea,
-    PageHeaderComponent, StatusBadgeComponent
+    PageHeaderComponent, StatusBadgeComponent, TranslocoDirective
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './payments.component.html',
@@ -31,6 +33,8 @@ export default class PaymentsComponent implements OnInit {
   private financeSvc = inject(FinanceService);
   private counterpartySvc = inject(CounterpartyService);
   private notify = inject(NotificationService);
+  private transloco = inject(TranslocoService);
+  private lang = toSignal(this.transloco.langChanges$, { initialValue: this.transloco.getActiveLang() });
 
   payments = signal<PaymentHistory[]>([]);
   counterparties = signal<Counterparty[]>([]);
@@ -46,11 +50,14 @@ export default class PaymentsComponent implements OnInit {
     note: null
   });
 
-  methodOptions = [
-    { label: 'Cash', value: PaymentMethod.Cash },
-    { label: 'Bank', value: PaymentMethod.Bank },
-    { label: 'Card', value: PaymentMethod.Card }
-  ];
+  methodOptions = computed(() => {
+    this.lang();
+    return [
+      { label: this.transloco.translate('finance.cash'), value: PaymentMethod.Cash },
+      { label: this.transloco.translate('finance.bank'), value: PaymentMethod.Bank },
+      { label: this.transloco.translate('finance.card'), value: PaymentMethod.Card }
+    ];
+  });
 
   ngOnInit() {
     this.loadPayments();
@@ -118,9 +125,9 @@ export default class PaymentsComponent implements OnInit {
 
   getMethodName(method: PaymentMethod): string {
     switch (method) {
-      case PaymentMethod.Cash: return 'Cash';
-      case PaymentMethod.Bank: return 'Bank';
-      case PaymentMethod.Card: return 'Card';
+      case PaymentMethod.Cash: return this.transloco.translate('finance.cash');
+      case PaymentMethod.Bank: return this.transloco.translate('finance.bank');
+      case PaymentMethod.Card: return this.transloco.translate('finance.card');
       default: return 'Unknown';
     }
   }

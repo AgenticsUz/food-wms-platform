@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 import { Button } from 'primeng/button';
 import { DatePicker } from 'primeng/datepicker';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { PortalService } from '../../../core/services/portal.service';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { Transfer, TransferType, TransferStatus } from '../../../core/models/transfer.model';
@@ -12,7 +13,7 @@ import { Transfer, TransferType, TransferStatus } from '../../../core/models/tra
 @Component({
   selector: 'app-portal-transfers',
   standalone: true,
-  imports: [DecimalPipe, DatePipe, RouterLink, FormsModule, TableModule, Button, DatePicker, StatusBadgeComponent],
+  imports: [DecimalPipe, DatePipe, RouterLink, FormsModule, TableModule, Button, DatePicker, StatusBadgeComponent, TranslocoDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './portal-transfers.component.html',
   styleUrl: './portal-transfers.component.scss'

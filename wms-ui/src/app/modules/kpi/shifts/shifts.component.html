@@ -1,6 +1,6 @@
-<div class="page-enter">
-  <app-page-header title="Shifts" subtitle="Manage work shifts">
-    <p-button icon="pi pi-plus" label="Add Shift" (onClick)="openNew()" />
+<div class="page-enter" *transloco="let t">
+  <app-page-header [title]="t('kpi.shifts')" [subtitle]="t('kpi.manageShifts')">
+    <p-button icon="pi pi-plus" [label]="t('kpi.addShift')" (onClick)="openNew()" />
   </app-page-header>
 
   <div class="wms-card table-wrapper">
@@ -14,11 +14,11 @@
     >
       <ng-template #header>
         <tr>
-          <th pSortableColumn="name">Name <p-sortIcon field="name" /></th>
-          <th>Start Time</th>
-          <th>End Time</th>
-          <th>Created</th>
-          <th class="text-center">Actions</th>
+          <th pSortableColumn="name">{{ t('common.name') }} <p-sortIcon field="name" /></th>
+          <th>{{ t('kpi.startTime') }}</th>
+          <th>{{ t('kpi.endTime') }}</th>
+          <th>{{ t('common.date') }}</th>
+          <th class="text-center">{{ t('common.actions') }}</th>
         </tr>
       </ng-template>
       <ng-template #body let-shift>
@@ -44,7 +44,7 @@
           <td colspan="5">
             <div class="empty-state">
               <i class="pi pi-clock"></i>
-              <p>No shifts found</p>
+              <p>{{ t('kpi.noShifts') }}</p>
             </div>
           </td>
         </tr>
@@ -54,32 +54,34 @@
 </div>
 
 <!-- Shift Form Dialog -->
-<p-dialog
-  [header]="editing() ? 'Edit Shift' : 'New Shift'"
-  [(visible)]="dialogVisible"
-  [modal]="true"
-  [style]="{ width: '450px' }"
-  [draggable]="false"
->
-  <div class="form-grid">
-    <div class="form-field full-width">
-      <label>Name *</label>
-      <input pInputText [ngModel]="form().name" (ngModelChange)="updateForm('name', $event)" class="w-full" placeholder="e.g. Morning" />
+<ng-container *transloco="let t">
+  <p-dialog
+    [header]="editing() ? t('common.edit') + ' ' + t('kpi.shift') : t('kpi.addShift')"
+    [(visible)]="dialogVisible"
+    [modal]="true"
+    [style]="{ width: '450px' }"
+    [draggable]="false"
+  >
+    <div class="form-grid">
+      <div class="form-field full-width">
+        <label>{{ t('common.name') }} *</label>
+        <input pInputText [ngModel]="form().name" (ngModelChange)="updateForm('name', $event)" class="w-full" placeholder="e.g. Morning" />
+      </div>
+
+      <div class="form-field">
+        <label>{{ t('kpi.startTime') }} *</label>
+        <input pInputText [ngModel]="form().startTime" (ngModelChange)="updateForm('startTime', $event)" class="w-full" placeholder="HH:mm" />
+      </div>
+
+      <div class="form-field">
+        <label>{{ t('kpi.endTime') }} *</label>
+        <input pInputText [ngModel]="form().endTime" (ngModelChange)="updateForm('endTime', $event)" class="w-full" placeholder="HH:mm" />
+      </div>
     </div>
 
-    <div class="form-field">
-      <label>Start Time *</label>
-      <input pInputText [ngModel]="form().startTime" (ngModelChange)="updateForm('startTime', $event)" class="w-full" placeholder="HH:mm" />
-    </div>
-
-    <div class="form-field">
-      <label>End Time *</label>
-      <input pInputText [ngModel]="form().endTime" (ngModelChange)="updateForm('endTime', $event)" class="w-full" placeholder="HH:mm" />
-    </div>
-  </div>
-
-  <ng-template #footer>
-    <p-button label="Cancel" [text]="true" (onClick)="dialogVisible.set(false)" />
-    <p-button [label]="editing() ? 'Update' : 'Create'" icon="pi pi-check" (onClick)="save()" [loading]="saving()" />
-  </ng-template>
-</p-dialog>
+    <ng-template #footer>
+      <p-button [label]="t('common.cancel')" [text]="true" (onClick)="dialogVisible.set(false)" />
+      <p-button [label]="editing() ? t('common.update') : t('common.create')" icon="pi pi-check" (onClick)="save()" [loading]="saving()" />
+    </ng-template>
+  </p-dialog>
+</ng-container>

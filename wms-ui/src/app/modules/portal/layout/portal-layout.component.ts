@@ -1,23 +1,24 @@
 import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { PortalService } from '../../../core/services/portal.service';
 
 @Component({
   selector: 'app-portal-layout',
   standalone: true,
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, TranslocoDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="portal-shell">
+    <div class="portal-shell" *transloco="let t">
       <header class="portal-header">
         <div class="portal-header-left">
           <i class="pi pi-warehouse portal-logo"></i>
-          <span class="portal-brand">WMS Portal</span>
+          <span class="portal-brand">WMS {{ t('partners.portal') }}</span>
         </div>
         <div class="portal-header-right">
           <span class="portal-user">{{ portalService.counterparty()?.name ?? 'Guest' }}</span>
           <button class="portal-logout" (click)="portalService.logout()">
-            <i class="pi pi-sign-out"></i> Logout
+            <i class="pi pi-sign-out"></i> {{ t('auth.logout') }}
           </button>
         </div>
       </header>

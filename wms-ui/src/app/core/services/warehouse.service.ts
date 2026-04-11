@@ -31,6 +31,10 @@ export class WarehouseService {
     return this.api.put<Warehouse>(`warehouses/${id}`, dto);
   }
 
+  deleteWarehouse(id: number) {
+    return this.api.delete<void>(`warehouses/${id}`);
+  }
+
   // Stock — grouped by product for a single warehouse
   getStock(warehouseId: number): Observable<ApiResponse<WarehouseStockGrouped[]>> {
     return this.api.get<WarehouseStockGrouped[]>(`warehouses/${warehouseId}/stock`);

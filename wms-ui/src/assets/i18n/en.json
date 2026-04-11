@@ -41,7 +41,8 @@
     "phone": "Phone",
     "address": "Address",
     "view": "View",
-    "details": "Details"
+    "details": "Details",
+    "all": "All"
   },
   "auth": {
     "login": "Login",

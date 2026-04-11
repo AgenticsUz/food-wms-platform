@@ -1,5 +1,6 @@
 import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { ToggleSwitch } from 'primeng/toggleswitch';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { SettingsService } from '../../../core/services/settings.service';
@@ -11,7 +12,7 @@ import { ModuleInfo } from '../../../core/models/settings.model';
 @Component({
   selector: 'app-modules',
   standalone: true,
-  imports: [FormsModule, ToggleSwitch, PageHeaderComponent],
+  imports: [FormsModule, ToggleSwitch, PageHeaderComponent, TranslocoDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './modules.component.html',
   styleUrl: './modules.component.scss'
