@@ -10,7 +10,9 @@ import {
   TopDebtorDto,
   WasteByStageDto,
   IncomeExpenseDto,
-  ShiftEfficiencyDto
+  ShiftEfficiencyDto,
+  ExtendedDashboardSummaryDto,
+  MonthlyComparisonDto
 } from '../models/analytics.model';
 
 @Injectable({ providedIn: 'root' })
@@ -56,5 +58,16 @@ export class AnalyticsService {
 
   getShiftEfficiency(days = 7) {
     return this.api.get<ShiftEfficiencyDto[]>('analytics/kpi/shift-efficiency', { days });
+  }
+
+  getExtendedSummary(fromDate?: string, toDate?: string) {
+    const params: Record<string, string> = {};
+    if (fromDate) params['fromDate'] = fromDate;
+    if (toDate) params['toDate'] = toDate;
+    return this.api.get<ExtendedDashboardSummaryDto>('analytics/dashboard-summary', params);
+  }
+
+  getMonthlyComparison() {
+    return this.api.get<MonthlyComparisonDto[]>('analytics/monthly-comparison');
   }
 }

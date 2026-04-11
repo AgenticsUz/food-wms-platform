@@ -76,3 +76,30 @@ export interface WasteByStageDto {
   totalWaste: number;
   wastePercent: number;
 }
+
+export interface ExtendedDashboardSummaryDto {
+  totalIncome: number;
+  totalExpense: number;
+  netProfit: number;
+  totalDebt: number;
+  totalIncomingTransfers: number;
+  totalOutgoingTransfers: number;
+  totalIncomingAmount: number;
+  totalOutgoingAmount: number;
+  totalProductionOrders: number;
+  completedOrders: number;
+  totalProduced: number;
+  totalWaste: number;
+  totalStockValue: number;
+  lowStockCount: number;
+  topSellingProduct: string;
+  topDebtor: string;
+  topSupplier: string;
+}
+
+export interface MonthlyComparisonDto {
+  month: string;
+  income: number;
+  expense: number;
+  net: number;
+}
