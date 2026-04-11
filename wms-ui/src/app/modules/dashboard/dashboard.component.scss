@@ -57,10 +57,19 @@
   gap: 8px;
   padding: 20px;
   position: relative;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
 
   &:hover {
     transform: translateY(-2px);
   }
+}
+
+.dark-mode .summary-card {
+  background: rgba(30, 41, 59, 0.6);
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 .card-icon {

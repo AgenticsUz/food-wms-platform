@@ -1,20 +1,7 @@
 // ============================================
-// WMS Sidebar — Dark Theme
+// WMS Sidebar — Premium Gradient Theme
+// Both modes: soft indigo gradient, never boring
 // ============================================
-
-$sidebar-bg: #0f172a;
-$sidebar-border: rgba(255, 255, 255, 0.08);
-$text-default: rgba(255, 255, 255, 0.7);
-$text-muted: rgba(255, 255, 255, 0.4);
-$text-hover: rgba(255, 255, 255, 0.95);
-$text-active: #ffffff;
-$icon-default: rgba(255, 255, 255, 0.5);
-$icon-active: #818cf8;
-$hover-bg: rgba(255, 255, 255, 0.07);
-$active-bg: rgba(255, 255, 255, 0.12);
-$accent: #818cf8;
-$danger-hover-bg: rgba(239, 68, 68, 0.15);
-$danger-hover-text: #fca5a5;
 
 :host {
   display: block;
@@ -26,8 +13,8 @@ $danger-hover-text: #fca5a5;
 .sidebar {
   width: 260px;
   height: 100%;
-  background: $sidebar-bg;
-  border-right: 1px solid $sidebar-border;
+  background: linear-gradient(180deg, #312e81 0%, #1e1b4b 40%, #0f172a 100%);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
   display: flex;
   flex-direction: column;
   transition: width 0.25s ease;
@@ -44,7 +31,7 @@ $danger-hover-text: #fca5a5;
   align-items: center;
   justify-content: space-between;
   padding: 16px;
-  border-bottom: 1px solid $sidebar-border;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   min-height: 64px;
 }
 
@@ -56,10 +43,10 @@ $danger-hover-text: #fca5a5;
 }
 
 .logo-mark {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: rgba(129, 140, 248, 0.15);
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: rgba(165, 180, 252, 0.15);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -67,7 +54,7 @@ $danger-hover-text: #fca5a5;
 
   i {
     font-size: 18px;
-    color: $accent;
+    color: #a5b4fc;
   }
 }
 
@@ -80,30 +67,30 @@ $danger-hover-text: #fca5a5;
 .brand {
   font-size: 18px;
   font-weight: 700;
-  color: $text-active;
+  color: #ffffff;
   line-height: 1.2;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
 }
 
 .tenant-name {
   font-size: 12px;
-  color: $text-muted;
+  color: rgba(165, 180, 252, 0.6);
   letter-spacing: 0.01em;
 }
 
 .collapse-btn {
   background: none;
   border: none;
-  color: $text-muted;
+  color: rgba(165, 180, 252, 0.5);
   cursor: pointer;
   padding: 6px;
-  border-radius: 6px;
+  border-radius: 8px;
   transition: all 0.15s ease;
   flex-shrink: 0;
 
   &:hover {
-    background: $hover-bg;
-    color: $text-default;
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.8);
   }
 }
 
@@ -116,7 +103,6 @@ $danger-hover-text: #fca5a5;
   gap: 2px;
   overflow-y: auto;
 
-  // Dark thin scrollbar
   &::-webkit-scrollbar {
     width: 4px;
   }
@@ -124,7 +110,7 @@ $danger-hover-text: #fca5a5;
     background: transparent;
   }
   &::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.1);
     border-radius: 2px;
   }
   &::-webkit-scrollbar-thumb:hover {
@@ -138,8 +124,8 @@ $danger-hover-text: #fca5a5;
   align-items: center;
   gap: 12px;
   padding: 9px 12px;
-  border-radius: 8px;
-  color: $text-default;
+  border-radius: 10px;
+  color: rgba(203, 213, 225, 0.8);
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
@@ -159,36 +145,36 @@ $danger-hover-text: #fca5a5;
     width: 20px;
     text-align: center;
     flex-shrink: 0;
-    color: $icon-default;
+    color: rgba(165, 180, 252, 0.5);
     transition: color 0.15s ease;
   }
 
   &:hover {
-    background: $hover-bg;
-    color: $text-hover;
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
 
-    .nav-icon { color: $text-hover; }
+    .nav-icon { color: rgba(165, 180, 252, 0.9); }
   }
 
   &.active {
-    background: $active-bg;
-    color: $text-active;
+    background: rgba(165, 180, 252, 0.12);
+    color: #ffffff;
     font-weight: 600;
-    border-left-color: $accent;
+    border-left-color: #a5b4fc;
 
-    .nav-icon { color: $icon-active; }
+    .nav-icon { color: #a5b4fc; }
   }
 }
 
 // ---- Expandable groups ----
 .nav-group {
-  border-radius: 8px;
+  border-radius: 10px;
 
   &.group-active > .nav-group-toggle {
-    color: $text-hover;
+    color: #ffffff;
     font-weight: 600;
 
-    .nav-icon { color: $icon-active; }
+    .nav-icon { color: #a5b4fc; }
   }
 }
 
@@ -203,7 +189,7 @@ $danger-hover-text: #fca5a5;
   width: auto !important;
   margin-left: auto;
   transition: transform 0.2s ease;
-  color: $text-muted !important;
+  color: rgba(165, 180, 252, 0.35) !important;
 
   &.rotated {
     transform: rotate(180deg);
@@ -228,8 +214,8 @@ $danger-hover-text: #fca5a5;
   align-items: center;
   gap: 10px;
   padding: 7px 12px 7px 47px;
-  border-radius: 6px;
-  color: $text-muted;
+  border-radius: 8px;
+  color: rgba(203, 213, 225, 0.5);
   text-decoration: none;
   font-size: 13px;
   font-weight: 500;
@@ -239,17 +225,17 @@ $danger-hover-text: #fca5a5;
   cursor: pointer;
 
   &:hover {
-    color: $text-hover;
-    background: $hover-bg;
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.06);
   }
 
   &.child-active {
-    color: $text-active;
+    color: #ffffff;
     font-weight: 600;
 
     .child-dot {
-      background: $accent;
-      box-shadow: 0 0 6px rgba(129, 140, 248, 0.5);
+      background: #a5b4fc;
+      box-shadow: 0 0 8px rgba(165, 180, 252, 0.5);
       transform: scale(1.3);
     }
   }
@@ -259,7 +245,7 @@ $danger-hover-text: #fca5a5;
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(165, 180, 252, 0.25);
   flex-shrink: 0;
   transition: all 0.15s ease;
 }
@@ -267,7 +253,7 @@ $danger-hover-text: #fca5a5;
 // ---- Footer ----
 .sidebar-footer {
   padding: 8px;
-  border-top: 1px solid $sidebar-border;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .user-section {
@@ -282,7 +268,7 @@ $danger-hover-text: #fca5a5;
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #6366f1, #818cf8);
+  background: linear-gradient(135deg, #818cf8, #a78bfa);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -305,7 +291,7 @@ $danger-hover-text: #fca5a5;
 .user-name {
   font-size: 13px;
   font-weight: 600;
-  color: $text-active;
+  color: #f1f5f9;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -313,7 +299,7 @@ $danger-hover-text: #fca5a5;
 
 .user-role {
   font-size: 11px;
-  color: $text-muted;
+  color: rgba(165, 180, 252, 0.5);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -322,7 +308,7 @@ $danger-hover-text: #fca5a5;
 // ---- Logout ----
 .logout-section {
   padding: 4px 4px 4px;
-  border-top: 1px solid $sidebar-border;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   margin-top: 4px;
 }
 
@@ -334,7 +320,7 @@ $danger-hover-text: #fca5a5;
   padding: 9px 12px;
   border: none;
   background: none;
-  color: $text-muted;
+  color: rgba(203, 213, 225, 0.5);
   cursor: pointer;
   font-size: 13px;
   font-weight: 500;
@@ -345,7 +331,7 @@ $danger-hover-text: #fca5a5;
   i { font-size: 16px; }
 
   &:hover {
-    background: $danger-hover-bg;
-    color: $danger-hover-text;
+    background: rgba(239, 68, 68, 0.12);
+    color: #fca5a5;
   }
 }

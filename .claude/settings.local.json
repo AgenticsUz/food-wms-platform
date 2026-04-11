@@ -3,7 +3,9 @@
     "allow": [
       "Bash(findstr /R \"bin/ obj/ node_modules \\\\.angular dist/ \\\\.idea\")",
       "Bash(git rm:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(grep -E \"\\\\.\\(cs|csproj|sln|ts|html|scss|json|xml\\)$\")",
+      "Bash(git commit:*)"
     ]
   }
 }

@@ -3,19 +3,52 @@
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background: var(--bg-base);
   padding: 20px;
+  background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+  position: relative;
+  overflow: hidden;
+
+  // Subtle floating orbs
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.3;
+    pointer-events: none;
+  }
+
+  &::before {
+    width: 400px;
+    height: 400px;
+    background: #6366f1;
+    top: -100px;
+    right: -100px;
+  }
+
+  &::after {
+    width: 350px;
+    height: 350px;
+    background: #8b5cf6;
+    bottom: -80px;
+    left: -80px;
+  }
 }
 
 .login-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-lg);
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   padding: 40px;
   width: 100%;
   max-width: 420px;
   animation: fadeSlideIn 0.3s ease-out;
+  position: relative;
+  z-index: 1;
 }
 
 .login-header {
@@ -27,8 +60,8 @@
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: var(--primary-50);
-  color: var(--primary-500);
+  background: rgba(165, 180, 252, 0.15);
+  color: #a5b4fc;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -42,13 +75,13 @@
 .login-title {
   font-size: 24px;
   font-weight: 700;
-  color: var(--text-primary);
+  color: #ffffff;
   margin: 0 0 8px;
 }
 
 .login-subtitle {
   font-size: 14px;
-  color: var(--text-muted);
+  color: rgba(203, 213, 225, 0.7);
   margin: 0;
 }
 
@@ -66,7 +99,54 @@
   label {
     font-size: 13px;
     font-weight: 600;
-    color: var(--text-secondary);
+    color: rgba(203, 213, 225, 0.8);
+  }
+}
+
+// Override PrimeNG inputs for glass theme
+:host ::ng-deep {
+  .p-inputtext {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    color: #ffffff !important;
+
+    &::placeholder {
+      color: rgba(203, 213, 225, 0.4) !important;
+    }
+
+    &:focus {
+      border-color: rgba(165, 180, 252, 0.5) !important;
+      box-shadow: 0 0 0 3px rgba(165, 180, 252, 0.15) !important;
+    }
+  }
+
+  .p-password-input {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    color: #ffffff !important;
+
+    &::placeholder {
+      color: rgba(203, 213, 225, 0.4) !important;
+    }
+
+    &:focus {
+      border-color: rgba(165, 180, 252, 0.5) !important;
+      box-shadow: 0 0 0 3px rgba(165, 180, 252, 0.15) !important;
+    }
+  }
+
+  .p-button {
+    background: linear-gradient(135deg, #6366f1, #818cf8) !important;
+    border: none !important;
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4) !important;
+
+    &:hover {
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5) !important;
+    }
+  }
+
+  .p-password-toggle-mask-icon {
+    color: rgba(203, 213, 225, 0.5) !important;
   }
 }
 
