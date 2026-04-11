@@ -26,7 +26,7 @@ export class App implements OnInit {
   ngOnInit() {
     this.themeService.init();
     const savedLang = localStorage.getItem('lang');
-    if (savedLang && ['uz', 'ru', 'en'].includes(savedLang)) {
+    if (savedLang && ['uz', 'uz-cyrl', 'ru', 'en'].includes(savedLang)) {
       this.transloco.setActiveLang(savedLang);
     }
 

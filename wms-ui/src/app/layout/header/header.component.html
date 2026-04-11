@@ -13,6 +13,9 @@
               [class.active]="(currentLang | async) === 'uz'"
               (click)="switchLang('uz')">UZ</button>
       <button class="lang-btn"
+              [class.active]="(currentLang | async) === 'uz-cyrl'"
+              (click)="switchLang('uz-cyrl')">УЗ</button>
+      <button class="lang-btn"
               [class.active]="(currentLang | async) === 'ru'"
               (click)="switchLang('ru')">RU</button>
       <button class="lang-btn"

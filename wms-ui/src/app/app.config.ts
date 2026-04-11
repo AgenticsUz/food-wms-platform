@@ -26,7 +26,7 @@ export const appConfig: ApplicationConfig = {
     }),
     ...provideTransloco({
       config: {
-        availableLangs: ['uz', 'ru', 'en'],
+        availableLangs: ['uz', 'uz-cyrl', 'ru', 'en'],
         defaultLang: 'uz',
         reRenderOnLangChange: true,
         prodMode: !isDevMode(),
