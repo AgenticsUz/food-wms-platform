@@ -7,7 +7,7 @@ public interface ITransferService
 {
     Task<List<TransferDto>> GetAllAsync(int tenantId, TransferType? type = null,
         TransferStatus? status = null, DateTime? from = null, DateTime? to = null,
-        int page = 1, int pageSize = 20);
+        int page = 1, int pageSize = 50);
     Task<TransferDto> GetByIdAsync(int tenantId, int id);
     Task<TransferDto> CreateAsync(int tenantId, int userId, CreateTransferDto dto);
     Task<TransferDto> ConfirmAsync(int tenantId, int id);

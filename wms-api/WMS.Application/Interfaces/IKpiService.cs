@@ -6,6 +6,8 @@ public interface IKpiService
 {
     Task<List<ShiftDto>> GetShiftsAsync(int tenantId);
     Task<ShiftDto> CreateShiftAsync(int tenantId, CreateShiftDto dto);
+    Task<ShiftDto> UpdateShiftAsync(int tenantId, int id, UpdateShiftDto dto);
+    Task DeleteShiftAsync(int tenantId, int id);
     Task<List<ShiftPlanDto>> GetPlansAsync(int tenantId, DateTime? date = null);
     Task<ShiftPlanDto> CreatePlanAsync(int tenantId, CreateShiftPlanDto dto);
     Task<List<ShiftActualDto>> GetActualsAsync(int tenantId, DateTime? date = null);

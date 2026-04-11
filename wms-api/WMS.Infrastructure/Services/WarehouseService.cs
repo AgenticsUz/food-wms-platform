@@ -40,6 +40,14 @@ public class WarehouseService : IWarehouseService
         return new WarehouseDto { Id = w.Id, Name = w.Name, Type = w.Type, Description = w.Description };
     }
 
+    public async Task DeleteAsync(int tenantId, int id)
+    {
+        var w = await _db.Warehouses.FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId)
+            ?? throw new Exception("Warehouse not found");
+        w.IsDeleted = true;
+        await _db.SaveChangesAsync();
+    }
+
     public async Task<List<StockDto>> GetStockAsync(int tenantId, int warehouseId)
     {
         var stocks = await _db.WarehouseStocks

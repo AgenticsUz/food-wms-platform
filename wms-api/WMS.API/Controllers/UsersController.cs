@@ -47,6 +47,10 @@ public class RolesController : BaseController
     public async Task<IActionResult> Create([FromBody] CreateRoleDto dto)
         => Ok(ApiResponse<RoleDto>.Ok(await _users.CreateRoleAsync(TenantId, dto)));
 
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(int id, [FromBody] UpdateRoleDto dto)
+        => Ok(ApiResponse<RoleDto>.Ok(await _users.UpdateRoleAsync(TenantId, id, dto)));
+
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     { await _users.DeleteRoleAsync(TenantId, id); return Ok(ApiResponse<object>.Ok(null!, "Deleted")); }

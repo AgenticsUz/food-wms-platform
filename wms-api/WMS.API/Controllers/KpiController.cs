@@ -20,6 +20,14 @@ public class ShiftsController : BaseController
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateShiftDto dto)
         => Ok(ApiResponse<ShiftDto>.Ok(await _kpi.CreateShiftAsync(TenantId, dto)));
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(int id, [FromBody] UpdateShiftDto dto)
+        => Ok(ApiResponse<ShiftDto>.Ok(await _kpi.UpdateShiftAsync(TenantId, id, dto)));
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    { await _kpi.DeleteShiftAsync(TenantId, id); return Ok(ApiResponse<object>.Ok(null!, "Deleted")); }
 }
 
 [ApiController]

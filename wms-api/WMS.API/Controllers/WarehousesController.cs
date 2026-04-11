@@ -22,6 +22,10 @@ public class WarehousesController : BaseController
     public async Task<IActionResult> Update(int id, [FromBody] UpdateWarehouseDto dto)
         => Ok(ApiResponse<WarehouseDto>.Ok(await _warehouses.UpdateAsync(TenantId, id, dto)));
 
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    { await _warehouses.DeleteAsync(TenantId, id); return Ok(ApiResponse<object>.Ok(null!, "Deleted")); }
+
     [HttpGet("{id}/stock")]
     public async Task<IActionResult> GetStock(int id)
         => Ok(ApiResponse<List<StockDto>>.Ok(await _warehouses.GetStockAsync(TenantId, id)));

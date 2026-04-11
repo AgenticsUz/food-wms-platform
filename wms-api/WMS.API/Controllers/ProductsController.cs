@@ -42,6 +42,14 @@ public class CategoriesController : BaseController
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateCategoryDto dto)
         => Ok(ApiResponse<CategoryDto>.Ok(await _products.CreateCategoryAsync(TenantId, dto)));
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(int id, [FromBody] UpdateCategoryDto dto)
+        => Ok(ApiResponse<CategoryDto>.Ok(await _products.UpdateCategoryAsync(TenantId, id, dto)));
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    { await _products.DeleteCategoryAsync(TenantId, id); return Ok(ApiResponse<object>.Ok(null!, "Deleted")); }
 }
 
 [ApiController]
@@ -59,4 +67,12 @@ public class UnitsController : BaseController
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateUnitDto dto)
         => Ok(ApiResponse<UnitDto>.Ok(await _products.CreateUnitAsync(TenantId, dto)));
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(int id, [FromBody] UpdateUnitDto dto)
+        => Ok(ApiResponse<UnitDto>.Ok(await _products.UpdateUnitAsync(TenantId, id, dto)));
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    { await _products.DeleteUnitAsync(TenantId, id); return Ok(ApiResponse<object>.Ok(null!, "Deleted")); }
 }

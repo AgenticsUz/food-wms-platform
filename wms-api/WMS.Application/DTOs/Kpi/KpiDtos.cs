@@ -17,6 +17,13 @@ public class CreateShiftDto
     public TimeSpan EndTime { get; set; }
 }
 
+public class UpdateShiftDto
+{
+    public string Name { get; set; } = null!;
+    public TimeSpan StartTime { get; set; }
+    public TimeSpan EndTime { get; set; }
+}
+
 public class ShiftPlanDto
 {
     public int Id { get; set; }

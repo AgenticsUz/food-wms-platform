@@ -91,6 +91,16 @@ public class UserService : IUserService
         return new RoleDto { Id = role.Id, Name = role.Name, Description = role.Description };
     }
 
+    public async Task<RoleDto> UpdateRoleAsync(int tenantId, int id, UpdateRoleDto dto)
+    {
+        var role = await _db.Roles.FirstOrDefaultAsync(r => r.Id == id && r.TenantId == tenantId)
+            ?? throw new Exception("Role not found");
+        role.Name = dto.Name;
+        role.Description = dto.Description;
+        await _db.SaveChangesAsync();
+        return new RoleDto { Id = role.Id, Name = role.Name, Description = role.Description };
+    }
+
     public async Task DeleteRoleAsync(int tenantId, int id)
     {
         var role = await _db.Roles.FirstOrDefaultAsync(r => r.Id == id && r.TenantId == tenantId)

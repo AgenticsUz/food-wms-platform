@@ -82,6 +82,24 @@ public class ProductService : IProductService
         return new CategoryDto { Id = cat.Id, Name = cat.Name, ParentId = cat.ParentId };
     }
 
+    public async Task<CategoryDto> UpdateCategoryAsync(int tenantId, int id, UpdateCategoryDto dto)
+    {
+        var cat = await _db.Categories.FirstOrDefaultAsync(c => c.Id == id && c.TenantId == tenantId)
+            ?? throw new Exception("Category not found");
+        cat.Name = dto.Name;
+        cat.ParentId = dto.ParentId;
+        await _db.SaveChangesAsync();
+        return new CategoryDto { Id = cat.Id, Name = cat.Name, ParentId = cat.ParentId };
+    }
+
+    public async Task DeleteCategoryAsync(int tenantId, int id)
+    {
+        var cat = await _db.Categories.FirstOrDefaultAsync(c => c.Id == id && c.TenantId == tenantId)
+            ?? throw new Exception("Category not found");
+        cat.IsDeleted = true;
+        await _db.SaveChangesAsync();
+    }
+
     public async Task<List<UnitDto>> GetUnitsAsync(int tenantId)
     {
         return await _db.Units.Where(u => u.TenantId == tenantId)
@@ -95,6 +113,24 @@ public class ProductService : IProductService
         _db.Units.Add(unit);
         await _db.SaveChangesAsync();
         return new UnitDto { Id = unit.Id, Name = unit.Name, ShortName = unit.ShortName };
+    }
+
+    public async Task<UnitDto> UpdateUnitAsync(int tenantId, int id, UpdateUnitDto dto)
+    {
+        var unit = await _db.Units.FirstOrDefaultAsync(u => u.Id == id && u.TenantId == tenantId)
+            ?? throw new Exception("Unit not found");
+        unit.Name = dto.Name;
+        unit.ShortName = dto.ShortName;
+        await _db.SaveChangesAsync();
+        return new UnitDto { Id = unit.Id, Name = unit.Name, ShortName = unit.ShortName };
+    }
+
+    public async Task DeleteUnitAsync(int tenantId, int id)
+    {
+        var unit = await _db.Units.FirstOrDefaultAsync(u => u.Id == id && u.TenantId == tenantId)
+            ?? throw new Exception("Unit not found");
+        unit.IsDeleted = true;
+        await _db.SaveChangesAsync();
     }
 
     private static ProductDto MapToDto(Product p) => new()

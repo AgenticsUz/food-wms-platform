@@ -26,9 +26,11 @@ public class TransferService : ITransferService
         if (from.HasValue) q = q.Where(t => t.CreatedAt >= from.Value);
         if (to.HasValue) q = q.Where(t => t.CreatedAt <= to.Value);
 
-        return await q.OrderByDescending(t => t.CreatedAt)
+        var transfers = await q.OrderByDescending(t => t.CreatedAt)
             .Skip((page - 1) * pageSize).Take(pageSize)
-            .Select(t => MapToDto(t)).ToListAsync();
+            .ToListAsync();
+
+        return transfers.Select(t => MapToDto(t)).ToList();
     }
 
     public async Task<TransferDto> GetByIdAsync(int tenantId, int id)

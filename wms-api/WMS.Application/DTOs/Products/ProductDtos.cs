@@ -68,3 +68,15 @@ public class CreateUnitDto
     public string Name { get; set; } = null!;
     public string ShortName { get; set; } = null!;
 }
+
+public class UpdateCategoryDto
+{
+    public string Name { get; set; } = null!;
+    public int? ParentId { get; set; }
+}
+
+public class UpdateUnitDto
+{
+    public string Name { get; set; } = null!;
+    public string ShortName { get; set; } = null!;
+}

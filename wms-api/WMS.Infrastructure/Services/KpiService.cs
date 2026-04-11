@@ -26,6 +26,25 @@ public class KpiService : IKpiService
         return new ShiftDto { Id = s.Id, Name = s.Name, StartTime = s.StartTime, EndTime = s.EndTime };
     }
 
+    public async Task<ShiftDto> UpdateShiftAsync(int tenantId, int id, UpdateShiftDto dto)
+    {
+        var s = await _db.Shifts.FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId)
+            ?? throw new Exception("Shift not found");
+        s.Name = dto.Name;
+        s.StartTime = dto.StartTime;
+        s.EndTime = dto.EndTime;
+        await _db.SaveChangesAsync();
+        return new ShiftDto { Id = s.Id, Name = s.Name, StartTime = s.StartTime, EndTime = s.EndTime };
+    }
+
+    public async Task DeleteShiftAsync(int tenantId, int id)
+    {
+        var s = await _db.Shifts.FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId)
+            ?? throw new Exception("Shift not found");
+        s.IsDeleted = true;
+        await _db.SaveChangesAsync();
+    }
+
     public async Task<List<ShiftPlanDto>> GetPlansAsync(int tenantId, DateTime? date)
     {
         var q = _db.ShiftPlans.Where(p => p.TenantId == tenantId)

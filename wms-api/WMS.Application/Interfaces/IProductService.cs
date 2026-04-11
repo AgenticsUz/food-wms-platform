@@ -10,6 +10,10 @@ public interface IProductService
     Task DeleteAsync(int tenantId, int id);
     Task<List<CategoryDto>> GetCategoriesAsync(int tenantId);
     Task<CategoryDto> CreateCategoryAsync(int tenantId, CreateCategoryDto dto);
+    Task<CategoryDto> UpdateCategoryAsync(int tenantId, int id, UpdateCategoryDto dto);
+    Task DeleteCategoryAsync(int tenantId, int id);
     Task<List<UnitDto>> GetUnitsAsync(int tenantId);
     Task<UnitDto> CreateUnitAsync(int tenantId, CreateUnitDto dto);
+    Task<UnitDto> UpdateUnitAsync(int tenantId, int id, UpdateUnitDto dto);
+    Task DeleteUnitAsync(int tenantId, int id);
 }
