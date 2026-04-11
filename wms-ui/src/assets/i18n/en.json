@@ -370,5 +370,9 @@
     "title": "Notifications",
     "markAllRead": "Mark all as read",
     "empty": "No notifications"
+  },
+  "barcode": {
+    "searchPlaceholder": "Scan barcode or search by name...",
+    "hint": "Scan a barcode or type product name and press Enter"
   }
 }

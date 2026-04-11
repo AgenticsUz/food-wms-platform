@@ -55,6 +55,10 @@ export default class TransferCreateComponent implements OnInit {
   warehouses = signal<Warehouse[]>([]);
   products = signal<Product[]>([]);
 
+  // Barcode search
+  barcodeQuery = signal('');
+  barcodeResults = signal<Product[]>([]);
+
   typeOptions = computed(() => {
     this.lang();
     return [
@@ -126,6 +130,62 @@ export default class TransferCreateComponent implements OnInit {
 
   removeItem(index: number) {
     this.items.update(list => list.filter((_, i) => i !== index));
+  }
+
+  onBarcodeInput(event: Event) {
+    const value = (event.target as HTMLInputElement).value;
+    this.barcodeQuery.set(value);
+    if (!value.trim()) {
+      this.barcodeResults.set([]);
+    }
+  }
+
+  searchByBarcode() {
+    const query = this.barcodeQuery().trim();
+    if (!query) return;
+
+    const exactMatch = this.products().find(p => p.barcode === query);
+    if (exactMatch) {
+      this.addProductToItems(exactMatch);
+      this.barcodeQuery.set('');
+      this.barcodeResults.set([]);
+      this.notify.success(`Added: ${exactMatch.name}`);
+      return;
+    }
+
+    const nameMatches = this.products().filter(p =>
+      p.name.toLowerCase().includes(query.toLowerCase()) ||
+      (p.barcode && p.barcode.toLowerCase().includes(query.toLowerCase()))
+    );
+
+    if (nameMatches.length === 1) {
+      this.addProductToItems(nameMatches[0]);
+      this.barcodeQuery.set('');
+      this.barcodeResults.set([]);
+      this.notify.success(`Added: ${nameMatches[0].name}`);
+    } else if (nameMatches.length > 1) {
+      this.barcodeResults.set(nameMatches.slice(0, 5));
+    } else {
+      this.notify.warn('Product not found');
+      this.barcodeResults.set([]);
+    }
+  }
+
+  selectFromResults(product: Product) {
+    this.addProductToItems(product);
+    this.barcodeResults.set([]);
+    this.barcodeQuery.set('');
+    this.notify.success(`Added: ${product.name}`);
+  }
+
+  private addProductToItems(product: Product) {
+    this.items.update(list => [...list, {
+      productId: product.id,
+      productName: product.name,
+      batchId: null,
+      quantity: 1,
+      unitPrice: product.costPrice ?? 0
+    }]);
   }
 
   submit() {

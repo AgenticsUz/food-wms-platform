@@ -370,5 +370,9 @@
     "title": "Bildirishnomalar",
     "markAllRead": "Hammasini o'qilgan deb belgilash",
     "empty": "Bildirishnomalar yo'q"
+  },
+  "barcode": {
+    "searchPlaceholder": "Shtrix kodni skanerlang yoki nomi bo'yicha qidiring...",
+    "hint": "Shtrix kodni skanerlang yoki mahsulot nomini yozing va Enter bosing"
   }
 }

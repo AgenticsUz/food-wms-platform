@@ -1,5 +1,9 @@
 @use '../../../shared/styles/module-common';
 
+.barcode-result-item:hover {
+  background: var(--bg-muted);
+}
+
 .add-item-row {
   display: flex;
   align-items: flex-end;
