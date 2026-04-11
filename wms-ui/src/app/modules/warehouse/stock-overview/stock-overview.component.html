@@ -20,6 +20,23 @@
     </div>
   </div>
 
+  <!-- Stock Levels Chart -->
+  @if (stockChart()) {
+    <div class="wms-card chart-card" style="margin-bottom: 20px; padding: 24px;">
+      <h3 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin: 0 0 16px;">{{ t('warehouse.stockOverview') }}</h3>
+      <apx-chart
+        [series]="$any(stockChart())['series']"
+        [chart]="$any(stockChart())['chart']"
+        [xaxis]="$any(stockChart())['xaxis']"
+        [colors]="$any(stockChart())['colors']"
+        [grid]="$any(stockChart())['grid']"
+        [tooltip]="$any(stockChart())['tooltip']"
+        [plotOptions]="$any(stockChart())['plotOptions']"
+        [legend]="$any(stockChart())['legend']"
+      ></apx-chart>
+    </div>
+  }
+
   <div class="wms-card table-wrapper">
     <p-table [value]="filtered()" [loading]="loading()" [paginator]="true" [rows]="20"
       [rowsPerPageOptions]="[10, 20, 50]" [scrollable]="true" styleClass="p-datatable-sm p-datatable-striped">

@@ -4,11 +4,13 @@ import { TranslocoDirective } from '@jsverse/transloco';
 import { TranslocoService } from '@jsverse/transloco';
 import { TenantService } from '../../core/services/tenant.service';
 import { AuthService } from '../../core/services/auth.service';
+import { PermissionService } from '../../core/services/permission.service';
 import { NotificationService } from '../../shared/services/notification.service';
 
 export interface NavChild {
   key: string;
   route: string;
+  permissionCode?: string;
 }
 
 export interface NavItem {
@@ -16,6 +18,7 @@ export interface NavItem {
   icon: string;
   route?: string;
   moduleCode?: string;
+  permissionCode?: string;
   children?: NavChild[];
 }
 
@@ -30,6 +33,7 @@ export interface NavItem {
 export class SidebarComponent {
   private tenantService = inject(TenantService);
   private authService = inject(AuthService);
+  private permissionService = inject(PermissionService);
   private router = inject(Router);
   private notify = inject(NotificationService);
   private transloco = inject(TranslocoService);
@@ -50,7 +54,7 @@ export class SidebarComponent {
   allNavItems: NavItem[] = [
     { key: 'nav.dashboard', icon: 'pi pi-th-large', route: '/dashboard' },
     {
-      key: 'nav.warehouse', icon: 'pi pi-box', moduleCode: 'WAREHOUSE_RAW',
+      key: 'nav.warehouse', icon: 'pi pi-box', moduleCode: 'WAREHOUSE_RAW', permissionCode: 'warehouse.view',
       children: [
         { key: 'warehouse.stockOverview', route: '/warehouse' },
         { key: 'warehouse.warehouses', route: '/warehouse/warehouses' },
@@ -60,7 +64,7 @@ export class SidebarComponent {
       ]
     },
     {
-      key: 'nav.production', icon: 'pi pi-cog', moduleCode: 'PRODUCTION',
+      key: 'nav.production', icon: 'pi pi-cog', moduleCode: 'PRODUCTION', permissionCode: 'production.view',
       children: [
         { key: 'production.orders', route: '/production/orders' },
         { key: 'production.recipes', route: '/production/recipes' },
@@ -68,11 +72,11 @@ export class SidebarComponent {
       ]
     },
     {
-      key: 'nav.transfers', icon: 'pi pi-arrow-right-arrow-left', moduleCode: 'TRANSFERS',
+      key: 'nav.transfers', icon: 'pi pi-arrow-right-arrow-left', moduleCode: 'TRANSFERS', permissionCode: 'transfers.view',
       route: '/transfers'
     },
     {
-      key: 'nav.finance', icon: 'pi pi-wallet', moduleCode: 'FINANCE',
+      key: 'nav.finance', icon: 'pi pi-wallet', moduleCode: 'FINANCE', permissionCode: 'finance.view',
       children: [
         { key: 'finance.overview', route: '/finance' },
         { key: 'finance.transactions', route: '/finance/transactions' },
@@ -81,7 +85,7 @@ export class SidebarComponent {
       ]
     },
     {
-      key: 'nav.kpi', icon: 'pi pi-chart-line', moduleCode: 'KPI',
+      key: 'nav.kpi', icon: 'pi pi-chart-line', moduleCode: 'KPI', permissionCode: 'kpi.view',
       children: [
         { key: 'kpi.dashboard', route: '/kpi' },
         { key: 'kpi.shifts', route: '/kpi/shifts' },
@@ -91,14 +95,14 @@ export class SidebarComponent {
       ]
     },
     {
-      key: 'nav.counterparties', icon: 'pi pi-users',
+      key: 'nav.counterparties', icon: 'pi pi-users', permissionCode: 'partners.view',
       children: [
         { key: 'partners.suppliers', route: '/counterparties/suppliers' },
         { key: 'partners.clients', route: '/counterparties/clients' }
       ]
     },
     {
-      key: 'nav.products', icon: 'pi pi-tags',
+      key: 'nav.products', icon: 'pi pi-tags', permissionCode: 'products.view',
       children: [
         { key: 'products.products', route: '/products' },
         { key: 'products.categories', route: '/products/categories' },
@@ -110,9 +114,9 @@ export class SidebarComponent {
   settingsItem: NavItem = {
     key: 'nav.settings', icon: 'pi pi-sliders-h',
     children: [
-      { key: 'settings.users', route: '/settings/users' },
-      { key: 'settings.roles', route: '/settings/roles' },
-      { key: 'settings.modules', route: '/settings/modules' },
+      { key: 'settings.users', route: '/settings/users', permissionCode: 'settings.users' },
+      { key: 'settings.roles', route: '/settings/roles', permissionCode: 'settings.roles' },
+      { key: 'settings.modules', route: '/settings/modules', permissionCode: 'settings.modules' },
       { key: 'settings.qcParameters', route: '/settings/qc-parameters' },
       { key: 'settings.profile', route: '/settings/profile' }
     ]
@@ -120,10 +124,15 @@ export class SidebarComponent {
 
   visibleNavItems = computed(() => {
     return this.allNavItems.filter(item => {
-      if (!item.moduleCode) return true;
-      return this.tenantService.isModuleEnabled(item.moduleCode);
+      if (item.moduleCode && !this.tenantService.isModuleEnabled(item.moduleCode)) return false;
+      if (item.permissionCode && !this.permissionService.can(item.permissionCode)) return false;
+      return true;
     });
   });
+
+  getVisibleChildren(children: NavChild[]): NavChild[] {
+    return children.filter(c => !c.permissionCode || this.permissionService.can(c.permissionCode));
+  }
 
   toggleCollapse() {
     this.collapsed.update(v => !v);

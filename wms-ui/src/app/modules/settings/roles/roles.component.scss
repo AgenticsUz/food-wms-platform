@@ -1,1 +1,37 @@
 @use '../../../shared/styles/module-common';
+
+.perm-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.perm-group-header {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.perm-group-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+}
+
+.perm-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.perm-label {
+  font-size: 13px;
+  color: var(--text-primary);
+  font-weight: 500;
+}

@@ -1,6 +1,6 @@
 <div class="page-enter" *transloco="let t">
   <app-page-header [title]="t('production.orders')" [subtitle]="t('production.manageOrders')">
-    <p-button icon="pi pi-plus" [label]="t('production.newOrder')" (onClick)="createNew()" />
+    <p-button *hasPermission="'production.manage'" icon="pi pi-plus" [label]="t('production.newOrder')" (onClick)="createNew()" />
   </app-page-header>
 
   <div class="filters-bar wms-card">
@@ -9,6 +9,24 @@
         optionLabel="label" optionValue="value" [placeholder]="t('common.status')" [style]="{ minWidth: '180px' }" />
     </div>
   </div>
+
+  <!-- Waste by Stage Chart -->
+  @if (wasteChart()) {
+    <div class="wms-card" style="margin-bottom: 20px; padding: 24px;">
+      <h3 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin: 0 0 16px;">{{ t('production.wasteQty') }}</h3>
+      <apx-chart
+        [series]="$any(wasteChart())['series']"
+        [chart]="$any(wasteChart())['chart']"
+        [xaxis]="$any(wasteChart())['xaxis']"
+        [colors]="$any(wasteChart())['colors']"
+        [grid]="$any(wasteChart())['grid']"
+        [tooltip]="$any(wasteChart())['tooltip']"
+        [plotOptions]="$any(wasteChart())['plotOptions']"
+        [legend]="$any(wasteChart())['legend']"
+        [yaxis]="$any(wasteChart())['yaxis']"
+      ></apx-chart>
+    </div>
+  }
 
   <div class="wms-card table-wrapper">
     <p-table [value]="orders()" [loading]="loading()" [paginator]="true" [rows]="15"

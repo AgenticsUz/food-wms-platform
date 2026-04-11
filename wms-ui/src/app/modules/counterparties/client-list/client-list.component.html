@@ -1,6 +1,6 @@
 <div class="page-enter" *transloco="let t">
   <app-page-header [title]="t('partners.clients')" [subtitle]="t('partners.manageClients')">
-    <p-button icon="pi pi-plus" [label]="t('partners.addClient')" (onClick)="openNew()" />
+    <p-button *hasPermission="'partners.manage'" icon="pi pi-plus" [label]="t('partners.addClient')" (onClick)="openNew()" />
   </app-page-header>
 
   <div class="filters-bar wms-card">

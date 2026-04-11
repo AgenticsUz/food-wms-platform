@@ -82,4 +82,26 @@
       </div>
     }
   </div>
+
+  <!-- Top Debtors Chart -->
+  <div class="wms-card chart-card">
+    <h3 class="chart-title">{{ t('finance.debts') }}</h3>
+    @if (debtorsChart()) {
+      <apx-chart
+        [series]="$any(debtorsChart())['series']"
+        [chart]="$any(debtorsChart())['chart']"
+        [xaxis]="$any(debtorsChart())['xaxis']"
+        [colors]="$any(debtorsChart())['colors']"
+        [grid]="$any(debtorsChart())['grid']"
+        [tooltip]="$any(debtorsChart())['tooltip']"
+        [plotOptions]="$any(debtorsChart())['plotOptions']"
+        [legend]="$any(debtorsChart())['legend']"
+      ></apx-chart>
+    } @else {
+      <div class="chart-empty">
+        <i class="pi pi-wallet"></i>
+        <p>{{ t('finance.noDebts') }}</p>
+      </div>
+    }
+  </div>
 </div>

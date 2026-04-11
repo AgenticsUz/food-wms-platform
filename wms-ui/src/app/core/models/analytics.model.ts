@@ -63,3 +63,16 @@ export interface RecentTransferDto {
   itemCount: number;
   createdAt: string;
 }
+
+export interface TopDebtorDto {
+  counterpartyName: string;
+  type: string;
+  debtAmount: number;
+}
+
+export interface WasteByStageDto {
+  stageName: string;
+  totalActual: number;
+  totalWaste: number;
+  wastePercent: number;
+}

@@ -5,22 +5,27 @@ import { TranslocoDirective } from '@jsverse/transloco';
 import { TableModule } from 'primeng/table';
 import { Select } from 'primeng/select';
 import { InputText } from 'primeng/inputtext';
+import { NgApexchartsModule } from 'ng-apexcharts';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { WarehouseService } from '../../../core/services/warehouse.service';
+import { AnalyticsService } from '../../../core/services/analytics.service';
 import { NotificationService } from '../../../shared/services/notification.service';
 import { Warehouse, WarehouseStockRow } from '../../../core/models/warehouse.model';
+import { StockLevelDto } from '../../../core/models/analytics.model';
+import { APEX_DEFAULTS } from '../../../core/config/apex-defaults';
 
 @Component({
   selector: 'app-stock-overview',
   standalone: true,
-  imports: [DecimalPipe, FormsModule, TranslocoDirective, TableModule, Select, InputText, PageHeaderComponent, StatusBadgeComponent],
+  imports: [DecimalPipe, FormsModule, TranslocoDirective, TableModule, Select, InputText, NgApexchartsModule, PageHeaderComponent, StatusBadgeComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './stock-overview.component.html',
   styleUrl: './stock-overview.component.scss'
 })
 export default class StockOverviewComponent implements OnInit {
   private warehouseService = inject(WarehouseService);
+  private analyticsService = inject(AnalyticsService);
   private notify = inject(NotificationService);
 
   warehouses = signal<Warehouse[]>([]);
@@ -30,10 +35,12 @@ export default class StockOverviewComponent implements OnInit {
   loading = signal(true);
   search = signal('');
 
+  stockChart = signal<Record<string, unknown> | null>(null);
   warehouseOptions = signal<{ label: string; value: number | null }[]>([]);
 
   ngOnInit() {
     this.loadWarehouses();
+    this.loadStockChart();
   }
 
   private loadWarehouses() {
@@ -93,5 +100,25 @@ export default class StockOverviewComponent implements OnInit {
 
   isLow(s: WarehouseStockRow): boolean {
     return s.availableQuantity <= 0;
+  }
+
+  private loadStockChart() {
+    this.analyticsService.getStockLevels().subscribe({
+      next: (res) => {
+        if (res.success && res.data && res.data.length > 0) {
+          const data = res.data.slice(0, 15);
+          this.stockChart.set({
+            series: [{ name: 'Stock', data: data.map(d => d.currentStock) }],
+            chart: { ...APEX_DEFAULTS.chart, type: 'bar', height: 280 },
+            xaxis: { categories: data.map(d => d.productName) },
+            colors: data.map(d => d.isLow ? '#ef4444' : '#6366f1'),
+            grid: APEX_DEFAULTS.grid,
+            tooltip: APEX_DEFAULTS.tooltip,
+            plotOptions: { bar: { borderRadius: 4, columnWidth: '60%', distributed: true } },
+            legend: { show: false }
+          });
+        }
+      }
+    });
   }
 }

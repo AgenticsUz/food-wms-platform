@@ -1,6 +1,6 @@
 <div class="page-enter" *transloco="let t">
   <app-page-header [title]="t('finance.payments')" [subtitle]="t('finance.payment')">
-    <p-button icon="pi pi-plus" [label]="t('finance.recordPayment')" (onClick)="openNew()" />
+    <p-button *hasPermission="'finance.manage'" icon="pi pi-plus" [label]="t('finance.recordPayment')" (onClick)="openNew()" />
   </app-page-header>
 
   <!-- Payments Table -->

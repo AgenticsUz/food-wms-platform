@@ -12,6 +12,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { NotificationService } from '../../../shared/services/notification.service';
+import { HasPermissionDirective } from '../../../shared/directives/has-permission.directive';
 import { FinanceService } from '../../../core/services/finance.service';
 import { CounterpartyService } from '../../../core/services/counterparty.service';
 import { PaymentCreateDto } from '../../../core/models/finance.model';
@@ -23,7 +24,7 @@ import { Counterparty, PaymentHistory, PaymentMethod } from '../../../core/model
   imports: [
     DecimalPipe, DatePipe, FormsModule, TableModule, Button,
     Select, InputNumber, Dialog, Textarea,
-    PageHeaderComponent, StatusBadgeComponent, TranslocoDirective
+    PageHeaderComponent, StatusBadgeComponent, TranslocoDirective, HasPermissionDirective
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './payments.component.html',

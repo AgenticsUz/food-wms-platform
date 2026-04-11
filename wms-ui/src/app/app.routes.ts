@@ -3,6 +3,7 @@ import { ShellComponent } from './layout/shell/shell.component';
 import { authGuard } from './core/guards/auth.guard';
 import { moduleGuard } from './core/guards/module.guard';
 import { portalGuard } from './core/guards/portal.guard';
+import { permissionGuard } from './core/guards/permission.guard';
 
 export const routes: Routes = [
   {
@@ -36,12 +37,12 @@ export const routes: Routes = [
       },
       {
         path: 'finance',
-        canActivate: [moduleGuard('FINANCE')],
+        canActivate: [moduleGuard('FINANCE'), permissionGuard('finance.view')],
         loadChildren: () => import('./modules/finance/finance.routes')
       },
       {
         path: 'kpi',
-        canActivate: [moduleGuard('KPI')],
+        canActivate: [moduleGuard('KPI'), permissionGuard('kpi.view')],
         loadChildren: () => import('./modules/kpi/kpi.routes')
       },
       {

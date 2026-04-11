@@ -1,6 +1,6 @@
 <div class="page-enter" *transloco="let t">
   <app-page-header [title]="t('transfer.transfers')" [subtitle]="t('transfer.manageTransfers')">
-    <p-button icon="pi pi-plus" [label]="t('transfer.newTransfer')" (onClick)="createNew()" />
+    <p-button *hasPermission="'transfers.create'" icon="pi pi-plus" [label]="t('transfer.newTransfer')" (onClick)="createNew()" />
   </app-page-header>
 
   <div class="filters-bar wms-card">

@@ -46,7 +46,7 @@
           </button>
           @if (!collapsed() && isExpanded(item.key)) {
             <div class="nav-children">
-              @for (child of item.children; track child.route) {
+              @for (child of getVisibleChildren(item.children!); track child.route) {
                 <a class="nav-child"
                    [routerLink]="child.route"
                    routerLinkActive="child-active"
@@ -77,7 +77,7 @@
       </button>
       @if (!collapsed() && isExpanded(settingsItem.key)) {
         <div class="nav-children">
-          @for (child of settingsItem.children; track child.route) {
+          @for (child of getVisibleChildren(settingsItem.children!); track child.route) {
             <a class="nav-child"
                [routerLink]="child.route"
                routerLinkActive="child-active"

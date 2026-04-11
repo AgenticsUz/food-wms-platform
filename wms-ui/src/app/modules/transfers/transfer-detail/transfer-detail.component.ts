@@ -8,12 +8,13 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { TransferService } from '../../../core/services/transfer.service';
 import { NotificationService } from '../../../shared/services/notification.service';
+import { HasPermissionDirective } from '../../../shared/directives/has-permission.directive';
 import { Transfer, TransferType, TransferStatus } from '../../../core/models/transfer.model';
 
 @Component({
   selector: 'app-transfer-detail',
   standalone: true,
-  imports: [DecimalPipe, DatePipe, TranslocoDirective, TableModule, Button, PageHeaderComponent, StatusBadgeComponent],
+  imports: [DecimalPipe, DatePipe, TranslocoDirective, TableModule, Button, PageHeaderComponent, StatusBadgeComponent, HasPermissionDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './transfer-detail.component.html',
   styleUrl: './transfer-detail.component.scss'

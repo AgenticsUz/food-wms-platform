@@ -12,6 +12,7 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { ProductService } from '../../../core/services/product.service';
 import { NotificationService } from '../../../shared/services/notification.service';
+import { HasPermissionDirective } from '../../../shared/directives/has-permission.directive';
 import { Product, ProductCreateDto, ProductType, Category, Unit } from '../../../core/models/product.model';
 
 @Component({
@@ -19,7 +20,7 @@ import { Product, ProductCreateDto, ProductType, Category, Unit } from '../../..
   standalone: true,
   imports: [
     DecimalPipe, FormsModule, TableModule, Button, InputText, Select,
-    Dialog, InputNumber, TranslocoDirective, PageHeaderComponent, StatusBadgeComponent
+    Dialog, InputNumber, TranslocoDirective, PageHeaderComponent, StatusBadgeComponent, HasPermissionDirective
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './product-list.component.html',

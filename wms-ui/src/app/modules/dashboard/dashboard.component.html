@@ -5,6 +5,11 @@
       <h1 class="greeting">{{ getGreeting() === 'Good morning' ? t('dashboard.goodMorning') : getGreeting() === 'Good afternoon' ? t('dashboard.goodAfternoon') : t('dashboard.goodEvening') }}, {{ userName }}</h1>
       <p class="date-text">{{ today | date:'EEEE, MMMM d, yyyy' }}</p>
     </div>
+    <div class="date-range-filter">
+      <p-button [label]="'7d'" [text]="selectedDays() !== 7" [severity]="selectedDays() === 7 ? undefined : 'secondary'" size="small" (onClick)="changeDays(7)" />
+      <p-button [label]="'30d'" [text]="selectedDays() !== 30" [severity]="selectedDays() === 30 ? undefined : 'secondary'" size="small" (onClick)="changeDays(30)" />
+      <p-button [label]="'90d'" [text]="selectedDays() !== 90" [severity]="selectedDays() === 90 ? undefined : 'secondary'" size="small" (onClick)="changeDays(90)" />
+    </div>
   </div>
 
   <!-- Summary Cards -->
@@ -177,7 +182,7 @@
         </tr>
       </ng-template>
       <ng-template #body let-transfer>
-        <tr>
+        <tr class="cursor-pointer" (click)="navigateToTransfer(transfer.id)">
           <td>
             <span class="transfer-type">{{ transfer.type }}</span>
           </td>

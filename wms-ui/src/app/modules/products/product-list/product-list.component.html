@@ -1,6 +1,6 @@
 <div class="page-enter" *transloco="let t">
   <app-page-header [title]="t('products.products')" [subtitle]="t('products.manageProducts')">
-    <p-button icon="pi pi-plus" [label]="t('products.addProduct')" (onClick)="openNew()" />
+    <p-button *hasPermission="'products.manage'" icon="pi pi-plus" [label]="t('products.addProduct')" (onClick)="openNew()" />
   </app-page-header>
 
   <!-- Filters -->
@@ -74,8 +74,8 @@
             <span class="barcode">{{ product.barcode || '—' }}</span>
           </td>
           <td class="text-center actions-cell">
-            <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info" (onClick)="openEdit(product)" />
-            <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" (onClick)="deleteProduct(product)" />
+            <p-button *hasPermission="'products.manage'" icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info" (onClick)="openEdit(product)" />
+            <p-button *hasPermission="'products.manage'" icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" (onClick)="deleteProduct(product)" />
           </td>
         </tr>
       </ng-template>

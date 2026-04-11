@@ -53,7 +53,7 @@ export default class KpiDashboardComponent implements OnInit {
             colors: APEX_DEFAULTS.colors,
             plotOptions: {
               radialBar: {
-                hollow: { size: '45%' },
+                hollow: { size: '60%' },
                 dataLabels: {
                   name: { fontSize: '14px' },
                   value: { fontSize: '24px', fontFamily: 'JetBrains Mono' }

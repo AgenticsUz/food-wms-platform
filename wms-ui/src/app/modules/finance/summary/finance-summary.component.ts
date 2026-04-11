@@ -4,8 +4,9 @@ import { NgApexchartsModule } from 'ng-apexcharts';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { FinanceService } from '../../../core/services/finance.service';
+import { AnalyticsService } from '../../../core/services/analytics.service';
 import { FinanceSummary } from '../../../core/models/finance.model';
-import { IncomeExpenseDto } from '../../../core/models/analytics.model';
+import { IncomeExpenseDto, TopDebtorDto } from '../../../core/models/analytics.model';
 import { APEX_DEFAULTS } from '../../../core/config/apex-defaults';
 
 @Component({
@@ -18,14 +19,17 @@ import { APEX_DEFAULTS } from '../../../core/config/apex-defaults';
 })
 export default class FinanceSummaryComponent implements OnInit {
   private financeSvc = inject(FinanceService);
+  private analyticsService = inject(AnalyticsService);
 
   summary = signal<FinanceSummary | null>(null);
   loading = signal(true);
   chartConfig = signal<Record<string, unknown> | null>(null);
+  debtorsChart = signal<Record<string, unknown> | null>(null);
 
   ngOnInit() {
     this.loadSummary();
     this.loadChart();
+    this.loadDebtorsChart();
   }
 
   private loadSummary() {
@@ -66,6 +70,25 @@ export default class FinanceSummaryComponent implements OnInit {
             },
             stroke: { curve: 'smooth', width: 2 },
             legend: { position: 'top' }
+          });
+        }
+      }
+    });
+  }
+
+  private loadDebtorsChart() {
+    this.analyticsService.getTopDebtors(5).subscribe({
+      next: (res) => {
+        if (res.success && res.data && res.data.length > 0) {
+          this.debtorsChart.set({
+            series: [{ name: 'Debt', data: res.data.map(d => Math.abs(d.debtAmount)) }],
+            chart: { ...APEX_DEFAULTS.chart, type: 'bar', height: 240 },
+            xaxis: { categories: res.data.map(d => d.counterpartyName) },
+            colors: ['#f59e0b'],
+            grid: APEX_DEFAULTS.grid,
+            tooltip: APEX_DEFAULTS.tooltip,
+            plotOptions: { bar: { borderRadius: 4, horizontal: true, columnWidth: '60%' } },
+            legend: { show: false }
           });
         }
       }

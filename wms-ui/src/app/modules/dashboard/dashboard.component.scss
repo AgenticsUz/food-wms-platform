@@ -3,7 +3,19 @@
 }
 
 .dashboard-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
   margin-bottom: 24px;
+}
+
+/* Date range filter */
+.date-range-filter {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .greeting {

@@ -11,12 +11,13 @@ import { TranslocoDirective } from '@jsverse/transloco';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { CounterpartyService } from '../../../core/services/counterparty.service';
 import { NotificationService } from '../../../shared/services/notification.service';
+import { HasPermissionDirective } from '../../../shared/directives/has-permission.directive';
 import { Counterparty, CounterpartyCreateDto, CounterpartyType } from '../../../core/models/counterparty.model';
 
 @Component({
   selector: 'app-client-list',
   standalone: true,
-  imports: [FormsModule, TableModule, Button, InputText, Dialog, ToggleSwitch, Textarea, TranslocoDirective, PageHeaderComponent],
+  imports: [FormsModule, TableModule, Button, InputText, Dialog, ToggleSwitch, Textarea, TranslocoDirective, PageHeaderComponent, HasPermissionDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './client-list.component.html',
   styleUrl: './client-list.component.scss'

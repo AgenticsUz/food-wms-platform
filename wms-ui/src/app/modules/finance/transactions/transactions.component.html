@@ -1,6 +1,6 @@
 <div class="page-enter" *transloco="let t">
   <app-page-header [title]="t('finance.transactions')" [subtitle]="t('finance.transactions')">
-    <p-button icon="pi pi-plus" [label]="t('finance.addTransaction')" (onClick)="openNew()" />
+    <p-button *hasPermission="'finance.manage'" icon="pi pi-plus" [label]="t('finance.addTransaction')" (onClick)="openNew()" />
   </app-page-header>
 
   <!-- Filters -->

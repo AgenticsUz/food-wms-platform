@@ -5,7 +5,8 @@ import {
   RoleInfo, RoleCreateDto,
   ModuleInfo,
   QcParameter, QcParameterCreateDto,
-  ChangePasswordDto
+  ChangePasswordDto,
+  PermissionInfo
 } from '../models/settings.model';
 
 @Injectable({ providedIn: 'root' })
@@ -24,6 +25,13 @@ export class SettingsService {
   createRole(dto: RoleCreateDto) { return this.api.post<RoleInfo>('roles', dto); }
   updateRole(id: number, dto: RoleCreateDto) { return this.api.put<RoleInfo>(`roles/${id}`, dto); }
   deleteRole(id: number) { return this.api.delete<void>(`roles/${id}`); }
+
+  // Permissions
+  getPermissions() { return this.api.get<PermissionInfo[]>('permissions'); }
+  getRolePermissions(roleId: number) { return this.api.get<number[]>(`roles/${roleId}/permissions`); }
+  updateRolePermissions(roleId: number, permissionIds: number[]) {
+    return this.api.put<void>(`roles/${roleId}/permissions`, { permissionIds });
+  }
 
   // Modules
   getModules(tenantId: number) { return this.api.get<ModuleInfo[]>(`tenants/${tenantId}/modules`); }

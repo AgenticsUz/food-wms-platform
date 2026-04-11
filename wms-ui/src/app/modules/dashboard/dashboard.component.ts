@@ -1,7 +1,9 @@
 import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { DecimalPipe, DatePipe } from '@angular/common';
+import { Router } from '@angular/router';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { TableModule } from 'primeng/table';
+import { Button } from 'primeng/button';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { AnalyticsService } from '../../core/services/analytics.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -18,7 +20,7 @@ import {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [DecimalPipe, DatePipe, NgApexchartsModule, TableModule, StatusBadgeComponent, TranslocoDirective],
+  imports: [DecimalPipe, DatePipe, NgApexchartsModule, TableModule, Button, StatusBadgeComponent, TranslocoDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
@@ -26,6 +28,7 @@ import {
 export default class DashboardComponent implements OnInit {
   private analyticsService = inject(AnalyticsService);
   private authService = inject(AuthService);
+  private router = inject(Router);
 
   userName = this.authService.currentUser()?.fullName ?? 'User';
   today = new Date();
@@ -33,6 +36,7 @@ export default class DashboardComponent implements OnInit {
   loading = signal(true);
   summary = signal<DashboardSummaryDto | null>(null);
   recentTransfers = signal<RecentTransferDto[]>([]);
+  selectedDays = signal(7);
 
   // Chart configs
   planVsActualChart = signal<Record<string, unknown> | null>(null);
@@ -41,10 +45,21 @@ export default class DashboardComponent implements OnInit {
 
   ngOnInit() {
     this.loadSummary();
+    this.loadAllCharts();
+    this.loadRecentTransfers();
+  }
+
+  changeDays(days: number) {
+    this.selectedDays.set(days);
+    this.planVsActualChart.set(null);
+    this.dailyTransfersChart.set(null);
+    this.loadAllCharts();
+  }
+
+  private loadAllCharts() {
     this.loadPlanVsActual();
     this.loadDailyTransfers();
     this.loadProductDistribution();
-    this.loadRecentTransfers();
   }
 
   private loadSummary() {
@@ -60,7 +75,7 @@ export default class DashboardComponent implements OnInit {
   }
 
   private loadPlanVsActual() {
-    this.analyticsService.getProductionPlanVsActual(7).subscribe({
+    this.analyticsService.getProductionPlanVsActual(this.selectedDays()).subscribe({
       next: (res) => {
         if (res.success && res.data && res.data.length > 0) {
           const dates = [...new Set(res.data.map(d => d.date))];
@@ -92,7 +107,7 @@ export default class DashboardComponent implements OnInit {
   }
 
   private loadDailyTransfers() {
-    this.analyticsService.getDailyTransfers(7).subscribe({
+    this.analyticsService.getDailyTransfers(this.selectedDays()).subscribe({
       next: (res) => {
         if (res.success && res.data && res.data.length > 0) {
           const labels = res.data.map(d =>
@@ -108,7 +123,7 @@ export default class DashboardComponent implements OnInit {
             grid: APEX_DEFAULTS.grid,
             tooltip: APEX_DEFAULTS.tooltip,
             xaxis: { categories: labels },
-            plotOptions: { bar: { borderRadius: 6, columnWidth: '55%' } },
+            plotOptions: { bar: { borderRadius: 4, columnWidth: '60%' } },
             legend: { position: 'top' }
           });
         }
@@ -129,7 +144,7 @@ export default class DashboardComponent implements OnInit {
             legend: { position: 'bottom' },
             plotOptions: {
               pie: {
-                donut: { size: '60%', labels: { show: true, total: { show: true, label: 'Total' } } }
+                donut: { size: '65%', labels: { show: true, total: { show: true, label: 'Total' } } }
               }
             }
           });
@@ -163,5 +178,9 @@ export default class DashboardComponent implements OnInit {
       Cancelled: 'Cancelled'
     };
     return map[status] ?? status;
+  }
+
+  navigateToTransfer(id: number) {
+    this.router.navigate(['/transfers', id]);
   }
 }

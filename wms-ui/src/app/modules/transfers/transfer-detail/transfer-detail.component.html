@@ -89,9 +89,9 @@
     <!-- Action buttons -->
     @if (isPending) {
       <div class="action-bar">
-        <p-button [label]="t('transfer.rejectTransfer')" icon="pi pi-times" severity="danger" [outlined]="true"
+        <p-button *hasPermission="'transfers.reject'" [label]="t('transfer.rejectTransfer')" icon="pi pi-times" severity="danger" [outlined]="true"
           (onClick)="reject()" [loading]="rejecting()" />
-        <p-button [label]="t('transfer.confirmTransfer')" icon="pi pi-check" severity="success"
+        <p-button *hasPermission="'transfers.confirm'" [label]="t('transfer.confirmTransfer')" icon="pi pi-check" severity="success"
           (onClick)="confirm()" [loading]="confirming()" />
       </div>
     }

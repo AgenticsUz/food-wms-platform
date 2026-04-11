@@ -90,3 +90,10 @@ export interface PortalFinance {
   balance: number;
   totalDebt: number;
 }
+
+export interface PermissionInfo {
+  id: number;
+  code: string;
+  name: string;
+  module: string;
+}

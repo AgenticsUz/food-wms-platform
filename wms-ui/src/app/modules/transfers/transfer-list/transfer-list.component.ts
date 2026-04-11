@@ -12,12 +12,13 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { TransferService } from '../../../core/services/transfer.service';
 import { NotificationService } from '../../../shared/services/notification.service';
+import { HasPermissionDirective } from '../../../shared/directives/has-permission.directive';
 import { Transfer, TransferType, TransferStatus } from '../../../core/models/transfer.model';
 
 @Component({
   selector: 'app-transfer-list',
   standalone: true,
-  imports: [DecimalPipe, DatePipe, FormsModule, TranslocoDirective, TableModule, Button, Select, DatePicker, PageHeaderComponent, StatusBadgeComponent],
+  imports: [DecimalPipe, DatePipe, FormsModule, TranslocoDirective, TableModule, Button, Select, DatePicker, PageHeaderComponent, StatusBadgeComponent, HasPermissionDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './transfer-list.component.html',
   styleUrl: './transfer-list.component.scss'
