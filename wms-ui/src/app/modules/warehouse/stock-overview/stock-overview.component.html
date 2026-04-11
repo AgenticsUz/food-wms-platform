@@ -18,6 +18,11 @@
         [placeholder]="t('warehouse.allWarehouses')"
         [style]="{ minWidth: '200px' }" />
     </div>
+    <div class="filter-group" style="margin-left: auto;">
+      <p-button icon="pi pi-file-excel" [label]="exportService.exporting() ? t('common.exporting') : t('common.exportExcel')"
+        [loading]="exportService.exporting()" [disabled]="exportService.exporting()"
+        severity="success" [outlined]="true" size="small" (onClick)="exportStock()" />
+    </div>
   </div>
 
   <!-- Stock Levels Chart -->

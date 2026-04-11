@@ -15,6 +15,7 @@ import { StatusBadgeComponent } from '../../../shared/components/status-badge/st
 import { NotificationService } from '../../../shared/services/notification.service';
 import { HasPermissionDirective } from '../../../shared/directives/has-permission.directive';
 import { FinanceService } from '../../../core/services/finance.service';
+import { ExportService } from '../../../core/services/export.service';
 import { CounterpartyService } from '../../../core/services/counterparty.service';
 import { Transaction, TransactionCreateDto, TransactionType } from '../../../core/models/finance.model';
 import { Counterparty } from '../../../core/models/counterparty.model';
@@ -35,6 +36,7 @@ export default class TransactionsComponent implements OnInit {
   private financeSvc = inject(FinanceService);
   private counterpartySvc = inject(CounterpartyService);
   private notify = inject(NotificationService);
+  exportService = inject(ExportService);
   private transloco = inject(TranslocoService);
   private lang = toSignal(this.transloco.langChanges$, { initialValue: this.transloco.getActiveLang() });
 
@@ -174,4 +176,12 @@ export default class TransactionsComponent implements OnInit {
   updateForm(field: string, value: unknown) {
     this.form.update(f => ({ ...f, [field]: value }));
   }
+
+  exportTransactions() {
+    const params: Record<string, unknown> = {};
+    if (this.dateFrom()) params['fromDate'] = this.dateFrom()!.toISOString().split('T')[0];
+    if (this.dateTo()) params['toDate'] = this.dateTo()!.toISOString().split('T')[0];
+    this.exportService.download('export/transactions', `transactions-${this.today()}.xlsx`, params);
+  }
+  private today() { return new Date().toISOString().split('T')[0]; }
 }

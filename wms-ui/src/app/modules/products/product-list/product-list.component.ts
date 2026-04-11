@@ -13,6 +13,7 @@ import { StatusBadgeComponent } from '../../../shared/components/status-badge/st
 import { ProductService } from '../../../core/services/product.service';
 import { NotificationService } from '../../../shared/services/notification.service';
 import { HasPermissionDirective } from '../../../shared/directives/has-permission.directive';
+import { ExportService } from '../../../core/services/export.service';
 import { Product, ProductCreateDto, ProductType, Category, Unit } from '../../../core/models/product.model';
 
 @Component({
@@ -29,6 +30,7 @@ import { Product, ProductCreateDto, ProductType, Category, Unit } from '../../..
 export default class ProductListComponent implements OnInit {
   private productService = inject(ProductService);
   private notify = inject(NotificationService);
+  exportService = inject(ExportService);
 
   products = signal<Product[]>([]);
   categories = signal<Category[]>([]);
@@ -220,6 +222,10 @@ export default class ProductListComponent implements OnInit {
       case ProductType.Finished: return 'Confirmed';
       default: return 'Neutral';
     }
+  }
+
+  exportProducts() {
+    this.exportService.download('export/products', `products-${new Date().toISOString().split('T')[0]}.xlsx`);
   }
 
   updateForm(field: string, value: unknown) {

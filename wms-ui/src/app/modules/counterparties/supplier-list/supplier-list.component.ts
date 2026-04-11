@@ -12,6 +12,7 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 import { CounterpartyService } from '../../../core/services/counterparty.service';
 import { NotificationService } from '../../../shared/services/notification.service';
 import { HasPermissionDirective } from '../../../shared/directives/has-permission.directive';
+import { ExportService } from '../../../core/services/export.service';
 import { Counterparty, CounterpartyCreateDto, CounterpartyType } from '../../../core/models/counterparty.model';
 
 @Component({
@@ -26,6 +27,7 @@ export default class SupplierListComponent implements OnInit {
   private service = inject(CounterpartyService);
   private notify = inject(NotificationService);
   private router = inject(Router);
+  exportService = inject(ExportService);
 
   items = signal<Counterparty[]>([]);
   filtered = signal<Counterparty[]>([]);
@@ -98,6 +100,10 @@ export default class SupplierListComponent implements OnInit {
   }
 
   viewDetail(c: Counterparty) { this.router.navigate(['/counterparties', c.id]); }
+
+  exportSuppliers() {
+    this.exportService.download('export/counterparties', `suppliers-${new Date().toISOString().split('T')[0]}.xlsx`, { type: 'Supplier' });
+  }
 
   updateForm(field: string, value: unknown) { this.form.update(f => ({ ...f, [field]: value })); }
 }

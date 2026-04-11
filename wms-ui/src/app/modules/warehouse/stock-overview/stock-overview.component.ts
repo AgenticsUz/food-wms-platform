@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { TableModule } from 'primeng/table';
 import { Select } from 'primeng/select';
+import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
@@ -11,6 +12,7 @@ import { StatusBadgeComponent } from '../../../shared/components/status-badge/st
 import { WarehouseService } from '../../../core/services/warehouse.service';
 import { AnalyticsService } from '../../../core/services/analytics.service';
 import { NotificationService } from '../../../shared/services/notification.service';
+import { ExportService } from '../../../core/services/export.service';
 import { Warehouse, WarehouseStockRow } from '../../../core/models/warehouse.model';
 import { StockLevelDto } from '../../../core/models/analytics.model';
 import { APEX_DEFAULTS } from '../../../core/config/apex-defaults';
@@ -18,7 +20,7 @@ import { APEX_DEFAULTS } from '../../../core/config/apex-defaults';
 @Component({
   selector: 'app-stock-overview',
   standalone: true,
-  imports: [DecimalPipe, FormsModule, TranslocoDirective, TableModule, Select, InputText, NgApexchartsModule, PageHeaderComponent, StatusBadgeComponent],
+  imports: [DecimalPipe, FormsModule, TranslocoDirective, TableModule, Select, InputText, NgApexchartsModule, PageHeaderComponent, StatusBadgeComponent, Button],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './stock-overview.component.html',
   styleUrl: './stock-overview.component.scss'
@@ -27,6 +29,7 @@ export default class StockOverviewComponent implements OnInit {
   private warehouseService = inject(WarehouseService);
   private analyticsService = inject(AnalyticsService);
   private notify = inject(NotificationService);
+  exportService = inject(ExportService);
 
   warehouses = signal<Warehouse[]>([]);
   selectedWarehouseId = signal<number | null>(null);
@@ -101,6 +104,13 @@ export default class StockOverviewComponent implements OnInit {
   isLow(s: WarehouseStockRow): boolean {
     return s.availableQuantity <= 0;
   }
+
+  exportStock() {
+    const params: Record<string, unknown> = {};
+    if (this.selectedWarehouseId()) params['warehouseId'] = this.selectedWarehouseId();
+    this.exportService.download('export/stock', `stock-${this.today()}.xlsx`, params);
+  }
+  private today() { return new Date().toISOString().split('T')[0]; }
 
   private loadStockChart() {
     this.analyticsService.getStockLevels().subscribe({

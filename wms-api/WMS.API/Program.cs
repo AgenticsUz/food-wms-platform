@@ -43,6 +43,7 @@ builder.Services.AddScoped<IKpiService, KpiService>();
 builder.Services.AddScoped<IQcService, QcService>();
 builder.Services.AddScoped<IPortalAuthService, PortalAuthService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
+builder.Services.AddScoped<IExportService, ExportService>();
 
 // CORS
 builder.Services.AddCors(options =>

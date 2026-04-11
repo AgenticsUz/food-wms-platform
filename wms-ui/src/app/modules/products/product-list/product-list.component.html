@@ -1,5 +1,8 @@
 <div class="page-enter" *transloco="let t">
   <app-page-header [title]="t('products.products')" [subtitle]="t('products.manageProducts')">
+    <p-button icon="pi pi-file-excel" [label]="exportService.exporting() ? t('common.exporting') : t('common.exportExcel')"
+      [loading]="exportService.exporting()" [disabled]="exportService.exporting()"
+      severity="success" [outlined]="true" size="small" (onClick)="exportProducts()" />
     <p-button *hasPermission="'products.manage'" icon="pi pi-plus" [label]="t('products.addProduct')" (onClick)="openNew()" />
   </app-page-header>
 

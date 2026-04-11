@@ -18,6 +18,11 @@
     <div class="filter-group">
       <p-datepicker [ngModel]="dateTo()" (ngModelChange)="dateTo.set($event); onFilterChange()" dateFormat="yy-mm-dd" [showIcon]="true" [placeholder]="t('common.to')" />
     </div>
+    <div class="filter-group" style="margin-left: auto;">
+      <p-button icon="pi pi-file-excel" [label]="exportService.exporting() ? t('common.exporting') : t('common.exportExcel')"
+        [loading]="exportService.exporting()" [disabled]="exportService.exporting()"
+        severity="success" [outlined]="true" size="small" (onClick)="exportTransfers()" />
+    </div>
   </div>
 
   <div class="wms-card table-wrapper">

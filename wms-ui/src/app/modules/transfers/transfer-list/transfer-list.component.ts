@@ -12,6 +12,7 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { TransferService } from '../../../core/services/transfer.service';
 import { NotificationService } from '../../../shared/services/notification.service';
+import { ExportService } from '../../../core/services/export.service';
 import { HasPermissionDirective } from '../../../shared/directives/has-permission.directive';
 import { Transfer, TransferType, TransferStatus } from '../../../core/models/transfer.model';
 
@@ -27,6 +28,7 @@ export default class TransferListComponent implements OnInit {
   private transferService = inject(TransferService);
   private notify = inject(NotificationService);
   private router = inject(Router);
+  exportService = inject(ExportService);
   private transloco = inject(TranslocoService);
   private lang = toSignal(this.transloco.langChanges$, { initialValue: this.transloco.getActiveLang() });
 
@@ -109,4 +111,12 @@ export default class TransferListComponent implements OnInit {
       default: return 'Neutral';
     }
   }
+
+  exportTransfers() {
+    const params: Record<string, unknown> = {};
+    if (this.dateFrom()) params['fromDate'] = this.dateFrom()!.toISOString().split('T')[0];
+    if (this.dateTo()) params['toDate'] = this.dateTo()!.toISOString().split('T')[0];
+    this.exportService.download('export/transfers', `transfers-${this.today()}.xlsx`, params);
+  }
+  private today() { return new Date().toISOString().split('T')[0]; }
 }
