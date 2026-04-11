@@ -96,3 +96,41 @@ public class ProductDistributionDto
     public decimal TotalStock { get; set; }
     public decimal Percentage { get; set; }
 }
+
+public class ExtendedDashboardSummaryDto
+{
+    // Finance
+    public decimal TotalIncome { get; set; }
+    public decimal TotalExpense { get; set; }
+    public decimal NetProfit { get; set; }
+    public decimal TotalDebt { get; set; }
+
+    // Transfers
+    public int TotalIncomingTransfers { get; set; }
+    public int TotalOutgoingTransfers { get; set; }
+    public decimal TotalIncomingAmount { get; set; }
+    public decimal TotalOutgoingAmount { get; set; }
+
+    // Production
+    public int TotalProductionOrders { get; set; }
+    public int CompletedOrders { get; set; }
+    public decimal TotalProduced { get; set; }
+    public decimal TotalWaste { get; set; }
+
+    // Warehouse
+    public decimal TotalStockValue { get; set; }
+    public int LowStockCount { get; set; }
+
+    // Top performers
+    public string? TopSellingProduct { get; set; }
+    public string? TopDebtor { get; set; }
+    public string? TopSupplier { get; set; }
+}
+
+public class MonthlyComparisonDto
+{
+    public string Month { get; set; } = null!;
+    public decimal Income { get; set; }
+    public decimal Expense { get; set; }
+    public decimal Net => Income - Expense;
+}

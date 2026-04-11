@@ -15,4 +15,6 @@ public interface IAnalyticsService
     Task<List<ShiftEfficiencyDto>> GetShiftEfficiency(int tenantId, int days);
     Task<List<AttendanceHeatmapDto>> GetAttendanceHeatmap(int tenantId, int days);
     Task<List<ProductDistributionDto>> GetProductDistribution(int tenantId);
+    Task<ExtendedDashboardSummaryDto> GetExtendedDashboardSummary(int tenantId, DateTime? fromDate, DateTime? toDate);
+    Task<List<MonthlyComparisonDto>> GetMonthlyComparison(int tenantId);
 }

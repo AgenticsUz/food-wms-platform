@@ -234,4 +234,132 @@ public class AnalyticsService : IAnalyticsService
             Percentage = grandTotal > 0 ? Math.Round(s.Total / grandTotal * 100, 1) : 0
         }).ToList();
     }
+
+    public async Task<ExtendedDashboardSummaryDto> GetExtendedDashboardSummary(int tenantId, DateTime? fromDate, DateTime? toDate)
+    {
+        var now = DateTime.UtcNow;
+        var from = fromDate ?? new DateTime(now.Year, now.Month, 1);
+        var to = toDate ?? now;
+
+        // Finance
+        var transactions = await _db.Transactions
+            .Where(t => t.TenantId == tenantId && t.Date >= from && t.Date <= to)
+            .ToListAsync();
+        var totalIncome = transactions.Where(t => t.Type == TransactionType.Income).Sum(t => t.Amount);
+        var totalExpense = transactions.Where(t => t.Type == TransactionType.Expense).Sum(t => t.Amount);
+
+        var totalDebt = (decimal)await _db.Debts
+            .Where(d => d.TenantId == tenantId).SumAsync(d => (double)d.Amount);
+
+        // Transfers
+        var transfers = await _db.Transfers
+            .Where(t => t.TenantId == tenantId && t.Status == TransferStatus.Confirmed
+                && t.ConfirmedAt >= from && t.ConfirmedAt <= to)
+            .Include(t => t.Items).Include(t => t.Counterparty)
+            .ToListAsync();
+
+        var incomingTransfers = transfers.Where(t => t.Type == TransferType.Incoming).ToList();
+        var outgoingTransfers = transfers.Where(t => t.Type == TransferType.Outgoing).ToList();
+
+        // Production
+        var orders = await _db.ProductionOrders
+            .Where(o => o.TenantId == tenantId && o.CreatedAt >= from && o.CreatedAt <= to)
+            .ToListAsync();
+        var executions = await _db.StageExecutions
+            .Include(se => se.ProductionOrder)
+            .Where(se => se.ProductionOrder.TenantId == tenantId
+                && se.Status == StageExecutionStatus.Completed
+                && se.EndTime >= from && se.EndTime <= to)
+            .ToListAsync();
+
+        // Warehouse
+        var stockValues = await _db.WarehouseStocks
+            .Where(s => s.TenantId == tenantId)
+            .Include(s => s.Product)
+            .ToListAsync();
+        var totalStockValue = stockValues.Sum(s => s.Quantity * (s.Product.CostPrice ?? 0));
+
+        var products = await _db.Products.Where(p => p.TenantId == tenantId && p.MinStock > 0).ToListAsync();
+        var lowStockCount = 0;
+        foreach (var p in products)
+        {
+            var stock = stockValues.Where(s => s.ProductId == p.Id).Sum(s => s.Quantity);
+            if (stock <= p.MinStock) lowStockCount++;
+        }
+
+        // Top performers
+        string? topSellingProduct = null;
+        var outgoingByProduct = outgoingTransfers.SelectMany(t => t.Items)
+            .GroupBy(i => i.ProductId)
+            .OrderByDescending(g => g.Sum(i => i.Quantity))
+            .FirstOrDefault();
+        if (outgoingByProduct != null)
+        {
+            var prod = await _db.Products.FindAsync(outgoingByProduct.Key);
+            topSellingProduct = prod?.Name;
+        }
+
+        string? topDebtor = null;
+        var topDebt = await _db.Debts.Where(d => d.TenantId == tenantId)
+            .Include(d => d.Counterparty)
+            .OrderByDescending(d => d.Amount)
+            .FirstOrDefaultAsync();
+        if (topDebt != null) topDebtor = topDebt.Counterparty.Name;
+
+        string? topSupplier = null;
+        var supplierGroups = incomingTransfers
+            .Where(t => t.CounterpartyId.HasValue)
+            .GroupBy(t => t.CounterpartyId)
+            .OrderByDescending(g => g.Count())
+            .FirstOrDefault();
+        if (supplierGroups != null)
+            topSupplier = supplierGroups.First().Counterparty?.Name;
+
+        return new ExtendedDashboardSummaryDto
+        {
+            TotalIncome = totalIncome,
+            TotalExpense = totalExpense,
+            NetProfit = totalIncome - totalExpense,
+            TotalDebt = totalDebt,
+            TotalIncomingTransfers = incomingTransfers.Count,
+            TotalOutgoingTransfers = outgoingTransfers.Count,
+            TotalIncomingAmount = incomingTransfers.SelectMany(t => t.Items).Sum(i => i.Quantity * i.UnitPrice),
+            TotalOutgoingAmount = outgoingTransfers.SelectMany(t => t.Items).Sum(i => i.Quantity * i.UnitPrice),
+            TotalProductionOrders = orders.Count,
+            CompletedOrders = orders.Count(o => o.Status == ProductionOrderStatus.Completed),
+            TotalProduced = executions.Sum(e => e.ActualQuantity),
+            TotalWaste = executions.Sum(e => e.WasteQuantity),
+            TotalStockValue = totalStockValue,
+            LowStockCount = lowStockCount,
+            TopSellingProduct = topSellingProduct,
+            TopDebtor = topDebtor,
+            TopSupplier = topSupplier
+        };
+    }
+
+    public async Task<List<MonthlyComparisonDto>> GetMonthlyComparison(int tenantId)
+    {
+        var now = DateTime.UtcNow;
+        var from = new DateTime(now.Year, now.Month, 1).AddMonths(-5);
+
+        var transactions = await _db.Transactions
+            .Where(t => t.TenantId == tenantId && t.Date >= from)
+            .ToListAsync();
+
+        var result = new List<MonthlyComparisonDto>();
+        for (int i = -5; i <= 0; i++)
+        {
+            var monthStart = new DateTime(now.Year, now.Month, 1).AddMonths(i);
+            var monthEnd = monthStart.AddMonths(1);
+            var monthTxs = transactions.Where(t => t.Date >= monthStart && t.Date < monthEnd).ToList();
+
+            result.Add(new MonthlyComparisonDto
+            {
+                Month = monthStart.ToString("yyyy-MM"),
+                Income = monthTxs.Where(t => t.Type == TransactionType.Income).Sum(t => t.Amount),
+                Expense = monthTxs.Where(t => t.Type == TransactionType.Expense).Sum(t => t.Amount)
+            });
+        }
+        return result;
+    }
 }

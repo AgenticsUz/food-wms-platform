@@ -58,4 +58,14 @@ public class AnalyticsController : BaseController
     [HttpGet("products/distribution")]
     public async Task<IActionResult> GetProductDistribution()
         => Ok(ApiResponse<List<ProductDistributionDto>>.Ok(await _analytics.GetProductDistribution(TenantId)));
+
+    [HttpGet("dashboard-summary")]
+    public async Task<IActionResult> GetDashboardSummary([FromQuery] DateTime? fromDate, [FromQuery] DateTime? toDate)
+        => Ok(ApiResponse<ExtendedDashboardSummaryDto>.Ok(
+            await _analytics.GetExtendedDashboardSummary(TenantId, fromDate, toDate)));
+
+    [HttpGet("monthly-comparison")]
+    public async Task<IActionResult> GetMonthlyComparison()
+        => Ok(ApiResponse<List<MonthlyComparisonDto>>.Ok(
+            await _analytics.GetMonthlyComparison(TenantId)));
 }
