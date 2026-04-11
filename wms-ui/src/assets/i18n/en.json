@@ -374,5 +374,13 @@
   "barcode": {
     "searchPlaceholder": "Scan barcode or search by name...",
     "hint": "Scan a barcode or type product name and press Enter"
+  },
+  "currency": {
+    "calculator": "Currency Calculator",
+    "customRate": "Custom rate (optional)",
+    "customRateHint": "Enter custom rate or use official CBU rate",
+    "useCbu": "Use CBU",
+    "lastUpdated": "Last updated",
+    "refresh": "Refresh rates"
   }
 }

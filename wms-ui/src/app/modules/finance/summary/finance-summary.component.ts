@@ -1,18 +1,19 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { FinanceService } from '../../../core/services/finance.service';
 import { AnalyticsService } from '../../../core/services/analytics.service';
+import { CurrencyService } from '../../../core/services/currency.service';
 import { FinanceSummary } from '../../../core/models/finance.model';
-import { IncomeExpenseDto, TopDebtorDto } from '../../../core/models/analytics.model';
 import { APEX_DEFAULTS } from '../../../core/config/apex-defaults';
 
 @Component({
   selector: 'app-finance-summary',
   standalone: true,
-  imports: [DecimalPipe, NgApexchartsModule, PageHeaderComponent, TranslocoDirective],
+  imports: [DecimalPipe, FormsModule, NgApexchartsModule, PageHeaderComponent, TranslocoDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './finance-summary.component.html',
   styleUrl: './finance-summary.component.scss'
@@ -20,11 +21,30 @@ import { APEX_DEFAULTS } from '../../../core/config/apex-defaults';
 export default class FinanceSummaryComponent implements OnInit {
   private financeSvc = inject(FinanceService);
   private analyticsService = inject(AnalyticsService);
+  currencyService = inject(CurrencyService);
 
   summary = signal<FinanceSummary | null>(null);
   loading = signal(true);
   chartConfig = signal<Record<string, unknown> | null>(null);
   debtorsChart = signal<Record<string, unknown> | null>(null);
+
+  // Currency calculator
+  selectedCurrency = signal('USD');
+  foreignAmount = signal<number | null>(null);
+  uzsAmount = signal<number | null>(null);
+  customRate = signal<number | null>(null);
+
+  currentRate = computed(() => {
+    return this.customRate() || this.currencyService.rates()[this.selectedCurrency()] || 0;
+  });
+
+  lastUpdatedFormatted = computed(() => {
+    const d = this.currencyService.lastUpdated();
+    if (!d) return '';
+    return new Date(d).toLocaleDateString('uz-UZ', {
+      day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
+    });
+  });
 
   ngOnInit() {
     this.loadSummary();
@@ -74,6 +94,36 @@ export default class FinanceSummaryComponent implements OnInit {
         }
       }
     });
+  }
+
+  selectCurrency(code: string) {
+    this.selectedCurrency.set(code);
+    this.customRate.set(null);
+    const f = this.foreignAmount();
+    if (f) this.uzsAmount.set(f * this.currentRate());
+  }
+
+  onForeignChange(val: number | null) {
+    this.foreignAmount.set(val);
+    this.uzsAmount.set(val && this.currentRate() ? val * this.currentRate() : null);
+  }
+
+  onUzsChange(val: number | null) {
+    this.uzsAmount.set(val);
+    this.foreignAmount.set(val && this.currentRate() ? val / this.currentRate() : null);
+  }
+
+  swapAmounts() {
+    const f = this.foreignAmount();
+    const u = this.uzsAmount();
+    this.foreignAmount.set(u && this.currentRate() ? u / this.currentRate() : null);
+    this.uzsAmount.set(f ? f * this.currentRate() : null);
+  }
+
+  useCbuRate() {
+    this.customRate.set(null);
+    const f = this.foreignAmount();
+    if (f) this.uzsAmount.set(f * this.currentRate());
   }
 
   private loadDebtorsChart() {

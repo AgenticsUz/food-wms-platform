@@ -374,5 +374,13 @@
   "barcode": {
     "searchPlaceholder": "Shtrix kodni skanerlang yoki nomi bo'yicha qidiring...",
     "hint": "Shtrix kodni skanerlang yoki mahsulot nomini yozing va Enter bosing"
+  },
+  "currency": {
+    "calculator": "Valyuta kalkulyatori",
+    "customRate": "Maxsus kurs (ixtiyoriy)",
+    "customRateHint": "Maxsus kurs kiriting yoki rasmiy MB kursidan foydalaning",
+    "useCbu": "MB kursi",
+    "lastUpdated": "Yangilangan",
+    "refresh": "Kurslarni yangilash"
   }
 }

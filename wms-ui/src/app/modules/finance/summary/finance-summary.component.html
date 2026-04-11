@@ -104,4 +104,81 @@
       </div>
     }
   </div>
+
+  <!-- Currency Calculator -->
+  <div class="wms-card" style="padding: 20px; margin-top: 20px;">
+    <div class="flex items-center justify-between mb-4">
+      <h3 style="font-size: 16px; font-weight: 600; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 8px;">
+        <i class="pi pi-arrow-right-arrow-left" style="color: var(--primary-500)"></i>
+        {{ t('currency.calculator') }}
+      </h3>
+      <span class="text-xs" style="color: var(--text-muted)">
+        CBU · {{ lastUpdatedFormatted() }}
+      </span>
+    </div>
+
+    <!-- Currency buttons -->
+    <div class="flex gap-2 mb-4 flex-wrap">
+      @for (code of ['USD', 'EUR', 'RUB', 'CNY', 'GBP']; track code) {
+        <button (click)="selectCurrency(code)"
+                class="px-3 py-1.5 rounded-lg text-sm font-semibold transition-all cursor-pointer border-none"
+                [style.background]="selectedCurrency() === code ? 'var(--primary-500)' : 'var(--bg-muted)'"
+                [style.color]="selectedCurrency() === code ? '#fff' : 'var(--text-secondary)'">
+          {{ code }}
+        </button>
+      }
+    </div>
+
+    <!-- Current rate -->
+    <div class="rounded-xl p-3 mb-4 flex items-center justify-between"
+         style="background: rgba(99,102,241,0.06);">
+      <span class="text-sm" style="color: var(--text-secondary)">
+        1 {{ selectedCurrency() }} =
+      </span>
+      <span class="text-xl font-bold font-mono" style="color: var(--primary-500)">
+        {{ currentRate() | number:'1.2-2' }} UZS
+      </span>
+    </div>
+
+    <!-- Converter inputs -->
+    <div class="flex items-center gap-3">
+      <div class="flex-1">
+        <label class="block text-xs font-semibold uppercase tracking-wide mb-1.5"
+               style="color: var(--text-secondary)">{{ selectedCurrency() }}</label>
+        <input type="number" [ngModel]="foreignAmount()" (ngModelChange)="onForeignChange($event)"
+               placeholder="0" class="w-full px-3 py-2.5 rounded-lg text-sm font-mono text-right"
+               style="border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-primary);" />
+      </div>
+      <div style="padding-top: 20px;">
+        <button (click)="swapAmounts()"
+                class="w-9 h-9 rounded-lg flex items-center justify-center cursor-pointer border-none transition-all"
+                style="background: rgba(99,102,241,0.1); color: var(--primary-500);">
+          <i class="pi pi-arrow-right-arrow-left text-sm"></i>
+        </button>
+      </div>
+      <div class="flex-1">
+        <label class="block text-xs font-semibold uppercase tracking-wide mb-1.5"
+               style="color: var(--text-secondary)">UZS (so'm)</label>
+        <input type="number" [ngModel]="uzsAmount()" (ngModelChange)="onUzsChange($event)"
+               placeholder="0" class="w-full px-3 py-2.5 rounded-lg text-sm font-mono text-right"
+               style="border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-primary);" />
+      </div>
+    </div>
+
+    <!-- Custom rate -->
+    <div class="mt-3 flex items-center gap-2">
+      <input type="number" [ngModel]="customRate()" (ngModelChange)="customRate.set($event)"
+             [placeholder]="t('currency.customRate')"
+             class="flex-1 px-3 py-2 rounded-lg text-xs"
+             style="border: 1px dashed var(--border); background: var(--bg-surface); color: var(--text-secondary);" />
+      <button (click)="useCbuRate()"
+              class="px-3 py-2 text-xs rounded-lg cursor-pointer font-medium transition-all border-none"
+              style="background: rgba(99,102,241,0.08); color: var(--primary-500);">
+        {{ t('currency.useCbu') }}
+      </button>
+    </div>
+    <p class="text-xs mt-1 m-0" style="color: var(--text-muted)">
+      {{ t('currency.customRateHint') }}
+    </p>
+  </div>
 </div>
