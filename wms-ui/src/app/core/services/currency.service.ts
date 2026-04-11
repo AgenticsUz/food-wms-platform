@@ -1,9 +1,16 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { ApiService } from './api.service';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
+
+interface CurrencyRatesResponse {
+  rates: Record<string, number>;
+  lastUpdated: string;
+  source: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class CurrencyService {
-  private api = inject(ApiService);
+  private http = inject(HttpClient);
 
   rates = signal<Record<string, number>>({});
   lastUpdated = signal<string>('');
@@ -11,11 +18,11 @@ export class CurrencyService {
 
   loadRates() {
     this.loading.set(true);
-    this.api.get<{ rates: Record<string, number>; lastUpdated: string }>('currency/rates').subscribe({
+    this.http.get<CurrencyRatesResponse>(`${environment.apiUrl}/currency/rates`).subscribe({
       next: (res) => {
-        if (res.success && res.data) {
-          this.rates.set(res.data.rates);
-          this.lastUpdated.set(res.data.lastUpdated);
+        if (res && res.rates) {
+          this.rates.set(res.rates);
+          this.lastUpdated.set(res.lastUpdated ?? '');
         }
         this.loading.set(false);
       },

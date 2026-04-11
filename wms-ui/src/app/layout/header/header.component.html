@@ -5,6 +5,25 @@
     </button>
     <h2 class="page-title">WMS Platform</h2>
   </div>
+  <!-- Currency Rates -->
+  <div class="currency-widget">
+    @if (currencyService.loading()) {
+      <span class="currency-loading">...</span>
+    } @else {
+      @for (entry of mainRates(); track entry.code; let last = $last) {
+        <span class="currency-entry">
+            <span class="currency-code">{{ entry.code }}</span>
+            <span class="currency-rate">{{ entry.rate | number:'1.0-0' }}</span>
+          </span>
+        @if (!last) {
+          <span class="currency-sep">|</span>
+        }
+      }
+      <button class="currency-refresh" (click)="currencyService.loadRates()" title="Refresh">
+        <i class="pi pi-refresh"></i>
+      </button>
+    }
+  </div>
 
   <div class="header-right">
     <!-- Language Switcher -->
@@ -23,25 +42,7 @@
               (click)="switchLang('en')">EN</button>
     </div>
 
-    <!-- Currency Rates -->
-    <div class="currency-widget">
-      @if (currencyService.loading()) {
-        <span class="currency-loading">...</span>
-      } @else {
-        @for (entry of mainRates(); track entry.code; let last = $last) {
-          <span class="currency-entry">
-            <span class="currency-code">{{ entry.code }}</span>
-            <span class="currency-rate">{{ entry.rate | number:'1.0-0' }}</span>
-          </span>
-          @if (!last) {
-            <span class="currency-sep">|</span>
-          }
-        }
-        <button class="currency-refresh" (click)="currencyService.loadRates()" title="Refresh">
-          <i class="pi pi-refresh"></i>
-        </button>
-      }
-    </div>
+
 
     <!-- Theme Toggle -->
     <button class="theme-toggle" (click)="toggleTheme()">
