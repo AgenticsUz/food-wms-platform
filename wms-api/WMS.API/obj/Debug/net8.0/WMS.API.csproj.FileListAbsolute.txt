@@ -133,8 +133,14 @@ C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.API\obj\D
 C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.API\obj\Debug\net8.0\WMS.API.csproj.CoreCompileInputs.cache
 C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.API\obj\Debug\net8.0\WMS.API.MvcApplicationPartsAssemblyInfo.cs
 C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.API\obj\Debug\net8.0\WMS.API.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.API\obj\Debug\net8.0\WMS.API.sourcelink.json
 C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.API\obj\Debug\net8.0\staticwebassets.build.json
 C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.API\obj\Debug\net8.0\staticwebassets.development.json
+C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.API\obj\Debug\net8.0\staticwebassets\msbuild.WMS.API.Microsoft.AspNetCore.StaticWebAssets.props
+C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.API\obj\Debug\net8.0\staticwebassets\msbuild.build.WMS.API.props
+C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.API\obj\Debug\net8.0\staticwebassets\msbuild.buildMultiTargeting.WMS.API.props
+C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.API\obj\Debug\net8.0\staticwebassets\msbuild.buildTransitive.WMS.API.props
+C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.API\obj\Debug\net8.0\staticwebassets.pack.json
 C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.API\obj\Debug\net8.0\scopedcss\bundle\WMS.API.styles.css
 C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.API\obj\Debug\net8.0\WMS.API.csproj.Up2Date
 C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.API\obj\Debug\net8.0\WMS.API.dll
@@ -142,9 +148,3 @@ C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.API\obj\D
 C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.API\obj\Debug\net8.0\WMS.API.pdb
 C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.API\obj\Debug\net8.0\WMS.API.genruntimeconfig.cache
 C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.API\obj\Debug\net8.0\ref\WMS.API.dll
-C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.API\obj\Debug\net8.0\staticwebassets\msbuild.WMS.API.Microsoft.AspNetCore.StaticWebAssets.props
-C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.API\obj\Debug\net8.0\staticwebassets\msbuild.build.WMS.API.props
-C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.API\obj\Debug\net8.0\staticwebassets\msbuild.buildMultiTargeting.WMS.API.props
-C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.API\obj\Debug\net8.0\staticwebassets\msbuild.buildTransitive.WMS.API.props
-C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.API\obj\Debug\net8.0\staticwebassets.pack.json
-C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.API\obj\Debug\net8.0\WMS.API.sourcelink.json

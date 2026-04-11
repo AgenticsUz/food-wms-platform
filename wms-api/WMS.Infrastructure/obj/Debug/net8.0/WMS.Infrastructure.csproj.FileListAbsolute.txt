@@ -11,10 +11,10 @@ C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Infrastru
 C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Infrastructure\obj\Debug\net8.0\WMS.Infrastructure.AssemblyInfoInputs.cache
 C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Infrastructure\obj\Debug\net8.0\WMS.Infrastructure.AssemblyInfo.cs
 C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Infrastructure\obj\Debug\net8.0\WMS.Infrastructure.csproj.CoreCompileInputs.cache
+C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Infrastructure\obj\Debug\net8.0\WMS.Infrastructure.sourcelink.json
 C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Infrastructure\obj\Debug\net8.0\WMS.Infr.677E6FEF.Up2Date
 C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Infrastructure\obj\Debug\net8.0\WMS.Infrastructure.dll
 C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Infrastructure\obj\Debug\net8.0\refint\WMS.Infrastructure.dll
 C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Infrastructure\obj\Debug\net8.0\WMS.Infrastructure.pdb
 C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Infrastructure\obj\Debug\net8.0\WMS.Infrastructure.genruntimeconfig.cache
 C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Infrastructure\obj\Debug\net8.0\ref\WMS.Infrastructure.dll
-C:\Users\g.turaqulov\Desktop\Personal-Project\projects\wms\wms-api\WMS.Infrastructure\obj\Debug\net8.0\WMS.Infrastructure.sourcelink.json
