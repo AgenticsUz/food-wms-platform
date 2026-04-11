@@ -185,7 +185,7 @@ export default class RolesComponent implements OnInit {
     if (!roleId) return;
 
     this.permSaving.set(true);
-    this.settingsService.updateRolePermissions(roleId, this.selectedPermissionIds()).subscribe({
+    this.settingsService.updateRolePermissions(roleId, this.selectedPermissionIds().map(id => Number(id))).subscribe({
       next: () => {
         this.permSaving.set(false);
         this.permDialogVisible.set(false);

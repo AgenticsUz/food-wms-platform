@@ -33,6 +33,8 @@ export class AuthService {
           this.currentUser.set(res.data.user);
           localStorage.setItem('token', res.data.token);
           localStorage.setItem('currentUser', JSON.stringify(res.data.user));
+          this.permissionService.setRoles(res.data.user.roles ?? []);
+          localStorage.setItem('userRoles', JSON.stringify(res.data.user.roles ?? []));
         }
       }),
       switchMap(res => {
