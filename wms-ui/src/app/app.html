@@ -1,3 +1,6 @@
+@if (loadingService.loading()) {
+  <p-progressBar mode="indeterminate" styleClass="global-loading-bar" [style]="{ height: '3px' }" />
+}
 <p-toast position="top-right" [life]="4000" />
 <p-confirmDialog />
 <router-outlet />

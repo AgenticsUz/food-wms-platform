@@ -1,0 +1,11 @@
+::ng-deep .global-loading-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+}
+
+::ng-deep .global-loading-bar .p-progressbar-value {
+  background: linear-gradient(90deg, #b20e04, #e93a3a, #e76378) !important;
+}

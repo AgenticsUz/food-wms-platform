@@ -8,6 +8,7 @@ import { TranslocoDirective } from '@jsverse/transloco';
 import { AuthService } from '../../../core/services/auth.service';
 import { TenantService } from '../../../core/services/tenant.service';
 import { NotificationService } from '../../../shared/services/notification.service';
+import { LoadingService } from '../../../core/services/loading.service';
 
 @Component({
   selector: 'app-login',
@@ -22,6 +23,7 @@ export default class LoginComponent {
   private tenantService = inject(TenantService);
   private router = inject(Router);
   private notify = inject(NotificationService);
+  private loadingService = inject(LoadingService);
 
   phone = signal('');
   password = signal('');
@@ -35,6 +37,7 @@ export default class LoginComponent {
     }
 
     this.loading.set(true);
+    this.loadingService.show();
     this.authService.login({
       phone: this.phone(),
       password: this.password(),
@@ -47,6 +50,7 @@ export default class LoginComponent {
       },
       error: (err) => {
         this.loading.set(false);
+        this.loadingService.hide();
         this.notify.error(err.error?.message ?? 'Login failed. Please check your credentials.');
       }
     });
