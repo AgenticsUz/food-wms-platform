@@ -35,6 +35,10 @@ export class ExportService {
     });
   }
 
+  downloadPdf(transferId: number) {
+    this.download(`export/transfers/${transferId}/pdf`, `transfer-${transferId}.pdf`);
+  }
+
   private cleanParams(params?: Record<string, unknown>): Record<string, string> {
     if (!params) return {};
     return Object.fromEntries(

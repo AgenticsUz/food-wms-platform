@@ -1,5 +1,10 @@
 <div class="page-enter" *transloco="let t">
   <app-page-header [title]="t('transfer.transferDetail') + ' #' + (transfer()?.id ?? '')" [subtitle]="transfer() ? getTypeName(transfer()!.type) : ''">
+    @if (transfer()?.status === 2) {
+      <p-button icon="pi pi-file-pdf" [label]="exportService.exporting() ? t('common.exporting') : t('common.downloadPdf')"
+        [loading]="exportService.exporting()" [disabled]="exportService.exporting()"
+        severity="danger" [outlined]="true" size="small" (onClick)="downloadPdf()" />
+    }
     <p-button icon="pi pi-arrow-left" [label]="t('common.back')" [text]="true" (onClick)="goBack()" />
   </app-page-header>
 

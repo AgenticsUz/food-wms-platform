@@ -9,6 +9,7 @@ import { StatusBadgeComponent } from '../../../shared/components/status-badge/st
 import { TransferService } from '../../../core/services/transfer.service';
 import { NotificationService } from '../../../shared/services/notification.service';
 import { HasPermissionDirective } from '../../../shared/directives/has-permission.directive';
+import { ExportService } from '../../../core/services/export.service';
 import { Transfer, TransferType, TransferStatus } from '../../../core/models/transfer.model';
 
 @Component({
@@ -24,6 +25,7 @@ export default class TransferDetailComponent implements OnInit {
   private router = inject(Router);
   private transferService = inject(TransferService);
   private notify = inject(NotificationService);
+  exportService = inject(ExportService);
 
   transfer = signal<Transfer | null>(null);
   loading = signal(true);
@@ -44,6 +46,11 @@ export default class TransferDetailComponent implements OnInit {
       },
       error: () => { this.loading.set(false); this.notify.error('Failed to load transfer'); }
     });
+  }
+
+  downloadPdf() {
+    const t = this.transfer();
+    if (t) this.exportService.downloadPdf(t.id);
   }
 
   confirm() {

@@ -35,6 +35,7 @@
     "export": "Export",
     "exportExcel": "Export Excel",
     "exporting": "Exporting...",
+    "downloadPdf": "Download PDF",
     "fromDate": "From date",
     "toDate": "To date",
     "import": "Import",

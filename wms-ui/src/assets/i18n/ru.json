@@ -35,6 +35,7 @@
     "export": "Экспорт",
     "exportExcel": "Экспорт Excel",
     "exporting": "Экспорт...",
+    "downloadPdf": "Скачать PDF",
     "fromDate": "С даты",
     "toDate": "По дату",
     "import": "Импорт",

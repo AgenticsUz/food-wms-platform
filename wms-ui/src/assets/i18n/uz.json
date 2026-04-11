@@ -35,6 +35,7 @@
     "export": "Eksport",
     "exportExcel": "Excel eksport",
     "exporting": "Eksport qilinmoqda...",
+    "downloadPdf": "PDF yuklab olish",
     "fromDate": "Sanadan",
     "toDate": "Sanagacha",
     "import": "Import",
