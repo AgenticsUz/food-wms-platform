@@ -58,6 +58,9 @@ public class WmsDbContext : DbContext
 
     // Permissions
     public DbSet<Permission> Permissions => Set<Permission>();
+
+    // Notifications
+    public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

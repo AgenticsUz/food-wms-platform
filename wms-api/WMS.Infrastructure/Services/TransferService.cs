@@ -10,7 +10,9 @@ namespace WMS.Infrastructure.Services;
 public class TransferService : ITransferService
 {
     private readonly WmsDbContext _db;
-    public TransferService(WmsDbContext db) => _db = db;
+    private readonly INotificationService _notifications;
+    public TransferService(WmsDbContext db, INotificationService notifications)
+    { _db = db; _notifications = notifications; }
 
     public async Task<List<TransferDto>> GetAllAsync(int tenantId, TransferType? type,
         TransferStatus? status, DateTime? from, DateTime? to, int page, int pageSize)
@@ -90,6 +92,16 @@ public class TransferService : ITransferService
         await UpdateDebt(transfer, tenantId);
         await _db.SaveChangesAsync();
 
+        // Check low stock after outgoing
+        if (transfer.Type == TransferType.Outgoing || transfer.Type == TransferType.Internal)
+            await CheckLowStock(transfer, tenantId);
+
+        var totalAmount = transfer.Items.Sum(i => i.Quantity * i.UnitPrice);
+        await _notifications.CreateAsync(tenantId, null,
+            "Transfer Confirmed",
+            $"Transfer #{transfer.Id} has been confirmed. Amount: {totalAmount:N0}",
+            NotificationType.TransferConfirmed, "Transfer", transfer.Id);
+
         return MapToDto(transfer);
     }
 
@@ -100,6 +112,12 @@ public class TransferService : ITransferService
             throw new Exception("Only pending transfers can be rejected");
         transfer.Status = TransferStatus.Rejected;
         await _db.SaveChangesAsync();
+
+        await _notifications.CreateAsync(tenantId, null,
+            "Transfer Rejected",
+            $"Transfer #{transfer.Id} has been rejected.",
+            NotificationType.TransferRejected, "Transfer", transfer.Id);
+
         return MapToDto(transfer);
     }
 
@@ -254,6 +272,29 @@ public class TransferService : ITransferService
             case TransferType.Incoming:
                 debt.Amount -= totalPrice; // we owe supplier
                 break;
+        }
+    }
+
+    private async Task CheckLowStock(Transfer transfer, int tenantId)
+    {
+        var productIds = transfer.Items.Select(i => i.ProductId).Distinct().ToList();
+        foreach (var productId in productIds)
+        {
+            var product = await _db.Products.Include(p => p.Unit).FirstOrDefaultAsync(p => p.Id == productId);
+            if (product == null || product.MinStock <= 0) continue;
+
+            var currentStock = await _db.WarehouseStocks
+                .Where(s => s.TenantId == tenantId && s.ProductId == productId)
+                .SumAsync(s => s.Quantity);
+
+            if (currentStock <= product.MinStock)
+            {
+                var unitName = product.Unit?.ShortName ?? "units";
+                await _notifications.CreateAsync(tenantId, null,
+                    "Low Stock Alert",
+                    $"{product.Name} stock is low ({currentStock:N0} {unitName} remaining). Min: {product.MinStock:N0}",
+                    NotificationType.LowStock, "Product", product.Id);
+            }
         }
     }
 
