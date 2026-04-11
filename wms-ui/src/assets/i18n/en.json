@@ -332,5 +332,10 @@
     "noCategories": "No categories found",
     "noUnits": "No units found",
     "parentCategory": "Parent Category"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all as read",
+    "empty": "No notifications"
   }
 }

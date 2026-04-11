@@ -332,5 +332,10 @@
     "noCategories": "Kategoriyalar topilmadi",
     "noUnits": "Birliklar topilmadi",
     "parentCategory": "Asosiy kategoriya"
+  },
+  "notifications": {
+    "title": "Bildirishnomalar",
+    "markAllRead": "Hammasini o'qilgan deb belgilash",
+    "empty": "Bildirishnomalar yo'q"
   }
 }

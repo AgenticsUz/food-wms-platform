@@ -6,6 +6,8 @@ import { ProgressBar } from 'primeng/progressbar';
 import { ThemeService } from './core/services/theme.service';
 import { TranslocoService } from '@jsverse/transloco';
 import { LoadingService } from './core/services/loading.service';
+import { AuthService } from './core/services/auth.service';
+import { NotificationBellService } from './core/services/notification-bell.service';
 
 @Component({
   selector: 'app-root',
@@ -18,12 +20,18 @@ export class App implements OnInit {
   private transloco = inject(TranslocoService);
   private router = inject(Router);
   loadingService = inject(LoadingService);
+  private authService = inject(AuthService);
+  private bellService = inject(NotificationBellService);
 
   ngOnInit() {
     this.themeService.init();
     const savedLang = localStorage.getItem('lang');
     if (savedLang && ['uz', 'ru', 'en'].includes(savedLang)) {
       this.transloco.setActiveLang(savedLang);
+    }
+
+    if (this.authService.isAuthenticated()) {
+      this.bellService.startPolling();
     }
 
     this.router.events.subscribe(event => {
