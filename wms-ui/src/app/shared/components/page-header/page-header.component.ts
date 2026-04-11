@@ -5,48 +5,18 @@ import { Component, ChangeDetectionStrategy, input } from '@angular/core';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="page-header">
-      <div class="page-header-left">
-        <h1 class="page-title">{{ title() }}</h1>
+    <div class="flex items-center justify-between mb-6 gap-4 flex-wrap">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white m-0 leading-tight">{{ title() }}</h1>
         @if (subtitle()) {
-          <p class="page-subtitle">{{ subtitle() }}</p>
+          <p class="text-sm text-gray-500 mt-0.5 m-0">{{ subtitle() }}</p>
         }
       </div>
-      <div class="page-header-actions">
+      <div class="flex items-center gap-3">
         <ng-content />
       </div>
     </div>
-  `,
-  styles: [`
-    .page-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 24px;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-
-    .page-title {
-      font-size: 28px;
-      font-weight: 700;
-      color: var(--text-primary);
-      margin: 0;
-      line-height: 1.3;
-    }
-
-    .page-subtitle {
-      font-size: 14px;
-      color: var(--text-secondary);
-      margin: 4px 0 0;
-    }
-
-    .page-header-actions {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-  `]
+  `
 })
 export class PageHeaderComponent {
   title = input.required<string>();
