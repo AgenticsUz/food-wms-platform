@@ -29,6 +29,12 @@ public class FinanceController : BaseController
     public async Task<IActionResult> GetDebts()
         => Ok(ApiResponse<List<DebtDto>>.Ok(await _finance.GetDebtsAsync(TenantId)));
 
+    [HttpGet("payments")]
+    public async Task<IActionResult> GetPayments(
+        [FromQuery] int? counterpartyId, [FromQuery] int page = 1, [FromQuery] int pageSize = 50)
+        => Ok(ApiResponse<List<PaymentHistoryDto>>.Ok(
+            await _finance.GetPaymentsAsync(TenantId, counterpartyId, page, pageSize)));
+
     [HttpPost("payments")]
     public async Task<IActionResult> CreatePayment([FromBody] CreatePaymentDto dto)
         => Ok(ApiResponse<PaymentHistoryDto>.Ok(await _finance.CreatePaymentAsync(TenantId, UserId, dto)));

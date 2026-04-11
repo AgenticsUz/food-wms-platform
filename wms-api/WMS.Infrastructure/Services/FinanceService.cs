@@ -107,6 +107,24 @@ public class FinanceService : IFinanceService
         };
     }
 
+    public async Task<List<PaymentHistoryDto>> GetPaymentsAsync(int tenantId, int? counterpartyId, int page, int pageSize)
+    {
+        var q = _db.PaymentHistories.Where(p => p.TenantId == tenantId)
+            .Include(p => p.Counterparty).Include(p => p.RecordedByUser).AsQueryable();
+
+        if (counterpartyId.HasValue) q = q.Where(p => p.CounterpartyId == counterpartyId.Value);
+
+        return await q.OrderByDescending(p => p.PaidAt)
+            .Skip((page - 1) * pageSize).Take(pageSize)
+            .Select(p => new PaymentHistoryDto
+            {
+                Id = p.Id, CounterpartyId = p.CounterpartyId,
+                CounterpartyName = p.Counterparty.Name, TransferId = p.TransferId,
+                Amount = p.Amount, Method = p.Method, PaidAt = p.PaidAt,
+                Note = p.Note, RecordedByUserName = p.RecordedByUser.FullName
+            }).ToListAsync();
+    }
+
     public async Task<FinanceSummaryDto> GetSummaryAsync(int tenantId)
     {
         var income = await _db.Transactions
