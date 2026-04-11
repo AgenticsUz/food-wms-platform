@@ -74,8 +74,8 @@ namespace WMS.Infrastructure.Migrations
                     b.Property<DateTime?>("ExpiryDate")
                         .HasColumnType("TEXT");
 
-                    b.Property<decimal>("InitialQuantity")
-                        .HasColumnType("TEXT");
+                    b.Property<double>("InitialQuantity")
+                        .HasColumnType("REAL");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("INTEGER");
@@ -90,8 +90,8 @@ namespace WMS.Infrastructure.Migrations
                     b.Property<int>("ProductId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<decimal>("RemainingQuantity")
-                        .HasColumnType("TEXT");
+                    b.Property<double>("RemainingQuantity")
+                        .HasColumnType("REAL");
 
                     b.Property<int>("TenantId")
                         .HasColumnType("INTEGER");
@@ -192,8 +192,8 @@ namespace WMS.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("TEXT");
+                    b.Property<double>("Amount")
+                        .HasColumnType("REAL");
 
                     b.Property<int>("CounterpartyId")
                         .HasColumnType("INTEGER");
@@ -381,8 +381,8 @@ namespace WMS.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("TEXT");
+                    b.Property<double>("Amount")
+                        .HasColumnType("REAL");
 
                     b.Property<int>("CounterpartyId")
                         .HasColumnType("INTEGER");
@@ -425,6 +425,263 @@ namespace WMS.Infrastructure.Migrations
                     b.ToTable("PaymentHistories");
                 });
 
+            modelBuilder.Entity("WMS.Domain.Entities.Permission", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Module")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Permissions");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Code = "dashboard.view",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsDeleted = false,
+                            Module = "DASHBOARD",
+                            Name = "View Dashboard",
+                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Code = "warehouse.view",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsDeleted = false,
+                            Module = "WAREHOUSE",
+                            Name = "View Warehouse",
+                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Code = "warehouse.manage",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsDeleted = false,
+                            Module = "WAREHOUSE",
+                            Name = "Manage Warehouse",
+                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Code = "transfers.view",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsDeleted = false,
+                            Module = "TRANSFERS",
+                            Name = "View Transfers",
+                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Code = "transfers.create",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsDeleted = false,
+                            Module = "TRANSFERS",
+                            Name = "Create Transfers",
+                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Code = "transfers.confirm",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsDeleted = false,
+                            Module = "TRANSFERS",
+                            Name = "Confirm Transfers",
+                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Code = "transfers.reject",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsDeleted = false,
+                            Module = "TRANSFERS",
+                            Name = "Reject Transfers",
+                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 8,
+                            Code = "production.view",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsDeleted = false,
+                            Module = "PRODUCTION",
+                            Name = "View Production",
+                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 9,
+                            Code = "production.manage",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsDeleted = false,
+                            Module = "PRODUCTION",
+                            Name = "Manage Production",
+                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 10,
+                            Code = "finance.view",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsDeleted = false,
+                            Module = "FINANCE",
+                            Name = "View Finance",
+                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 11,
+                            Code = "finance.manage",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsDeleted = false,
+                            Module = "FINANCE",
+                            Name = "Manage Finance",
+                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 12,
+                            Code = "kpi.view",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsDeleted = false,
+                            Module = "KPI",
+                            Name = "View KPI",
+                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 13,
+                            Code = "kpi.manage",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsDeleted = false,
+                            Module = "KPI",
+                            Name = "Manage KPI",
+                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 14,
+                            Code = "partners.view",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsDeleted = false,
+                            Module = "PARTNERS",
+                            Name = "View Partners",
+                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 15,
+                            Code = "partners.manage",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsDeleted = false,
+                            Module = "PARTNERS",
+                            Name = "Manage Partners",
+                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 16,
+                            Code = "products.view",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsDeleted = false,
+                            Module = "PRODUCTS",
+                            Name = "View Products",
+                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 17,
+                            Code = "products.manage",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsDeleted = false,
+                            Module = "PRODUCTS",
+                            Name = "Manage Products",
+                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 18,
+                            Code = "settings.users",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsDeleted = false,
+                            Module = "SETTINGS",
+                            Name = "Manage Users",
+                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 19,
+                            Code = "settings.roles",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsDeleted = false,
+                            Module = "SETTINGS",
+                            Name = "Manage Roles",
+                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 20,
+                            Code = "settings.modules",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsDeleted = false,
+                            Module = "SETTINGS",
+                            Name = "Manage Modules",
+                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 21,
+                            Code = "quality.view",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsDeleted = false,
+                            Module = "QUALITY",
+                            Name = "View Quality",
+                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 22,
+                            Code = "quality.manage",
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsDeleted = false,
+                            Module = "QUALITY",
+                            Name = "Manage Quality",
+                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        });
+                });
+
             modelBuilder.Entity("WMS.Domain.Entities.Product", b =>
                 {
                     b.Property<int>("Id")
@@ -437,8 +694,8 @@ namespace WMS.Infrastructure.Migrations
                     b.Property<int>("CategoryId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<decimal?>("CostPrice")
-                        .HasColumnType("TEXT");
+                    b.Property<double?>("CostPrice")
+                        .HasColumnType("REAL");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
@@ -446,8 +703,8 @@ namespace WMS.Infrastructure.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("INTEGER");
 
-                    b.Property<decimal>("MinStock")
-                        .HasColumnType("TEXT");
+                    b.Property<double>("MinStock")
+                        .HasColumnType("REAL");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -498,8 +755,8 @@ namespace WMS.Infrastructure.Migrations
                     b.Property<DateTime?>("PlannedEndDate")
                         .HasColumnType("TEXT");
 
-                    b.Property<decimal>("PlannedQuantity")
-                        .HasColumnType("TEXT");
+                    b.Property<double>("PlannedQuantity")
+                        .HasColumnType("REAL");
 
                     b.Property<DateTime>("PlannedStartDate")
                         .HasColumnType("TEXT");
@@ -547,8 +804,8 @@ namespace WMS.Infrastructure.Migrations
                     b.Property<int>("OutputProductId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<decimal>("OutputQuantity")
-                        .HasColumnType("TEXT");
+                    b.Property<double>("OutputQuantity")
+                        .HasColumnType("REAL");
 
                     b.Property<int>("OutputUnitId")
                         .HasColumnType("INTEGER");
@@ -669,11 +926,11 @@ namespace WMS.Infrastructure.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("INTEGER");
 
-                    b.Property<decimal?>("MaxValue")
-                        .HasColumnType("TEXT");
+                    b.Property<double?>("MaxValue")
+                        .HasColumnType("REAL");
 
-                    b.Property<decimal?>("MinValue")
-                        .HasColumnType("TEXT");
+                    b.Property<double?>("MinValue")
+                        .HasColumnType("REAL");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -708,8 +965,8 @@ namespace WMS.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
-                    b.Property<decimal?>("ExpectedOutputQty")
-                        .HasColumnType("TEXT");
+                    b.Property<double?>("ExpectedOutputQty")
+                        .HasColumnType("REAL");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("INTEGER");
@@ -760,8 +1017,8 @@ namespace WMS.Infrastructure.Migrations
                     b.Property<int>("ProductId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<decimal>("Quantity")
-                        .HasColumnType("TEXT");
+                    b.Property<double>("Quantity")
+                        .HasColumnType("REAL");
 
                     b.Property<int>("RecipeStageId")
                         .HasColumnType("INTEGER");
@@ -813,6 +1070,36 @@ namespace WMS.Infrastructure.Migrations
                     b.ToTable("Roles");
                 });
 
+            modelBuilder.Entity("WMS.Domain.Entities.RolePermission", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("PermissionId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("RoleId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PermissionId");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("RolePermissions");
+                });
+
             modelBuilder.Entity("WMS.Domain.Entities.Shift", b =>
                 {
                     b.Property<int>("Id")
@@ -852,8 +1139,8 @@ namespace WMS.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<decimal>("ActualQuantity")
-                        .HasColumnType("TEXT");
+                    b.Property<double>("ActualQuantity")
+                        .HasColumnType("REAL");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
@@ -879,8 +1166,8 @@ namespace WMS.Infrastructure.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("TEXT");
 
-                    b.Property<decimal>("WasteQuantity")
-                        .HasColumnType("TEXT");
+                    b.Property<double>("WasteQuantity")
+                        .HasColumnType("REAL");
 
                     b.HasKey("Id");
 
@@ -906,8 +1193,8 @@ namespace WMS.Infrastructure.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("INTEGER");
 
-                    b.Property<decimal>("PlannedQuantity")
-                        .HasColumnType("TEXT");
+                    b.Property<double>("PlannedQuantity")
+                        .HasColumnType("REAL");
 
                     b.Property<int>("ProductId")
                         .HasColumnType("INTEGER");
@@ -936,8 +1223,8 @@ namespace WMS.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<decimal>("ActualQuantity")
-                        .HasColumnType("TEXT");
+                    b.Property<double>("ActualQuantity")
+                        .HasColumnType("REAL");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
@@ -951,8 +1238,8 @@ namespace WMS.Infrastructure.Migrations
                     b.Property<string>("Note")
                         .HasColumnType("TEXT");
 
-                    b.Property<decimal>("PlannedQuantity")
-                        .HasColumnType("TEXT");
+                    b.Property<double>("PlannedQuantity")
+                        .HasColumnType("REAL");
 
                     b.Property<int>("ProductionOrderId")
                         .HasColumnType("INTEGER");
@@ -960,8 +1247,8 @@ namespace WMS.Infrastructure.Migrations
                     b.Property<int>("RecipeStageId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<decimal>("ReworkQuantity")
-                        .HasColumnType("TEXT");
+                    b.Property<double>("ReworkQuantity")
+                        .HasColumnType("REAL");
 
                     b.Property<DateTime?>("StartTime")
                         .HasColumnType("TEXT");
@@ -972,8 +1259,8 @@ namespace WMS.Infrastructure.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("TEXT");
 
-                    b.Property<decimal>("WasteQuantity")
-                        .HasColumnType("TEXT");
+                    b.Property<double>("WasteQuantity")
+                        .HasColumnType("REAL");
 
                     b.Property<int?>("WorkerUserId")
                         .HasColumnType("INTEGER");
@@ -1059,8 +1346,8 @@ namespace WMS.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("TEXT");
+                    b.Property<double>("Amount")
+                        .HasColumnType("REAL");
 
                     b.Property<int?>("CounterpartyId")
                         .HasColumnType("INTEGER");
@@ -1176,14 +1463,14 @@ namespace WMS.Infrastructure.Migrations
                     b.Property<int>("ProductId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<decimal>("Quantity")
-                        .HasColumnType("TEXT");
+                    b.Property<double>("Quantity")
+                        .HasColumnType("REAL");
 
                     b.Property<int>("TransferId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<decimal>("UnitPrice")
-                        .HasColumnType("TEXT");
+                    b.Property<double>("UnitPrice")
+                        .HasColumnType("REAL");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("TEXT");
@@ -1354,11 +1641,11 @@ namespace WMS.Infrastructure.Migrations
                     b.Property<int>("ProductId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<decimal>("Quantity")
-                        .HasColumnType("TEXT");
+                    b.Property<double>("Quantity")
+                        .HasColumnType("REAL");
 
-                    b.Property<decimal>("ReservedQuantity")
-                        .HasColumnType("TEXT");
+                    b.Property<double>("ReservedQuantity")
+                        .HasColumnType("REAL");
 
                     b.Property<int>("TenantId")
                         .HasColumnType("INTEGER");
@@ -1612,6 +1899,25 @@ namespace WMS.Infrastructure.Migrations
                     b.Navigation("Unit");
                 });
 
+            modelBuilder.Entity("WMS.Domain.Entities.RolePermission", b =>
+                {
+                    b.HasOne("WMS.Domain.Entities.Permission", "Permission")
+                        .WithMany()
+                        .HasForeignKey("PermissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("WMS.Domain.Entities.Role", "Role")
+                        .WithMany("RolePermissions")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Permission");
+
+                    b.Navigation("Role");
+                });
+
             modelBuilder.Entity("WMS.Domain.Entities.ShiftActual", b =>
                 {
                     b.HasOne("WMS.Domain.Entities.Product", "Product")
@@ -1863,6 +2169,8 @@ namespace WMS.Infrastructure.Migrations
 
             modelBuilder.Entity("WMS.Domain.Entities.Role", b =>
                 {
+                    b.Navigation("RolePermissions");
+
                     b.Navigation("UserRoles");
                 });
 

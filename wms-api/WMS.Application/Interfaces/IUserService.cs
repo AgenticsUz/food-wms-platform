@@ -13,4 +13,8 @@ public interface IUserService
     Task<RoleDto> CreateRoleAsync(int tenantId, CreateRoleDto dto);
     Task<RoleDto> UpdateRoleAsync(int tenantId, int id, UpdateRoleDto dto);
     Task DeleteRoleAsync(int tenantId, int id);
+    Task<List<PermissionDto>> GetAllPermissionsAsync();
+    Task<List<PermissionDto>> GetRolePermissionsAsync(int tenantId, int roleId);
+    Task AssignPermissionsAsync(int tenantId, int roleId, AssignPermissionsDto dto);
+    Task<List<string>> GetUserPermissionsAsync(int tenantId, int userId);
 }

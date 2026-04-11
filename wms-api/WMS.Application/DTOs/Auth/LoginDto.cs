@@ -22,4 +22,5 @@ public class UserInfoDto
     public string TenantName { get; set; } = null!;
     public List<string> Roles { get; set; } = new();
     public List<string> EnabledModules { get; set; } = new();
+    public List<string> Permissions { get; set; } = new();
 }

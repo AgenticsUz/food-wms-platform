@@ -108,4 +108,62 @@ public class UserService : IUserService
         role.IsDeleted = true;
         await _db.SaveChangesAsync();
     }
+
+    public async Task<List<PermissionDto>> GetAllPermissionsAsync()
+    {
+        return await _db.Permissions
+            .OrderBy(p => p.Module).ThenBy(p => p.Code)
+            .Select(p => new PermissionDto
+            {
+                Id = p.Id, Code = p.Code, Name = p.Name,
+                Module = p.Module, Description = p.Description
+            }).ToListAsync();
+    }
+
+    public async Task<List<PermissionDto>> GetRolePermissionsAsync(int tenantId, int roleId)
+    {
+        var role = await _db.Roles.FirstOrDefaultAsync(r => r.Id == roleId && r.TenantId == tenantId)
+            ?? throw new Exception("Role not found");
+
+        return await _db.RolePermissions
+            .Where(rp => rp.RoleId == roleId)
+            .Include(rp => rp.Permission)
+            .Select(rp => new PermissionDto
+            {
+                Id = rp.Permission.Id, Code = rp.Permission.Code, Name = rp.Permission.Name,
+                Module = rp.Permission.Module, Description = rp.Permission.Description
+            }).ToListAsync();
+    }
+
+    public async Task AssignPermissionsAsync(int tenantId, int roleId, AssignPermissionsDto dto)
+    {
+        var role = await _db.Roles.FirstOrDefaultAsync(r => r.Id == roleId && r.TenantId == tenantId)
+            ?? throw new Exception("Role not found");
+
+        // Remove existing (hard delete for join table)
+        var existing = await _db.RolePermissions.Where(rp => rp.RoleId == roleId).ToListAsync();
+        _db.RolePermissions.RemoveRange(existing);
+
+        foreach (var permId in dto.PermissionIds)
+            _db.RolePermissions.Add(new RolePermission { RoleId = roleId, PermissionId = permId });
+
+        await _db.SaveChangesAsync();
+    }
+
+    public async Task<List<string>> GetUserPermissionsAsync(int tenantId, int userId)
+    {
+        var user = await _db.Users
+            .Include(u => u.UserRoles)
+            .FirstOrDefaultAsync(u => u.Id == userId && u.TenantId == tenantId)
+            ?? throw new Exception("User not found");
+
+        var roleIds = user.UserRoles.Select(ur => ur.RoleId).ToList();
+
+        return await _db.RolePermissions
+            .Where(rp => roleIds.Contains(rp.RoleId))
+            .Include(rp => rp.Permission)
+            .Select(rp => rp.Permission.Code)
+            .Distinct()
+            .ToListAsync();
+    }
 }

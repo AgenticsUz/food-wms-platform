@@ -63,5 +63,17 @@ public static class DataInitializer
             RoleId = role.Id
         });
         await db.SaveChangesAsync();
+
+        // 6. Assign ALL permissions to Admin role
+        var permissions = await db.Permissions.ToListAsync();
+        foreach (var permission in permissions)
+        {
+            db.RolePermissions.Add(new RolePermission
+            {
+                RoleId = role.Id,
+                PermissionId = permission.Id
+            });
+        }
+        await db.SaveChangesAsync();
     }
 }

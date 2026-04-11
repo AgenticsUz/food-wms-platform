@@ -54,4 +54,25 @@ public class RolesController : BaseController
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     { await _users.DeleteRoleAsync(TenantId, id); return Ok(ApiResponse<object>.Ok(null!, "Deleted")); }
+
+    [HttpGet("{id}/permissions")]
+    public async Task<IActionResult> GetPermissions(int id)
+        => Ok(ApiResponse<List<PermissionDto>>.Ok(await _users.GetRolePermissionsAsync(TenantId, id)));
+
+    [HttpPut("{id}/permissions")]
+    public async Task<IActionResult> AssignPermissions(int id, [FromBody] AssignPermissionsDto dto)
+    { await _users.AssignPermissionsAsync(TenantId, id, dto); return Ok(ApiResponse<object>.Ok(null!, "Permissions assigned")); }
+}
+
+[ApiController]
+[Route("api/permissions")]
+[Microsoft.AspNetCore.Authorization.Authorize]
+public class PermissionsController : BaseController
+{
+    private readonly IUserService _users;
+    public PermissionsController(IUserService users) => _users = users;
+
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+        => Ok(ApiResponse<List<PermissionDto>>.Ok(await _users.GetAllPermissionsAsync()));
 }

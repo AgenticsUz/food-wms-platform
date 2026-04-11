@@ -56,6 +56,10 @@ public class WmsDbContext : DbContext
     public DbSet<ShiftActual> ShiftActuals => Set<ShiftActual>();
     public DbSet<AttendanceLog> AttendanceLogs => Set<AttendanceLog>();
 
+    // Permissions
+    public DbSet<Permission> Permissions => Set<Permission>();
+    public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Apply all configurations from assembly
@@ -99,6 +103,32 @@ public class WmsDbContext : DbContext
             new Module { Id = 7, Name = "Suppliers", Code = "SUPPLIERS", OrderNumber = 7, CreatedAt = seedDate, UpdatedAt = seedDate },
             new Module { Id = 8, Name = "Clients", Code = "CLIENTS", OrderNumber = 8, CreatedAt = seedDate, UpdatedAt = seedDate },
             new Module { Id = 9, Name = "Quality Control", Code = "QUALITY", OrderNumber = 9, CreatedAt = seedDate, UpdatedAt = seedDate }
+        );
+
+        // Seed Permissions
+        modelBuilder.Entity<Permission>().HasData(
+            new Permission { Id = 1, Code = "dashboard.view", Name = "View Dashboard", Module = "DASHBOARD", CreatedAt = seedDate, UpdatedAt = seedDate },
+            new Permission { Id = 2, Code = "warehouse.view", Name = "View Warehouse", Module = "WAREHOUSE", CreatedAt = seedDate, UpdatedAt = seedDate },
+            new Permission { Id = 3, Code = "warehouse.manage", Name = "Manage Warehouse", Module = "WAREHOUSE", CreatedAt = seedDate, UpdatedAt = seedDate },
+            new Permission { Id = 4, Code = "transfers.view", Name = "View Transfers", Module = "TRANSFERS", CreatedAt = seedDate, UpdatedAt = seedDate },
+            new Permission { Id = 5, Code = "transfers.create", Name = "Create Transfers", Module = "TRANSFERS", CreatedAt = seedDate, UpdatedAt = seedDate },
+            new Permission { Id = 6, Code = "transfers.confirm", Name = "Confirm Transfers", Module = "TRANSFERS", CreatedAt = seedDate, UpdatedAt = seedDate },
+            new Permission { Id = 7, Code = "transfers.reject", Name = "Reject Transfers", Module = "TRANSFERS", CreatedAt = seedDate, UpdatedAt = seedDate },
+            new Permission { Id = 8, Code = "production.view", Name = "View Production", Module = "PRODUCTION", CreatedAt = seedDate, UpdatedAt = seedDate },
+            new Permission { Id = 9, Code = "production.manage", Name = "Manage Production", Module = "PRODUCTION", CreatedAt = seedDate, UpdatedAt = seedDate },
+            new Permission { Id = 10, Code = "finance.view", Name = "View Finance", Module = "FINANCE", CreatedAt = seedDate, UpdatedAt = seedDate },
+            new Permission { Id = 11, Code = "finance.manage", Name = "Manage Finance", Module = "FINANCE", CreatedAt = seedDate, UpdatedAt = seedDate },
+            new Permission { Id = 12, Code = "kpi.view", Name = "View KPI", Module = "KPI", CreatedAt = seedDate, UpdatedAt = seedDate },
+            new Permission { Id = 13, Code = "kpi.manage", Name = "Manage KPI", Module = "KPI", CreatedAt = seedDate, UpdatedAt = seedDate },
+            new Permission { Id = 14, Code = "partners.view", Name = "View Partners", Module = "PARTNERS", CreatedAt = seedDate, UpdatedAt = seedDate },
+            new Permission { Id = 15, Code = "partners.manage", Name = "Manage Partners", Module = "PARTNERS", CreatedAt = seedDate, UpdatedAt = seedDate },
+            new Permission { Id = 16, Code = "products.view", Name = "View Products", Module = "PRODUCTS", CreatedAt = seedDate, UpdatedAt = seedDate },
+            new Permission { Id = 17, Code = "products.manage", Name = "Manage Products", Module = "PRODUCTS", CreatedAt = seedDate, UpdatedAt = seedDate },
+            new Permission { Id = 18, Code = "settings.users", Name = "Manage Users", Module = "SETTINGS", CreatedAt = seedDate, UpdatedAt = seedDate },
+            new Permission { Id = 19, Code = "settings.roles", Name = "Manage Roles", Module = "SETTINGS", CreatedAt = seedDate, UpdatedAt = seedDate },
+            new Permission { Id = 20, Code = "settings.modules", Name = "Manage Modules", Module = "SETTINGS", CreatedAt = seedDate, UpdatedAt = seedDate },
+            new Permission { Id = 21, Code = "quality.view", Name = "View Quality", Module = "QUALITY", CreatedAt = seedDate, UpdatedAt = seedDate },
+            new Permission { Id = 22, Code = "quality.manage", Name = "Manage Quality", Module = "QUALITY", CreatedAt = seedDate, UpdatedAt = seedDate }
         );
 
         if (Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")

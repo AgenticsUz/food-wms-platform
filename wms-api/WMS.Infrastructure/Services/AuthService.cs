@@ -43,6 +43,14 @@ public class AuthService : IAuthService
         var roles = user.UserRoles.Select(ur => ur.Role.Name).ToList();
         var roleName = roles.FirstOrDefault() ?? "User";
 
+        var roleIds = user.UserRoles.Select(ur => ur.RoleId).ToList();
+        var permissions = await _db.RolePermissions
+            .Where(rp => roleIds.Contains(rp.RoleId))
+            .Include(rp => rp.Permission)
+            .Select(rp => rp.Permission.Code)
+            .Distinct()
+            .ToListAsync();
+
         var claims = new[]
         {
             new Claim("tenantId", tenant.Id.ToString()),
@@ -68,7 +76,8 @@ public class AuthService : IAuthService
                 TenantId = tenant.Id,
                 TenantName = tenant.Name,
                 Roles = roles,
-                EnabledModules = modules
+                EnabledModules = modules,
+                Permissions = permissions
             }
         };
     }
@@ -87,6 +96,14 @@ public class AuthService : IAuthService
             .Select(tm => tm.Module.Code)
             .ToListAsync();
 
+        var roleIds = user.UserRoles.Select(ur => ur.RoleId).ToList();
+        var permissions = await _db.RolePermissions
+            .Where(rp => roleIds.Contains(rp.RoleId))
+            .Include(rp => rp.Permission)
+            .Select(rp => rp.Permission.Code)
+            .Distinct()
+            .ToListAsync();
+
         return new UserInfoDto
         {
             Id = user.Id,
@@ -95,7 +112,8 @@ public class AuthService : IAuthService
             TenantId = tenantId,
             TenantName = user.Tenant.Name,
             Roles = user.UserRoles.Select(ur => ur.Role.Name).ToList(),
-            EnabledModules = modules
+            EnabledModules = modules,
+            Permissions = permissions
         };
     }
 }

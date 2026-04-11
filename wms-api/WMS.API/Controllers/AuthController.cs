@@ -11,7 +11,8 @@ namespace WMS.API.Controllers;
 public class AuthController : BaseController
 {
     private readonly IAuthService _auth;
-    public AuthController(IAuthService auth) => _auth = auth;
+    private readonly IUserService _users;
+    public AuthController(IAuthService auth, IUserService users) { _auth = auth; _users = users; }
 
     [HttpPost("login")]
     [AllowAnonymous]
@@ -33,5 +34,12 @@ public class AuthController : BaseController
     {
         var result = await _auth.GetCurrentUserAsync(UserId, TenantId);
         return Ok(ApiResponse<UserInfoDto>.Ok(result));
+    }
+
+    [HttpGet("my-permissions")]
+    public async Task<IActionResult> GetMyPermissions()
+    {
+        var permissions = await _users.GetUserPermissionsAsync(TenantId, UserId);
+        return Ok(ApiResponse<List<string>>.Ok(permissions));
     }
 }
