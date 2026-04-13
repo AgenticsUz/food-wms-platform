@@ -53,10 +53,17 @@ builder.Services.AddScoped<ITransferPdfService, TransferPdfService>();
 // CORS
 builder.Services.AddHttpClient();
 
+var allowedOrigins = builder.Configuration
+    .GetSection("Cors:AllowedOrigins")
+    .Get<string[]>() ?? ["http://localhost:7050"];
+
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
-        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+    options.AddPolicy("AllowFrontend", policy =>
+        policy.WithOrigins(allowedOrigins)
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials());
 });
 
 builder.Services.AddControllers();
@@ -98,7 +105,7 @@ using (var scope = app.Services.CreateScope())
     await DataInitializer.SeedAsync(db);
 }
 
-app.UseCors("AllowAll");
+app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseSwagger();
