@@ -24,13 +24,17 @@
 
       <div class="field">
         <label for="phone">{{ t('auth.phone') }}</label>
-        <input pInputText
-               id="phone"
-               [ngModel]="phone()"
-               (ngModelChange)="phone.set($event)"
-               name="phone"
-               placeholder="+998 90 123 45 67"
-               class="w-full" />
+        <p-inputgroup>
+          <p-inputgroup-addon>+998</p-inputgroup-addon>
+          <input pInputText
+                 id="phone"
+                 [ngModel]="phone()"
+                 (ngModelChange)="onPhoneInput($event)"
+                 name="phone"
+                 placeholder="90 123 45 67"
+                 maxlength="9"
+                 class="w-full" />
+        </p-inputgroup>
       </div>
 
       <div class="field">

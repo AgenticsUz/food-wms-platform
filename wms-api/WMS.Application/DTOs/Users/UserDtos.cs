@@ -9,7 +9,13 @@ public class UserDto
     public string FullName { get; set; } = null!;
     public string Phone { get; set; } = null!;
     public bool IsActive { get; set; }
-    public List<string> Roles { get; set; } = new();
+    public List<UserRoleDto> Roles { get; set; } = new();
+}
+
+public class UserRoleDto
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = null!;
 }
 
 public class CreateUserDto

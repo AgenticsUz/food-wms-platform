@@ -13,12 +13,13 @@ import { CounterpartyService } from '../../../core/services/counterparty.service
 import { NotificationService } from '../../../shared/services/notification.service';
 import { HasPermissionDirective } from '../../../shared/directives/has-permission.directive';
 import { ExportService } from '../../../core/services/export.service';
+import { ImportButtonComponent } from '../../../shared/components/import-button/import-button.component';
 import { Counterparty, CounterpartyCreateDto, CounterpartyType } from '../../../core/models/counterparty.model';
 
 @Component({
   selector: 'app-client-list',
   standalone: true,
-  imports: [FormsModule, TableModule, Button, InputText, Dialog, ToggleSwitch, Textarea, TranslocoDirective, PageHeaderComponent, HasPermissionDirective],
+  imports: [FormsModule, TableModule, Button, InputText, Dialog, ToggleSwitch, Textarea, TranslocoDirective, PageHeaderComponent, HasPermissionDirective, ImportButtonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './client-list.component.html',
   styleUrl: './client-list.component.scss'

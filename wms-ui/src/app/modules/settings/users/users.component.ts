@@ -7,12 +7,13 @@ import { InputText } from 'primeng/inputtext';
 import { Dialog } from 'primeng/dialog';
 import { ToggleSwitch } from 'primeng/toggleswitch';
 import { Password } from 'primeng/password';
-import { MultiSelect } from 'primeng/multiselect';
+import { Checkbox } from 'primeng/checkbox';
 import { Tooltip } from 'primeng/tooltip';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { SettingsService } from '../../../core/services/settings.service';
 import { NotificationService } from '../../../shared/services/notification.service';
+import { ImportButtonComponent } from '../../../shared/components/import-button/import-button.component';
 import { UserDetail, UserCreateDto, UserUpdateDto, RoleInfo } from '../../../core/models/settings.model';
 
 @Component({
@@ -20,8 +21,8 @@ import { UserDetail, UserCreateDto, UserUpdateDto, RoleInfo } from '../../../cor
   standalone: true,
   imports: [
     FormsModule, TableModule, Button, InputText, Dialog,
-    ToggleSwitch, Password, MultiSelect, Tooltip,
-    PageHeaderComponent, StatusBadgeComponent, TranslocoDirective
+    ToggleSwitch, Password, Checkbox, Tooltip,
+    PageHeaderComponent, StatusBadgeComponent, TranslocoDirective, ImportButtonComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './users.component.html',
@@ -158,6 +159,12 @@ export default class UsersComponent implements OnInit {
         error: () => this.notify.error('Failed to delete user')
       });
     });
+  }
+
+  toggleRole(roleId: number, checked: boolean) {
+    this.selectedRoleIds.update(ids =>
+      checked ? [...ids, roleId] : ids.filter(id => id !== roleId)
+    );
   }
 
   openRoleDialog(user: UserDetail) {

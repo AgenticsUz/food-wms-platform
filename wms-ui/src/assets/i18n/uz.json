@@ -375,6 +375,17 @@
     "searchPlaceholder": "Shtrix kodni skanerlang yoki nomi bo'yicha qidiring...",
     "hint": "Shtrix kodni skanerlang yoki mahsulot nomini yozing va Enter bosing"
   },
+  "import": {
+    "template": "Shablon",
+    "downloadTemplate": "Excel shablonni yuklab olish",
+    "importExcel": "Excel import",
+    "importing": "Import qilinmoqda...",
+    "result": "Import natijasi",
+    "totalRows": "Jami qatorlar",
+    "imported": "Import qilindi",
+    "errors": "Xatolar",
+    "success": "ta yozuv muvaffaqiyatli import qilindi."
+  },
   "currency": {
     "calculator": "Valyuta kalkulyatori",
     "customRate": "Maxsus kurs (ixtiyoriy)",

@@ -1,5 +1,6 @@
 <div class="page-enter" *transloco="let t">
   <app-page-header [title]="t('settings.users')" [subtitle]="t('settings.manageUsers')">
+    <app-import-button type="users" (imported)="loadUsers()" />
     <p-button icon="pi pi-plus" [label]="t('settings.addUser')" (onClick)="openNew()" />
   </app-page-header>
 
@@ -109,16 +110,21 @@
     <div class="form-col">
       <div class="form-field">
         <label>{{ t('settings.assignRoles') }}</label>
-        <p-multiselect
-          [options]="roles()"
-          [ngModel]="selectedRoleIds()"
-          (ngModelChange)="selectedRoleIds.set($event)"
-          optionLabel="name"
-          optionValue="id"
-          placeholder="Choose roles"
-          [showClear]="true"
-          styleClass="w-full"
-        />
+        <div class="role-checkbox-list">
+          @for (role of roles(); track role.id) {
+            <label class="role-checkbox-item">
+              <p-checkbox
+                [binary]="true"
+                [ngModel]="selectedRoleIds().includes(role.id)"
+                (ngModelChange)="toggleRole(role.id, $event)"
+              />
+              <span>{{ role.name }}</span>
+            </label>
+          }
+          @if (roles().length === 0) {
+            <p style="color: var(--text-muted); font-size: 13px; margin: 0;">{{ t('common.noData') }}</p>
+          }
+        </div>
       </div>
     </div>
 

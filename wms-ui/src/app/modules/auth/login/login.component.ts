@@ -4,6 +4,8 @@ import { Router } from '@angular/router';
 import { InputText } from 'primeng/inputtext';
 import { Password } from 'primeng/password';
 import { Button } from 'primeng/button';
+import { InputGroup } from 'primeng/inputgroup';
+import { InputGroupAddon } from 'primeng/inputgroupaddon';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { AuthService } from '../../../core/services/auth.service';
 import { TenantService } from '../../../core/services/tenant.service';
@@ -13,7 +15,7 @@ import { LoadingService } from '../../../core/services/loading.service';
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [FormsModule, InputText, Password, Button, TranslocoDirective],
+  imports: [FormsModule, InputText, Password, Button, InputGroup, InputGroupAddon, TranslocoDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
@@ -30,6 +32,10 @@ export default class LoginComponent {
   tenantSlug = signal('');
   loading = signal(false);
 
+  onPhoneInput(value: string) {
+    this.phone.set(value.replace(/\D/g, ''));
+  }
+
   login() {
     if (!this.phone() || !this.password() || !this.tenantSlug()) {
       this.notify.warn('Please fill in all fields');
@@ -39,7 +45,7 @@ export default class LoginComponent {
     this.loading.set(true);
     this.loadingService.show();
     this.authService.login({
-      phone: this.phone(),
+      phone: '998' + this.phone(),
       password: this.password(),
       tenantSlug: this.tenantSlug()
     }).subscribe({

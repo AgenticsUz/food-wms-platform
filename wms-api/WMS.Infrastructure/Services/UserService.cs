@@ -19,7 +19,7 @@ public class UserService : IUserService
             .Select(u => new UserDto
             {
                 Id = u.Id, FullName = u.FullName, Phone = u.Phone, IsActive = u.IsActive,
-                Roles = u.UserRoles.Select(ur => ur.Role.Name).ToList()
+                Roles = u.UserRoles.Select(ur => new UserRoleDto { Id = ur.Role.Id, Name = ur.Role.Name }).ToList()
             }).ToListAsync();
     }
 
@@ -49,7 +49,7 @@ public class UserService : IUserService
         return new UserDto
         {
             Id = user.Id, FullName = user.FullName, Phone = user.Phone, IsActive = user.IsActive,
-            Roles = user.UserRoles.Select(ur => ur.Role.Name).ToList()
+            Roles = user.UserRoles.Select(ur => new UserRoleDto { Id = ur.Role.Id, Name = ur.Role.Name }).ToList()
         };
     }
 

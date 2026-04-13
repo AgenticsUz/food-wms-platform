@@ -28,7 +28,7 @@ export class SettingsService {
 
   // Permissions
   getPermissions() { return this.api.get<PermissionInfo[]>('permissions'); }
-  getRolePermissions(roleId: number) { return this.api.get<number[]>(`roles/${roleId}/permissions`); }
+  getRolePermissions(roleId: number) { return this.api.get<PermissionInfo[]>(`roles/${roleId}/permissions`); }
   updateRolePermissions(roleId: number, permissionIds: number[]) {
     return this.api.put<void>(`roles/${roleId}/permissions`, { permissionIds });
   }

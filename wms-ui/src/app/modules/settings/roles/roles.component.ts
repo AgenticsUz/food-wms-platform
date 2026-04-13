@@ -153,7 +153,10 @@ export default class RolesComponent implements OnInit {
         this.settingsService.getRolePermissions(role.id).subscribe({
           next: (permRes) => {
             if (permRes.success && permRes.data) {
-              this.selectedPermissionIds.set(permRes.data);
+              // Backend returns PermissionInfo[] objects, extract IDs
+              this.selectedPermissionIds.set(
+                permRes.data.map((p: any) => typeof p === 'number' ? p : p.id)
+              );
             }
             this.permLoading.set(false);
           },

@@ -31,6 +31,12 @@ public class TenantsController : BaseController
         => Ok(ApiResponse<List<TenantModuleDto>>.Ok(await _tenants.GetModulesAsync(id)));
 
     [HttpPut("{id}/modules")]
-    public async Task<IActionResult> ToggleModule(int id, [FromBody] ToggleModuleDto dto)
-    { await _tenants.ToggleModuleAsync(id, dto); return Ok(ApiResponse<object>.Ok(null!, "Updated")); }
+    public async Task<IActionResult> ToggleModules(int id, [FromBody] ToggleModulesRequest request)
+    {
+        if (request.Modules is { Count: > 0 })
+            await _tenants.ToggleModulesAsync(id, request.Modules);
+        else if (request.ModuleId > 0)
+            await _tenants.ToggleModuleAsync(id, new ToggleModuleDto { ModuleId = request.ModuleId, IsEnabled = request.IsEnabled });
+        return Ok(ApiResponse<object>.Ok(null!, "Updated"));
+    }
 }

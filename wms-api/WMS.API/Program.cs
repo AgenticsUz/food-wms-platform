@@ -49,6 +49,7 @@ builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IExportService, ExportService>();
 builder.Services.AddScoped<ITransferPdfService, TransferPdfService>();
+builder.Services.AddScoped<IImportService, ImportService>();
 
 // CORS
 builder.Services.AddHttpClient();

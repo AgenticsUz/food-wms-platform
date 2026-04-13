@@ -34,3 +34,15 @@ public class ToggleModuleDto
     public int ModuleId { get; set; }
     public bool IsEnabled { get; set; }
 }
+
+/// <summary>
+/// Accepts both single module toggle and batch toggle from frontend.
+/// Frontend sends: { modules: [{ moduleId, isEnabled }] }
+/// </summary>
+public class ToggleModulesRequest
+{
+    public List<ToggleModuleDto>? Modules { get; set; }
+    // Fallback for single module toggle
+    public int ModuleId { get; set; }
+    public bool IsEnabled { get; set; }
+}

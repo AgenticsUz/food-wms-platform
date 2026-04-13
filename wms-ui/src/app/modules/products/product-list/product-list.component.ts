@@ -14,6 +14,7 @@ import { ProductService } from '../../../core/services/product.service';
 import { NotificationService } from '../../../shared/services/notification.service';
 import { HasPermissionDirective } from '../../../shared/directives/has-permission.directive';
 import { ExportService } from '../../../core/services/export.service';
+import { ImportButtonComponent } from '../../../shared/components/import-button/import-button.component';
 import { Product, ProductCreateDto, ProductType, Category, Unit } from '../../../core/models/product.model';
 
 @Component({
@@ -21,7 +22,7 @@ import { Product, ProductCreateDto, ProductType, Category, Unit } from '../../..
   standalone: true,
   imports: [
     DecimalPipe, FormsModule, TableModule, Button, InputText, Select,
-    Dialog, InputNumber, TranslocoDirective, PageHeaderComponent, StatusBadgeComponent, HasPermissionDirective
+    Dialog, InputNumber, TranslocoDirective, PageHeaderComponent, StatusBadgeComponent, HasPermissionDirective, ImportButtonComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './product-list.component.html',
