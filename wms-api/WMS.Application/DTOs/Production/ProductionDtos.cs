@@ -30,6 +30,11 @@ public class ReorderStageDto
     public int OrderNumber { get; set; }
 }
 
+public class ReorderStagesDto
+{
+    public List<int> Ids { get; set; } = new();
+}
+
 public class ProductionRecipeDto
 {
     public int Id { get; set; }

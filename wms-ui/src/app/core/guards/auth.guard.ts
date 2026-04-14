@@ -15,6 +15,7 @@ export const authGuard: CanActivateFn = () => {
       tenantService.restoreModules();
     }
     permissionService.restorePermissions();
+    authService.refreshPermissions().subscribe();
     return true;
   }
 

@@ -23,7 +23,8 @@
       "Bash(node:*)",
       "Bash(ls C:/Users/g.turaqulov/Desktop/Personal-Project/projects/wms/wms-ui/tailwind.config.*)",
       "Bash(cat C:/Users/g.turaqulov/Desktop/Personal-Project/projects/wms/wms-ui/vite.config.*)",
-      "Bash(grep -v \"^$\")"
+      "Bash(grep -v \"^$\")",
+      "Bash(grep -E \"\\\\.\\(ts|js\\)$\")"
     ]
   }
 }

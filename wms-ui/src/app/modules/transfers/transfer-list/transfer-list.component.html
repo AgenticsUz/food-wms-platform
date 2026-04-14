@@ -42,7 +42,7 @@
       <ng-template #body let-row>
         <tr>
           <td><span class="number">#{{ row.id }}</span></td>
-          <td><span class="type-label">{{ getTypeName(row.type) }}</span></td>
+          <td><app-status-badge [status]="getTypeName(row.type)" [label]="getTypeName(row.type)" /></td>
           <td>{{ row.counterpartyName || row.fromWarehouseName || row.toWarehouseName || '—' }}</td>
           <td class="text-right"><span class="number">{{ row.totalAmount | number:'1.0-2' }}</span></td>
           <td>

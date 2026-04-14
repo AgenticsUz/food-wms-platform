@@ -51,12 +51,12 @@ public class ProductionService : IProductionService
         await _db.SaveChangesAsync();
     }
 
-    public async Task ReorderStagesAsync(int tenantId, List<ReorderStageDto> stages)
+    public async Task ReorderStagesAsync(int tenantId, List<int> ids)
     {
-        foreach (var dto in stages)
+        for (int i = 0; i < ids.Count; i++)
         {
-            var s = await _db.ProductionStages.FirstOrDefaultAsync(x => x.Id == dto.Id && x.TenantId == tenantId);
-            if (s != null) s.OrderNumber = dto.OrderNumber;
+            var s = await _db.ProductionStages.FirstOrDefaultAsync(x => x.Id == ids[i] && x.TenantId == tenantId);
+            if (s != null) s.OrderNumber = i + 1;
         }
         await _db.SaveChangesAsync();
     }

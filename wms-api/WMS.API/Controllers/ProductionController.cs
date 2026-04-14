@@ -32,8 +32,11 @@ public class ProductionController : BaseController
     { await _production.DeleteStageAsync(TenantId, id); return Ok(ApiResponse<object>.Ok(null!, "Deleted")); }
 
     [HttpPatch("stages/reorder")]
-    public async Task<IActionResult> ReorderStages([FromBody] List<ReorderStageDto> stages)
-    { await _production.ReorderStagesAsync(TenantId, stages); return Ok(ApiResponse<object>.Ok(null!, "Reordered")); }
+    public async Task<IActionResult> ReorderStages([FromBody] ReorderStagesDto dto)
+    {
+        await _production.ReorderStagesAsync(TenantId, dto.Ids);
+        return Ok(ApiResponse<object>.Ok(null!, "Reordered"));
+    }
 
     // Recipes
     [HttpGet("recipes")]

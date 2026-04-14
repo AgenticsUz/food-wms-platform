@@ -10,7 +10,7 @@ public interface IProductionService
     Task<ProductionStageDto> CreateStageAsync(int tenantId, CreateProductionStageDto dto);
     Task<ProductionStageDto> UpdateStageAsync(int tenantId, int id, UpdateProductionStageDto dto);
     Task DeleteStageAsync(int tenantId, int id);
-    Task ReorderStagesAsync(int tenantId, List<ReorderStageDto> stages);
+    Task ReorderStagesAsync(int tenantId, List<int> ids);
 
     // Recipes
     Task<List<ProductionRecipeDto>> GetRecipesAsync(int tenantId);

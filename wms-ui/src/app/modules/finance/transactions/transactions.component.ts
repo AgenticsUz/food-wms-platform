@@ -170,7 +170,7 @@ export default class TransactionsComponent implements OnInit {
   }
 
   getTypeStatus(type: TransactionType): string {
-    return type === TransactionType.Income ? 'Confirmed' : 'Cancelled';
+    return type === TransactionType.Income ? 'Income' : 'Expense';
   }
 
   updateForm(field: string, value: unknown) {

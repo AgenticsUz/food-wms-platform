@@ -89,6 +89,14 @@ h3 { font-size: 18px; font-weight: 600; }
 .badge-info    { background: #dbeafe; color: #1e40af; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
 .badge-neutral { background: #f1f5f9; color: #475569; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
 
+.dark-mode {
+  .badge-success { background: rgba(6, 78, 59, 0.3); color: #6ee7b7; }
+  .badge-warning { background: rgba(120, 53, 15, 0.3); color: #fcd34d; }
+  .badge-danger  { background: rgba(127, 29, 29, 0.3); color: #fca5a5; }
+  .badge-info    { background: rgba(30, 58, 138, 0.3); color: #93c5fd; }
+  .badge-neutral { background: #374151; color: #d1d5db; }
+}
+
 /* ===== ANIMATIONS ===== */
 @keyframes fadeSlideIn {
   from { opacity: 0; transform: translateY(8px); }
@@ -192,8 +200,21 @@ h3 { font-size: 18px; font-weight: 600; }
 
 /* Tag/Badge */
 .p-tag {
-  border-radius: 20px !important;
   font-weight: 600 !important;
+  font-size: 11px !important;
+  padding: 3px 10px !important;
+  border-radius: 999px !important;
+}
+.p-tag-success { background: #d1fae5 !important; color: #065f46 !important; }
+.p-tag-warning { background: #fef3c7 !important; color: #92400e !important; }
+.p-tag-danger  { background: #fee2e2 !important; color: #991b1b !important; }
+.p-tag-info    { background: #dbeafe !important; color: #1e40af !important; }
+
+.dark-mode {
+  .p-tag-success { background: rgba(6, 78, 59, 0.3) !important; color: #6ee7b7 !important; }
+  .p-tag-warning { background: rgba(120, 53, 15, 0.3) !important; color: #fcd34d !important; }
+  .p-tag-danger  { background: rgba(127, 29, 29, 0.3) !important; color: #fca5a5 !important; }
+  .p-tag-info    { background: rgba(30, 58, 138, 0.3) !important; color: #93c5fd !important; }
 }
 
 /* ===== FORM VALIDATION ===== */

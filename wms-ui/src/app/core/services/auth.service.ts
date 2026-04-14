@@ -57,6 +57,17 @@ export class AuthService {
     );
   }
 
+  refreshPermissions() {
+    return this.http.get<ApiResponse<string[]>>(`${environment.apiUrl}/auth/my-permissions`).pipe(
+      tap(res => {
+        if (res.success && res.data) {
+          this.permissionService.setPermissions(res.data);
+          localStorage.setItem('permissions', JSON.stringify(res.data));
+        }
+      })
+    );
+  }
+
   logout() {
     this.token.set(null);
     this.currentUser.set(null);

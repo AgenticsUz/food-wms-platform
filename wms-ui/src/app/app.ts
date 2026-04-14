@@ -32,6 +32,7 @@ export class App implements OnInit {
 
     if (this.authService.isAuthenticated()) {
       this.bellService.startPolling();
+      this.authService.refreshPermissions().subscribe();
     }
 
     this.router.events.subscribe(event => {
