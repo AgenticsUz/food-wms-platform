@@ -14,6 +14,7 @@ import { StatusBadgeComponent } from '../../../shared/components/status-badge/st
 import { SettingsService } from '../../../core/services/settings.service';
 import { NotificationService } from '../../../shared/services/notification.service';
 import { ImportButtonComponent } from '../../../shared/components/import-button/import-button.component';
+import { PhoneInputComponent } from '../../../shared/components/phone-input/phone-input.component';
 import { UserDetail, UserCreateDto, UserUpdateDto, RoleInfo } from '../../../core/models/settings.model';
 
 @Component({
@@ -22,7 +23,7 @@ import { UserDetail, UserCreateDto, UserUpdateDto, RoleInfo } from '../../../cor
   imports: [
     FormsModule, TableModule, Button, InputText, Dialog,
     ToggleSwitch, Password, Checkbox, Tooltip,
-    PageHeaderComponent, StatusBadgeComponent, TranslocoDirective, ImportButtonComponent
+    PageHeaderComponent, StatusBadgeComponent, TranslocoDirective, ImportButtonComponent, PhoneInputComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './users.component.html',
@@ -98,8 +99,12 @@ export default class UsersComponent implements OnInit {
 
   save() {
     const f = this.form();
-    if (!f.fullName.trim() || !f.phone.trim()) {
+    if (!f.fullName.trim() || !f.phone) {
       this.notify.warn('Full name and phone are required');
+      return;
+    }
+    if (!/^\+998\d{9}$/.test(f.phone)) {
+      this.notify.warn('Telefon raqam 9 ta raqamdan iborat bo\'lishi kerak');
       return;
     }
     if (!this.editing() && !f.password.trim()) {
@@ -112,7 +117,7 @@ export default class UsersComponent implements OnInit {
     if (this.editing()) {
       const dto: UserUpdateDto = {
         fullName: f.fullName.trim(),
-        phone: f.phone.trim(),
+        phone: f.phone,
         isActive: f.isActive
       };
       this.settingsService.updateUser(f.id!, dto).subscribe({
@@ -130,7 +135,7 @@ export default class UsersComponent implements OnInit {
     } else {
       const dto: UserCreateDto = {
         fullName: f.fullName.trim(),
-        phone: f.phone.trim(),
+        phone: f.phone,
         password: f.password,
         isActive: f.isActive
       };

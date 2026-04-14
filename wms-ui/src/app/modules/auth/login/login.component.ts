@@ -11,6 +11,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { TenantService } from '../../../core/services/tenant.service';
 import { NotificationService } from '../../../shared/services/notification.service';
 import { LoadingService } from '../../../core/services/loading.service';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-login',
@@ -29,7 +30,6 @@ export default class LoginComponent {
 
   phone = signal('');
   password = signal('');
-  tenantSlug = signal('');
   loading = signal(false);
 
   onPhoneInput(value: string) {
@@ -37,17 +37,22 @@ export default class LoginComponent {
   }
 
   login() {
-    if (!this.phone() || !this.password() || !this.tenantSlug()) {
+    if (!this.phone() || !this.password()) {
       this.notify.warn('Please fill in all fields');
+      return;
+    }
+
+    if (this.phone().length !== 9) {
+      this.notify.warn('Telefon raqam 9 ta raqamdan iborat bo\'lishi kerak');
       return;
     }
 
     this.loading.set(true);
     this.loadingService.show();
     this.authService.login({
-      phone: '998' + this.phone(),
+      phone: '+998' + this.phone(),
       password: this.password(),
-      tenantSlug: this.tenantSlug()
+      tenantSlug: environment.tenantSlug
     }).subscribe({
       next: () => {
         this.loading.set(false);

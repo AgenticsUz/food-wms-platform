@@ -4,6 +4,7 @@ using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using WMS.Application.Common;
 using WMS.Application.DTOs.Auth;
 using WMS.Application.Interfaces;
 using WMS.Infrastructure.Persistence;
@@ -26,9 +27,10 @@ public class AuthService : IAuthService
         var tenant = await _db.Tenants.FirstOrDefaultAsync(t => t.Slug == dto.TenantSlug && t.IsActive)
             ?? throw new Exception("Tenant not found or inactive");
 
+        var normalizedPhone = PhoneHelper.Normalize(dto.Phone);
         var user = await _db.Users
             .Include(u => u.UserRoles).ThenInclude(ur => ur.Role)
-            .FirstOrDefaultAsync(u => u.TenantId == tenant.Id && u.Phone == dto.Phone && u.IsActive)
+            .FirstOrDefaultAsync(u => u.TenantId == tenant.Id && u.Phone == normalizedPhone && u.IsActive)
             ?? throw new Exception("Invalid credentials");
 
         if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))

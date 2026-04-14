@@ -61,11 +61,11 @@
       </div>
       <div class="form-field">
         <label>{{ t('common.phone') }}</label>
-        <input pInputText [ngModel]="form().phone ?? ''" (ngModelChange)="updateForm('phone', $event || null)" class="w-full" />
+        <app-phone-input [ngModel]="form().phone" (ngModelChange)="updateForm('phone', $event)" />
       </div>
       <div class="form-field">
         <label>{{ t('settings.portalPhone') }}</label>
-        <input pInputText [ngModel]="form().portalPhone ?? ''" (ngModelChange)="updateForm('portalPhone', $event || null)" class="w-full" />
+        <app-phone-input [ngModel]="form().portalPhone" (ngModelChange)="updateForm('portalPhone', $event)" />
       </div>
       <div class="form-field full-width">
         <label>{{ t('common.address') }}</label>

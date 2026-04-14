@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using WMS.Application.Common;
 using WMS.Application.DTOs.Counterparties;
 using WMS.Application.DTOs.Finance;
 using WMS.Application.Interfaces;
@@ -30,9 +31,9 @@ public class CounterpartyService : ICounterpartyService
     {
         var c = new Counterparty
         {
-            TenantId = tenantId, Name = dto.Name, Type = dto.Type, Phone = dto.Phone,
+            TenantId = tenantId, Name = dto.Name, Type = dto.Type, Phone = PhoneHelper.Normalize(dto.Phone),
             Address = dto.Address, Note = dto.Note, PortalEnabled = dto.PortalEnabled,
-            PortalPhone = dto.PortalPhone,
+            PortalPhone = PhoneHelper.Normalize(dto.PortalPhone),
             PortalPasswordHash = !string.IsNullOrEmpty(dto.PortalPassword)
                 ? BCrypt.Net.BCrypt.HashPassword(dto.PortalPassword) : null
         };
@@ -45,9 +46,9 @@ public class CounterpartyService : ICounterpartyService
     {
         var c = await _db.Counterparties.FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId)
             ?? throw new Exception("Counterparty not found");
-        c.Name = dto.Name; c.Type = dto.Type; c.Phone = dto.Phone;
+        c.Name = dto.Name; c.Type = dto.Type; c.Phone = PhoneHelper.Normalize(dto.Phone);
         c.Address = dto.Address; c.Note = dto.Note; c.PortalEnabled = dto.PortalEnabled;
-        c.PortalPhone = dto.PortalPhone;
+        c.PortalPhone = PhoneHelper.Normalize(dto.PortalPhone);
         if (!string.IsNullOrEmpty(dto.PortalPassword))
             c.PortalPasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.PortalPassword);
         await _db.SaveChangesAsync();

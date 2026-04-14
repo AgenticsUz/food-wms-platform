@@ -4,6 +4,7 @@ using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using WMS.Application.Common;
 using WMS.Application.DTOs.Finance;
 using WMS.Application.DTOs.Portal;
 using WMS.Application.DTOs.Transfers;
@@ -26,8 +27,9 @@ public class PortalAuthService : IPortalAuthService
 
     public async Task<PortalAuthResponseDto> LoginAsync(PortalLoginDto dto)
     {
+        var normalizedPhone = PhoneHelper.Normalize(dto.Phone);
         var counterparty = await _db.Counterparties
-            .FirstOrDefaultAsync(c => c.PortalPhone == dto.Phone && c.PortalEnabled)
+            .FirstOrDefaultAsync(c => c.PortalPhone == normalizedPhone && c.PortalEnabled)
             ?? throw new Exception("Invalid credentials or portal not enabled");
 
         if (string.IsNullOrEmpty(counterparty.PortalPasswordHash) ||

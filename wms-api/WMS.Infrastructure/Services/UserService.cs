@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using WMS.Application.Common;
 using WMS.Application.DTOs.Users;
 using WMS.Application.Interfaces;
 using WMS.Domain.Entities;
@@ -27,7 +28,7 @@ public class UserService : IUserService
     {
         var user = new User
         {
-            TenantId = tenantId, FullName = dto.FullName, Phone = dto.Phone,
+            TenantId = tenantId, FullName = dto.FullName, Phone = PhoneHelper.Normalize(dto.Phone),
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password)
         };
         _db.Users.Add(user);
@@ -41,7 +42,7 @@ public class UserService : IUserService
             .FirstOrDefaultAsync(u => u.Id == id && u.TenantId == tenantId)
             ?? throw new Exception("User not found");
         user.FullName = dto.FullName;
-        user.Phone = dto.Phone;
+        user.Phone = PhoneHelper.Normalize(dto.Phone);
         user.IsActive = dto.IsActive;
         if (!string.IsNullOrEmpty(dto.Password))
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);

@@ -12,17 +12,6 @@
     <!-- Form -->
     <form class="login-form" (ngSubmit)="login()">
       <div class="field">
-        <label for="tenantSlug">{{ t('auth.organizationCode') }}</label>
-        <input pInputText
-               id="tenantSlug"
-               [ngModel]="tenantSlug()"
-               (ngModelChange)="tenantSlug.set($event)"
-               name="tenantSlug"
-               placeholder="e.g. sarvar-zavod"
-               class="w-full" />
-      </div>
-
-      <div class="field">
         <label for="phone">{{ t('auth.phone') }}</label>
         <p-inputgroup>
           <p-inputgroup-addon>+998</p-inputgroup-addon>
@@ -31,7 +20,7 @@
                  [ngModel]="phone()"
                  (ngModelChange)="onPhoneInput($event)"
                  name="phone"
-                 placeholder="90 123 45 67"
+                 placeholder="88 123 45 67"
                  maxlength="9"
                  class="w-full" />
         </p-inputgroup>
