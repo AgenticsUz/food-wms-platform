@@ -3,7 +3,6 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { InputText } from 'primeng/inputtext';
 import { Password } from 'primeng/password';
-import { Button } from 'primeng/button';
 import { InputGroup } from 'primeng/inputgroup';
 import { InputGroupAddon } from 'primeng/inputgroupaddon';
 import { TranslocoDirective } from '@jsverse/transloco';
@@ -16,7 +15,7 @@ import { environment } from '../../../../environments/environment';
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [FormsModule, InputText, Password, Button, InputGroup, InputGroupAddon, TranslocoDirective],
+  imports: [FormsModule, InputText, Password, InputGroup, InputGroupAddon, TranslocoDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'

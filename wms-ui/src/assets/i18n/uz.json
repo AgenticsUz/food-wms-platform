@@ -60,7 +60,13 @@
     "loginTitle": "WMS Platformaga kirish",
     "loginSubtitle": "Tizimga kirish uchun ma'lumotlaringizni kiriting",
     "confirmLogout": "Tizimdan chiqmoqchimisiz?",
-    "logoutTitle": "Chiqish"
+    "logoutTitle": "Chiqish",
+    "brandTag": "Ishlab chiqarish boshqaruvi",
+    "heroSlogan": "Har bir partiyani tomchidan qutigacha kuzatib boring.",
+    "heroSub": "Xomashyodan tayyor mahsulotgacha — bitta tizimda. Smenangizni, omboringizni va hisobingizni bir joyda boshqaring.",
+    "heroPoint1": "Real vaqt rejimida ombor va partiyalar nazorati",
+    "heroPoint2": "Reja va haqiqiy ko'rsatkichlar bo'yicha KPI",
+    "heroPoint3": "Hamkorlar, qarzlar va to'lovlar tarixi"
   },
   "nav": {
     "dashboard": "Bosh sahifa",

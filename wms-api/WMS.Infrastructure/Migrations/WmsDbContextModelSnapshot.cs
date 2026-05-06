@@ -15,7 +15,7 @@ namespace WMS.Infrastructure.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "8.0.25");
+            modelBuilder.HasAnnotation("ProductVersion", "8.0.26");
 
             modelBuilder.Entity("WMS.Domain.Entities.AttendanceLog", b =>
                 {
@@ -85,6 +85,9 @@ namespace WMS.Infrastructure.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("ManufacturedDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Notes")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("ProductId")

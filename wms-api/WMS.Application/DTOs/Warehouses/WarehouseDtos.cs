@@ -74,4 +74,12 @@ public class BatchDto
     public DateTime? ExpiryDate { get; set; }
     public decimal InitialQuantity { get; set; }
     public decimal RemainingQuantity { get; set; }
+    public string? Notes { get; set; }
+}
+
+public class UpdateBatchDto
+{
+    public string LotNumber { get; set; } = null!;
+    public DateTime? ExpiryDate { get; set; }
+    public string? Notes { get; set; }
 }

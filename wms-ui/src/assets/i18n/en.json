@@ -60,7 +60,13 @@
     "loginTitle": "Sign in to WMS Platform",
     "loginSubtitle": "Enter your credentials to continue",
     "confirmLogout": "Are you sure you want to log out?",
-    "logoutTitle": "Log out"
+    "logoutTitle": "Log out",
+    "brandTag": "Manufacturing Control",
+    "heroSlogan": "Track every batch — from drop to box.",
+    "heroSub": "From raw material to finished goods — in one place. Run shifts, warehouse and finance from a single dashboard.",
+    "heroPoint1": "Real-time stock and batch traceability",
+    "heroPoint2": "KPI: planned vs actual by product",
+    "heroPoint3": "Partners, debts and payment history"
   },
   "nav": {
     "dashboard": "Dashboard",

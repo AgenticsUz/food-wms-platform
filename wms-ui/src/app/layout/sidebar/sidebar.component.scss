@@ -1,6 +1,5 @@
 // ============================================
-// WMS Sidebar — Premium Gradient Theme
-// Both modes: soft indigo gradient, never boring
+// WMS Sidebar — Cream + Pistachio palette
 // ============================================
 
 :host {
@@ -13,16 +12,19 @@
 .sidebar {
   width: 260px;
   height: 100%;
-  background: linear-gradient(180deg, #312e81 0%, #1e1b4b 40%, #0f172a 100%);
-  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  background: #ffffff;
+  border-right: 1px solid var(--border-subtle);
   display: flex;
   flex-direction: column;
   transition: width 0.25s ease;
   overflow: hidden;
 
-  &.collapsed {
-    width: 72px;
-  }
+  &.collapsed { width: 72px; }
+}
+
+:host-context(.dark-mode) .sidebar {
+  background: var(--bg-surface);
+  border-right-color: var(--border-subtle);
 }
 
 // ---- Header / Logo ----
@@ -31,7 +33,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--border-subtle);
   min-height: 64px;
 }
 
@@ -45,16 +47,16 @@
 .logo-mark {
   width: 38px;
   height: 38px;
-  border-radius: 12px;
-  background: rgba(165, 180, 252, 0.15);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  border-radius: 11px;
+  background: linear-gradient(140deg, var(--color-pistachio-200), var(--color-pistachio-500));
+  display: grid;
+  place-items: center;
   flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(94, 149, 64, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.4);
 
   i {
-    font-size: 18px;
-    color: #a5b4fc;
+    font-size: 17px;
+    color: #ffffff;
   }
 }
 
@@ -65,23 +67,22 @@
 }
 
 .brand {
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--text-primary);
   line-height: 1.2;
-  letter-spacing: 0.01em;
+  letter-spacing: -0.01em;
 }
 
 .tenant-name {
-  font-size: 12px;
-  color: rgba(165, 180, 252, 0.6);
-  letter-spacing: 0.01em;
+  font-size: 11px;
+  color: var(--text-muted);
 }
 
 .collapse-btn {
   background: none;
   border: none;
-  color: rgba(165, 180, 252, 0.5);
+  color: var(--text-muted);
   cursor: pointer;
   padding: 6px;
   border-radius: 8px;
@@ -89,115 +90,135 @@
   flex-shrink: 0;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.08);
-    color: rgba(255, 255, 255, 0.8);
+    background: var(--color-cream-50);
+    color: var(--text-primary);
   }
+}
+
+:host-context(.dark-mode) .collapse-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
 }
 
 // ---- Navigation ----
 .sidebar-nav {
   flex: 1;
-  padding: 12px 8px;
+  padding: 8px 10px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
   overflow-y: auto;
 
-  &::-webkit-scrollbar {
-    width: 4px;
-  }
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-track { background: transparent; }
   &::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--color-cocoa-200);
     border-radius: 2px;
   }
-  &::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.2);
-  }
+  &::-webkit-scrollbar-thumb:hover { background: var(--color-cocoa-300); }
 }
 
 // ---- Nav items ----
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 9px 12px;
-  border-radius: 10px;
-  color: rgba(203, 213, 225, 0.8);
-  text-decoration: none;
-  font-size: 14px;
+  gap: 11px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 13.5px;
   font-weight: 500;
-  letter-spacing: 0.01em;
-  transition: all 0.15s ease;
-  white-space: nowrap;
+  color: var(--color-cocoa-500);
+  text-decoration: none;
+  margin-bottom: 1px;
+  position: relative;
   cursor: pointer;
   border: none;
-  border-left: 3px solid transparent;
   background: none;
   width: 100%;
   text-align: left;
   font-family: inherit;
+  white-space: nowrap;
+  transition: background 0.12s ease, color 0.12s ease;
 
   .nav-icon {
-    font-size: 17px;
+    font-size: 16px;
     width: 20px;
     text-align: center;
     flex-shrink: 0;
-    color: rgba(165, 180, 252, 0.5);
-    transition: color 0.15s ease;
+    color: var(--text-muted);
+    transition: color 0.12s ease;
   }
 
   &:hover {
-    background: rgba(255, 255, 255, 0.08);
-    color: #ffffff;
+    background: var(--color-cream-50);
+    color: var(--color-cocoa-700);
 
-    .nav-icon { color: rgba(165, 180, 252, 0.9); }
+    .nav-icon { color: var(--color-cocoa-500); }
   }
 
   &.active {
-    background: rgba(165, 180, 252, 0.12);
-    color: #ffffff;
+    background: var(--color-cream-100);
+    color: var(--color-cocoa-700);
     font-weight: 600;
-    border-left-color: #a5b4fc;
 
-    .nav-icon { color: #a5b4fc; }
+    .nav-icon { color: var(--color-pistachio-600); }
+
+    &::before {
+      content: "";
+      position: absolute;
+      left: -10px;
+      top: 8px;
+      bottom: 8px;
+      width: 3px;
+      background: var(--color-pistachio-500);
+      border-radius: 0 3px 3px 0;
+    }
+  }
+}
+
+:host-context(.dark-mode) .nav-item {
+  color: var(--text-secondary);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-primary);
+  }
+
+  &.active {
+    background: rgba(94, 149, 64, 0.12);
+    color: var(--text-primary);
   }
 }
 
 // ---- Expandable groups ----
 .nav-group {
-  border-radius: 10px;
+  border-radius: 8px;
 
   &.group-active > .nav-group-toggle {
-    color: #ffffff;
+    color: var(--color-cocoa-700);
     font-weight: 600;
 
-    .nav-icon { color: #a5b4fc; }
+    .nav-icon { color: var(--color-pistachio-600); }
   }
 }
 
-.nav-group-toggle {
-  .nav-label {
-    flex: 1;
-  }
+:host-context(.dark-mode) .nav-group.group-active > .nav-group-toggle {
+  color: var(--text-primary);
 }
+
+.nav-group-toggle .nav-label { flex: 1; }
 
 .expand-icon {
-  font-size: 11px !important;
+  font-size: 10px !important;
   width: auto !important;
   margin-left: auto;
   transition: transform 0.2s ease;
-  color: rgba(165, 180, 252, 0.35) !important;
+  color: var(--text-muted) !important;
 
-  &.rotated {
-    transform: rotate(180deg);
-  }
+  &.rotated { transform: rotate(180deg); }
 }
 
 .nav-children {
-  padding: 2px 0 6px 0;
+  padding: 2px 0 6px 14px;
   display: flex;
   flex-direction: column;
   gap: 1px;
@@ -213,39 +234,44 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 7px 12px 7px 47px;
-  border-radius: 8px;
-  color: rgba(203, 213, 225, 0.5);
+  padding: 6px 10px 6px 26px;
+  border-radius: 6px;
+  color: var(--text-secondary);
   text-decoration: none;
   font-size: 13px;
   font-weight: 500;
-  letter-spacing: 0.01em;
-  transition: all 0.15s ease;
   white-space: nowrap;
   cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
 
   &:hover {
-    color: #ffffff;
-    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-primary);
+    background: var(--color-cream-50);
+
+    .child-dot { background: var(--color-cocoa-300); }
   }
 
   &.child-active {
-    color: #ffffff;
+    color: var(--color-pistachio-600);
     font-weight: 600;
 
     .child-dot {
-      background: #a5b4fc;
-      box-shadow: 0 0 8px rgba(165, 180, 252, 0.5);
-      transform: scale(1.3);
+      background: var(--color-pistachio-500);
+      box-shadow: 0 0 8px rgba(94, 149, 64, 0.3);
+      transform: scale(1.2);
     }
   }
 }
 
+:host-context(.dark-mode) .nav-child:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
 .child-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: rgba(165, 180, 252, 0.25);
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--color-cocoa-200);
   flex-shrink: 0;
   transition: all 0.15s ease;
 }
@@ -253,30 +279,30 @@
 // ---- Footer ----
 .sidebar-footer {
   padding: 8px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid var(--border-subtle);
 }
 
 .user-section {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 12px;
+  padding: 8px 10px;
   margin-top: 4px;
 }
 
 .user-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #818cf8, #a78bfa);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--color-berry-300), var(--color-berry-500));
+  display: grid;
+  place-items: center;
   flex-shrink: 0;
+  box-shadow: 0 3px 8px rgba(217, 76, 102, 0.2);
 }
 
 .user-initials {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   color: #ffffff;
   letter-spacing: 0.03em;
@@ -289,9 +315,9 @@
 }
 
 .user-name {
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 600;
-  color: #f1f5f9;
+  color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -299,7 +325,7 @@
 
 .user-role {
   font-size: 11px;
-  color: rgba(165, 180, 252, 0.5);
+  color: var(--text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -307,8 +333,8 @@
 
 // ---- Logout ----
 .logout-section {
-  padding: 4px 4px 4px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 4px;
+  border-top: 1px solid var(--border-subtle);
   margin-top: 4px;
 }
 
@@ -317,10 +343,10 @@
   align-items: center;
   gap: 10px;
   width: 100%;
-  padding: 9px 12px;
+  padding: 8px 10px;
   border: none;
   background: none;
-  color: rgba(203, 213, 225, 0.5);
+  color: var(--text-muted);
   cursor: pointer;
   font-size: 13px;
   font-weight: 500;
@@ -328,10 +354,14 @@
   border-radius: 8px;
   transition: all 0.15s ease;
 
-  i { font-size: 16px; }
+  i { font-size: 15px; }
 
   &:hover {
-    background: rgba(239, 68, 68, 0.12);
-    color: #fca5a5;
+    background: var(--color-berry-50);
+    color: var(--color-berry-600);
   }
+}
+
+:host-context(.dark-mode) .logout-btn:hover {
+  background: rgba(217, 76, 102, 0.12);
 }

@@ -63,4 +63,12 @@ public class BatchesController : BaseController
     [HttpGet]
     public async Task<IActionResult> GetAll()
         => Ok(ApiResponse<List<BatchDto>>.Ok(await _warehouses.GetBatchesAsync(TenantId)));
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(int id, [FromBody] UpdateBatchDto dto)
+        => Ok(ApiResponse<BatchDto>.Ok(await _warehouses.UpdateBatchAsync(TenantId, id, dto)));
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    { await _warehouses.DeleteBatchAsync(TenantId, id); return Ok(ApiResponse<object>.Ok(null!, "Deleted")); }
 }

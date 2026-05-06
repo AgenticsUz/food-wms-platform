@@ -77,18 +77,18 @@
     } @else if (extSummary(); as ext) {
       <!-- Finance -->
       <div class="wms-card ext-card">
-        <h4 class="ext-card-title"><i class="pi pi-wallet" style="color: #6366f1"></i> {{ t('dashboard.financeSummary') }}</h4>
+        <h4 class="ext-card-title"><i class="pi pi-wallet" style="color: var(--color-pistachio-600)"></i> {{ t('dashboard.financeSummary') }}</h4>
         <div class="ext-stats">
           <div class="ext-stat">
-            <span class="ext-stat-value number" style="color: #10b981">{{ ext.totalIncome | number:'1.0-0' }}</span>
+            <span class="ext-stat-value" style="color: var(--color-pistachio-600)">{{ ext.totalIncome | number:'1.0-0' }}</span>
             <span class="ext-stat-label">{{ t('dashboard.totalIncome') }}</span>
           </div>
           <div class="ext-stat">
-            <span class="ext-stat-value number" style="color: #ef4444">{{ ext.totalExpense | number:'1.0-0' }}</span>
+            <span class="ext-stat-value" style="color: var(--color-berry-600)">{{ ext.totalExpense | number:'1.0-0' }}</span>
             <span class="ext-stat-label">{{ t('dashboard.totalExpense') }}</span>
           </div>
           <div class="ext-stat">
-            <span class="ext-stat-value number" [style.color]="ext.netProfit >= 0 ? '#10b981' : '#ef4444'">{{ ext.netProfit | number:'1.0-0' }}</span>
+            <span class="ext-stat-value" [style.color]="ext.netProfit >= 0 ? 'var(--color-pistachio-600)' : 'var(--color-berry-600)'">{{ ext.netProfit | number:'1.0-0' }}</span>
             <span class="ext-stat-label">{{ t('dashboard.netProfit') }}</span>
           </div>
         </div>
@@ -96,14 +96,14 @@
 
       <!-- Transfers -->
       <div class="wms-card ext-card">
-        <h4 class="ext-card-title"><i class="pi pi-arrow-right-arrow-left" style="color: #f59e0b"></i> {{ t('dashboard.transferSummary') }}</h4>
+        <h4 class="ext-card-title"><i class="pi pi-arrow-right-arrow-left" style="color: var(--color-caramel-600)"></i> {{ t('dashboard.transferSummary') }}</h4>
         <div class="ext-stats">
           <div class="ext-stat">
-            <span class="ext-stat-value number" style="color: #10b981"><i class="pi pi-arrow-down" style="font-size: 12px"></i> {{ ext.totalIncomingTransfers }}</span>
+            <span class="ext-stat-value" style="color: var(--color-pistachio-600)"><i class="pi pi-arrow-down" style="font-size: 12px"></i> {{ ext.totalIncomingTransfers }}</span>
             <span class="ext-stat-label">{{ t('dashboard.incoming') }} ({{ ext.totalIncomingAmount | number:'1.0-0' }})</span>
           </div>
           <div class="ext-stat">
-            <span class="ext-stat-value number" style="color: #ef4444"><i class="pi pi-arrow-up" style="font-size: 12px"></i> {{ ext.totalOutgoingTransfers }}</span>
+            <span class="ext-stat-value" style="color: var(--color-berry-600)"><i class="pi pi-arrow-up" style="font-size: 12px"></i> {{ ext.totalOutgoingTransfers }}</span>
             <span class="ext-stat-label">{{ t('dashboard.outgoing') }} ({{ ext.totalOutgoingAmount | number:'1.0-0' }})</span>
           </div>
         </div>
@@ -111,18 +111,18 @@
 
       <!-- Production -->
       <div class="wms-card ext-card">
-        <h4 class="ext-card-title"><i class="pi pi-cog" style="color: #3b82f6"></i> {{ t('dashboard.productionSummary') }}</h4>
+        <h4 class="ext-card-title"><i class="pi pi-cog" style="color: var(--color-blueberry-600)"></i> {{ t('dashboard.productionSummary') }}</h4>
         <div class="ext-stats">
           <div class="ext-stat">
-            <span class="ext-stat-value number">{{ ext.completedOrders }}/{{ ext.totalProductionOrders }}</span>
+            <span class="ext-stat-value">{{ ext.completedOrders }}/{{ ext.totalProductionOrders }}</span>
             <span class="ext-stat-label">{{ t('dashboard.orders') }}</span>
           </div>
           <div class="ext-stat">
-            <span class="ext-stat-value number">{{ ext.totalProduced | number:'1.0-0' }}</span>
+            <span class="ext-stat-value">{{ ext.totalProduced | number:'1.0-0' }}</span>
             <span class="ext-stat-label">{{ t('dashboard.produced') }}</span>
           </div>
           <div class="ext-stat">
-            <span class="ext-stat-value number" [style.color]="ext.totalWaste > 0 ? '#ef4444' : 'inherit'">{{ ext.totalWaste | number:'1.0-0' }}</span>
+            <span class="ext-stat-value" [style.color]="ext.totalWaste > 0 ? 'var(--color-berry-600)' : 'inherit'">{{ ext.totalWaste | number:'1.0-0' }}</span>
             <span class="ext-stat-label">{{ t('dashboard.waste') }}</span>
           </div>
         </div>
@@ -133,18 +133,18 @@
   <!-- Top Performers -->
   @if (!extLoading() && extSummary(); as ext) {
     <div class="wms-card top-performers-card">
-      <h4 class="ext-card-title"><i class="pi pi-star" style="color: #f59e0b"></i> {{ t('dashboard.topPerformers') }}</h4>
+      <h4 class="ext-card-title"><i class="pi pi-star" style="color: var(--color-caramel-600)"></i> {{ t('dashboard.topPerformers') }}</h4>
       <div class="top-row">
         <div class="top-item">
-          <span class="top-icon" style="background: rgba(16,185,129,0.1); color: #10b981"><i class="pi pi-tag"></i></span>
+          <span class="top-icon" style="background: var(--color-pistachio-100); color: var(--color-pistachio-600)"><i class="pi pi-tag"></i></span>
           <div><span class="top-label">{{ t('dashboard.topProduct') }}</span><span class="top-value">{{ ext.topSellingProduct || '—' }}</span></div>
         </div>
         <div class="top-item">
-          <span class="top-icon" style="background: rgba(239,68,68,0.1); color: #ef4444"><i class="pi pi-wallet"></i></span>
+          <span class="top-icon" style="background: var(--color-berry-100); color: var(--color-berry-600)"><i class="pi pi-wallet"></i></span>
           <div><span class="top-label">{{ t('dashboard.topDebtor') }}</span><span class="top-value">{{ ext.topDebtor || '—' }}</span></div>
         </div>
         <div class="top-item">
-          <span class="top-icon" style="background: rgba(99,102,241,0.1); color: #6366f1"><i class="pi pi-truck"></i></span>
+          <span class="top-icon" style="background: var(--color-blueberry-100); color: var(--color-blueberry-600)"><i class="pi pi-truck"></i></span>
           <div><span class="top-label">{{ t('dashboard.topSupplier') }}</span><span class="top-value">{{ ext.topSupplier || '—' }}</span></div>
         </div>
       </div>
@@ -242,28 +242,28 @@
     <h3 class="chart-title">{{ t('dashboard.quickReports') }}</h3>
     <div class="reports-grid">
       <div class="wms-card report-card">
-        <div class="report-icon" style="background: rgba(59,130,246,0.1); color: #3b82f6"><i class="pi pi-chart-bar"></i></div>
+        <div class="report-icon" style="background: var(--color-blueberry-100); color: var(--color-blueberry-600)"><i class="pi pi-chart-bar"></i></div>
         <h4 class="report-title">{{ t('dashboard.monthlyFinance') }}</h4>
         <p class="report-desc">{{ t('dashboard.incomeExpenseDebt') }}</p>
         <p-button icon="pi pi-file-excel" [label]="t('common.exportExcel')" severity="info" [outlined]="true" size="small"
           [loading]="exportService.exporting()" (onClick)="exportReport('finance')" class="mt-auto" />
       </div>
       <div class="wms-card report-card">
-        <div class="report-icon" style="background: rgba(16,185,129,0.1); color: #10b981"><i class="pi pi-box"></i></div>
+        <div class="report-icon" style="background: var(--color-pistachio-100); color: var(--color-pistachio-600)"><i class="pi pi-box"></i></div>
         <h4 class="report-title">{{ t('dashboard.warehouseStatus') }}</h4>
         <p class="report-desc">{{ t('dashboard.stockBatchInfo') }}</p>
         <p-button icon="pi pi-file-excel" [label]="t('common.exportExcel')" severity="success" [outlined]="true" size="small"
           [loading]="exportService.exporting()" (onClick)="exportReport('stock')" class="mt-auto" />
       </div>
       <div class="wms-card report-card">
-        <div class="report-icon" style="background: rgba(245,158,11,0.1); color: #f59e0b"><i class="pi pi-arrow-right-arrow-left"></i></div>
+        <div class="report-icon" style="background: var(--color-caramel-100); color: var(--color-caramel-600)"><i class="pi pi-arrow-right-arrow-left"></i></div>
         <h4 class="report-title">{{ t('dashboard.transferHistory') }}</h4>
         <p class="report-desc">{{ t('dashboard.transferRecords') }}</p>
         <p-button icon="pi pi-file-excel" [label]="t('common.exportExcel')" severity="warn" [outlined]="true" size="small"
           [loading]="exportService.exporting()" (onClick)="exportReport('transfers')" class="mt-auto" />
       </div>
       <div class="wms-card report-card">
-        <div class="report-icon" style="background: rgba(239,68,68,0.1); color: #ef4444"><i class="pi pi-users"></i></div>
+        <div class="report-icon" style="background: var(--color-berry-100); color: var(--color-berry-600)"><i class="pi pi-users"></i></div>
         <h4 class="report-title">{{ t('dashboard.debtorsList') }}</h4>
         <p class="report-desc">{{ t('dashboard.counterpartyBalances') }}</p>
         <p-button icon="pi pi-file-excel" [label]="t('common.exportExcel')" severity="danger" [outlined]="true" size="small"

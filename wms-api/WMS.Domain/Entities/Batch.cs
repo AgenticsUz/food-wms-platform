@@ -12,4 +12,5 @@ public class Batch : BaseEntity
     public DateTime? ExpiryDate { get; set; }
     public decimal InitialQuantity { get; set; }
     public decimal RemainingQuantity { get; set; }
+    public string? Notes { get; set; }
 }

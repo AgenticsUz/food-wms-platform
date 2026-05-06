@@ -126,7 +126,49 @@ public class WarehouseService : IWarehouseService
                 Id = b.Id, ProductId = b.ProductId, ProductName = b.Product.Name,
                 LotNumber = b.LotNumber, ManufacturedDate = b.ManufacturedDate,
                 ExpiryDate = b.ExpiryDate, InitialQuantity = b.InitialQuantity,
-                RemainingQuantity = b.RemainingQuantity
+                RemainingQuantity = b.RemainingQuantity, Notes = b.Notes
             }).ToListAsync();
+    }
+
+    public async Task<BatchDto> UpdateBatchAsync(int tenantId, int id, UpdateBatchDto dto)
+    {
+        var b = await _db.Batches.Include(x => x.Product)
+            .FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId)
+            ?? throw new Exception("Batch not found");
+
+        if (string.IsNullOrWhiteSpace(dto.LotNumber))
+            throw new Exception("LotNumber is required");
+
+        var lotExists = await _db.Batches.AnyAsync(x =>
+            x.TenantId == tenantId && x.ProductId == b.ProductId &&
+            x.LotNumber == dto.LotNumber && x.Id != id);
+        if (lotExists) throw new Exception("LotNumber already exists for this product");
+
+        b.LotNumber = dto.LotNumber;
+        b.ExpiryDate = dto.ExpiryDate;
+        b.Notes = dto.Notes;
+        await _db.SaveChangesAsync();
+
+        return new BatchDto
+        {
+            Id = b.Id, ProductId = b.ProductId, ProductName = b.Product.Name,
+            LotNumber = b.LotNumber, ManufacturedDate = b.ManufacturedDate,
+            ExpiryDate = b.ExpiryDate, InitialQuantity = b.InitialQuantity,
+            RemainingQuantity = b.RemainingQuantity, Notes = b.Notes
+        };
+    }
+
+    public async Task DeleteBatchAsync(int tenantId, int id)
+    {
+        var b = await _db.Batches.FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId)
+            ?? throw new Exception("Batch not found");
+
+        var hasStock = await _db.WarehouseStocks
+            .AnyAsync(s => s.BatchId == id && s.Quantity > 0);
+        if (hasStock)
+            throw new Exception("Cannot delete batch: it has remaining stock in warehouse");
+
+        b.IsDeleted = true;
+        await _db.SaveChangesAsync();
     }
 }

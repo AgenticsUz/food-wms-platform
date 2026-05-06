@@ -13,4 +13,6 @@ public interface IWarehouseService
     Task<List<LocationDto>> GetLocationsAsync(int tenantId, int? warehouseId = null);
     Task<LocationDto> CreateLocationAsync(int tenantId, CreateLocationDto dto);
     Task<List<BatchDto>> GetBatchesAsync(int tenantId);
+    Task<BatchDto> UpdateBatchAsync(int tenantId, int id, UpdateBatchDto dto);
+    Task DeleteBatchAsync(int tenantId, int id);
 }
