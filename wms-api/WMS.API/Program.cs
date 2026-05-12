@@ -47,6 +47,7 @@ builder.Services.AddScoped<IQcService, QcService>();
 builder.Services.AddScoped<IPortalAuthService, PortalAuthService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IBatchExpiryService, BatchExpiryService>();
 builder.Services.AddScoped<IExportService, ExportService>();
 builder.Services.AddScoped<ITransferPdfService, TransferPdfService>();
 builder.Services.AddScoped<IImportService, ImportService>();

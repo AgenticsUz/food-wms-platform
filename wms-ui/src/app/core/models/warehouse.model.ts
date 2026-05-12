@@ -42,7 +42,14 @@ export interface Batch {
   expiryDate: string | null;
   initialQuantity: number;
   remainingQuantity: number;
+  notes?: string | null;
   createdAt: string;
+}
+
+export interface UpdateBatchDto {
+  lotNumber: string;
+  expiryDate: string | null;
+  notes: string | null;
 }
 
 // Grouped stock from GET /api/warehouses/{id}/stock

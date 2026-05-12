@@ -3,6 +3,7 @@ import { NgClass } from '@angular/common';
 import { Popover } from 'primeng/popover';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { NotificationBellService } from '../../../core/services/notification-bell.service';
+import { NotificationItem, NotificationType } from '../../../core/models/notification.model';
 
 @Component({
   selector: 'app-notification-bell',
@@ -12,7 +13,7 @@ import { NotificationBellService } from '../../../core/services/notification-bel
   styles: [`
     .notif-item { border-bottom: 1px solid var(--border); transition: background 0.15s; }
     .notif-item:hover { background: var(--bg-muted) !important; }
-    .notif-item.unread { background: rgba(99,102,241,0.05); }
+    .notif-item.unread { background: rgba(94,149,64,0.06); }
     .notif-message { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   `],
   template: `
@@ -66,7 +67,7 @@ import { NotificationBellService } from '../../../core/services/notification-bel
               </div>
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-semibold m-0" style="color: var(--text-primary)">
-                  {{ n.title }}
+                  {{ getTypeTitle(n.type, t) || n.title }}
                 </p>
                 <p class="notif-message text-xs mt-0.5 m-0" style="color: var(--text-secondary)">
                   {{ n.message }}
@@ -89,26 +90,61 @@ import { NotificationBellService } from '../../../core/services/notification-bel
 export class NotificationBellComponent {
   bellService = inject(NotificationBellService);
 
-  onNotificationClick(n: { id: number; entityType?: string; entityId?: number }, overlay: Popover) {
-    this.bellService.navigateToEntity(n as any);
+  onNotificationClick(n: NotificationItem, overlay: Popover) {
+    this.bellService.navigateToEntity(n);
     overlay.hide();
   }
 
-  getIcon(type: number): string {
-    const icons: Record<number, string> = {
-      1: 'pi-info-circle', 2: 'pi-exclamation-triangle', 3: 'pi-exclamation-triangle',
-      4: 'pi-check-circle', 5: 'pi-times-circle', 6: 'pi-times-circle'
+  getIcon(type: NotificationType): string {
+    const icons: Record<NotificationType, string> = {
+      [NotificationType.Info]:                'pi-info-circle',
+      [NotificationType.Warning]:             'pi-exclamation-triangle',
+      [NotificationType.LowStock]:            'pi-box',
+      [NotificationType.TransferConfirmed]:   'pi-check-circle',
+      [NotificationType.TransferRejected]:    'pi-times-circle',
+      [NotificationType.Error]:               'pi-times-circle',
+      [NotificationType.BatchExpiring]:       'pi-clock',
+      [NotificationType.BatchExpired]:        'pi-exclamation-circle',
+      [NotificationType.ProductionStarted]:   'pi-cog',
+      [NotificationType.ProductionCompleted]: 'pi-check-circle'
     };
     return icons[type] ?? 'pi-bell';
   }
 
-  getIconBg(type: number): string {
-    const bgs: Record<number, string> = {
-      1: 'bg-blue-100 text-blue-600', 2: 'bg-amber-100 text-amber-600',
-      3: 'bg-amber-100 text-amber-600', 4: 'bg-emerald-100 text-emerald-600',
-      5: 'bg-red-100 text-red-600', 6: 'bg-red-100 text-red-600'
+  getIconBg(type: NotificationType): string {
+    const bgs: Record<NotificationType, string> = {
+      [NotificationType.Info]:                'bg-blue-100 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400',
+      [NotificationType.Warning]:             'bg-amber-100 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400',
+      [NotificationType.LowStock]:            'bg-orange-100 text-orange-600 dark:bg-orange-900/20 dark:text-orange-400',
+      [NotificationType.TransferConfirmed]:   'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400',
+      [NotificationType.TransferRejected]:    'bg-rose-100 text-rose-600 dark:bg-rose-900/20 dark:text-rose-400',
+      [NotificationType.Error]:               'bg-red-100 text-red-600 dark:bg-red-900/20 dark:text-red-400',
+      [NotificationType.BatchExpiring]:       'bg-amber-100 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400',
+      [NotificationType.BatchExpired]:        'bg-red-100 text-red-700 dark:bg-red-900/25 dark:text-red-400',
+      [NotificationType.ProductionStarted]:   'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400',
+      [NotificationType.ProductionCompleted]: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400'
     };
-    return bgs[type] ?? 'bg-gray-100 text-gray-600';
+    return bgs[type] ?? 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300';
+  }
+
+  getTypeTitle(type: NotificationType, t: (key: string) => string): string {
+    const keys: Record<NotificationType, string> = {
+      [NotificationType.Info]:                'notifications.types.info',
+      [NotificationType.Warning]:             'notifications.types.warning',
+      [NotificationType.LowStock]:            'notifications.types.lowStock',
+      [NotificationType.TransferConfirmed]:   'notifications.types.transferConfirmed',
+      [NotificationType.TransferRejected]:    'notifications.types.transferRejected',
+      [NotificationType.Error]:               'notifications.types.error',
+      [NotificationType.BatchExpiring]:       'notifications.types.batchExpiring',
+      [NotificationType.BatchExpired]:        'notifications.types.batchExpired',
+      [NotificationType.ProductionStarted]:   'notifications.types.productionStarted',
+      [NotificationType.ProductionCompleted]: 'notifications.types.productionCompleted'
+    };
+    const key = keys[type];
+    if (!key) return '';
+    const translated = t(key);
+    // Fallback: agar tarjima topilmasa transloco kalitning o'zini qaytaradi
+    return translated && translated !== key ? translated : '';
   }
 
   getRelativeTime(dateStr: string): string {

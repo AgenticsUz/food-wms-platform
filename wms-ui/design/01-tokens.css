@@ -1,0 +1,122 @@
+/* ============================================================
+   01 — Design Tokens
+   File: src/styles.scss (yoki yangi src/styles/tokens.css)
+   Tailwind v4 @theme syntax + CSS variables
+   ============================================================ */
+
+@import "tailwindcss";
+
+/* ---- Tailwind v4 theme tokens ---- */
+@theme {
+  /* Cream — fon */
+  --color-cream-50:  #fbf8f3;
+  --color-cream-100: #f6f1e7;
+  --color-cream-200: #ede4d0;
+
+  /* Pistachio — asosiy aksent */
+  --color-pistachio-50:  #f0f7ec;
+  --color-pistachio-100: #ddedce;
+  --color-pistachio-200: #b8d99c;
+  --color-pistachio-400: #7eb35a;
+  --color-pistachio-500: #5e9540;
+  --color-pistachio-600: #4a7a32;
+  --color-pistachio-700: #355823;
+
+  /* Berry / malina */
+  --color-berry-50:  #fdf2f4;
+  --color-berry-100: #fce4e8;
+  --color-berry-300: #f0a3b1;
+  --color-berry-500: #d94c66;
+  --color-berry-600: #b73951;
+  --color-berry-700: #8d2a3d;
+
+  /* Caramel */
+  --color-caramel-50:  #fdf6e9;
+  --color-caramel-100: #fae9c4;
+  --color-caramel-300: #e8b964;
+  --color-caramel-500: #c8902f;
+  --color-caramel-600: #9a6c1e;
+
+  /* Cocoa — matn */
+  --color-cocoa-50:  #f7f5f2;
+  --color-cocoa-100: #ece8e1;
+  --color-cocoa-200: #d6cfc2;
+  --color-cocoa-300: #b3a895;
+  --color-cocoa-400: #8a7e6a;
+  --color-cocoa-500: #635846;
+  --color-cocoa-600: #443c2f;
+  --color-cocoa-700: #2c2620;
+  --color-cocoa-900: #1a1612;
+
+  /* Blueberry */
+  --color-blueberry-100: #dde6f5;
+  --color-blueberry-500: #4a6fb5;
+  --color-blueberry-600: #36548f;
+
+  /* Fonts */
+  --font-sans: 'Inter', 'DM Sans', system-ui, sans-serif;
+  --font-display: 'Fraunces', 'Inter', serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
+
+  /* Radii */
+  --radius-lg: 1rem;
+  --radius-xl: 1.375rem;
+  --radius-2xl: 1.75rem;
+
+  /* Shadows */
+  --shadow-soft: 0 2px 6px rgba(99,88,70,0.06), 0 1px 2px rgba(99,88,70,0.04);
+  --shadow-card: 0 6px 20px rgba(99,88,70,0.08), 0 2px 6px rgba(99,88,70,0.04);
+  --shadow-pop:  0 18px 40px rgba(99,88,70,0.10), 0 6px 14px rgba(99,88,70,0.05);
+}
+
+/* ---- Surface & semantic aliases (CSS variables, runtime) ---- */
+:root {
+  --bg-app:       var(--color-cream-50);
+  --bg-surface:   #ffffff;
+  --bg-muted:     var(--color-cream-100);
+  --bg-inset:     var(--color-cocoa-50);
+
+  --border-subtle:  rgba(99, 88, 70, 0.08);
+  --border-default: rgba(99, 88, 70, 0.14);
+  --border-strong:  rgba(99, 88, 70, 0.22);
+
+  --text-primary:   var(--color-cocoa-700);
+  --text-secondary: var(--color-cocoa-500);
+  --text-muted:     var(--color-cocoa-400);
+
+  /* Functional */
+  --color-success: var(--color-pistachio-500);
+  --color-warning: var(--color-caramel-500);
+  --color-danger:  var(--color-berry-500);
+  --color-info:    var(--color-blueberry-500);
+}
+
+/* ---- Dark mode (xohish bo'lsa keyin) ---- */
+.dark {
+  --bg-app:       #1a1612;
+  --bg-surface:   #2c2620;
+  --bg-muted:     #443c2f;
+  --text-primary: #fbf8f3;
+  --text-secondary: #d6cfc2;
+  --text-muted:   #b3a895;
+  --border-subtle:  rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.12);
+}
+
+/* ---- Base body ---- */
+html, body {
+  background: var(--bg-app);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-feature-settings: "ss01", "cv11";
+  letter-spacing: -0.005em;
+  -webkit-font-smoothing: antialiased;
+}
+
+.num, .tabular { font-variant-numeric: tabular-nums; }
+.display {
+  font-family: var(--font-display);
+  font-variation-settings: "opsz" 32, "SOFT" 50;
+  letter-spacing: -0.025em;
+  font-weight: 500;
+}

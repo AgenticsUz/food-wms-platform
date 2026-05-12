@@ -10,7 +10,12 @@ namespace WMS.Infrastructure.Services;
 public class ProductionService : IProductionService
 {
     private readonly WmsDbContext _db;
-    public ProductionService(WmsDbContext db) => _db = db;
+    private readonly INotificationService _notifications;
+    public ProductionService(WmsDbContext db, INotificationService notifications)
+    {
+        _db = db;
+        _notifications = notifications;
+    }
 
     // === Stages ===
     public async Task<List<ProductionStageDto>> GetStagesAsync(int tenantId)
@@ -256,12 +261,21 @@ public class ProductionService : IProductionService
 
     public async Task<ProductionOrderDto> StartOrderAsync(int tenantId, int id)
     {
-        var order = await _db.ProductionOrders.FirstOrDefaultAsync(o => o.Id == id && o.TenantId == tenantId)
+        var order = await _db.ProductionOrders
+            .Include(o => o.AssignedToUser)
+            .FirstOrDefaultAsync(o => o.Id == id && o.TenantId == tenantId)
             ?? throw new Exception("Order not found");
         if (order.Status != ProductionOrderStatus.Draft)
             throw new Exception("Only draft orders can be started");
         order.Status = ProductionOrderStatus.InProgress;
         await _db.SaveChangesAsync();
+
+        var assignee = order.AssignedToUser?.FullName ?? "—";
+        await _notifications.CreateAsync(tenantId, null,
+            "Production Started",
+            $"Buyurtma #{order.Id} boshlandi. Javobgar: {assignee}",
+            NotificationType.ProductionStarted, "ProductionOrder", order.Id);
+
         return await GetOrderByIdAsync(tenantId, id);
     }
 
@@ -364,6 +378,15 @@ public class ProductionService : IProductionService
         }
 
         await _db.SaveChangesAsync();
+
+        var totalQty = order.StageExecutions
+            .Where(se => se.Status == StageExecutionStatus.Completed)
+            .Sum(se => se.ActualQuantity);
+        await _notifications.CreateAsync(tenantId, null,
+            "Production Completed",
+            $"Buyurtma #{order.Id} bajarildi. {totalQty:N0} dona {order.Recipe.OutputProduct.Name} tayyor omborga kiritildi",
+            NotificationType.ProductionCompleted, "ProductionOrder", order.Id);
+
         return await GetOrderByIdAsync(tenantId, id);
     }
 

@@ -3,6 +3,8 @@ import { Router } from '@angular/router';
 import { ApiService } from './api.service';
 import { NotificationItem } from '../models/notification.model';
 
+const LAST_BATCH_EXPIRY_CHECK = 'lastBatchExpiryCheck';
+
 @Injectable({ providedIn: 'root' })
 export class NotificationBellService {
   private api = inject(ApiService);
@@ -41,15 +43,64 @@ export class NotificationBellService {
   }
 
   navigateToEntity(notification: NotificationItem) {
-    this.markAsRead(notification.id);
-    if (notification.entityType === 'Transfer' && notification.entityId) {
-      this.router.navigate(['/transfers', notification.entityId]);
+    if (!notification.isRead) this.markAsRead(notification.id);
+
+    if (!notification.entityType || !notification.entityId) return;
+
+    switch (notification.entityType) {
+      case 'Transfer':
+        this.router.navigate(['/transfers', notification.entityId]);
+        break;
+      case 'Batch':
+        this.router.navigate(['/warehouse/batches'], {
+          queryParams: { highlight: notification.entityId }
+        });
+        break;
+      case 'ProductionOrder':
+        this.router.navigate(['/production/orders', notification.entityId]);
+        break;
+      case 'Product':
+        this.router.navigate(['/products'], {
+          queryParams: { highlight: notification.entityId }
+        });
+        break;
     }
+  }
+
+  /**
+   * Backend tomondan batch expiry skanerini chaqiradi.
+   * Idempotent — kuniga bir marta yuboramiz (localStorage bilan tekshirib).
+   * Xato bo'lsa sezdirmasdan o'tib ketamiz — kritik emas.
+   */
+  triggerBatchExpiryCheck(warningDaysAhead = 3) {
+    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    const last = localStorage.getItem(LAST_BATCH_EXPIRY_CHECK);
+    if (last === today) return;
+
+    this.api
+      .post<{ created: number }>(
+        `notifications/check-expiring-batches?warningDaysAhead=${warningDaysAhead}`,
+        null
+      )
+      .subscribe({
+        next: () => {
+          localStorage.setItem(LAST_BATCH_EXPIRY_CHECK, today);
+          // yangilangan ro'yxatni darhol yuklaymiz
+          this.loadUnreadCount();
+          this.loadNotifications();
+        },
+        error: () => {
+          // ignore
+        }
+      });
   }
 
   startPolling() {
     this.loadUnreadCount();
     this.loadNotifications();
+    // Login/boot vaqtida bir marta — kuniga bitta tekshiruv
+    this.triggerBatchExpiryCheck();
+
     this.intervalId = setInterval(() => {
       this.loadUnreadCount();
     }, 60000);

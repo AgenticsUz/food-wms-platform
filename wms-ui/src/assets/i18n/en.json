@@ -126,6 +126,20 @@
     "addWarehouse": "Add Warehouse",
     "addLocation": "Add Location"
   },
+  "batch": {
+    "edit": "Edit",
+    "delete": "Delete",
+    "editTitle": "Edit batch",
+    "lotNumber": "Lot number",
+    "expiryDate": "Expiry date",
+    "notes": "Notes",
+    "quantityReadonly": "Quantity cannot be changed (for safety)",
+    "deleteConfirm": "Deleting a batch affects warehouse stock. Only delete in case of incorrect entry. Continue?",
+    "deletedSuccess": "Batch deleted",
+    "updatedSuccess": "Batch updated",
+    "cannotDelete": "This batch has remaining stock in warehouse — cannot delete",
+    "lotRequired": "Lot number is required"
+  },
   "transfer": {
     "transfers": "Transfers",
     "manageTransfers": "Manage incoming, outgoing and internal transfers",
@@ -375,7 +389,19 @@
   "notifications": {
     "title": "Notifications",
     "markAllRead": "Mark all as read",
-    "empty": "No notifications"
+    "empty": "No notifications",
+    "types": {
+      "info": "Info",
+      "warning": "Warning",
+      "lowStock": "Low stock",
+      "transferConfirmed": "Transfer confirmed",
+      "transferRejected": "Transfer rejected",
+      "error": "Error",
+      "batchExpiring": "Batch expiring",
+      "batchExpired": "Batch expired",
+      "productionStarted": "Production started",
+      "productionCompleted": "Production completed"
+    }
   },
   "barcode": {
     "searchPlaceholder": "Scan barcode or search by name...",

@@ -7,5 +7,9 @@ public enum NotificationType
     LowStock = 3,
     TransferConfirmed = 4,
     TransferRejected = 5,
-    Error = 6
+    Error = 6,
+    BatchExpiring = 7,
+    BatchExpired = 8,
+    ProductionStarted = 9,
+    ProductionCompleted = 10
 }

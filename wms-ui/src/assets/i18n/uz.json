@@ -126,6 +126,20 @@
     "addWarehouse": "Ombor qo'shish",
     "addLocation": "Joy qo'shish"
   },
+  "batch": {
+    "edit": "Tahrirlash",
+    "delete": "O'chirish",
+    "editTitle": "Partiyani tahrirlash",
+    "lotNumber": "Lot raqami",
+    "expiryDate": "Yaroqlilik muddati",
+    "notes": "Izoh",
+    "quantityReadonly": "Miqdor o'zgartirib bo'lmaydi (xavfsizlik uchun)",
+    "deleteConfirm": "Partiyani o'chirish ombor hisobiga ta'sir qiladi. Faqat xato kiritilgan hollarda o'chiring. Davom etilsinmi?",
+    "deletedSuccess": "Partiya o'chirildi",
+    "updatedSuccess": "Partiya yangilandi",
+    "cannotDelete": "Bu partiyada ombor qoldig'i mavjud — o'chirib bo'lmaydi",
+    "lotRequired": "Lot raqami majburiy"
+  },
   "transfer": {
     "transfers": "O'tkazmalar",
     "manageTransfers": "Kirim, chiqim va ichki o'tkazmalarni boshqarish",
@@ -375,7 +389,19 @@
   "notifications": {
     "title": "Bildirishnomalar",
     "markAllRead": "Hammasini o'qilgan deb belgilash",
-    "empty": "Bildirishnomalar yo'q"
+    "empty": "Bildirishnomalar yo'q",
+    "types": {
+      "info": "Ma'lumot",
+      "warning": "Ogohlantirish",
+      "lowStock": "Zaxira kam",
+      "transferConfirmed": "O'tkazma tasdiqlandi",
+      "transferRejected": "O'tkazma rad etildi",
+      "error": "Xato",
+      "batchExpiring": "Partiya muddati yaqin",
+      "batchExpired": "Partiya muddati o'tgan",
+      "productionStarted": "Ishlab chiqarish boshlandi",
+      "productionCompleted": "Ishlab chiqarish tugadi"
+    }
   },
   "barcode": {
     "searchPlaceholder": "Shtrix kodni skanerlang yoki nomi bo'yicha qidiring...",

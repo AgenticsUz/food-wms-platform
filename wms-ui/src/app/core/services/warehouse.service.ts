@@ -8,6 +8,7 @@ import {
   Location,
   LocationCreateDto,
   Batch,
+  UpdateBatchDto,
   WarehouseStockGrouped,
   WarehouseStockDetail,
   WarehouseStockRow,
@@ -92,5 +93,13 @@ export class WarehouseService {
   // Batches
   getBatches(params?: Record<string, string | number | boolean>) {
     return this.api.get<Batch[]>('batches', params);
+  }
+
+  updateBatch(id: number, dto: UpdateBatchDto) {
+    return this.api.put<Batch>(`batches/${id}`, dto);
+  }
+
+  deleteBatch(id: number) {
+    return this.api.delete<void>(`batches/${id}`);
   }
 }

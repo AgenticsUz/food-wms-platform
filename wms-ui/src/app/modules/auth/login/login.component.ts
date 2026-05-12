@@ -8,6 +8,7 @@ import { InputGroupAddon } from 'primeng/inputgroupaddon';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { AuthService } from '../../../core/services/auth.service';
 import { TenantService } from '../../../core/services/tenant.service';
+import { NotificationBellService } from '../../../core/services/notification-bell.service';
 import { NotificationService } from '../../../shared/services/notification.service';
 import { LoadingService } from '../../../core/services/loading.service';
 import { environment } from '../../../../environments/environment';
@@ -23,6 +24,7 @@ import { environment } from '../../../../environments/environment';
 export default class LoginComponent {
   private authService = inject(AuthService);
   private tenantService = inject(TenantService);
+  private bellService = inject(NotificationBellService);
   private router = inject(Router);
   private notify = inject(NotificationService);
   private loadingService = inject(LoadingService);
@@ -56,6 +58,7 @@ export default class LoginComponent {
       next: () => {
         this.loading.set(false);
         this.tenantService.loadModules();
+        this.bellService.startPolling();
         this.router.navigate(['/dashboard']);
       },
       error: (err) => {
