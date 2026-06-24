@@ -10,6 +10,8 @@ public class CounterpartyDto
     public string? Phone { get; set; }
     public string? Address { get; set; }
     public string? Note { get; set; }
+    public int? AgentId { get; set; }
+    public string? AgentName { get; set; }
     public bool PortalEnabled { get; set; }
     public string? PortalPhone { get; set; }
 }
@@ -21,6 +23,7 @@ public class CreateCounterpartyDto
     public string? Phone { get; set; }
     public string? Address { get; set; }
     public string? Note { get; set; }
+    public int? AgentId { get; set; }
     public bool PortalEnabled { get; set; }
     public string? PortalPhone { get; set; }
     public string? PortalPassword { get; set; }
@@ -33,6 +36,7 @@ public class UpdateCounterpartyDto
     public string? Phone { get; set; }
     public string? Address { get; set; }
     public string? Note { get; set; }
+    public int? AgentId { get; set; }
     public bool PortalEnabled { get; set; }
     public string? PortalPhone { get; set; }
     public string? PortalPassword { get; set; }

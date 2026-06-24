@@ -25,6 +25,10 @@ public class WmsDbContext : DbContext
     // Counterparties
     public DbSet<Counterparty> Counterparties => Set<Counterparty>();
 
+    // Agents
+    public DbSet<Agent> Agents => Set<Agent>();
+    public DbSet<CommissionRecord> CommissionRecords => Set<CommissionRecord>();
+
     // Warehouse
     public DbSet<Warehouse> Warehouses => Set<Warehouse>();
     public DbSet<Location> Locations => Set<Location>();
@@ -94,6 +98,37 @@ public class WmsDbContext : DbContext
             .HasForeignKey(t => t.ToWarehouseId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // Agent relationships
+        modelBuilder.Entity<Transfer>()
+            .HasOne(t => t.Agent)
+            .WithMany()
+            .HasForeignKey(t => t.AgentId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Counterparty>()
+            .HasOne(c => c.Agent)
+            .WithMany()
+            .HasForeignKey(c => c.AgentId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Agent>()
+            .HasOne(a => a.User)
+            .WithMany()
+            .HasForeignKey(a => a.UserId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<CommissionRecord>()
+            .HasOne(cr => cr.Agent)
+            .WithMany()
+            .HasForeignKey(cr => cr.AgentId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<CommissionRecord>()
+            .HasOne(cr => cr.Transfer)
+            .WithMany()
+            .HasForeignKey(cr => cr.TransferId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         // Seed Modules (static dates required by EF Core to avoid PendingModelChangesWarning)
         var seedDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         modelBuilder.Entity<Module>().HasData(
@@ -131,7 +166,9 @@ public class WmsDbContext : DbContext
             new Permission { Id = 19, Code = "settings.roles", Name = "Manage Roles", Module = "SETTINGS", CreatedAt = seedDate, UpdatedAt = seedDate },
             new Permission { Id = 20, Code = "settings.modules", Name = "Manage Modules", Module = "SETTINGS", CreatedAt = seedDate, UpdatedAt = seedDate },
             new Permission { Id = 21, Code = "quality.view", Name = "View Quality", Module = "QUALITY", CreatedAt = seedDate, UpdatedAt = seedDate },
-            new Permission { Id = 22, Code = "quality.manage", Name = "Manage Quality", Module = "QUALITY", CreatedAt = seedDate, UpdatedAt = seedDate }
+            new Permission { Id = 22, Code = "quality.manage", Name = "Manage Quality", Module = "QUALITY", CreatedAt = seedDate, UpdatedAt = seedDate },
+            new Permission { Id = 23, Code = "agents.view", Name = "View Agents", Module = "AGENTS", CreatedAt = seedDate, UpdatedAt = seedDate },
+            new Permission { Id = 24, Code = "agents.manage", Name = "Manage Agents", Module = "AGENTS", CreatedAt = seedDate, UpdatedAt = seedDate }
         );
 
         if (Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")

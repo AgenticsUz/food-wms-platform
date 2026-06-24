@@ -22,8 +22,9 @@ public class CounterpartyService : ICounterpartyService
         return await q.Select(c => new CounterpartyDto
         {
             Id = c.Id, Name = c.Name, Type = c.Type, Phone = c.Phone,
-            Address = c.Address, Note = c.Note, PortalEnabled = c.PortalEnabled,
-            PortalPhone = c.PortalPhone
+            Address = c.Address, Note = c.Note, AgentId = c.AgentId,
+            AgentName = c.Agent != null ? c.Agent.Name : null,
+            PortalEnabled = c.PortalEnabled, PortalPhone = c.PortalPhone
         }).ToListAsync();
     }
 
@@ -32,7 +33,7 @@ public class CounterpartyService : ICounterpartyService
         var c = new Counterparty
         {
             TenantId = tenantId, Name = dto.Name, Type = dto.Type, Phone = PhoneHelper.Normalize(dto.Phone),
-            Address = dto.Address, Note = dto.Note, PortalEnabled = dto.PortalEnabled,
+            Address = dto.Address, Note = dto.Note, AgentId = dto.AgentId, PortalEnabled = dto.PortalEnabled,
             PortalPhone = PhoneHelper.Normalize(dto.PortalPhone),
             PortalPasswordHash = !string.IsNullOrEmpty(dto.PortalPassword)
                 ? BCrypt.Net.BCrypt.HashPassword(dto.PortalPassword) : null
@@ -47,7 +48,7 @@ public class CounterpartyService : ICounterpartyService
         var c = await _db.Counterparties.FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId)
             ?? throw new Exception("Counterparty not found");
         c.Name = dto.Name; c.Type = dto.Type; c.Phone = PhoneHelper.Normalize(dto.Phone);
-        c.Address = dto.Address; c.Note = dto.Note; c.PortalEnabled = dto.PortalEnabled;
+        c.Address = dto.Address; c.Note = dto.Note; c.AgentId = dto.AgentId; c.PortalEnabled = dto.PortalEnabled;
         c.PortalPhone = PhoneHelper.Normalize(dto.PortalPhone);
         if (!string.IsNullOrEmpty(dto.PortalPassword))
             c.PortalPasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.PortalPassword);
@@ -94,7 +95,7 @@ public class CounterpartyService : ICounterpartyService
     private static CounterpartyDto MapToDto(Counterparty c) => new()
     {
         Id = c.Id, Name = c.Name, Type = c.Type, Phone = c.Phone,
-        Address = c.Address, Note = c.Note, PortalEnabled = c.PortalEnabled,
+        Address = c.Address, Note = c.Note, AgentId = c.AgentId, PortalEnabled = c.PortalEnabled,
         PortalPhone = c.PortalPhone
     };
 }

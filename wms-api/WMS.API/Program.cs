@@ -38,6 +38,7 @@ builder.Services.AddScoped<ITenantService, TenantService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICounterpartyService, CounterpartyService>();
+builder.Services.AddScoped<IAgentService, AgentService>();
 builder.Services.AddScoped<IWarehouseService, WarehouseService>();
 builder.Services.AddScoped<ITransferService, TransferService>();
 builder.Services.AddScoped<IProductionService, ProductionService>();

@@ -13,6 +13,9 @@ public class Transfer : BaseEntity
     public Warehouse? ToWarehouse { get; set; }
     public int? CounterpartyId { get; set; }
     public Counterparty? Counterparty { get; set; }
+    public int? AgentId { get; set; }                 // sale via agent (optional)
+    public Agent? Agent { get; set; }
+    public decimal? CommissionPercent { get; set; }   // override of agent percent for this sale
     public int? CreatedByUserId { get; set; }
     public User? CreatedByUser { get; set; }
     public TransferStatus Status { get; set; } = TransferStatus.Pending;

@@ -20,6 +20,7 @@ public class TransferService : ITransferService
         var q = _db.Transfers.Where(t => t.TenantId == tenantId)
             .Include(t => t.FromWarehouse).Include(t => t.ToWarehouse)
             .Include(t => t.Counterparty).Include(t => t.CreatedByUser)
+            .Include(t => t.Agent)
             .Include(t => t.Items).ThenInclude(i => i.Product).ThenInclude(p => p.Unit)
             .AsQueryable();
 
@@ -47,6 +48,7 @@ public class TransferService : ITransferService
         {
             TenantId = tenantId, Type = dto.Type, FromWarehouseId = dto.FromWarehouseId,
             ToWarehouseId = dto.ToWarehouseId, CounterpartyId = dto.CounterpartyId,
+            AgentId = dto.AgentId, CommissionPercent = dto.CommissionPercent,
             CreatedByUserId = userId, Note = dto.Note, Status = TransferStatus.Pending
         };
 
@@ -90,6 +92,10 @@ public class TransferService : ITransferService
 
         // Update debt
         await UpdateDebt(transfer, tenantId);
+
+        // Record agent commission (sale via agent)
+        await CreateCommission(transfer, tenantId);
+
         await _db.SaveChangesAsync();
 
         // Check low stock after outgoing
@@ -275,6 +281,36 @@ public class TransferService : ITransferService
         }
     }
 
+    private async Task CreateCommission(Transfer transfer, int tenantId)
+    {
+        // Only outgoing sales routed through an agent earn a commission.
+        if (transfer.Type != TransferType.Outgoing || transfer.AgentId == null) return;
+
+        // Avoid duplicates if confirm is somehow re-run.
+        var exists = await _db.CommissionRecords
+            .AnyAsync(c => c.TenantId == tenantId && c.TransferId == transfer.Id);
+        if (exists) return;
+
+        var agent = await _db.Agents
+            .FirstOrDefaultAsync(a => a.Id == transfer.AgentId.Value && a.TenantId == tenantId);
+        if (agent == null) return;
+
+        var saleAmount = transfer.Items.Sum(i => i.Quantity * i.UnitPrice);
+        var percent = transfer.CommissionPercent ?? agent.CommissionPercent;
+        var commission = Math.Round(saleAmount * percent / 100m, 2);
+
+        _db.CommissionRecords.Add(new CommissionRecord
+        {
+            TenantId = tenantId,
+            AgentId = agent.Id,
+            TransferId = transfer.Id,
+            SaleAmount = saleAmount,
+            CommissionPercent = percent,
+            CommissionAmount = commission,
+            Status = CommissionStatus.Pending
+        });
+    }
+
     private async Task CheckLowStock(Transfer transfer, int tenantId)
     {
         var productIds = transfer.Items.Select(i => i.ProductId).Distinct().ToList();
@@ -303,6 +339,7 @@ public class TransferService : ITransferService
         return await _db.Transfers
             .Include(t => t.FromWarehouse).Include(t => t.ToWarehouse)
             .Include(t => t.Counterparty).Include(t => t.CreatedByUser)
+            .Include(t => t.Agent)
             .Include(t => t.Items).ThenInclude(i => i.Product).ThenInclude(p => p.Unit)
             .Include(t => t.Items).ThenInclude(i => i.Batch)
             .FirstOrDefaultAsync(t => t.Id == id && t.TenantId == tenantId)
@@ -315,6 +352,7 @@ public class TransferService : ITransferService
         FromWarehouseId = t.FromWarehouseId, FromWarehouseName = t.FromWarehouse?.Name,
         ToWarehouseId = t.ToWarehouseId, ToWarehouseName = t.ToWarehouse?.Name,
         CounterpartyId = t.CounterpartyId, CounterpartyName = t.Counterparty?.Name,
+        AgentId = t.AgentId, AgentName = t.Agent?.Name, CommissionPercent = t.CommissionPercent,
         CreatedByUserId = t.CreatedByUserId, CreatedByUserName = t.CreatedByUser?.FullName,
         Note = t.Note, ConfirmedAt = t.ConfirmedAt, CreatedAt = t.CreatedAt,
         TotalAmount = t.Items.Sum(i => i.Quantity * i.UnitPrice),

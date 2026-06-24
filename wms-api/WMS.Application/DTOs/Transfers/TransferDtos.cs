@@ -13,6 +13,9 @@ public class TransferDto
     public string? ToWarehouseName { get; set; }
     public int? CounterpartyId { get; set; }
     public string? CounterpartyName { get; set; }
+    public int? AgentId { get; set; }
+    public string? AgentName { get; set; }
+    public decimal? CommissionPercent { get; set; }
     public int? CreatedByUserId { get; set; }
     public string? CreatedByUserName { get; set; }
     public string? Note { get; set; }
@@ -41,6 +44,8 @@ public class CreateTransferDto
     public int? FromWarehouseId { get; set; }
     public int? ToWarehouseId { get; set; }
     public int? CounterpartyId { get; set; }
+    public int? AgentId { get; set; }
+    public decimal? CommissionPercent { get; set; }
     public string? Note { get; set; }
     public List<CreateTransferItemDto> Items { get; set; } = new();
 }
