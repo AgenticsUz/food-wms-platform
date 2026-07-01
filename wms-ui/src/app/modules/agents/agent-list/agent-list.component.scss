@@ -1,0 +1,15 @@
+@use '../../../shared/styles/module-common';
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-field.full-width {
+  grid-column: 1 / -1;
+}
+
+.clickable-row {
+  cursor: pointer;
+}

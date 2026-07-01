@@ -1,0 +1,128 @@
+<div class="page-enter" *transloco="let t">
+  <app-page-header [title]="t('agent.title')" [subtitle]="t('agent.manageAgents')">
+    <ng-container *hasPermission="'agents.manage'">
+      <p-button icon="pi pi-plus" [label]="t('agent.addAgent')" (onClick)="openNew()" />
+    </ng-container>
+  </app-page-header>
+
+  <div class="wms-card table-wrapper">
+    <p-table
+      [value]="agents()"
+      [loading]="loading()"
+      [paginator]="true"
+      [rows]="20"
+      [scrollable]="true"
+      styleClass="p-datatable-sm p-datatable-striped"
+    >
+      <ng-template #header>
+        <tr>
+          <th pSortableColumn="name">{{ t('agent.name') }} <p-sortIcon field="name" /></th>
+          <th>{{ t('agent.phone') }}</th>
+          <th class="text-right">{{ t('agent.commission') }}</th>
+          <th class="text-right">{{ t('agent.totalSales') }}</th>
+          <th class="text-right">{{ t('agent.commissionDue') }}</th>
+          <th class="text-center">{{ t('agent.active') }}</th>
+          <th class="text-center">{{ t('common.actions') }}</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-agent>
+        <tr class="clickable-row" (click)="openDetail(agent)">
+          <td>
+            <span class="item-name">{{ agent.name }}</span>
+          </td>
+          <td>
+            <span class="number">{{ agent.phone || '-' }}</span>
+          </td>
+          <td class="text-right">
+            <span class="number">{{ agent.commissionPercent }}%</span>
+          </td>
+          <td class="text-right">
+            <span class="number">{{ agent.totalSales | number:'1.0-0' }}</span>
+          </td>
+          <td class="text-right">
+            <span class="number">{{ agent.commissionDue | number:'1.0-0' }}</span>
+          </td>
+          <td class="text-center">
+            <app-status-badge
+              [status]="agent.isActive ? 'Active' : 'Cancelled'"
+              [label]="agent.isActive ? t('common.active') : t('common.inactive')"
+            />
+          </td>
+          <td class="text-center actions-cell" (click)="$event.stopPropagation()">
+            <ng-container *hasPermission="'agents.manage'">
+              <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info" [pTooltip]="t('common.edit')" (onClick)="openEdit(agent)" />
+              <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" [pTooltip]="t('common.delete')" (onClick)="deleteAgent(agent)" />
+            </ng-container>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="7">
+            <div class="empty-state">
+              <i class="pi pi-id-card"></i>
+              <p>{{ t('common.noData') }}</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>
+
+<ng-container *transloco="let t">
+  <p-dialog
+    [header]="editing() ? t('agent.editAgent') : t('agent.addAgent')"
+    [(visible)]="dialogVisible"
+    [modal]="true"
+    [style]="{ width: '520px' }"
+    [draggable]="false"
+  >
+    <div class="form-grid">
+      <div class="form-field full-width">
+        <label>{{ t('agent.name') }} *</label>
+        <input pInputText [ngModel]="form().name" (ngModelChange)="updateForm('name', $event)" class="w-full" />
+      </div>
+
+      <div class="form-field">
+        <label>{{ t('agent.phone') }}</label>
+        <app-phone-input [ngModel]="form().phone" (ngModelChange)="updateForm('phone', $event)" />
+      </div>
+
+      <div class="form-field">
+        <label>{{ t('agent.commission') }} (%)</label>
+        <p-inputnumber [ngModel]="form().commissionPercent" (ngModelChange)="updateForm('commissionPercent', $event)"
+          [min]="0" [max]="100" [minFractionDigits]="0" [maxFractionDigits]="2" styleClass="w-full" inputStyleClass="w-full" />
+      </div>
+
+      <div class="form-field full-width">
+        <label>{{ t('agent.active') }}</label>
+        <p-toggleswitch [ngModel]="form().isActive" (ngModelChange)="updateForm('isActive', $event)" />
+      </div>
+
+      <div class="form-field full-width">
+        <label>{{ t('agent.portalAccess') }}</label>
+        <p-toggleswitch [ngModel]="form().portalEnabled" (ngModelChange)="updateForm('portalEnabled', $event)" />
+      </div>
+
+      @if (form().portalEnabled) {
+        <div class="form-field">
+          <label>{{ t('agent.portalPhone') }} *</label>
+          <app-phone-input [ngModel]="form().portalPhone" (ngModelChange)="updateForm('portalPhone', $event)" />
+        </div>
+
+        <div class="form-field">
+          <label>{{ t('agent.portalPassword') }} {{ editing() ? '' : '*' }}</label>
+          <p-password [ngModel]="form().portalPassword" (ngModelChange)="updateForm('portalPassword', $event)"
+            [toggleMask]="true" [feedback]="false" styleClass="w-full" inputStyleClass="w-full"
+            [placeholder]="editing() ? '••••••' : ''" />
+        </div>
+      }
+    </div>
+
+    <ng-template #footer>
+      <p-button [label]="t('common.cancel')" [text]="true" (onClick)="dialogVisible.set(false)" />
+      <p-button [label]="editing() ? t('common.update') : t('common.create')" icon="pi pi-check" (onClick)="save()" [loading]="saving()" />
+    </ng-template>
+  </p-dialog>
+</ng-container>

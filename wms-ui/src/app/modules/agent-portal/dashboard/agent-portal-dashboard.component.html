@@ -1,0 +1,91 @@
+<div *transloco="let t">
+  <div class="welcome">
+    <h1>{{ t('agentPortal.welcome') }}, {{ agentName }} 👋</h1>
+    <p>{{ t('agentPortal.subtitle') }}</p>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="detail-grid">
+    <div class="wms-card summary-card">
+      <div class="card-icon icon-blue"><i class="pi pi-shopping-cart"></i></div>
+      <div class="card-content">
+        <span class="card-value number">{{ (report()?.totalSales ?? 0) | number:'1.0-0' }}</span>
+      </div>
+      <span class="card-label">{{ t('agent.totalSales') }} ({{ report()?.salesCount ?? 0 }})</span>
+    </div>
+
+    <div class="wms-card summary-card">
+      <div class="card-icon icon-orange"><i class="pi pi-clock"></i></div>
+      <div class="card-content">
+        <span class="card-value number">{{ (report()?.commissionPending ?? 0) | number:'1.0-0' }}</span>
+      </div>
+      <span class="card-label">{{ t('agent.commissionPending') }}</span>
+    </div>
+
+    <div class="wms-card summary-card">
+      <div class="card-icon icon-green"><i class="pi pi-check-circle"></i></div>
+      <div class="card-content">
+        <span class="card-value number">{{ (report()?.commissionConfirmed ?? 0) | number:'1.0-0' }}</span>
+      </div>
+      <span class="card-label">{{ t('agent.commissionConfirmed') }}</span>
+    </div>
+
+    <div class="wms-card summary-card">
+      <div class="card-icon icon-green"><i class="pi pi-wallet"></i></div>
+      <div class="card-content">
+        <span class="card-value number">{{ (report()?.commissionPaid ?? 0) | number:'1.0-0' }}</span>
+      </div>
+      <span class="card-label">{{ t('agent.commissionPaid') }}</span>
+    </div>
+
+    <div class="wms-card summary-card">
+      <div class="card-icon icon-red"><i class="pi pi-exclamation-circle"></i></div>
+      <div class="card-content">
+        <span class="card-value number">{{ (report()?.commissionDue ?? 0) | number:'1.0-0' }}</span>
+      </div>
+      <span class="card-label">{{ t('agent.commissionDue') }}</span>
+    </div>
+  </div>
+
+  <!-- Commission Table (read-only) -->
+  <div class="wms-card table-wrapper">
+    <h3 class="section-title">{{ t('agent.sales') }}</h3>
+    <p-table [value]="commissions()" [loading]="loading()" [paginator]="true" [rows]="15" [scrollable]="true"
+      styleClass="p-datatable-sm p-datatable-striped">
+      <ng-template #header>
+        <tr>
+          <th>#</th>
+          <th>{{ t('agent.counterparty') }}</th>
+          <th class="text-right">{{ t('agent.saleAmount') }}</th>
+          <th class="text-right">{{ t('agent.commissionPercent') }}</th>
+          <th class="text-right">{{ t('agent.commissionAmount') }}</th>
+          <th class="text-center">{{ t('common.status') }}</th>
+          <th>{{ t('common.date') }}</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-rec>
+        <tr>
+          <td><span class="number">#{{ rec.transferId }}</span></td>
+          <td>{{ rec.counterpartyName || '-' }}</td>
+          <td class="text-right"><span class="number">{{ rec.saleAmount | number:'1.0-0' }}</span></td>
+          <td class="text-right"><span class="number">{{ rec.commissionPercent }}%</span></td>
+          <td class="text-right"><span class="number">{{ rec.commissionAmount | number:'1.0-0' }}</span></td>
+          <td class="text-center">
+            <app-status-badge [status]="statusLabel(rec.status)" [label]="t('agent.status' + statusLabel(rec.status))" />
+          </td>
+          <td><span class="number">{{ rec.createdAt | date:'dd.MM.yyyy' }}</span></td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="7">
+            <div class="empty-state">
+              <i class="pi pi-percentage"></i>
+              <p>{{ t('common.noData') }}</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>

@@ -1,0 +1,49 @@
+.portal-login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-base);
+  padding: 20px;
+}
+
+.login-card {
+  max-width: 420px;
+  width: 100%;
+  padding: 40px;
+
+  &:hover { transform: none; }
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 32px;
+
+  h1 { font-size: 24px; font-weight: 700; margin: 12px 0 4px; }
+  p { color: var(--text-secondary); font-size: 14px; margin: 0; }
+}
+
+.login-logo {
+  font-size: 40px;
+  color: var(--primary-500);
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+}
+
+.w-full { width: 100%; }

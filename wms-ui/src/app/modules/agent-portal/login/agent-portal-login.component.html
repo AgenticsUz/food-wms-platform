@@ -1,0 +1,20 @@
+<div class="portal-login-page" *transloco="let t">
+  <div class="login-card wms-card">
+    <div class="login-header">
+      <i class="pi pi-id-card login-logo"></i>
+      <h1>WMS {{ t('agentPortal.title') }}</h1>
+      <p>{{ t('auth.loginSubtitle') }}</p>
+    </div>
+    <div class="login-form">
+      <div class="form-field">
+        <label>{{ t('auth.phone') }}</label>
+        <input pInputText [ngModel]="phone()" (ngModelChange)="phone.set($event)" class="w-full" />
+      </div>
+      <div class="form-field">
+        <label>{{ t('auth.password') }}</label>
+        <p-password [ngModel]="password()" (ngModelChange)="password.set($event)" [toggleMask]="true" [feedback]="false" styleClass="w-full" />
+      </div>
+      <p-button [label]="t('auth.signIn')" icon="pi pi-sign-in" (onClick)="login()" [loading]="loading()" styleClass="w-full" />
+    </div>
+  </div>
+</div>
