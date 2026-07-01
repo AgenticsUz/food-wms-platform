@@ -109,6 +109,7 @@ export class SidebarComponent {
         { key: 'products.units', route: '/products/units' }
       ]
     },
+    { key: 'nav.agents', icon: 'pi pi-id-card', route: '/agents', permissionCode: 'agents.view' },
   ];
 
   settingsItem: NavItem = {

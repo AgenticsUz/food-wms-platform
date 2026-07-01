@@ -12,19 +12,32 @@
           optionLabel="label" optionValue="value" [style]="{ width: '100%' }" />
       </div>
 
-      @if (isIncoming || isOutgoing) {
+      @if (isIncoming || isOutgoing || isReturn) {
         <div class="form-field">
           <label>{{ isIncoming ? t('transfer.selectSupplier') : t('transfer.selectClient') }} *</label>
-          <p-select [options]="filteredCounterparties" [ngModel]="counterpartyId()" (ngModelChange)="counterpartyId.set($event)"
+          <p-select [options]="filteredCounterparties" [ngModel]="counterpartyId()" (ngModelChange)="onCounterpartyChange($event)"
             optionLabel="name" optionValue="id" [placeholder]="isIncoming ? t('transfer.selectSupplier') : t('transfer.selectClient')" [filter]="true" [style]="{ width: '100%' }" />
         </div>
       }
 
-      @if (isIncoming) {
+      @if (isIncoming || isReturn) {
         <div class="form-field">
           <label>{{ t('transfer.destWarehouse') }} *</label>
           <p-select [options]="warehouses()" [ngModel]="toWarehouseId()" (ngModelChange)="toWarehouseId.set($event)"
             optionLabel="name" optionValue="id" [placeholder]="t('transfer.selectWarehouse')" [style]="{ width: '100%' }" />
+        </div>
+      }
+
+      @if (isReturn) {
+        <div class="form-field">
+          <label>{{ t('transfer.returnReason') }} *</label>
+          <p-select [options]="returnReasonOptions()" [ngModel]="returnReason()" (ngModelChange)="returnReason.set($event)"
+            optionLabel="label" optionValue="value" [placeholder]="t('transfer.selectReturnReason')" [style]="{ width: '100%' }" />
+        </div>
+        <div class="form-field">
+          <label>{{ t('transfer.originalTransfer') }}</label>
+          <p-inputnumber [ngModel]="originalTransferId()" (ngModelChange)="originalTransferId.set($event)"
+            [useGrouping]="false" [min]="1" [style]="{ width: '100%' }" inputStyleClass="w-full" placeholder="#" />
         </div>
       }
 
@@ -34,6 +47,26 @@
           <p-select [options]="warehouses()" [ngModel]="fromWarehouseId()" (ngModelChange)="fromWarehouseId.set($event)"
             optionLabel="name" optionValue="id" [placeholder]="t('transfer.selectWarehouse')" [style]="{ width: '100%' }" />
         </div>
+      }
+
+      @if (isOutgoing) {
+        <div class="form-field full-width agent-toggle">
+          <label>{{ t('agent.viaAgent') }}</label>
+          <p-toggleswitch [ngModel]="viaAgent()" (ngModelChange)="viaAgent.set($event)" />
+        </div>
+
+        @if (viaAgent()) {
+          <div class="form-field">
+            <label>{{ t('agent.selectAgent') }} *</label>
+            <p-select [options]="agents()" [ngModel]="agentId()" (ngModelChange)="onAgentChange($event)"
+              optionLabel="name" optionValue="id" [placeholder]="t('agent.selectAgent')" [filter]="true" [style]="{ width: '100%' }" />
+          </div>
+          <div class="form-field">
+            <label>{{ t('agent.commissionPercent') }} (%)</label>
+            <p-inputnumber [ngModel]="commissionPercent()" (ngModelChange)="commissionPercent.set($event)"
+              [min]="0" [max]="100" [minFractionDigits]="0" [maxFractionDigits]="2" [style]="{ width: '100%' }" inputStyleClass="w-full" />
+          </div>
+        }
       }
 
       @if (isInternal) {

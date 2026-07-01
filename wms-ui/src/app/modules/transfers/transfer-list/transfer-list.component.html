@@ -42,8 +42,23 @@
       <ng-template #body let-row>
         <tr>
           <td><span class="number">#{{ row.id }}</span></td>
-          <td><app-status-badge [status]="getTypeName(row.type)" [label]="getTypeName(row.type)" /></td>
-          <td>{{ row.counterpartyName || row.fromWarehouseName || row.toWarehouseName || '—' }}</td>
+          <td>
+            @if (isReturnType(row.type)) {
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-800">
+                <i class="pi pi-replay text-xs"></i> {{ t('transfer.return') }}
+              </span>
+            } @else {
+              <app-status-badge [status]="getTypeName(row.type)" [label]="getTypeName(row.type)" />
+            }
+          </td>
+          <td>
+            {{ row.counterpartyName || row.fromWarehouseName || row.toWarehouseName || '—' }}
+            @if (row.agentId) {
+              <span class="inline-flex items-center gap-1 ml-2 px-2 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-800">
+                <i class="pi pi-id-card text-xs"></i> {{ row.agentName }}
+              </span>
+            }
+          </td>
           <td class="text-right"><span class="number">{{ row.totalAmount | number:'1.0-2' }}</span></td>
           <td>
             <app-status-badge [status]="getStatusKey(row.status)" [label]="getStatusName(row.status)" />

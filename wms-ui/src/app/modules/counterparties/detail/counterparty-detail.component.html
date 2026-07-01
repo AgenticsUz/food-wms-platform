@@ -39,13 +39,20 @@
       </div>
     </div>
 
-    @if (counterparty()?.address || counterparty()?.note) {
+    @if (counterparty()?.address || counterparty()?.note || counterparty()?.agentId) {
       <div class="wms-card section-card info-section">
         @if (counterparty()?.address) {
           <p><strong>{{ t('common.address') }}:</strong> {{ counterparty()!.address }}</p>
         }
         @if (counterparty()?.note) {
           <p><strong>{{ t('common.note') }}:</strong> {{ counterparty()!.note }}</p>
+        }
+        @if (counterparty()?.agentId) {
+          <p><strong>{{ t('agent.title') }}:</strong>
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-800">
+              <i class="pi pi-id-card text-xs"></i> {{ counterparty()!.agentName }}
+            </span>
+          </p>
         }
       </div>
     }

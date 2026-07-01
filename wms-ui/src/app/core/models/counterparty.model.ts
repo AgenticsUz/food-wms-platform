@@ -7,6 +7,8 @@ export interface Counterparty {
   note: string | null;
   portalPhone: string | null;
   portalEnabled: boolean;
+  agentId: number | null;
+  agentName?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -25,6 +27,7 @@ export interface CounterpartyCreateDto {
   note: string | null;
   portalPhone: string | null;
   portalEnabled: boolean;
+  agentId?: number | null;
 }
 
 export interface CounterpartyBalance {

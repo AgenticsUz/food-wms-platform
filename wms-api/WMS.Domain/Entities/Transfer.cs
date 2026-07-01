@@ -19,6 +19,8 @@ public class Transfer : BaseEntity
     public int? CreatedByUserId { get; set; }
     public User? CreatedByUser { get; set; }
     public TransferStatus Status { get; set; } = TransferStatus.Pending;
+    public ReturnReason? ReturnReason { get; set; }   // set when Type == Return
+    public int? OriginalTransferId { get; set; }      // which sale is being returned (optional)
     public string? Note { get; set; }
     public DateTime? ConfirmedAt { get; set; }
     public ICollection<TransferItem> Items { get; set; } = new List<TransferItem>();

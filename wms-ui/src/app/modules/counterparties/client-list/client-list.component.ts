@@ -7,32 +7,37 @@ import { InputText } from 'primeng/inputtext';
 import { Dialog } from 'primeng/dialog';
 import { ToggleSwitch } from 'primeng/toggleswitch';
 import { Textarea } from 'primeng/textarea';
+import { Select } from 'primeng/select';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { CounterpartyService } from '../../../core/services/counterparty.service';
+import { AgentService } from '../../../core/services/agent.service';
 import { NotificationService } from '../../../shared/services/notification.service';
 import { HasPermissionDirective } from '../../../shared/directives/has-permission.directive';
 import { ExportService } from '../../../core/services/export.service';
 import { ImportButtonComponent } from '../../../shared/components/import-button/import-button.component';
 import { PhoneInputComponent } from '../../../shared/components/phone-input/phone-input.component';
 import { Counterparty, CounterpartyCreateDto, CounterpartyType } from '../../../core/models/counterparty.model';
+import { Agent } from '../../../core/models/agent.model';
 
 @Component({
   selector: 'app-client-list',
   standalone: true,
-  imports: [FormsModule, TableModule, Button, InputText, Dialog, ToggleSwitch, Textarea, TranslocoDirective, PageHeaderComponent, HasPermissionDirective, ImportButtonComponent, PhoneInputComponent],
+  imports: [FormsModule, TableModule, Button, InputText, Dialog, ToggleSwitch, Textarea, Select, TranslocoDirective, PageHeaderComponent, HasPermissionDirective, ImportButtonComponent, PhoneInputComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './client-list.component.html',
   styleUrl: './client-list.component.scss'
 })
 export default class ClientListComponent implements OnInit {
   private service = inject(CounterpartyService);
+  private agentService = inject(AgentService);
   private notify = inject(NotificationService);
   private router = inject(Router);
   exportService = inject(ExportService);
 
   items = signal<Counterparty[]>([]);
   filtered = signal<Counterparty[]>([]);
+  agents = signal<Agent[]>([]);
   loading = signal(true);
   search = signal('');
   dialogVisible = signal(false);
@@ -41,10 +46,16 @@ export default class ClientListComponent implements OnInit {
 
   form = signal<CounterpartyCreateDto & { id?: number }>({
     name: '', type: CounterpartyType.Client, phone: null, address: null,
-    note: null, portalPhone: null, portalEnabled: false
+    note: null, portalPhone: null, portalEnabled: false, agentId: null
   });
 
-  ngOnInit() { this.loadData(); }
+  ngOnInit() { this.loadData(); this.loadAgents(); }
+
+  private loadAgents() {
+    this.agentService.getAgents().subscribe({
+      next: (res) => { if (res.success && res.data) this.agents.set(res.data.filter(a => a.isActive)); }
+    });
+  }
 
   loadData() {
     this.loading.set(true);
@@ -69,13 +80,13 @@ export default class ClientListComponent implements OnInit {
   onSearch(value: string) { this.search.set(value); this.applyFilter(); }
 
   openNew() {
-    this.form.set({ name: '', type: CounterpartyType.Client, phone: null, address: null, note: null, portalPhone: null, portalEnabled: false });
+    this.form.set({ name: '', type: CounterpartyType.Client, phone: null, address: null, note: null, portalPhone: null, portalEnabled: false, agentId: null });
     this.editing.set(false);
     this.dialogVisible.set(true);
   }
 
   openEdit(c: Counterparty) {
-    this.form.set({ id: c.id, name: c.name, type: c.type, phone: c.phone, address: c.address, note: c.note, portalPhone: c.portalPhone, portalEnabled: c.portalEnabled });
+    this.form.set({ id: c.id, name: c.name, type: c.type, phone: c.phone, address: c.address, note: c.note, portalPhone: c.portalPhone, portalEnabled: c.portalEnabled, agentId: c.agentId });
     this.editing.set(true);
     this.dialogVisible.set(true);
   }
@@ -84,7 +95,7 @@ export default class ClientListComponent implements OnInit {
     const f = this.form();
     if (!f.name.trim()) { this.notify.warn('Name is required'); return; }
     this.saving.set(true);
-    const dto: CounterpartyCreateDto = { name: f.name, type: f.type, phone: f.phone, address: f.address, note: f.note, portalPhone: f.portalPhone, portalEnabled: f.portalEnabled };
+    const dto: CounterpartyCreateDto = { name: f.name, type: f.type, phone: f.phone, address: f.address, note: f.note, portalPhone: f.portalPhone, portalEnabled: f.portalEnabled, agentId: f.agentId ?? null };
     const obs = this.editing() ? this.service.updateCounterparty(f.id!, dto) : this.service.createCounterparty(dto);
     obs.subscribe({
       next: () => { this.saving.set(false); this.dialogVisible.set(false); this.notify.success(this.editing() ? 'Client updated' : 'Client created'); this.loadData(); },

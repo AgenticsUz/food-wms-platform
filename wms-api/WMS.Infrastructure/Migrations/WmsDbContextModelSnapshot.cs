@@ -1605,6 +1605,12 @@ namespace WMS.Infrastructure.Migrations
                     b.Property<string>("Note")
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("OriginalTransferId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("ReturnReason")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("Status")
                         .HasColumnType("INTEGER");
 

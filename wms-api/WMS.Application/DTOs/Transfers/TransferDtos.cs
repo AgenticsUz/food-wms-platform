@@ -18,6 +18,9 @@ public class TransferDto
     public decimal? CommissionPercent { get; set; }
     public int? CreatedByUserId { get; set; }
     public string? CreatedByUserName { get; set; }
+    public ReturnReason? ReturnReason { get; set; }
+    public string? ReturnReasonName { get; set; }
+    public int? OriginalTransferId { get; set; }
     public string? Note { get; set; }
     public DateTime? ConfirmedAt { get; set; }
     public DateTime CreatedAt { get; set; }
@@ -46,6 +49,8 @@ public class CreateTransferDto
     public int? CounterpartyId { get; set; }
     public int? AgentId { get; set; }
     public decimal? CommissionPercent { get; set; }
+    public ReturnReason? ReturnReason { get; set; }
+    public int? OriginalTransferId { get; set; }
     public string? Note { get; set; }
     public List<CreateTransferItemDto> Items { get; set; } = new();
 }

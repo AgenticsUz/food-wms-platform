@@ -24,6 +24,7 @@
           <th pSortableColumn="name">{{ t('common.name') }} <p-sortIcon field="name" /></th>
           <th>{{ t('common.phone') }}</th>
           <th>{{ t('common.address') }}</th>
+          <th>{{ t('agent.title') }}</th>
           <th class="text-center">{{ t('partners.portal') }}</th>
           <th class="text-center">{{ t('common.actions') }}</th>
         </tr>
@@ -33,6 +34,13 @@
           <td><span class="item-name clickable" (click)="viewDetail(item)">{{ item.name }}</span></td>
           <td>{{ item.phone || '—' }}</td>
           <td>{{ item.address || '—' }}</td>
+          <td>
+            @if (item.agentId) {
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-800">
+                <i class="pi pi-id-card text-xs"></i> {{ item.agentName }}
+              </span>
+            } @else { <span class="text-muted">—</span> }
+          </td>
           <td class="text-center">
             @if (item.portalEnabled) {
               <span class="badge-success">{{ t('common.active') }}</span>
@@ -48,7 +56,7 @@
         </tr>
       </ng-template>
       <ng-template #emptymessage>
-        <tr><td colspan="5"><div class="empty-state"><i class="pi pi-users"></i><p>{{ t('partners.noClients') }}</p></div></td></tr>
+        <tr><td colspan="6"><div class="empty-state"><i class="pi pi-users"></i><p>{{ t('partners.noClients') }}</p></div></td></tr>
       </ng-template>
     </p-table>
   </div>
@@ -74,6 +82,11 @@
       <div class="form-field full-width">
         <label>{{ t('common.note') }}</label>
         <textarea pTextarea [ngModel]="form().note ?? ''" (ngModelChange)="updateForm('note', $event || null)" class="w-full" rows="3"></textarea>
+      </div>
+      <div class="form-field">
+        <label>{{ t('agent.assignAgent') }}</label>
+        <p-select [options]="agents()" [ngModel]="form().agentId" (ngModelChange)="updateForm('agentId', $event)"
+          optionLabel="name" optionValue="id" [showClear]="true" [placeholder]="t('agent.noAgent')" [filter]="true" [style]="{ width: '100%' }" />
       </div>
       <div class="form-field">
         <label>{{ t('settings.portalAccess') }}</label>

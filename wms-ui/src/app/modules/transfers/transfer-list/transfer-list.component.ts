@@ -45,7 +45,8 @@ export default class TransferListComponent implements OnInit {
       { label: this.transloco.translate('transfer.allTypes'), value: null },
       { label: this.transloco.translate('transfer.incoming'), value: TransferType.Incoming },
       { label: this.transloco.translate('transfer.outgoing'), value: TransferType.Outgoing },
-      { label: this.transloco.translate('transfer.internal'), value: TransferType.Internal }
+      { label: this.transloco.translate('transfer.internal'), value: TransferType.Internal },
+      { label: this.transloco.translate('transfer.return'), value: TransferType.Return }
     ];
   });
 
@@ -88,8 +89,13 @@ export default class TransferListComponent implements OnInit {
       case TransferType.Outgoing: return 'Outgoing';
       case TransferType.Internal: return 'Internal';
       case TransferType.ProductionOutput: return 'Production';
+      case TransferType.Return: return 'Return';
       default: return 'Unknown';
     }
+  }
+
+  isReturnType(type: TransferType): boolean {
+    return type === TransferType.Return;
   }
 
   getStatusName(status: TransferStatus): string {

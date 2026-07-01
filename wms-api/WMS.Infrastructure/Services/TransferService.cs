@@ -49,6 +49,7 @@ public class TransferService : ITransferService
             TenantId = tenantId, Type = dto.Type, FromWarehouseId = dto.FromWarehouseId,
             ToWarehouseId = dto.ToWarehouseId, CounterpartyId = dto.CounterpartyId,
             AgentId = dto.AgentId, CommissionPercent = dto.CommissionPercent,
+            ReturnReason = dto.ReturnReason, OriginalTransferId = dto.OriginalTransferId,
             CreatedByUserId = userId, Note = dto.Note, Status = TransferStatus.Pending
         };
 
@@ -84,6 +85,9 @@ public class TransferService : ITransferService
             case TransferType.Internal:
                 await ProcessInternal(transfer, tenantId);
                 break;
+            case TransferType.Return:
+                await ProcessReturn(transfer, tenantId);
+                break;
         }
 
         transfer.Status = TransferStatus.Confirmed;
@@ -96,6 +100,9 @@ public class TransferService : ITransferService
         // Record agent commission (sale via agent)
         await CreateCommission(transfer, tenantId);
 
+        // Cancel commission of the original sale when a return is confirmed
+        await CancelCommissionForReturn(transfer, tenantId);
+
         await _db.SaveChangesAsync();
 
         // Check low stock after outgoing
@@ -103,10 +110,21 @@ public class TransferService : ITransferService
             await CheckLowStock(transfer, tenantId);
 
         var totalAmount = transfer.Items.Sum(i => i.Quantity * i.UnitPrice);
-        await _notifications.CreateAsync(tenantId, null,
-            "Transfer Confirmed",
-            $"Transfer #{transfer.Id} has been confirmed. Amount: {totalAmount:N0}",
-            NotificationType.TransferConfirmed, "Transfer", transfer.Id);
+
+        if (transfer.Type == TransferType.Return)
+        {
+            await _notifications.CreateAsync(tenantId, null,
+                "Return Received",
+                $"Return #{transfer.Id} received from {transfer.Counterparty?.Name}. Amount: {totalAmount:N0}",
+                NotificationType.Info, "Transfer", transfer.Id);
+        }
+        else
+        {
+            await _notifications.CreateAsync(tenantId, null,
+                "Transfer Confirmed",
+                $"Transfer #{transfer.Id} has been confirmed. Amount: {totalAmount:N0}",
+                NotificationType.TransferConfirmed, "Transfer", transfer.Id);
+        }
 
         return MapToDto(transfer);
     }
@@ -253,6 +271,66 @@ public class TransferService : ITransferService
         }
     }
 
+    private async Task ProcessReturn(Transfer transfer, int tenantId)
+    {
+        // Returned goods come back into stock (like Incoming), but flagged with a LOT-RET prefix.
+        var toWarehouseId = transfer.ToWarehouseId
+            ?? throw new Exception("Return transfer must have a destination warehouse");
+
+        // Get or create default location in warehouse
+        var location = await _db.Locations.FirstOrDefaultAsync(l => l.WarehouseId == toWarehouseId);
+        if (location == null)
+        {
+            location = new Location
+            {
+                WarehouseId = toWarehouseId,
+                Name = "Default",
+                Code = "DEF"
+            };
+            _db.Locations.Add(location);
+            await _db.SaveChangesAsync();
+        }
+
+        foreach (var item in transfer.Items)
+        {
+            var product = await _db.Products.FindAsync(item.ProductId);
+            var batch = new Batch
+            {
+                TenantId = tenantId, ProductId = item.ProductId,
+                LotNumber = $"LOT-RET-{DateTime.UtcNow:yyyyMMdd}-{item.ProductId}-{Guid.NewGuid().ToString()[..6]}",
+                ManufacturedDate = DateTime.UtcNow,
+                ExpiryDate = product?.ShelfLifeDays != null
+                    ? DateTime.UtcNow.AddDays(product.ShelfLifeDays.Value) : null,
+                InitialQuantity = item.Quantity, RemainingQuantity = item.Quantity
+            };
+            _db.Batches.Add(batch);
+            await _db.SaveChangesAsync();
+
+            item.BatchId = batch.Id;
+
+            _db.WarehouseStocks.Add(new WarehouseStock
+            {
+                TenantId = tenantId, WarehouseId = toWarehouseId,
+                LocationId = location.Id, ProductId = item.ProductId,
+                BatchId = batch.Id, Quantity = item.Quantity
+            });
+            await _db.SaveChangesAsync();
+        }
+    }
+
+    private async Task CancelCommissionForReturn(Transfer transfer, int tenantId)
+    {
+        if (transfer.Type != TransferType.Return || transfer.OriginalTransferId == null) return;
+
+        var commission = await _db.CommissionRecords.FirstOrDefaultAsync(c =>
+            c.TenantId == tenantId
+            && c.TransferId == transfer.OriginalTransferId.Value
+            && c.Status != CommissionStatus.Cancelled);
+
+        if (commission != null)
+            commission.Status = CommissionStatus.Cancelled;
+    }
+
     private async Task UpdateDebt(Transfer transfer, int tenantId)
     {
         if (transfer.CounterpartyId == null) return;
@@ -277,6 +355,9 @@ public class TransferService : ITransferService
                 break;
             case TransferType.Incoming:
                 debt.Amount -= totalPrice; // we owe supplier
+                break;
+            case TransferType.Return:
+                debt.Amount -= totalPrice; // client returned goods — their debt decreases
                 break;
         }
     }
@@ -354,6 +435,8 @@ public class TransferService : ITransferService
         CounterpartyId = t.CounterpartyId, CounterpartyName = t.Counterparty?.Name,
         AgentId = t.AgentId, AgentName = t.Agent?.Name, CommissionPercent = t.CommissionPercent,
         CreatedByUserId = t.CreatedByUserId, CreatedByUserName = t.CreatedByUser?.FullName,
+        ReturnReason = t.ReturnReason, ReturnReasonName = t.ReturnReason?.ToString(),
+        OriginalTransferId = t.OriginalTransferId,
         Note = t.Note, ConfirmedAt = t.ConfirmedAt, CreatedAt = t.CreatedAt,
         TotalAmount = t.Items.Sum(i => i.Quantity * i.UnitPrice),
         Items = t.Items.Select(i => new TransferItemDto

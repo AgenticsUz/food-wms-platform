@@ -321,3 +321,28 @@
   .login-card { max-width: 100%; }
   .login-title { font-size: 24px; }
 }
+
+.login-alt-links {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 13px;
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.15s;
+
+    &:hover { color: var(--primary-600); }
+
+    i { font-size: 14px; }
+  }
+
+  .divider { color: var(--text-muted); }
+}

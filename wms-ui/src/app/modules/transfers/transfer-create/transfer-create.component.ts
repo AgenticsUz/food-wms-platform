@@ -10,20 +10,23 @@ import { Select } from 'primeng/select';
 import { Textarea } from 'primeng/textarea';
 import { TableModule } from 'primeng/table';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
+import { ToggleSwitch } from 'primeng/toggleswitch';
 import { TransferService } from '../../../core/services/transfer.service';
 import { CounterpartyService } from '../../../core/services/counterparty.service';
 import { WarehouseService } from '../../../core/services/warehouse.service';
 import { ProductService } from '../../../core/services/product.service';
+import { AgentService } from '../../../core/services/agent.service';
 import { NotificationService } from '../../../shared/services/notification.service';
-import { TransferType, TransferCreateDto, TransferItemDto } from '../../../core/models/transfer.model';
+import { TransferType, ReturnReason, TransferCreateDto, TransferItemDto } from '../../../core/models/transfer.model';
 import { Counterparty } from '../../../core/models/counterparty.model';
 import { Warehouse } from '../../../core/models/warehouse.model';
 import { Product } from '../../../core/models/product.model';
+import { Agent } from '../../../core/models/agent.model';
 
 @Component({
   selector: 'app-transfer-create',
   standalone: true,
-  imports: [DecimalPipe, FormsModule, TranslocoDirective, Button, InputNumber, Select, Textarea, TableModule, PageHeaderComponent],
+  imports: [DecimalPipe, FormsModule, TranslocoDirective, Button, InputNumber, Select, Textarea, TableModule, ToggleSwitch, PageHeaderComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './transfer-create.component.html',
   styleUrl: './transfer-create.component.scss'
@@ -33,6 +36,7 @@ export default class TransferCreateComponent implements OnInit {
   private counterpartyService = inject(CounterpartyService);
   private warehouseService = inject(WarehouseService);
   private productService = inject(ProductService);
+  private agentService = inject(AgentService);
   private notify = inject(NotificationService);
   private router = inject(Router);
   private transloco = inject(TranslocoService);
@@ -54,6 +58,16 @@ export default class TransferCreateComponent implements OnInit {
   counterparties = signal<Counterparty[]>([]);
   warehouses = signal<Warehouse[]>([]);
   products = signal<Product[]>([]);
+  agents = signal<Agent[]>([]);
+
+  // Agent (only for outgoing sales)
+  viaAgent = signal(false);
+  agentId = signal<number | null>(null);
+  commissionPercent = signal<number | null>(null);
+
+  // Return
+  returnReason = signal<ReturnReason | null>(null);
+  originalTransferId = signal<number | null>(null);
 
   // Barcode search
   barcodeQuery = signal('');
@@ -64,7 +78,18 @@ export default class TransferCreateComponent implements OnInit {
     return [
       { label: this.transloco.translate('transfer.incoming'), value: TransferType.Incoming },
       { label: this.transloco.translate('transfer.outgoing'), value: TransferType.Outgoing },
-      { label: this.transloco.translate('transfer.internal'), value: TransferType.Internal }
+      { label: this.transloco.translate('transfer.internal'), value: TransferType.Internal },
+      { label: this.transloco.translate('transfer.return'), value: TransferType.Return }
+    ];
+  });
+
+  returnReasonOptions = computed(() => {
+    this.lang();
+    return [
+      { label: this.transloco.translate('transfer.expired'), value: ReturnReason.Expired },
+      { label: this.transloco.translate('transfer.unsold'), value: ReturnReason.Unsold },
+      { label: this.transloco.translate('transfer.defective'), value: ReturnReason.Defective },
+      { label: this.transloco.translate('transfer.other'), value: ReturnReason.Other }
     ];
   });
 
@@ -72,6 +97,31 @@ export default class TransferCreateComponent implements OnInit {
     this.loadCounterparties();
     this.loadWarehouses();
     this.loadProducts();
+    this.loadAgents();
+  }
+
+  private loadAgents() {
+    this.agentService.getAgents().subscribe({
+      next: (res) => {
+        if (res.success && res.data) this.agents.set(res.data.filter(a => a.isActive));
+      }
+    });
+  }
+
+  onAgentChange(id: number | null) {
+    this.agentId.set(id);
+    const agent = this.agents().find(a => a.id === id);
+    if (agent) this.commissionPercent.set(agent.commissionPercent);
+  }
+
+  onCounterpartyChange(id: number | null) {
+    this.counterpartyId.set(id);
+    if (!this.isOutgoing) return;
+    const cp = this.counterparties().find(c => c.id === id);
+    if (cp && cp.agentId) {
+      this.viaAgent.set(true);
+      this.onAgentChange(cp.agentId);
+    }
   }
 
   private loadCounterparties() {
@@ -95,12 +145,13 @@ export default class TransferCreateComponent implements OnInit {
   get isIncoming() { return this.transferType() === TransferType.Incoming; }
   get isOutgoing() { return this.transferType() === TransferType.Outgoing; }
   get isInternal() { return this.transferType() === TransferType.Internal; }
+  get isReturn() { return this.transferType() === TransferType.Return; }
 
   get filteredCounterparties() {
     const type = this.transferType();
     return this.counterparties().filter(c => {
       if (type === TransferType.Incoming) return c.type === 1 || c.type === 3;
-      if (type === TransferType.Outgoing) return c.type === 2 || c.type === 3;
+      if (type === TransferType.Outgoing || type === TransferType.Return) return c.type === 2 || c.type === 3;
       return false;
     });
   }
@@ -191,7 +242,7 @@ export default class TransferCreateComponent implements OnInit {
   submit() {
     if (this.items().length === 0) { this.notify.warn('Add at least one item'); return; }
     const type = this.transferType();
-    if ((type === TransferType.Incoming || type === TransferType.Outgoing) && !this.counterpartyId()) {
+    if ((type === TransferType.Incoming || type === TransferType.Outgoing || type === TransferType.Return) && !this.counterpartyId()) {
       this.notify.warn('Select a counterparty'); return;
     }
     if (type === TransferType.Incoming && !this.toWarehouseId()) {
@@ -203,13 +254,23 @@ export default class TransferCreateComponent implements OnInit {
     if (type === TransferType.Internal && (!this.fromWarehouseId() || !this.toWarehouseId())) {
       this.notify.warn('Select source and destination warehouses'); return;
     }
+    if (type === TransferType.Return) {
+      if (!this.toWarehouseId()) { this.notify.warn('Select a destination warehouse'); return; }
+      if (!this.returnReason()) { this.notify.warn('Select a return reason'); return; }
+    }
 
     this.saving.set(true);
+    const useAgent = this.isOutgoing && this.viaAgent();
+    const isReturnT = this.isReturn;
     const dto: TransferCreateDto = {
       type,
       fromWarehouseId: this.fromWarehouseId(),
       toWarehouseId: this.toWarehouseId(),
       counterpartyId: this.counterpartyId(),
+      agentId: useAgent ? this.agentId() : null,
+      commissionPercent: useAgent ? this.commissionPercent() : null,
+      returnReason: isReturnT ? this.returnReason() : null,
+      originalTransferId: isReturnT ? this.originalTransferId() : null,
       note: this.note() || null,
       items: this.items().map(i => ({
         productId: i.productId,

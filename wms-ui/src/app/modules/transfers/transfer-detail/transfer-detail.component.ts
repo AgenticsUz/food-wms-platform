@@ -1,6 +1,6 @@
 import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { DecimalPipe, DatePipe } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { TableModule } from 'primeng/table';
 import { Button } from 'primeng/button';
@@ -15,7 +15,7 @@ import { Transfer, TransferType, TransferStatus } from '../../../core/models/tra
 @Component({
   selector: 'app-transfer-detail',
   standalone: true,
-  imports: [DecimalPipe, DatePipe, TranslocoDirective, TableModule, Button, PageHeaderComponent, StatusBadgeComponent, HasPermissionDirective],
+  imports: [DecimalPipe, DatePipe, RouterLink, TranslocoDirective, TableModule, Button, PageHeaderComponent, StatusBadgeComponent, HasPermissionDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './transfer-detail.component.html',
   styleUrl: './transfer-detail.component.scss'
@@ -95,6 +95,7 @@ export default class TransferDetailComponent implements OnInit {
       case TransferType.Outgoing: return 'Outgoing';
       case TransferType.Internal: return 'Internal';
       case TransferType.ProductionOutput: return 'Production Output';
+      case TransferType.Return: return 'Return';
       default: return 'Unknown';
     }
   }

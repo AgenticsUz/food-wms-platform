@@ -3,6 +3,7 @@ import { ShellComponent } from './layout/shell/shell.component';
 import { authGuard } from './core/guards/auth.guard';
 import { moduleGuard } from './core/guards/module.guard';
 import { portalGuard } from './core/guards/portal.guard';
+import { agentPortalGuard } from './core/guards/agent-portal.guard';
 import { permissionGuard } from './core/guards/permission.guard';
 
 export const routes: Routes = [
@@ -50,6 +51,11 @@ export const routes: Routes = [
         loadChildren: () => import('./modules/counterparties/counterparties.routes')
       },
       {
+        path: 'agents',
+        canActivate: [permissionGuard('agents.view')],
+        loadChildren: () => import('./modules/agents/agents.routes')
+      },
+      {
         path: 'products',
         loadChildren: () => import('./modules/products/products.routes')
       },
@@ -72,6 +78,23 @@ export const routes: Routes = [
         loadComponent: () => import('./modules/portal/layout/portal-layout.component'),
         children: [
           { path: '', loadChildren: () => import('./modules/portal/portal.routes') }
+        ]
+      }
+    ]
+  },
+  {
+    path: 'agent-portal',
+    children: [
+      {
+        path: 'login',
+        loadComponent: () => import('./modules/agent-portal/login/agent-portal-login.component')
+      },
+      {
+        path: '',
+        canActivate: [agentPortalGuard],
+        loadComponent: () => import('./modules/agent-portal/layout/agent-portal-layout.component'),
+        children: [
+          { path: '', loadChildren: () => import('./modules/agent-portal/agent-portal.routes') }
         ]
       }
     ]

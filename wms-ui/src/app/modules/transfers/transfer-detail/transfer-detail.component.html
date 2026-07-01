@@ -61,6 +61,29 @@
           <span class="info-value">{{ tr.createdByUserName }}</span>
         </div>
       }
+      @if (tr.agentId) {
+        <div class="info-item">
+          <span class="info-label">{{ t('agent.title') }}:</span>
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-800">
+            <i class="pi pi-id-card text-xs"></i> {{ tr.agentName }}
+            @if (tr.commissionPercent) { <span>· {{ tr.commissionPercent }}%</span> }
+          </span>
+        </div>
+      }
+      @if (tr.returnReason) {
+        <div class="info-item">
+          <span class="info-label">{{ t('transfer.returnReason') }}:</span>
+          <span class="info-value">{{ tr.returnReasonName }}</span>
+        </div>
+      }
+      @if (tr.originalTransferId) {
+        <div class="info-item">
+          <span class="info-label">{{ t('transfer.originalTransfer') }}:</span>
+          <a class="info-value" [routerLink]="['/transfers', tr.originalTransferId]" style="color: var(--primary-600); font-weight: 600; text-decoration: none;">
+            #{{ tr.originalTransferId }}
+          </a>
+        </div>
+      }
     </div>
 
     <!-- Items table -->

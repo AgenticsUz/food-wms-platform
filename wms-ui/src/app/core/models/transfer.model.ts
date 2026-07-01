@@ -8,6 +8,12 @@ export interface Transfer {
   toWarehouseName: string | null;
   counterpartyId: number | null;
   counterpartyName: string | null;
+  agentId: number | null;
+  agentName?: string | null;
+  commissionPercent?: number | null;
+  returnReason?: ReturnReason | null;
+  returnReasonName?: string | null;
+  originalTransferId?: number | null;
   createdByUserId: number | null;
   createdByUserName: string | null;
   status: TransferStatus;
@@ -23,7 +29,15 @@ export enum TransferType {
   Incoming = 1,
   Outgoing = 2,
   Internal = 3,
-  ProductionOutput = 4
+  ProductionOutput = 4,
+  Return = 5
+}
+
+export enum ReturnReason {
+  Expired = 1,
+  Unsold = 2,
+  Defective = 3,
+  Other = 4
 }
 
 export enum TransferStatus {
@@ -50,6 +64,10 @@ export interface TransferCreateDto {
   fromWarehouseId: number | null;
   toWarehouseId: number | null;
   counterpartyId: number | null;
+  agentId?: number | null;
+  commissionPercent?: number | null;
+  returnReason?: ReturnReason | null;
+  originalTransferId?: number | null;
   note: string | null;
   items: TransferItemDto[];
 }
