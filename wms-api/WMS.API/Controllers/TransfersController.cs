@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using WMS.API.Middleware;
 using WMS.Application.Common;
 using WMS.Application.DTOs.Transfers;
 using WMS.Application.Interfaces;
@@ -6,6 +7,7 @@ using WMS.Domain.Enums;
 
 namespace WMS.API.Controllers;
 
+[RequirePermission("transfers.view")]
 public class TransfersController : BaseController
 {
     private readonly ITransferService _transfers;
@@ -24,6 +26,7 @@ public class TransfersController : BaseController
         => Ok(ApiResponse<TransferDto>.Ok(await _transfers.GetByIdAsync(TenantId, id)));
 
     [HttpPost]
+    [RequirePermission("transfers.create")]
     public async Task<IActionResult> Create([FromBody] CreateTransferDto dto)
     {
         try
@@ -38,6 +41,7 @@ public class TransfersController : BaseController
     }
 
     [HttpPut("{id}/confirm")]
+    [RequirePermission("transfers.confirm")]
     public async Task<IActionResult> Confirm(int id)
     {
         try
@@ -52,10 +56,12 @@ public class TransfersController : BaseController
     }
 
     [HttpPut("{id}/reject")]
+    [RequirePermission("transfers.reject")]
     public async Task<IActionResult> Reject(int id)
         => Ok(ApiResponse<TransferDto>.Ok(await _transfers.RejectAsync(TenantId, id)));
 
     [HttpDelete("{id}")]
+    [RequirePermission("transfers.create")]
     public async Task<IActionResult> Cancel(int id)
     { await _transfers.CancelAsync(TenantId, id); return Ok(ApiResponse<object>.Ok(null!, "Cancelled")); }
 }

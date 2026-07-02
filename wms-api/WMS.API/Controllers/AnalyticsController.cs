@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using WMS.API.Middleware;
 using WMS.Application.Common;
 using WMS.Application.DTOs.Analytics;
 using WMS.Application.Interfaces;
@@ -10,6 +11,7 @@ namespace WMS.API.Controllers;
 [ApiController]
 [Route("api/analytics")]
 [Microsoft.AspNetCore.Authorization.Authorize]
+[RequirePermission("dashboard.view")]
 public class AnalyticsController : BaseController
 {
     private readonly IAnalyticsService _analytics;

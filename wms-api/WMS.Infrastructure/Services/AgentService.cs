@@ -37,26 +37,23 @@ public class AgentService : IAgentService
             .Where(c => c.TenantId == tenantId)
             .ToListAsync();
 
-        return agents.Select(a =>
-        {
-            var recs = commissions.Where(c => c.AgentId == a.Id && c.Status != CommissionStatus.Cancelled).ToList();
-            var dto = MapToDto(a);
-            dto.SalesCount = recs.Count;
-            dto.TotalSales = recs.Sum(c => c.SaleAmount);
-            dto.TotalCommission = recs.Sum(c => c.CommissionAmount);
-            dto.CommissionPaid = recs.Where(c => c.IsPaid).Sum(c => c.CommissionAmount);
-            dto.CommissionDue = dto.TotalCommission - dto.CommissionPaid;
-            return dto;
-        }).ToList();
+        return agents.Select(a => MapToDtoWithStats(a,
+            commissions.Where(c => c.AgentId == a.Id))).ToList();
     }
 
     public async Task<AgentDto> GetByIdAsync(int tenantId, int id)
     {
         var a = await _db.Agents.FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId)
-            ?? throw new Exception("Agent not found");
+            ?? throw new NotFoundException("Agent not found");
         var recs = await _db.CommissionRecords
-            .Where(c => c.TenantId == tenantId && c.AgentId == id && c.Status != CommissionStatus.Cancelled)
+            .Where(c => c.TenantId == tenantId && c.AgentId == id)
             .ToListAsync();
+        return MapToDtoWithStats(a, recs);
+    }
+
+    private static AgentDto MapToDtoWithStats(Agent a, IEnumerable<CommissionRecord> commissions)
+    {
+        var recs = commissions.Where(c => c.Status != CommissionStatus.Cancelled).ToList();
         var dto = MapToDto(a);
         dto.SalesCount = recs.Count;
         dto.TotalSales = recs.Sum(c => c.SaleAmount);
@@ -68,6 +65,7 @@ public class AgentService : IAgentService
 
     public async Task<AgentDto> CreateAsync(int tenantId, CreateAgentDto dto)
     {
+        ValidateCommissionPercent(dto.CommissionPercent);
         var a = new Agent
         {
             TenantId = tenantId,
@@ -87,8 +85,9 @@ public class AgentService : IAgentService
 
     public async Task<AgentDto> UpdateAsync(int tenantId, int id, UpdateAgentDto dto)
     {
+        ValidateCommissionPercent(dto.CommissionPercent);
         var a = await _db.Agents.FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId)
-            ?? throw new Exception("Agent not found");
+            ?? throw new NotFoundException("Agent not found");
         a.Name = dto.Name;
         a.Phone = PhoneHelper.Normalize(dto.Phone);
         a.CommissionPercent = dto.CommissionPercent;
@@ -104,9 +103,15 @@ public class AgentService : IAgentService
     public async Task DeleteAsync(int tenantId, int id)
     {
         var a = await _db.Agents.FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId)
-            ?? throw new Exception("Agent not found");
+            ?? throw new NotFoundException("Agent not found");
         a.IsDeleted = true;
         await _db.SaveChangesAsync();
+    }
+
+    private static void ValidateCommissionPercent(decimal percent)
+    {
+        if (percent is < 0 or > 100)
+            throw new AppException("Commission percent must be between 0 and 100");
     }
 
     // ── Sales report & commissions ──
@@ -114,7 +119,7 @@ public class AgentService : IAgentService
     public async Task<AgentSalesReportDto> GetSalesReportAsync(int tenantId, int agentId, DateTime? from, DateTime? to)
     {
         var a = await _db.Agents.FirstOrDefaultAsync(x => x.Id == agentId && x.TenantId == tenantId)
-            ?? throw new Exception("Agent not found");
+            ?? throw new NotFoundException("Agent not found");
         return await BuildReport(a, tenantId, from, to);
     }
 
@@ -132,8 +137,8 @@ public class AgentService : IAgentService
     public async Task PayCommissionAsync(int tenantId, int userId, int agentId, PayCommissionDto dto)
     {
         var agent = await _db.Agents.FirstOrDefaultAsync(x => x.Id == agentId && x.TenantId == tenantId)
-            ?? throw new Exception("Agent not found");
-        if (dto.Amount <= 0) throw new Exception("Amount must be greater than zero");
+            ?? throw new NotFoundException("Agent not found");
+        if (dto.Amount <= 0) throw new AppException("Amount must be greater than zero");
 
         // Mark oldest unpaid, non-cancelled commission records as paid, up to the amount.
         var unpaid = await _db.CommissionRecords
@@ -144,7 +149,7 @@ public class AgentService : IAgentService
 
         var totalDue = unpaid.Sum(c => c.CommissionAmount);
         if (dto.Amount > totalDue + 0.01m)
-            throw new Exception($"Amount exceeds the outstanding commission ({totalDue:N0})");
+            throw new AppException($"Amount exceeds the outstanding commission ({totalDue:N0})");
 
         var remaining = dto.Amount;
         foreach (var rec in unpaid)
@@ -153,6 +158,16 @@ public class AgentService : IAgentService
             rec.IsPaid = true;
             rec.PaidAt = DateTime.UtcNow;
             remaining -= rec.CommissionAmount;
+        }
+
+        // Partial payments are not tracked per record, so an amount that does not
+        // cover whole records would silently vanish from the books — reject it.
+        if (remaining > 0.01m)
+        {
+            var payable = unpaid.Where(c => !c.IsPaid).Select(c => c.CommissionAmount).ToList();
+            throw new AppException(
+                $"Amount must cover whole commission records; {remaining:N0} is left uncovered. " +
+                $"Next payable record: {(payable.Count > 0 ? payable[0].ToString("N0") : "none")}");
         }
 
         // Optionally record a finance expense for the payout.
@@ -176,7 +191,7 @@ public class AgentService : IAgentService
     {
         var rec = await _db.CommissionRecords
             .FirstOrDefaultAsync(c => c.Id == recordId && c.TenantId == tenantId)
-            ?? throw new Exception("Commission record not found");
+            ?? throw new NotFoundException("Commission record not found");
         rec.Status = dto.Status;
         if (dto.Status == CommissionStatus.Cancelled)
         {
@@ -193,11 +208,11 @@ public class AgentService : IAgentService
         var normalizedPhone = PhoneHelper.Normalize(dto.Phone);
         var agent = await _db.Agents
             .FirstOrDefaultAsync(a => a.PortalPhone == normalizedPhone && a.PortalEnabled && a.IsActive)
-            ?? throw new Exception("Invalid credentials or portal not enabled");
+            ?? throw new AppException("Invalid credentials or portal not enabled");
 
         if (string.IsNullOrEmpty(agent.PortalPasswordHash) ||
             !BCrypt.Net.BCrypt.Verify(dto.Password, agent.PortalPasswordHash))
-            throw new Exception("Invalid credentials");
+            throw new AppException("Invalid credentials");
 
         var claims = new[]
         {
@@ -223,10 +238,10 @@ public class AgentService : IAgentService
         };
     }
 
-    public async Task<AgentPortalProfileDto> GetPortalProfileAsync(int agentId)
+    public async Task<AgentPortalProfileDto> GetPortalProfileAsync(int agentId, int tenantId)
     {
-        var a = await _db.Agents.FindAsync(agentId)
-            ?? throw new Exception("Agent not found");
+        var a = await _db.Agents.FirstOrDefaultAsync(x => x.Id == agentId && x.TenantId == tenantId)
+            ?? throw new NotFoundException("Agent not found");
         return new AgentPortalProfileDto
         {
             Id = a.Id, Name = a.Name, Phone = a.Phone,
@@ -237,7 +252,7 @@ public class AgentService : IAgentService
     public async Task<AgentSalesReportDto> GetPortalSalesReportAsync(int agentId, int tenantId)
     {
         var a = await _db.Agents.FirstOrDefaultAsync(x => x.Id == agentId && x.TenantId == tenantId)
-            ?? throw new Exception("Agent not found");
+            ?? throw new NotFoundException("Agent not found");
         return await BuildReport(a, tenantId, null, null);
     }
 

@@ -39,6 +39,9 @@ public class CreatePaymentDto
     public int? TransferId { get; set; }
     public decimal Amount { get; set; }
     public PaymentMethod Method { get; set; }
+    /// Optional: when omitted, inferred from the current debt sign
+    /// (negative balance → we are paying the counterparty).
+    public PaymentDirection? Direction { get; set; }
     public string? Note { get; set; }
 }
 

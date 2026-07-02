@@ -1,8 +1,10 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using WMS.Application.DTOs.Tenants;
 using WMS.Application.Interfaces;
 using WMS.Domain.Entities;
 using WMS.Infrastructure.Persistence;
+
+using WMS.Application.Common;
 
 namespace WMS.Infrastructure.Services;
 
@@ -29,7 +31,7 @@ public class TenantService : ITenantService
 
     public async Task<TenantDto> UpdateAsync(int id, UpdateTenantDto dto)
     {
-        var tenant = await _db.Tenants.FindAsync(id) ?? throw new Exception("Tenant not found");
+        var tenant = await _db.Tenants.FindAsync(id) ?? throw new NotFoundException("Tenant not found");
         tenant.Name = dto.Name;
         tenant.Slug = dto.Slug;
         tenant.IsActive = dto.IsActive;
@@ -39,7 +41,7 @@ public class TenantService : ITenantService
 
     public async Task DeleteAsync(int id)
     {
-        var tenant = await _db.Tenants.FindAsync(id) ?? throw new Exception("Tenant not found");
+        var tenant = await _db.Tenants.FindAsync(id) ?? throw new NotFoundException("Tenant not found");
         tenant.IsDeleted = true;
         await _db.SaveChangesAsync();
     }

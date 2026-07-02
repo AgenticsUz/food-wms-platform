@@ -1,10 +1,12 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using WMS.Application.Interfaces;
 using WMS.Domain.Entities;
 using WMS.Infrastructure.Persistence;
+
+using WMS.Application.Common;
 
 namespace WMS.Infrastructure.Services;
 
@@ -26,7 +28,7 @@ public class TransferPdfService : ITransferPdfService
             .Include(t => t.Items).ThenInclude(i => i.Product).ThenInclude(p => p.Unit)
             .Include(t => t.Items).ThenInclude(i => i.Batch)
             .FirstOrDefaultAsync(t => t.Id == transferId && t.TenantId == tenantId)
-            ?? throw new Exception("Transfer not found");
+            ?? throw new NotFoundException("Transfer not found");
 
         var doc = Document.Create(container =>
         {

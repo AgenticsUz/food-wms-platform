@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using WMS.API.Middleware;
 using WMS.Application.Common;
 using WMS.Application.DTOs.Agents;
 using WMS.Application.Interfaces;
@@ -6,6 +7,7 @@ using WMS.Application.Interfaces;
 namespace WMS.API.Controllers;
 
 [Route("api/agents")]
+[RequirePermission("agents.view")]
 public class AgentsController : BaseController
 {
     private readonly IAgentService _agents;
@@ -20,14 +22,17 @@ public class AgentsController : BaseController
         => Ok(ApiResponse<AgentDto>.Ok(await _agents.GetByIdAsync(TenantId, id)));
 
     [HttpPost]
+    [RequirePermission("agents.manage")]
     public async Task<IActionResult> Create([FromBody] CreateAgentDto dto)
         => Ok(ApiResponse<AgentDto>.Ok(await _agents.CreateAsync(TenantId, dto)));
 
     [HttpPut("{id}")]
+    [RequirePermission("agents.manage")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateAgentDto dto)
         => Ok(ApiResponse<AgentDto>.Ok(await _agents.UpdateAsync(TenantId, id, dto)));
 
     [HttpDelete("{id}")]
+    [RequirePermission("agents.manage")]
     public async Task<IActionResult> Delete(int id)
     { await _agents.DeleteAsync(TenantId, id); return Ok(ApiResponse<object>.Ok(null!, "Deleted")); }
 
@@ -40,6 +45,7 @@ public class AgentsController : BaseController
         => Ok(ApiResponse<List<CommissionRecordDto>>.Ok(await _agents.GetCommissionsAsync(TenantId, id)));
 
     [HttpPost("{id}/commissions/pay")]
+    [RequirePermission("agents.manage")]
     public async Task<IActionResult> PayCommission(int id, [FromBody] PayCommissionDto dto)
     {
         await _agents.PayCommissionAsync(TenantId, UserId, id, dto);
@@ -47,6 +53,7 @@ public class AgentsController : BaseController
     }
 
     [HttpPut("commissions/{recordId}/status")]
+    [RequirePermission("agents.manage")]
     public async Task<IActionResult> UpdateCommissionStatus(int recordId, [FromBody] UpdateCommissionStatusDto dto)
     {
         await _agents.UpdateCommissionStatusAsync(TenantId, recordId, dto);

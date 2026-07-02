@@ -5,7 +5,7 @@ namespace WMS.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[Authorize(Policy = "MainApi")]
 public abstract class BaseController : ControllerBase
 {
     protected int TenantId =>

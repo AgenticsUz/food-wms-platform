@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using WMS.API.Middleware;
 using WMS.Application.Common;
 using WMS.Application.DTOs.Finance;
 using WMS.Application.Interfaces;
@@ -9,6 +10,7 @@ namespace WMS.API.Controllers;
 [ApiController]
 [Route("api/finance")]
 [Microsoft.AspNetCore.Authorization.Authorize]
+[RequirePermission("finance.view")]
 public class FinanceController : BaseController
 {
     private readonly IFinanceService _finance;
@@ -22,6 +24,7 @@ public class FinanceController : BaseController
             await _finance.GetTransactionsAsync(TenantId, type, from, to, page, pageSize)));
 
     [HttpPost("transactions")]
+    [RequirePermission("finance.manage")]
     public async Task<IActionResult> CreateTransaction([FromBody] CreateTransactionDto dto)
         => Ok(ApiResponse<TransactionDto>.Ok(await _finance.CreateTransactionAsync(TenantId, UserId, dto)));
 
@@ -36,6 +39,7 @@ public class FinanceController : BaseController
             await _finance.GetPaymentsAsync(TenantId, counterpartyId, page, pageSize)));
 
     [HttpPost("payments")]
+    [RequirePermission("finance.manage")]
     public async Task<IActionResult> CreatePayment([FromBody] CreatePaymentDto dto)
         => Ok(ApiResponse<PaymentHistoryDto>.Ok(await _finance.CreatePaymentAsync(TenantId, UserId, dto)));
 

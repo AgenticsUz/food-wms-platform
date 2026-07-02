@@ -30,11 +30,11 @@ public class PortalAuthService : IPortalAuthService
         var normalizedPhone = PhoneHelper.Normalize(dto.Phone);
         var counterparty = await _db.Counterparties
             .FirstOrDefaultAsync(c => c.PortalPhone == normalizedPhone && c.PortalEnabled)
-            ?? throw new Exception("Invalid credentials or portal not enabled");
+            ?? throw new AppException("Invalid credentials or portal not enabled");
 
         if (string.IsNullOrEmpty(counterparty.PortalPasswordHash) ||
             !BCrypt.Net.BCrypt.Verify(dto.Password, counterparty.PortalPasswordHash))
-            throw new Exception("Invalid credentials");
+            throw new AppException("Invalid credentials");
 
         var claims = new[]
         {
@@ -61,10 +61,11 @@ public class PortalAuthService : IPortalAuthService
         };
     }
 
-    public async Task<PortalCounterpartyDto> GetCurrentAsync(int counterpartyId)
+    public async Task<PortalCounterpartyDto> GetCurrentAsync(int counterpartyId, int tenantId)
     {
-        var c = await _db.Counterparties.FindAsync(counterpartyId)
-            ?? throw new Exception("Counterparty not found");
+        var c = await _db.Counterparties
+            .FirstOrDefaultAsync(x => x.Id == counterpartyId && x.TenantId == tenantId)
+            ?? throw new NotFoundException("Counterparty not found");
         return new PortalCounterpartyDto
         {
             Id = c.Id, Name = c.Name, Type = c.Type, TenantId = c.TenantId
@@ -102,7 +103,7 @@ public class PortalAuthService : IPortalAuthService
             .Include(t => t.FromWarehouse).Include(t => t.ToWarehouse)
             .Include(t => t.Items).ThenInclude(i => i.Product).ThenInclude(p => p.Unit)
             .FirstOrDefaultAsync(t => t.Id == transferId && t.TenantId == tenantId && t.CounterpartyId == counterpartyId)
-            ?? throw new Exception("Transfer not found");
+            ?? throw new NotFoundException("Transfer not found");
 
         return new TransferDto
         {

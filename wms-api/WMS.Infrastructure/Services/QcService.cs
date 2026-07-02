@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using WMS.Application.Common;
 using WMS.Application.DTOs.Qc;
 using WMS.Application.Interfaces;
 using WMS.Domain.Entities;
@@ -56,7 +57,27 @@ public class QcService : IQcService
     public async Task<QcCheckDto> CreateCheckAsync(int tenantId, int userId, CreateQcCheckDto dto)
     {
         if (dto.StageExecutionId == null && dto.TransferId == null)
-            throw new Exception("QC check must have either StageExecutionId or TransferId");
+            throw new AppException("QC check must have either StageExecutionId or TransferId");
+        if (dto.StageExecutionId != null && dto.TransferId != null)
+            throw new AppException("QC check must have either StageExecutionId or TransferId, not both");
+
+        if (dto.TransferId.HasValue)
+        {
+            var transferExists = await _db.Transfers
+                .AnyAsync(t => t.Id == dto.TransferId.Value && t.TenantId == tenantId);
+            if (!transferExists) throw new NotFoundException("Transfer not found");
+        }
+
+        if (dto.StageExecutionId.HasValue)
+        {
+            var stageExecutionExists = await _db.StageExecutions
+                .AnyAsync(se => se.Id == dto.StageExecutionId.Value && se.ProductionOrder.TenantId == tenantId);
+            if (!stageExecutionExists) throw new NotFoundException("Stage execution not found");
+        }
+
+        var parameterExists = await _db.QcParameters
+            .AnyAsync(p => p.Id == dto.ParameterId && p.TenantId == tenantId);
+        if (!parameterExists) throw new NotFoundException("QC parameter not found");
 
         var check = new QcCheck
         {

@@ -28,7 +28,7 @@ public class NotificationsController : BaseController
     [HttpPut("{id}/read")]
     public async Task<IActionResult> MarkAsRead(int id)
     {
-        await _notifications.MarkAsReadAsync(id, TenantId);
+        await _notifications.MarkAsReadAsync(id, TenantId, UserId);
         return Ok(ApiResponse<object>.Ok(null!, "Marked as read"));
     }
 

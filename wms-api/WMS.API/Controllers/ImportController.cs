@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using WMS.API.Middleware;
 using WMS.Application.Common;
 using WMS.Application.DTOs.Import;
 using WMS.Application.Interfaces;
@@ -12,6 +13,7 @@ public class ImportController : BaseController
     public ImportController(IImportService import) => _import = import;
 
     [HttpPost("products")]
+    [RequirePermission("products.manage")]
     public async Task<IActionResult> ImportProducts(IFormFile file)
     {
         if (file == null || file.Length == 0)
@@ -23,6 +25,7 @@ public class ImportController : BaseController
     }
 
     [HttpPost("counterparties")]
+    [RequirePermission("partners.manage")]
     public async Task<IActionResult> ImportCounterparties(IFormFile file)
     {
         if (file == null || file.Length == 0)
@@ -34,6 +37,7 @@ public class ImportController : BaseController
     }
 
     [HttpPost("users")]
+    [RequirePermission("settings.users")]
     public async Task<IActionResult> ImportUsers(IFormFile file)
     {
         if (file == null || file.Length == 0)
@@ -45,6 +49,7 @@ public class ImportController : BaseController
     }
 
     [HttpGet("template/products")]
+    [RequirePermission("products.manage")]
     public IActionResult DownloadProductsTemplate()
     {
         var bytes = _import.GenerateProductsTemplate();
@@ -54,6 +59,7 @@ public class ImportController : BaseController
     }
 
     [HttpGet("template/counterparties")]
+    [RequirePermission("partners.manage")]
     public IActionResult DownloadCounterpartiesTemplate()
     {
         var bytes = _import.GenerateCounterpartiesTemplate();
@@ -63,6 +69,7 @@ public class ImportController : BaseController
     }
 
     [HttpGet("template/users")]
+    [RequirePermission("settings.users")]
     public IActionResult DownloadUsersTemplate()
     {
         var bytes = _import.GenerateUsersTemplate();

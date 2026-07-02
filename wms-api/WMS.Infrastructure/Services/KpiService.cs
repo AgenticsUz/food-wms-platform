@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using WMS.Application.Common;
 using WMS.Application.DTOs.Kpi;
 using WMS.Application.Interfaces;
 using WMS.Domain.Entities;
@@ -29,7 +30,7 @@ public class KpiService : IKpiService
     public async Task<ShiftDto> UpdateShiftAsync(int tenantId, int id, UpdateShiftDto dto)
     {
         var s = await _db.Shifts.FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId)
-            ?? throw new Exception("Shift not found");
+            ?? throw new NotFoundException("Shift not found");
         s.Name = dto.Name;
         s.StartTime = dto.StartTime;
         s.EndTime = dto.EndTime;
@@ -40,7 +41,7 @@ public class KpiService : IKpiService
     public async Task DeleteShiftAsync(int tenantId, int id)
     {
         var s = await _db.Shifts.FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId)
-            ?? throw new Exception("Shift not found");
+            ?? throw new NotFoundException("Shift not found");
         s.IsDeleted = true;
         await _db.SaveChangesAsync();
     }
@@ -119,7 +120,12 @@ public class KpiService : IKpiService
         var planQ = _db.ShiftPlans.Where(p => p.TenantId == tenantId);
         var actualQ = _db.ShiftActuals.Where(a => a.TenantId == tenantId);
         if (from.HasValue) { planQ = planQ.Where(p => p.Date >= from); actualQ = actualQ.Where(a => a.Date >= from); }
-        if (to.HasValue) { planQ = planQ.Where(p => p.Date <= to); actualQ = actualQ.Where(a => a.Date <= to); }
+        if (to.HasValue)
+        {
+            var toExclusive = to.Value.Date.AddDays(1);
+            planQ = planQ.Where(p => p.Date < toExclusive);
+            actualQ = actualQ.Where(a => a.Date < toExclusive);
+        }
 
         var totalPlanned = await planQ.SumAsync(p => (double)p.PlannedQuantity);
         var totalActual = await actualQ.SumAsync(a => (double)a.ActualQuantity);
@@ -140,16 +146,21 @@ public class KpiService : IKpiService
             .Include(p => p.Shift).Include(p => p.Product).AsQueryable();
         var actuals = _db.ShiftActuals.Where(a => a.TenantId == tenantId).AsQueryable();
         if (from.HasValue) { plans = plans.Where(p => p.Date >= from); actuals = actuals.Where(a => a.Date >= from); }
-        if (to.HasValue) { plans = plans.Where(p => p.Date <= to); actuals = actuals.Where(a => a.Date <= to); }
+        if (to.HasValue)
+        {
+            var toExclusive = to.Value.Date.AddDays(1);
+            plans = plans.Where(p => p.Date < toExclusive);
+            actuals = actuals.Where(a => a.Date < toExclusive);
+        }
 
         var planList = await plans.ToListAsync();
         var actualList = await actuals.ToListAsync();
 
         return planList.Select(p =>
         {
-            var actual = actualList.FirstOrDefault(a =>
-                a.ShiftId == p.ShiftId && a.ProductId == p.ProductId && a.Date.Date == p.Date.Date);
-            var actualQty = actual?.ActualQuantity ?? 0;
+            var actualQty = actualList
+                .Where(a => a.ShiftId == p.ShiftId && a.ProductId == p.ProductId && a.Date.Date == p.Date.Date)
+                .Sum(a => a.ActualQuantity);
             return new EfficiencyDto
             {
                 ShiftName = p.Shift.Name, ProductName = p.Product.Name, Date = p.Date,
@@ -161,6 +172,11 @@ public class KpiService : IKpiService
 
     public async Task<AttendanceLogDto> CheckInAsync(int tenantId, CheckInDto dto)
     {
+        var userExists = await _db.Users.AnyAsync(u => u.Id == dto.UserId && u.TenantId == tenantId);
+        if (!userExists) throw new NotFoundException("User not found");
+        var shiftExists = await _db.Shifts.AnyAsync(s => s.Id == dto.ShiftId && s.TenantId == tenantId);
+        if (!shiftExists) throw new NotFoundException("Shift not found");
+
         var log = new AttendanceLog
         {
             TenantId = tenantId, UserId = dto.UserId, ShiftId = dto.ShiftId,
@@ -177,7 +193,7 @@ public class KpiService : IKpiService
     {
         var log = await _db.AttendanceLogs.Include(l => l.User).Include(l => l.Shift)
             .FirstOrDefaultAsync(l => l.Id == id && l.TenantId == tenantId)
-            ?? throw new Exception("Attendance log not found");
+            ?? throw new NotFoundException("Attendance log not found");
         log.CheckOut = DateTime.UtcNow;
         await _db.SaveChangesAsync();
         return MapAttendance(log);

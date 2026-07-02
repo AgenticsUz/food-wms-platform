@@ -1,3 +1,4 @@
+using System.Globalization;
 using ClosedXML.Excel;
 using Microsoft.EntityFrameworkCore;
 using WMS.Application.DTOs.Import;
@@ -38,11 +39,13 @@ public class ImportService : IImportService
             if (string.IsNullOrWhiteSpace(name))
                 errors.Add(new ImportErrorDto { Row = row, Field = "Name", Message = "Name is required" });
 
-            // Category (find by name)
+            // Category (required, find by name)
             var categoryName = ws.Cell(row, 2).GetString().Trim();
             var category = categories.FirstOrDefault(c =>
                 c.Name.Equals(categoryName, StringComparison.OrdinalIgnoreCase));
-            if (!string.IsNullOrEmpty(categoryName) && category == null)
+            if (string.IsNullOrEmpty(categoryName))
+                errors.Add(new ImportErrorDto { Row = row, Field = "Category", Message = "Category is required" });
+            else if (category == null)
                 errors.Add(new ImportErrorDto { Row = row, Field = "Category", Message = $"Category '{categoryName}' not found" });
 
             // Type (required, case-insensitive)
@@ -50,18 +53,21 @@ public class ImportService : IImportService
             if (!TryParseProductType(typeStr, out var productType))
                 errors.Add(new ImportErrorDto { Row = row, Field = "Type", Message = $"Invalid type '{typeStr}'. Use: Raw, SemiFinished, Finished" });
 
-            // Unit (find by name or short name)
+            // Unit (required, find by name or short name)
             var unitName = ws.Cell(row, 4).GetString().Trim();
             var unit = units.FirstOrDefault(u =>
                 u.Name.Equals(unitName, StringComparison.OrdinalIgnoreCase) ||
                 u.ShortName.Equals(unitName, StringComparison.OrdinalIgnoreCase));
-            if (!string.IsNullOrEmpty(unitName) && unit == null)
+            if (string.IsNullOrEmpty(unitName))
+                errors.Add(new ImportErrorDto { Row = row, Field = "Unit", Message = "Unit is required" });
+            else if (unit == null)
                 errors.Add(new ImportErrorDto { Row = row, Field = "Unit", Message = $"Unit '{unitName}' not found" });
 
             // MinStock
             decimal minStock = 0;
             var minStockStr = ws.Cell(row, 5).GetString().Trim();
-            if (!string.IsNullOrEmpty(minStockStr) && !decimal.TryParse(minStockStr, out minStock))
+            if (!string.IsNullOrEmpty(minStockStr) &&
+                !decimal.TryParse(minStockStr, NumberStyles.Number, CultureInfo.InvariantCulture, out minStock))
                 errors.Add(new ImportErrorDto { Row = row, Field = "MinStock", Message = "Must be a number" });
 
             // CostPrice
@@ -69,7 +75,7 @@ public class ImportService : IImportService
             var costPriceStr = ws.Cell(row, 6).GetString().Trim();
             if (!string.IsNullOrEmpty(costPriceStr))
             {
-                if (decimal.TryParse(costPriceStr, out var cp)) costPrice = cp;
+                if (decimal.TryParse(costPriceStr, NumberStyles.Number, CultureInfo.InvariantCulture, out var cp)) costPrice = cp;
                 else errors.Add(new ImportErrorDto { Row = row, Field = "CostPrice", Message = "Must be a number" });
             }
 
@@ -78,7 +84,7 @@ public class ImportService : IImportService
             var shelfStr = ws.Cell(row, 7).GetString().Trim();
             if (!string.IsNullOrEmpty(shelfStr))
             {
-                if (int.TryParse(shelfStr, out var sl)) shelfLife = sl;
+                if (int.TryParse(shelfStr, NumberStyles.Integer, CultureInfo.InvariantCulture, out var sl)) shelfLife = sl;
                 else errors.Add(new ImportErrorDto { Row = row, Field = "ShelfLifeDays", Message = "Must be an integer" });
             }
 
@@ -97,9 +103,9 @@ public class ImportService : IImportService
                 {
                     TenantId = tenantId,
                     Name = name,
-                    CategoryId = category?.Id ?? categories.FirstOrDefault()?.Id ?? 0,
+                    CategoryId = category!.Id,
                     Type = productType,
-                    UnitId = unit?.Id ?? units.FirstOrDefault()?.Id ?? 0,
+                    UnitId = unit!.Id,
                     MinStock = minStock,
                     CostPrice = costPrice,
                     ShelfLifeDays = shelfLife,
@@ -115,7 +121,18 @@ public class ImportService : IImportService
         }
 
         if (result.SuccessCount > 0)
-            await _db.SaveChangesAsync();
+        {
+            try
+            {
+                await _db.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                result.Errors.Add(new ImportErrorDto { Row = 0, Field = "-", Message = $"Failed to save imported products: {ex.Message}" });
+                result.ErrorCount += result.SuccessCount;
+                result.SuccessCount = 0;
+            }
+        }
 
         return result;
     }
@@ -194,6 +211,9 @@ public class ImportService : IImportService
 
         var result = new ImportResultDto();
         var roles = await _db.Roles.Where(r => r.TenantId == tenantId).ToListAsync();
+        var existingPhones = new HashSet<string>(
+            await _db.Users.Where(u => u.TenantId == tenantId).Select(u => u.Phone).ToListAsync(),
+            StringComparer.OrdinalIgnoreCase);
 
         for (int row = 2; row <= lastRow; row++)
         {
@@ -207,10 +227,12 @@ public class ImportService : IImportService
             if (string.IsNullOrWhiteSpace(fullName))
                 errors.Add(new ImportErrorDto { Row = row, Field = "FullName", Message = "FullName is required" });
 
-            // Phone (required)
+            // Phone (required, unique)
             var phone = ws.Cell(row, 2).GetString().Trim();
             if (string.IsNullOrWhiteSpace(phone))
                 errors.Add(new ImportErrorDto { Row = row, Field = "Phone", Message = "Phone is required" });
+            else if (existingPhones.Contains(phone))
+                errors.Add(new ImportErrorDto { Row = row, Field = "Phone", Message = $"Phone '{phone}' is already used by another user" });
 
             // Password (required)
             var password = ws.Cell(row, 3).GetString().Trim();
@@ -231,16 +253,17 @@ public class ImportService : IImportService
                 continue;
             }
 
+            var user = new User
+            {
+                TenantId = tenantId,
+                FullName = fullName,
+                Phone = phone,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
+                IsActive = true
+            };
+
             try
             {
-                var user = new User
-                {
-                    TenantId = tenantId,
-                    FullName = fullName,
-                    Phone = phone,
-                    PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
-                    IsActive = true
-                };
                 _db.Users.Add(user);
 
                 // Need to save to get user.Id before adding UserRole
@@ -251,10 +274,13 @@ public class ImportService : IImportService
                     _db.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = role.Id });
                 }
 
+                existingPhones.Add(phone);
                 result.SuccessCount++;
             }
             catch (Exception ex)
             {
+                // Detach the failed entity so subsequent rows can still be saved
+                _db.Entry(user).State = EntityState.Detached;
                 result.Errors.Add(new ImportErrorDto { Row = row, Field = "-", Message = ex.Message });
                 result.ErrorCount++;
             }

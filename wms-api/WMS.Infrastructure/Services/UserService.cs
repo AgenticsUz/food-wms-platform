@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using WMS.Application.Common;
 using WMS.Application.DTOs.Users;
 using WMS.Application.Interfaces;
@@ -26,9 +26,13 @@ public class UserService : IUserService
 
     public async Task<UserDto> CreateAsync(int tenantId, CreateUserDto dto)
     {
+        var phone = PhoneHelper.Normalize(dto.Phone);
+        if (await _db.Users.AnyAsync(u => u.TenantId == tenantId && u.Phone == phone))
+            throw new AppException("A user with this phone already exists");
+
         var user = new User
         {
-            TenantId = tenantId, FullName = dto.FullName, Phone = PhoneHelper.Normalize(dto.Phone),
+            TenantId = tenantId, FullName = dto.FullName, Phone = phone,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password)
         };
         _db.Users.Add(user);
@@ -40,7 +44,7 @@ public class UserService : IUserService
     {
         var user = await _db.Users.Include(u => u.UserRoles).ThenInclude(ur => ur.Role)
             .FirstOrDefaultAsync(u => u.Id == id && u.TenantId == tenantId)
-            ?? throw new Exception("User not found");
+            ?? throw new NotFoundException("User not found");
         user.FullName = dto.FullName;
         user.Phone = PhoneHelper.Normalize(dto.Phone);
         user.IsActive = dto.IsActive;
@@ -57,7 +61,7 @@ public class UserService : IUserService
     public async Task DeleteAsync(int tenantId, int id)
     {
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == id && u.TenantId == tenantId)
-            ?? throw new Exception("User not found");
+            ?? throw new NotFoundException("User not found");
         user.IsDeleted = true;
         await _db.SaveChangesAsync();
     }
@@ -66,12 +70,18 @@ public class UserService : IUserService
     {
         var user = await _db.Users.Include(u => u.UserRoles)
             .FirstOrDefaultAsync(u => u.Id == userId && u.TenantId == tenantId)
-            ?? throw new Exception("User not found");
+            ?? throw new NotFoundException("User not found");
+
+        // Every assigned role must belong to the caller's tenant.
+        var roleIds = dto.RoleIds.Distinct().ToList();
+        var validCount = await _db.Roles.CountAsync(r => r.TenantId == tenantId && roleIds.Contains(r.Id));
+        if (validCount != roleIds.Count)
+            throw new NotFoundException("Role not found");
 
         // Remove existing (hard delete for join table)
         _db.UserRoles.RemoveRange(user.UserRoles);
 
-        foreach (var roleId in dto.RoleIds)
+        foreach (var roleId in roleIds)
             _db.UserRoles.Add(new UserRole { UserId = userId, RoleId = roleId });
 
         await _db.SaveChangesAsync();
@@ -95,7 +105,7 @@ public class UserService : IUserService
     public async Task<RoleDto> UpdateRoleAsync(int tenantId, int id, UpdateRoleDto dto)
     {
         var role = await _db.Roles.FirstOrDefaultAsync(r => r.Id == id && r.TenantId == tenantId)
-            ?? throw new Exception("Role not found");
+            ?? throw new NotFoundException("Role not found");
         role.Name = dto.Name;
         role.Description = dto.Description;
         await _db.SaveChangesAsync();
@@ -105,7 +115,7 @@ public class UserService : IUserService
     public async Task DeleteRoleAsync(int tenantId, int id)
     {
         var role = await _db.Roles.FirstOrDefaultAsync(r => r.Id == id && r.TenantId == tenantId)
-            ?? throw new Exception("Role not found");
+            ?? throw new NotFoundException("Role not found");
         role.IsDeleted = true;
         await _db.SaveChangesAsync();
     }
@@ -124,7 +134,7 @@ public class UserService : IUserService
     public async Task<List<PermissionDto>> GetRolePermissionsAsync(int tenantId, int roleId)
     {
         var role = await _db.Roles.FirstOrDefaultAsync(r => r.Id == roleId && r.TenantId == tenantId)
-            ?? throw new Exception("Role not found");
+            ?? throw new NotFoundException("Role not found");
 
         return await _db.RolePermissions
             .Where(rp => rp.RoleId == roleId)
@@ -139,13 +149,17 @@ public class UserService : IUserService
     public async Task AssignPermissionsAsync(int tenantId, int roleId, AssignPermissionsDto dto)
     {
         var role = await _db.Roles.FirstOrDefaultAsync(r => r.Id == roleId && r.TenantId == tenantId)
-            ?? throw new Exception("Role not found");
+            ?? throw new NotFoundException("Role not found");
 
         // Remove existing (hard delete for join table)
         var existing = await _db.RolePermissions.Where(rp => rp.RoleId == roleId).ToListAsync();
         _db.RolePermissions.RemoveRange(existing);
 
-        var validIds = dto.PermissionIds.Where(x => x > 0).Distinct().ToList();
+        var requestedIds = dto.PermissionIds.Where(x => x > 0).Distinct().ToList();
+        var validIds = await _db.Permissions
+            .Where(p => requestedIds.Contains(p.Id))
+            .Select(p => p.Id)
+            .ToListAsync();
         foreach (var permId in validIds)
             _db.RolePermissions.Add(new RolePermission { RoleId = roleId, PermissionId = permId });
 
@@ -157,7 +171,7 @@ public class UserService : IUserService
         var user = await _db.Users
             .Include(u => u.UserRoles)
             .FirstOrDefaultAsync(u => u.Id == userId && u.TenantId == tenantId)
-            ?? throw new Exception("User not found");
+            ?? throw new NotFoundException("User not found");
 
         var roleIds = user.UserRoles.Select(ur => ur.RoleId).ToList();
 

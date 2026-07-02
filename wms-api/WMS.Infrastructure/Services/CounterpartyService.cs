@@ -30,6 +30,8 @@ public class CounterpartyService : ICounterpartyService
 
     public async Task<CounterpartyDto> CreateAsync(int tenantId, CreateCounterpartyDto dto)
     {
+        await ValidateAgentAsync(tenantId, dto.AgentId);
+
         var c = new Counterparty
         {
             TenantId = tenantId, Name = dto.Name, Type = dto.Type, Phone = PhoneHelper.Normalize(dto.Phone),
@@ -46,7 +48,8 @@ public class CounterpartyService : ICounterpartyService
     public async Task<CounterpartyDto> UpdateAsync(int tenantId, int id, UpdateCounterpartyDto dto)
     {
         var c = await _db.Counterparties.FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId)
-            ?? throw new Exception("Counterparty not found");
+            ?? throw new NotFoundException("Counterparty not found");
+        await ValidateAgentAsync(tenantId, dto.AgentId);
         c.Name = dto.Name; c.Type = dto.Type; c.Phone = PhoneHelper.Normalize(dto.Phone);
         c.Address = dto.Address; c.Note = dto.Note; c.AgentId = dto.AgentId; c.PortalEnabled = dto.PortalEnabled;
         c.PortalPhone = PhoneHelper.Normalize(dto.PortalPhone);
@@ -59,7 +62,7 @@ public class CounterpartyService : ICounterpartyService
     public async Task DeleteAsync(int tenantId, int id)
     {
         var c = await _db.Counterparties.FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId)
-            ?? throw new Exception("Counterparty not found");
+            ?? throw new NotFoundException("Counterparty not found");
         c.IsDeleted = true;
         await _db.SaveChangesAsync();
     }
@@ -67,7 +70,7 @@ public class CounterpartyService : ICounterpartyService
     public async Task<CounterpartyBalanceDto> GetBalanceAsync(int tenantId, int counterpartyId)
     {
         var c = await _db.Counterparties.FirstOrDefaultAsync(x => x.Id == counterpartyId && x.TenantId == tenantId)
-            ?? throw new Exception("Counterparty not found");
+            ?? throw new NotFoundException("Counterparty not found");
         var debt = await _db.Debts
             .Where(d => d.TenantId == tenantId && d.CounterpartyId == counterpartyId)
             .Select(d => d.Amount).FirstOrDefaultAsync();
@@ -90,6 +93,13 @@ public class CounterpartyService : ICounterpartyService
                 Amount = p.Amount, Method = p.Method, PaidAt = p.PaidAt,
                 Note = p.Note, RecordedByUserName = p.RecordedByUser.FullName
             }).ToListAsync();
+    }
+
+    private async Task ValidateAgentAsync(int tenantId, int? agentId)
+    {
+        if (!agentId.HasValue) return;
+        var agentExists = await _db.Agents.AnyAsync(a => a.Id == agentId.Value && a.TenantId == tenantId);
+        if (!agentExists) throw new NotFoundException("Agent not found");
     }
 
     private static CounterpartyDto MapToDto(Counterparty c) => new()

@@ -20,7 +20,11 @@ public class ExportService : IExportService
             .AsQueryable();
 
         if (fromDate.HasValue) q = q.Where(t => t.CreatedAt >= fromDate.Value);
-        if (toDate.HasValue) q = q.Where(t => t.CreatedAt <= toDate.Value);
+        if (toDate.HasValue)
+        {
+            var toExclusive = toDate.Value.Date.AddDays(1);
+            q = q.Where(t => t.CreatedAt < toExclusive);
+        }
 
         var data = await q.OrderByDescending(t => t.CreatedAt).ToListAsync();
 
@@ -155,7 +159,11 @@ public class ExportService : IExportService
             .AsQueryable();
 
         if (fromDate.HasValue) q = q.Where(t => t.Date >= fromDate.Value);
-        if (toDate.HasValue) q = q.Where(t => t.Date <= toDate.Value);
+        if (toDate.HasValue)
+        {
+            var toExclusive = toDate.Value.Date.AddDays(1);
+            q = q.Where(t => t.Date < toExclusive);
+        }
 
         var data = await q.OrderByDescending(t => t.Date).ToListAsync();
 
@@ -245,7 +253,9 @@ public class ExportService : IExportService
 
         var data = await q.OrderBy(c => c.Name).ToListAsync();
 
-        var debts = await _db.Debts.Where(d => d.TenantId == tenantId).ToListAsync();
+        var debtByCounterparty = (await _db.Debts.Where(d => d.TenantId == tenantId).ToListAsync())
+            .GroupBy(d => d.CounterpartyId)
+            .ToDictionary(g => g.Key, g => g.First().Amount);
 
         var filterParts = new List<string> { $"Exported: {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC" };
         if (type.HasValue) filterParts.Add($"Type: {type.Value}");
@@ -264,8 +274,7 @@ public class ExportService : IExportService
         {
             var c = data[i];
             var row = i + 5;
-            var debt = debts.FirstOrDefault(d => d.CounterpartyId == c.Id);
-            var balance = debt?.Amount ?? 0m;
+            var balance = debtByCounterparty.TryGetValue(c.Id, out var debt) ? debt : 0m;
 
             ws.Cell(row, 1).Value = c.Id;
             ws.Cell(row, 2).Value = c.Name;
@@ -286,7 +295,7 @@ public class ExportService : IExportService
             var totalRow = data.Count + 5;
             ws.Cell(totalRow, 5).Value = "Total Balance:";
             ws.Cell(totalRow, 5).Style.Font.Bold = true;
-            var totalBalance = data.Sum(c => debts.FirstOrDefault(d => d.CounterpartyId == c.Id)?.Amount ?? 0m);
+            var totalBalance = data.Sum(c => debtByCounterparty.TryGetValue(c.Id, out var d) ? d : 0m);
             ws.Cell(totalRow, 6).Value = (double)totalBalance;
             ws.Cell(totalRow, 6).Style.NumberFormat.Format = "#,##0.00";
             StyleTotalRow(ws, totalRow, 7);

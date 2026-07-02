@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using WMS.Application.Common;
 using WMS.Application.DTOs.Warehouses;
 using WMS.Application.Interfaces;
 using WMS.Domain.Entities;
@@ -34,7 +35,7 @@ public class WarehouseService : IWarehouseService
     public async Task<WarehouseDto> UpdateAsync(int tenantId, int id, UpdateWarehouseDto dto)
     {
         var w = await _db.Warehouses.FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId)
-            ?? throw new Exception("Warehouse not found");
+            ?? throw new NotFoundException("Warehouse not found");
         w.Name = dto.Name; w.Type = dto.Type; w.Description = dto.Description;
         await _db.SaveChangesAsync();
         return new WarehouseDto { Id = w.Id, Name = w.Name, Type = w.Type, Description = w.Description };
@@ -43,7 +44,12 @@ public class WarehouseService : IWarehouseService
     public async Task DeleteAsync(int tenantId, int id)
     {
         var w = await _db.Warehouses.FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId)
-            ?? throw new Exception("Warehouse not found");
+            ?? throw new NotFoundException("Warehouse not found");
+
+        var hasStock = await _db.WarehouseStocks.AnyAsync(s => s.WarehouseId == id && s.Quantity > 0);
+        if (hasStock)
+            throw new AppException("Cannot delete warehouse: it still has stock");
+
         w.IsDeleted = true;
         await _db.SaveChangesAsync();
     }
@@ -105,7 +111,7 @@ public class WarehouseService : IWarehouseService
     public async Task<LocationDto> CreateLocationAsync(int tenantId, CreateLocationDto dto)
     {
         var warehouse = await _db.Warehouses.FirstOrDefaultAsync(w => w.Id == dto.WarehouseId && w.TenantId == tenantId)
-            ?? throw new Exception("Warehouse not found");
+            ?? throw new NotFoundException("Warehouse not found");
         var loc = new Location { WarehouseId = dto.WarehouseId, Name = dto.Name, Code = dto.Code };
         _db.Locations.Add(loc);
         await _db.SaveChangesAsync();
@@ -134,15 +140,15 @@ public class WarehouseService : IWarehouseService
     {
         var b = await _db.Batches.Include(x => x.Product)
             .FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId)
-            ?? throw new Exception("Batch not found");
+            ?? throw new NotFoundException("Batch not found");
 
         if (string.IsNullOrWhiteSpace(dto.LotNumber))
-            throw new Exception("LotNumber is required");
+            throw new AppException("LotNumber is required");
 
         var lotExists = await _db.Batches.AnyAsync(x =>
             x.TenantId == tenantId && x.ProductId == b.ProductId &&
             x.LotNumber == dto.LotNumber && x.Id != id);
-        if (lotExists) throw new Exception("LotNumber already exists for this product");
+        if (lotExists) throw new AppException("LotNumber already exists for this product");
 
         b.LotNumber = dto.LotNumber;
         b.ExpiryDate = dto.ExpiryDate;
@@ -161,12 +167,12 @@ public class WarehouseService : IWarehouseService
     public async Task DeleteBatchAsync(int tenantId, int id)
     {
         var b = await _db.Batches.FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId)
-            ?? throw new Exception("Batch not found");
+            ?? throw new NotFoundException("Batch not found");
 
         var hasStock = await _db.WarehouseStocks
             .AnyAsync(s => s.BatchId == id && s.Quantity > 0);
         if (hasStock)
-            throw new Exception("Cannot delete batch: it has remaining stock in warehouse");
+            throw new AppException("Cannot delete batch: it has remaining stock in warehouse");
 
         b.IsDeleted = true;
         await _db.SaveChangesAsync();

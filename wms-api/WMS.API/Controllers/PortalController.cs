@@ -10,6 +10,7 @@ namespace WMS.API.Controllers;
 
 [ApiController]
 [Route("api/portal")]
+[Authorize(Policy = "PortalOnly")]
 public class PortalController : ControllerBase
 {
     private readonly IPortalAuthService _portal;
@@ -36,7 +37,7 @@ public class PortalController : ControllerBase
     [HttpGet("me")]
     [Authorize]
     public async Task<IActionResult> GetMe()
-        => Ok(ApiResponse<PortalCounterpartyDto>.Ok(await _portal.GetCurrentAsync(CounterpartyId)));
+        => Ok(ApiResponse<PortalCounterpartyDto>.Ok(await _portal.GetCurrentAsync(CounterpartyId, PortalTenantId)));
 
     [HttpGet("transfers")]
     [Authorize]

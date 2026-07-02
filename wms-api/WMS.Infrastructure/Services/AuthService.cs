@@ -1,4 +1,4 @@
-using System.IdentityModel.Tokens.Jwt;
+﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
@@ -25,16 +25,16 @@ public class AuthService : IAuthService
     public async Task<AuthResponseDto> LoginAsync(LoginDto dto)
     {
         var tenant = await _db.Tenants.FirstOrDefaultAsync(t => t.Slug == dto.TenantSlug && t.IsActive)
-            ?? throw new Exception("Tenant not found or inactive");
+            ?? throw new NotFoundException("Tenant not found or inactive");
 
         var normalizedPhone = PhoneHelper.Normalize(dto.Phone);
         var user = await _db.Users
             .Include(u => u.UserRoles).ThenInclude(ur => ur.Role)
             .FirstOrDefaultAsync(u => u.TenantId == tenant.Id && u.Phone == normalizedPhone && u.IsActive)
-            ?? throw new Exception("Invalid credentials");
+            ?? throw new AppException("Invalid credentials");
 
         if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
-            throw new Exception("Invalid credentials");
+            throw new AppException("Invalid credentials");
 
         var modules = await _db.TenantModules
             .Include(tm => tm.Module)
@@ -90,7 +90,7 @@ public class AuthService : IAuthService
             .Include(u => u.Tenant)
             .Include(u => u.UserRoles).ThenInclude(ur => ur.Role)
             .FirstOrDefaultAsync(u => u.Id == userId && u.TenantId == tenantId)
-            ?? throw new Exception("User not found");
+            ?? throw new NotFoundException("User not found");
 
         var modules = await _db.TenantModules
             .Include(tm => tm.Module)

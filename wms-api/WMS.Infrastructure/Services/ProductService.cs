@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using WMS.Application.Common;
 using WMS.Application.DTOs.Products;
 using WMS.Application.Interfaces;
 using WMS.Domain.Entities;
@@ -30,6 +31,8 @@ public class ProductService : IProductService
 
     public async Task<ProductDto> CreateAsync(int tenantId, CreateProductDto dto)
     {
+        await ValidateCategoryAndUnitAsync(tenantId, dto.CategoryId, dto.UnitId);
+
         var product = new Product
         {
             TenantId = tenantId, Name = dto.Name, CategoryId = dto.CategoryId,
@@ -48,7 +51,9 @@ public class ProductService : IProductService
     {
         var p = await _db.Products.Include(x => x.Category).Include(x => x.Unit)
             .FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId)
-            ?? throw new Exception("Product not found");
+            ?? throw new NotFoundException("Product not found");
+
+        await ValidateCategoryAndUnitAsync(tenantId, dto.CategoryId, dto.UnitId);
 
         p.Name = dto.Name; p.CategoryId = dto.CategoryId; p.UnitId = dto.UnitId;
         p.Type = dto.Type; p.MinStock = dto.MinStock; p.ShelfLifeDays = dto.ShelfLifeDays;
@@ -63,7 +68,7 @@ public class ProductService : IProductService
     public async Task DeleteAsync(int tenantId, int id)
     {
         var p = await _db.Products.FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId)
-            ?? throw new Exception("Product not found");
+            ?? throw new NotFoundException("Product not found");
         p.IsDeleted = true;
         await _db.SaveChangesAsync();
     }
@@ -85,7 +90,7 @@ public class ProductService : IProductService
     public async Task<CategoryDto> UpdateCategoryAsync(int tenantId, int id, UpdateCategoryDto dto)
     {
         var cat = await _db.Categories.FirstOrDefaultAsync(c => c.Id == id && c.TenantId == tenantId)
-            ?? throw new Exception("Category not found");
+            ?? throw new NotFoundException("Category not found");
         cat.Name = dto.Name;
         cat.ParentId = dto.ParentId;
         await _db.SaveChangesAsync();
@@ -95,7 +100,7 @@ public class ProductService : IProductService
     public async Task DeleteCategoryAsync(int tenantId, int id)
     {
         var cat = await _db.Categories.FirstOrDefaultAsync(c => c.Id == id && c.TenantId == tenantId)
-            ?? throw new Exception("Category not found");
+            ?? throw new NotFoundException("Category not found");
         cat.IsDeleted = true;
         await _db.SaveChangesAsync();
     }
@@ -118,7 +123,7 @@ public class ProductService : IProductService
     public async Task<UnitDto> UpdateUnitAsync(int tenantId, int id, UpdateUnitDto dto)
     {
         var unit = await _db.Units.FirstOrDefaultAsync(u => u.Id == id && u.TenantId == tenantId)
-            ?? throw new Exception("Unit not found");
+            ?? throw new NotFoundException("Unit not found");
         unit.Name = dto.Name;
         unit.ShortName = dto.ShortName;
         await _db.SaveChangesAsync();
@@ -128,9 +133,17 @@ public class ProductService : IProductService
     public async Task DeleteUnitAsync(int tenantId, int id)
     {
         var unit = await _db.Units.FirstOrDefaultAsync(u => u.Id == id && u.TenantId == tenantId)
-            ?? throw new Exception("Unit not found");
+            ?? throw new NotFoundException("Unit not found");
         unit.IsDeleted = true;
         await _db.SaveChangesAsync();
+    }
+
+    private async Task ValidateCategoryAndUnitAsync(int tenantId, int categoryId, int unitId)
+    {
+        var categoryExists = await _db.Categories.AnyAsync(c => c.Id == categoryId && c.TenantId == tenantId);
+        if (!categoryExists) throw new NotFoundException("Category not found");
+        var unitExists = await _db.Units.AnyAsync(u => u.Id == unitId && u.TenantId == tenantId);
+        if (!unitExists) throw new NotFoundException("Unit not found");
     }
 
     private static ProductDto MapToDto(Product p) => new()

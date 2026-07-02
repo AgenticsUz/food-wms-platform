@@ -17,7 +17,7 @@ public interface IAgentService
 
     // Agent portal (self-service cabinet)
     Task<AgentPortalAuthResponseDto> PortalLoginAsync(AgentPortalLoginDto dto);
-    Task<AgentPortalProfileDto> GetPortalProfileAsync(int agentId);
+    Task<AgentPortalProfileDto> GetPortalProfileAsync(int agentId, int tenantId);
     Task<AgentSalesReportDto> GetPortalSalesReportAsync(int agentId, int tenantId);
     Task<List<CommissionRecordDto>> GetPortalCommissionsAsync(int agentId, int tenantId);
 }

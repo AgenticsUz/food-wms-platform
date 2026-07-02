@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using WMS.Domain.Entities;
 using WMS.Domain.Enums;
 
@@ -6,7 +7,7 @@ namespace WMS.Infrastructure.Persistence;
 
 public static class DataInitializer
 {
-    public static async Task SeedAsync(WmsDbContext db)
+    public static async Task SeedAsync(WmsDbContext db, IConfiguration? config = null)
     {
         if (await db.Tenants.AnyAsync())
         {
@@ -48,13 +49,17 @@ public static class DataInitializer
         db.Roles.Add(role);
         await db.SaveChangesAsync();
 
-        // 4. Create default admin user
+        // 4. Create default admin user. Override the well-known default password in
+        // production via Seed:AdminPassword (env var Seed__AdminPassword).
+        var adminPassword = config?["Seed:AdminPassword"];
+        if (string.IsNullOrWhiteSpace(adminPassword)) adminPassword = "Admin123456";
         var user = new User
         {
             TenantId = tenant.Id,
             FullName = "Admin",
-            Phone = "998901234567",
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin123456"),
+            // Must match the normalization AuthService applies at login ("+998...").
+            Phone = WMS.Application.Common.PhoneHelper.Normalize("998901234567")!,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(adminPassword),
             IsActive = true
         };
         db.Users.Add(user);
@@ -436,7 +441,12 @@ public static class DataInitializer
 
     private static async Task EnsureAdminPermissionsAsync(WmsDbContext db)
     {
-        var adminRoles = await db.Roles.Where(r => r.Name == "Admin").ToListAsync();
+        // Only the seeded system tenant's Admin role is auto-granted everything.
+        // Matching by name across all tenants would let any tenant self-escalate by
+        // creating a role called "Admin" and waiting for a restart.
+        var adminRoles = await db.Roles
+            .Where(r => r.TenantId == 1 && r.Name == "Admin")
+            .ToListAsync();
         var allPermissionIds = await db.Permissions.Select(p => p.Id).ToListAsync();
 
         foreach (var role in adminRoles)

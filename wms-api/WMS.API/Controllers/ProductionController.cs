@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using WMS.API.Middleware;
 using WMS.Application.Common;
 using WMS.Application.DTOs.Production;
 using WMS.Application.Interfaces;
@@ -9,6 +10,7 @@ namespace WMS.API.Controllers;
 [ApiController]
 [Route("api/production")]
 [Microsoft.AspNetCore.Authorization.Authorize]
+[RequirePermission("production.view")]
 public class ProductionController : BaseController
 {
     private readonly IProductionService _production;
@@ -20,18 +22,22 @@ public class ProductionController : BaseController
         => Ok(ApiResponse<List<ProductionStageDto>>.Ok(await _production.GetStagesAsync(TenantId)));
 
     [HttpPost("stages")]
+    [RequirePermission("production.manage")]
     public async Task<IActionResult> CreateStage([FromBody] CreateProductionStageDto dto)
         => Ok(ApiResponse<ProductionStageDto>.Ok(await _production.CreateStageAsync(TenantId, dto)));
 
     [HttpPut("stages/{id}")]
+    [RequirePermission("production.manage")]
     public async Task<IActionResult> UpdateStage(int id, [FromBody] UpdateProductionStageDto dto)
         => Ok(ApiResponse<ProductionStageDto>.Ok(await _production.UpdateStageAsync(TenantId, id, dto)));
 
     [HttpDelete("stages/{id}")]
+    [RequirePermission("production.manage")]
     public async Task<IActionResult> DeleteStage(int id)
     { await _production.DeleteStageAsync(TenantId, id); return Ok(ApiResponse<object>.Ok(null!, "Deleted")); }
 
     [HttpPatch("stages/reorder")]
+    [RequirePermission("production.manage")]
     public async Task<IActionResult> ReorderStages([FromBody] ReorderStagesDto dto)
     {
         await _production.ReorderStagesAsync(TenantId, dto.Ids);
@@ -48,14 +54,17 @@ public class ProductionController : BaseController
         => Ok(ApiResponse<ProductionRecipeDto>.Ok(await _production.GetRecipeByIdAsync(TenantId, id)));
 
     [HttpPost("recipes")]
+    [RequirePermission("production.manage")]
     public async Task<IActionResult> CreateRecipe([FromBody] CreateRecipeDto dto)
         => Ok(ApiResponse<ProductionRecipeDto>.Ok(await _production.CreateRecipeAsync(TenantId, dto)));
 
     [HttpPut("recipes/{id}")]
+    [RequirePermission("production.manage")]
     public async Task<IActionResult> UpdateRecipe(int id, [FromBody] CreateRecipeDto dto)
         => Ok(ApiResponse<ProductionRecipeDto>.Ok(await _production.UpdateRecipeAsync(TenantId, id, dto)));
 
     [HttpDelete("recipes/{id}")]
+    [RequirePermission("production.manage")]
     public async Task<IActionResult> DeleteRecipe(int id)
     { await _production.DeleteRecipeAsync(TenantId, id); return Ok(ApiResponse<object>.Ok(null!, "Deleted")); }
 
@@ -69,18 +78,22 @@ public class ProductionController : BaseController
         => Ok(ApiResponse<ProductionOrderDto>.Ok(await _production.GetOrderByIdAsync(TenantId, id)));
 
     [HttpPost("orders")]
+    [RequirePermission("production.manage")]
     public async Task<IActionResult> CreateOrder([FromBody] CreateProductionOrderDto dto)
         => Ok(ApiResponse<ProductionOrderDto>.Ok(await _production.CreateOrderAsync(TenantId, dto)));
 
     [HttpPut("orders/{id}/start")]
+    [RequirePermission("production.manage")]
     public async Task<IActionResult> StartOrder(int id)
         => Ok(ApiResponse<ProductionOrderDto>.Ok(await _production.StartOrderAsync(TenantId, id)));
 
     [HttpPut("orders/{id}/stages/{stageId}/execute")]
+    [RequirePermission("production.manage")]
     public async Task<IActionResult> ExecuteStage(int id, int stageId, [FromBody] ExecuteStageDto dto)
         => Ok(ApiResponse<StageExecutionDto>.Ok(await _production.ExecuteStageAsync(TenantId, id, stageId, dto)));
 
     [HttpPut("orders/{id}/complete")]
+    [RequirePermission("production.manage")]
     public async Task<IActionResult> CompleteOrder(int id)
     {
         try

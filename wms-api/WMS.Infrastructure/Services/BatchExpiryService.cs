@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using WMS.Application.Interfaces;
 using WMS.Domain.Enums;
 using WMS.Infrastructure.Persistence;
@@ -28,14 +28,14 @@ public class BatchExpiryService : IBatchExpiryService
                 && b.ExpiryDate != null)
             .ToListAsync();
 
-        var existingTodayNotifications = await _db.Notifications
-            .Where(n => n.TenantId == tenantId
-                && n.EntityType == "Batch"
-                && n.CreatedAt >= today)
+        // Dedupe against ALL previous batch notifications, not just today's —
+        // otherwise every expired batch re-notifies daily until it is emptied.
+        var existingNotifications = await _db.Notifications
+            .Where(n => n.TenantId == tenantId && n.EntityType == "Batch")
             .Select(n => new { n.EntityId, n.Type })
             .ToListAsync();
 
-        var existingSet = existingTodayNotifications
+        var existingSet = existingNotifications
             .Where(n => n.EntityId.HasValue)
             .Select(n => (n.EntityId!.Value, n.Type))
             .ToHashSet();

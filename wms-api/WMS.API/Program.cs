@@ -30,7 +30,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-builder.Services.AddAuthorization();
+// All three login flows (main, counterparty portal, agent portal) share one signing key,
+// so token type is enforced by claim shape: portal tokens must never reach main endpoints.
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("MainApi", p => p.RequireClaim("userId"));
+    options.AddPolicy("PortalOnly", p => p.RequireClaim("counterpartyId"));
+    options.AddPolicy("AgentPortalOnly", p => p.RequireClaim("agentId"));
+});
 
 // Services (DI)
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -49,6 +56,7 @@ builder.Services.AddScoped<IPortalAuthService, PortalAuthService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IBatchExpiryService, BatchExpiryService>();
+builder.Services.AddHostedService<BatchExpiryBackgroundService>();
 builder.Services.AddScoped<IExportService, ExportService>();
 builder.Services.AddScoped<ITransferPdfService, TransferPdfService>();
 builder.Services.AddScoped<IImportService, ImportService>();
@@ -105,9 +113,10 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<WmsDbContext>();
     db.Database.Migrate();
-    await DataInitializer.SeedAsync(db);
+    await DataInitializer.SeedAsync(db, app.Configuration);
 }
 
+app.UseMiddleware<WMS.API.Middleware.ExceptionHandlingMiddleware>();
 app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();

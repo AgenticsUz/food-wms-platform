@@ -1,8 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace WMS.Application.Common;
 
 public static class PhoneHelper
 {
-    public static string Normalize(string phone)
+    [return: NotNullIfNotNull(nameof(phone))]
+    public static string? Normalize(string? phone)
     {
         if (string.IsNullOrWhiteSpace(phone)) return phone;
 

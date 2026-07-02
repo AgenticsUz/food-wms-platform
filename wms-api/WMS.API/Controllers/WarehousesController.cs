@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
+using WMS.API.Middleware;
 using WMS.Application.Common;
 using WMS.Application.DTOs.Warehouses;
 using WMS.Application.Interfaces;
 
 namespace WMS.API.Controllers;
 
+[RequirePermission("warehouse.view")]
 public class WarehousesController : BaseController
 {
     private readonly IWarehouseService _warehouses;
@@ -15,14 +17,17 @@ public class WarehousesController : BaseController
         => Ok(ApiResponse<List<WarehouseDto>>.Ok(await _warehouses.GetAllAsync(TenantId)));
 
     [HttpPost]
+    [RequirePermission("warehouse.manage")]
     public async Task<IActionResult> Create([FromBody] CreateWarehouseDto dto)
         => Ok(ApiResponse<WarehouseDto>.Ok(await _warehouses.CreateAsync(TenantId, dto)));
 
     [HttpPut("{id}")]
+    [RequirePermission("warehouse.manage")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateWarehouseDto dto)
         => Ok(ApiResponse<WarehouseDto>.Ok(await _warehouses.UpdateAsync(TenantId, id, dto)));
 
     [HttpDelete("{id}")]
+    [RequirePermission("warehouse.manage")]
     public async Task<IActionResult> Delete(int id)
     { await _warehouses.DeleteAsync(TenantId, id); return Ok(ApiResponse<object>.Ok(null!, "Deleted")); }
 
@@ -38,6 +43,7 @@ public class WarehousesController : BaseController
 [ApiController]
 [Route("api/locations")]
 [Microsoft.AspNetCore.Authorization.Authorize]
+[RequirePermission("warehouse.view")]
 public class LocationsController : BaseController
 {
     private readonly IWarehouseService _warehouses;
@@ -48,6 +54,7 @@ public class LocationsController : BaseController
         => Ok(ApiResponse<List<LocationDto>>.Ok(await _warehouses.GetLocationsAsync(TenantId, warehouseId)));
 
     [HttpPost]
+    [RequirePermission("warehouse.manage")]
     public async Task<IActionResult> Create([FromBody] CreateLocationDto dto)
         => Ok(ApiResponse<LocationDto>.Ok(await _warehouses.CreateLocationAsync(TenantId, dto)));
 }
@@ -55,6 +62,7 @@ public class LocationsController : BaseController
 [ApiController]
 [Route("api/batches")]
 [Microsoft.AspNetCore.Authorization.Authorize]
+[RequirePermission("warehouse.view")]
 public class BatchesController : BaseController
 {
     private readonly IWarehouseService _warehouses;
@@ -65,10 +73,12 @@ public class BatchesController : BaseController
         => Ok(ApiResponse<List<BatchDto>>.Ok(await _warehouses.GetBatchesAsync(TenantId)));
 
     [HttpPut("{id}")]
+    [RequirePermission("warehouse.manage")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateBatchDto dto)
         => Ok(ApiResponse<BatchDto>.Ok(await _warehouses.UpdateBatchAsync(TenantId, id, dto)));
 
     [HttpDelete("{id}")]
+    [RequirePermission("warehouse.manage")]
     public async Task<IActionResult> Delete(int id)
     { await _warehouses.DeleteBatchAsync(TenantId, id); return Ok(ApiResponse<object>.Ok(null!, "Deleted")); }
 }

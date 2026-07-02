@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using WMS.API.Middleware;
 using WMS.Application.Common;
 using WMS.Application.DTOs.Counterparties;
 using WMS.Application.DTOs.Finance;
@@ -7,6 +8,7 @@ using WMS.Domain.Enums;
 
 namespace WMS.API.Controllers;
 
+[RequirePermission("partners.view")]
 public class CounterpartiesController : BaseController
 {
     private readonly ICounterpartyService _counterparties;
@@ -17,14 +19,17 @@ public class CounterpartiesController : BaseController
         => Ok(ApiResponse<List<CounterpartyDto>>.Ok(await _counterparties.GetAllAsync(TenantId, type)));
 
     [HttpPost]
+    [RequirePermission("partners.manage")]
     public async Task<IActionResult> Create([FromBody] CreateCounterpartyDto dto)
         => Ok(ApiResponse<CounterpartyDto>.Ok(await _counterparties.CreateAsync(TenantId, dto)));
 
     [HttpPut("{id}")]
+    [RequirePermission("partners.manage")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateCounterpartyDto dto)
         => Ok(ApiResponse<CounterpartyDto>.Ok(await _counterparties.UpdateAsync(TenantId, id, dto)));
 
     [HttpDelete("{id}")]
+    [RequirePermission("partners.manage")]
     public async Task<IActionResult> Delete(int id)
     { await _counterparties.DeleteAsync(TenantId, id); return Ok(ApiResponse<object>.Ok(null!, "Deleted")); }
 

@@ -8,6 +8,7 @@ namespace WMS.API.Controllers;
 
 [ApiController]
 [Route("api/agent-portal")]
+[Authorize(Policy = "AgentPortalOnly")]
 public class AgentPortalController : ControllerBase
 {
     private readonly IAgentService _agents;
@@ -34,7 +35,7 @@ public class AgentPortalController : ControllerBase
     [HttpGet("me")]
     [Authorize]
     public async Task<IActionResult> GetMe()
-        => Ok(ApiResponse<AgentPortalProfileDto>.Ok(await _agents.GetPortalProfileAsync(AgentId)));
+        => Ok(ApiResponse<AgentPortalProfileDto>.Ok(await _agents.GetPortalProfileAsync(AgentId, PortalTenantId)));
 
     [HttpGet("sales")]
     [Authorize]

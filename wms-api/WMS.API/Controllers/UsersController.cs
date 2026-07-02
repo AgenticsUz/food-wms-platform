@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
+using WMS.API.Middleware;
 using WMS.Application.Common;
 using WMS.Application.DTOs.Users;
 using WMS.Application.Interfaces;
 
 namespace WMS.API.Controllers;
 
+[RequirePermission("settings.users")]
 public class UsersController : BaseController
 {
     private readonly IUserService _users;
@@ -33,7 +35,7 @@ public class UsersController : BaseController
 
 [ApiController]
 [Route("api/roles")]
-[Microsoft.AspNetCore.Authorization.Authorize]
+[RequirePermission("settings.roles")]
 public class RolesController : BaseController
 {
     private readonly IUserService _users;
@@ -70,7 +72,6 @@ public class RolesController : BaseController
 
 [ApiController]
 [Route("api/permissions")]
-[Microsoft.AspNetCore.Authorization.Authorize]
 public class PermissionsController : BaseController
 {
     private readonly IUserService _users;

@@ -38,9 +38,10 @@ public class NotificationService : INotificationService
             .CountAsync();
     }
 
-    public async Task<bool> MarkAsReadAsync(int id, int tenantId)
+    public async Task<bool> MarkAsReadAsync(int id, int tenantId, int userId)
     {
-        var n = await _db.Notifications.FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId);
+        var n = await _db.Notifications.FirstOrDefaultAsync(x =>
+            x.Id == id && x.TenantId == tenantId && (x.UserId == null || x.UserId == userId));
         if (n == null) return false;
         n.IsRead = true;
         n.ReadAt = DateTime.UtcNow;

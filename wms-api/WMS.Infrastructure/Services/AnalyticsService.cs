@@ -37,14 +37,14 @@ public class AnalyticsService : IAnalyticsService
 
         // Low stock count
         var products = await _db.Products.Where(p => p.TenantId == tenantId && p.MinStock > 0).ToListAsync();
-        var lowStockCount = 0;
-        foreach (var p in products)
-        {
-            var stock = await _db.WarehouseStocks
-                .Where(s => s.TenantId == tenantId && s.ProductId == p.Id)
-                .SumAsync(s => (double)s.Quantity);
-            if ((decimal)stock <= p.MinStock) lowStockCount++;
-        }
+        var stockByProduct = (await _db.WarehouseStocks
+                .Where(s => s.TenantId == tenantId)
+                .Select(s => new { s.ProductId, s.Quantity })
+                .ToListAsync())
+            .GroupBy(s => s.ProductId)
+            .ToDictionary(g => g.Key, g => g.Sum(s => s.Quantity));
+        var lowStockCount = products.Count(p =>
+            (stockByProduct.TryGetValue(p.Id, out var stock) ? stock : 0) <= p.MinStock);
 
         // Efficiency last 7 days
         var from7 = now.AddDays(-7);
@@ -105,10 +105,10 @@ public class AnalyticsService : IAnalyticsService
     {
         var from = DateTime.UtcNow.AddDays(-days);
         var transfers = await _db.Transfers
-            .Where(t => t.TenantId == tenantId && t.Status == TransferStatus.Confirmed && t.CreatedAt >= from)
+            .Where(t => t.TenantId == tenantId && t.Status == TransferStatus.Confirmed && t.ConfirmedAt >= from)
             .Include(t => t.Items).ToListAsync();
 
-        return transfers.GroupBy(t => t.CreatedAt.Date)
+        return transfers.GroupBy(t => t.ConfirmedAt!.Value.Date)
             .Select(g => new DailyTransferDto
             {
                 Date = g.Key,
@@ -140,7 +140,8 @@ public class AnalyticsService : IAnalyticsService
     {
         var from = DateTime.UtcNow.AddDays(-days);
         return await _db.Transfers
-            .Where(t => t.TenantId == tenantId && t.Status == TransferStatus.Confirmed && t.ConfirmedAt >= from)
+            .Where(t => t.TenantId == tenantId && t.Status == TransferStatus.Confirmed && t.ConfirmedAt >= from
+                && t.Type != TransferType.Internal)
             .Include(t => t.Items).ThenInclude(i => i.Product)
             .SelectMany(t => t.Items.Select(i => new StockHistoryDto
             {
@@ -148,6 +149,7 @@ public class AnalyticsService : IAnalyticsService
                 ProductName = i.Product.Name,
                 Quantity = i.Quantity,
                 MovementType = t.Type == TransferType.Incoming || t.Type == TransferType.ProductionOutput
+                    || t.Type == TransferType.Return
                     ? "Incoming" : "Outgoing"
             })).OrderBy(x => x.Date).ToListAsync();
     }
@@ -188,12 +190,12 @@ public class AnalyticsService : IAnalyticsService
         var actuals = await _db.ShiftActuals
             .Where(a => a.TenantId == tenantId && a.Date >= from).ToListAsync();
 
-        return plans.GroupBy(p => new { p.Shift.Name, p.Date.Date })
+        return plans.GroupBy(p => new { p.ShiftId, p.Shift.Name, p.Date.Date })
             .Select(g =>
             {
                 var planned = g.Sum(p => p.PlannedQuantity);
                 var actual = actuals
-                    .Where(a => a.Date.Date == g.Key.Date && a.ShiftId == g.First().ShiftId)
+                    .Where(a => a.Date.Date == g.Key.Date && a.ShiftId == g.Key.ShiftId)
                     .Sum(a => a.ActualQuantity);
                 return new ShiftEfficiencyDto
                 {

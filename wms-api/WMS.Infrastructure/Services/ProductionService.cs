@@ -1,4 +1,5 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using WMS.Application.Common;
 using WMS.Application.DTOs.Production;
 using WMS.Application.Interfaces;
 using WMS.Domain.Entities;
@@ -42,7 +43,7 @@ public class ProductionService : IProductionService
     public async Task<ProductionStageDto> UpdateStageAsync(int tenantId, int id, UpdateProductionStageDto dto)
     {
         var s = await _db.ProductionStages.FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId)
-            ?? throw new Exception("Stage not found");
+            ?? throw new NotFoundException("Stage not found");
         s.Name = dto.Name; s.OrderNumber = dto.OrderNumber; s.Description = dto.Description;
         await _db.SaveChangesAsync();
         return new ProductionStageDto { Id = s.Id, Name = s.Name, OrderNumber = s.OrderNumber, Description = s.Description };
@@ -51,17 +52,20 @@ public class ProductionService : IProductionService
     public async Task DeleteStageAsync(int tenantId, int id)
     {
         var s = await _db.ProductionStages.FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId)
-            ?? throw new Exception("Stage not found");
+            ?? throw new NotFoundException("Stage not found");
         s.IsDeleted = true;
         await _db.SaveChangesAsync();
     }
 
     public async Task ReorderStagesAsync(int tenantId, List<int> ids)
     {
+        var stages = await _db.ProductionStages
+            .Where(x => x.TenantId == tenantId && ids.Contains(x.Id))
+            .ToDictionaryAsync(x => x.Id);
         for (int i = 0; i < ids.Count; i++)
         {
-            var s = await _db.ProductionStages.FirstOrDefaultAsync(x => x.Id == ids[i] && x.TenantId == tenantId);
-            if (s != null) s.OrderNumber = i + 1;
+            if (stages.TryGetValue(ids[i], out var s))
+                s.OrderNumber = i + 1;
         }
         await _db.SaveChangesAsync();
     }
@@ -89,7 +93,7 @@ public class ProductionService : IProductionService
             .Include(r => r.RecipeStages).ThenInclude(rs => rs.Inputs).ThenInclude(i => i.Product)
             .Include(r => r.RecipeStages).ThenInclude(rs => rs.Inputs).ThenInclude(i => i.Unit)
             .FirstOrDefaultAsync(r => r.Id == id && r.TenantId == tenantId)
-            ?? throw new Exception("Recipe not found");
+            ?? throw new NotFoundException("Recipe not found");
 
         return MapRecipeToDto(r);
     }
@@ -132,7 +136,7 @@ public class ProductionService : IProductionService
         var recipe = await _db.ProductionRecipes
             .Include(r => r.RecipeStages).ThenInclude(rs => rs.Inputs)
             .FirstOrDefaultAsync(r => r.Id == id && r.TenantId == tenantId)
-            ?? throw new Exception("Recipe not found");
+            ?? throw new NotFoundException("Recipe not found");
 
         recipe.Name = dto.Name; recipe.OutputProductId = dto.OutputProductId;
         recipe.OutputQuantity = dto.OutputQuantity; recipe.OutputUnitId = dto.OutputUnitId;
@@ -170,7 +174,7 @@ public class ProductionService : IProductionService
     public async Task DeleteRecipeAsync(int tenantId, int id)
     {
         var r = await _db.ProductionRecipes.FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId)
-            ?? throw new Exception("Recipe not found");
+            ?? throw new NotFoundException("Recipe not found");
         r.IsDeleted = true;
         await _db.SaveChangesAsync();
     }
@@ -205,7 +209,7 @@ public class ProductionService : IProductionService
             .Include(o => o.StageExecutions).ThenInclude(se => se.RecipeStage).ThenInclude(rs => rs.Stage)
             .Include(o => o.StageExecutions).ThenInclude(se => se.WorkerUser)
             .FirstOrDefaultAsync(o => o.Id == id && o.TenantId == tenantId)
-            ?? throw new Exception("Production order not found");
+            ?? throw new NotFoundException("Production order not found");
 
         return new ProductionOrderDto
         {
@@ -232,9 +236,16 @@ public class ProductionService : IProductionService
 
     public async Task<ProductionOrderDto> CreateOrderAsync(int tenantId, CreateProductionOrderDto dto)
     {
+        if (dto.PlannedQuantity <= 0)
+            throw new AppException("Planned quantity must be greater than zero");
+
         var recipe = await _db.ProductionRecipes.Include(r => r.RecipeStages)
             .FirstOrDefaultAsync(r => r.Id == dto.RecipeId && r.TenantId == tenantId)
-            ?? throw new Exception("Recipe not found");
+            ?? throw new NotFoundException("Recipe not found");
+
+        if (dto.AssignedToUserId.HasValue &&
+            !await _db.Users.AnyAsync(u => u.Id == dto.AssignedToUserId.Value && u.TenantId == tenantId))
+            throw new NotFoundException("Assigned user not found");
 
         var order = new ProductionOrder
         {
@@ -264,9 +275,9 @@ public class ProductionService : IProductionService
         var order = await _db.ProductionOrders
             .Include(o => o.AssignedToUser)
             .FirstOrDefaultAsync(o => o.Id == id && o.TenantId == tenantId)
-            ?? throw new Exception("Order not found");
+            ?? throw new NotFoundException("Order not found");
         if (order.Status != ProductionOrderStatus.Draft)
-            throw new Exception("Only draft orders can be started");
+            throw new AppException("Only draft orders can be started");
         order.Status = ProductionOrderStatus.InProgress;
         await _db.SaveChangesAsync();
 
@@ -281,17 +292,43 @@ public class ProductionService : IProductionService
 
     public async Task<StageExecutionDto> ExecuteStageAsync(int tenantId, int orderId, int stageId, ExecuteStageDto dto)
     {
+        if (dto.ActualQuantity < 0 || dto.WasteQuantity < 0 || dto.ReworkQuantity < 0)
+            throw new AppException("Quantities cannot be negative");
+
         var order = await _db.ProductionOrders
+            .Include(o => o.Recipe)
             .FirstOrDefaultAsync(o => o.Id == orderId && o.TenantId == tenantId)
-            ?? throw new Exception("Order not found");
+            ?? throw new NotFoundException("Order not found");
         if (order.Status != ProductionOrderStatus.InProgress)
-            throw new Exception("Order must be in progress");
+            throw new AppException("Order must be in progress");
 
         var execution = await _db.StageExecutions
             .Include(se => se.RecipeStage).ThenInclude(rs => rs.Stage)
+            .Include(se => se.RecipeStage).ThenInclude(rs => rs.Inputs)
             .Include(se => se.WorkerUser)
             .FirstOrDefaultAsync(se => se.Id == stageId && se.ProductionOrderId == orderId)
-            ?? throw new Exception("Stage execution not found");
+            ?? throw new NotFoundException("Stage execution not found");
+
+        if (dto.WorkerUserId.HasValue &&
+            !await _db.Users.AnyAsync(u => u.Id == dto.WorkerUserId.Value && u.TenantId == tenantId))
+            throw new NotFoundException("Worker not found");
+
+        // Inputs are consumed only on the first completion; re-editing a completed
+        // stage updates the recorded quantities without touching stock again.
+        var firstCompletion = execution.Status != StageExecutionStatus.Completed;
+
+        await using var tx = await _db.Database.BeginTransactionAsync();
+
+        if (firstCompletion && execution.RecipeStage.Inputs.Count > 0)
+        {
+            // Recipe inputs are defined for one recipe batch (Recipe.OutputQuantity);
+            // scale them to the order's planned quantity.
+            var factor = order.Recipe.OutputQuantity > 0
+                ? order.PlannedQuantity / order.Recipe.OutputQuantity
+                : 1m;
+            foreach (var input in execution.RecipeStage.Inputs)
+                await DeductFromStockAsync(tenantId, input.ProductId, input.Quantity * factor);
+        }
 
         execution.ActualQuantity = dto.ActualQuantity;
         execution.WasteQuantity = dto.WasteQuantity;
@@ -302,7 +339,21 @@ public class ProductionService : IProductionService
         execution.EndTime = DateTime.UtcNow;
         execution.Status = StageExecutionStatus.Completed;
 
+        // Intermediate output that is allowed to be stored in a warehouse.
+        // The final stage's output is handled by CompleteOrderAsync (OutputProductId is
+        // null there), so only explicit semi-finished outputs land here.
+        if (firstCompletion && execution.RecipeStage.AllowWarehouseOutput
+            && execution.RecipeStage.OutputWarehouseId.HasValue
+            && execution.RecipeStage.OutputProductId.HasValue
+            && dto.ActualQuantity > 0)
+        {
+            await AddProducedStockAsync(tenantId, execution.RecipeStage.OutputWarehouseId.Value,
+                execution.RecipeStage.OutputProductId.Value, dto.ActualQuantity,
+                $"SEMI-{order.Id}");
+        }
+
         await _db.SaveChangesAsync();
+        await tx.CommitAsync();
 
         return new StageExecutionDto
         {
@@ -321,73 +372,127 @@ public class ProductionService : IProductionService
     {
         var order = await _db.ProductionOrders
             .Include(o => o.Recipe).ThenInclude(r => r.OutputProduct)
-            .Include(o => o.StageExecutions)
+            .Include(o => o.StageExecutions).ThenInclude(se => se.RecipeStage)
             .FirstOrDefaultAsync(o => o.Id == id && o.TenantId == tenantId)
-            ?? throw new Exception("Order not found");
+            ?? throw new NotFoundException("Order not found");
         if (order.Status != ProductionOrderStatus.InProgress)
-            throw new Exception("Order must be in progress");
+            throw new AppException("Order must be in progress");
+
+        if (order.StageExecutions.Any(se =>
+                se.Status != StageExecutionStatus.Completed && se.Status != StageExecutionStatus.Skipped))
+            throw new AppException("All stages must be completed or skipped before completing the order");
+
+        // The order's output is what the LAST completed stage produced — summing all
+        // stages would count the same product once per stage.
+        var finalStage = order.StageExecutions
+            .Where(se => se.Status == StageExecutionStatus.Completed)
+            .OrderByDescending(se => se.RecipeStage.OrderNumber)
+            .FirstOrDefault();
+        var totalOutput = finalStage?.ActualQuantity ?? 0;
+
+        var finishedWarehouse = await _db.Warehouses
+            .FirstOrDefaultAsync(w => w.TenantId == tenantId && w.Type == WarehouseType.Finished)
+            ?? throw new AppException("No finished goods warehouse configured for this tenant");
+
+        await using var tx = await _db.Database.BeginTransactionAsync();
 
         order.Status = ProductionOrderStatus.Completed;
 
-        // Create production output transfer to finished goods warehouse
-        var finishedWarehouse = await _db.Warehouses
-            .FirstOrDefaultAsync(w => w.TenantId == tenantId && w.Type == WarehouseType.Finished);
-
-        if (finishedWarehouse != null)
+        if (totalOutput > 0)
         {
-            var totalOutput = order.StageExecutions
-                .Where(se => se.Status == StageExecutionStatus.Completed)
-                .Sum(se => se.ActualQuantity);
+            var batch = await AddProducedStockAsync(tenantId, finishedWarehouse.Id,
+                order.Recipe.OutputProductId, totalOutput, $"PROD-{order.Id}");
 
-            var location = await _db.Locations.FirstOrDefaultAsync(l => l.WarehouseId == finishedWarehouse.Id);
-            if (location != null && totalOutput > 0)
+            // Auto-create ProductionOutput transfer for traceability
+            var transfer = new Transfer
             {
-                var batch = new Batch
-                {
-                    TenantId = tenantId, ProductId = order.Recipe.OutputProductId,
-                    LotNumber = $"PROD-{DateTime.UtcNow:yyyyMMdd}-{order.Id}",
-                    ManufacturedDate = DateTime.UtcNow,
-                    ExpiryDate = order.Recipe.OutputProduct.ShelfLifeDays.HasValue
-                        ? DateTime.UtcNow.AddDays(order.Recipe.OutputProduct.ShelfLifeDays.Value) : null,
-                    InitialQuantity = totalOutput, RemainingQuantity = totalOutput
-                };
-                _db.Batches.Add(batch);
-                await _db.SaveChangesAsync();
-
-                // Auto-create ProductionOutput transfer
-                var transfer = new Transfer
-                {
-                    TenantId = tenantId, Type = TransferType.ProductionOutput,
-                    ToWarehouseId = finishedWarehouse.Id, Status = TransferStatus.Confirmed,
-                    ConfirmedAt = DateTime.UtcNow, Note = $"Production Order #{order.Id}"
-                };
-                transfer.Items.Add(new TransferItem
-                {
-                    ProductId = order.Recipe.OutputProductId,
-                    BatchId = batch.Id, Quantity = totalOutput, UnitPrice = 0
-                });
-                _db.Transfers.Add(transfer);
-
-                _db.WarehouseStocks.Add(new WarehouseStock
-                {
-                    TenantId = tenantId, WarehouseId = finishedWarehouse.Id,
-                    LocationId = location.Id, ProductId = order.Recipe.OutputProductId,
-                    BatchId = batch.Id, Quantity = totalOutput
-                });
-            }
+                TenantId = tenantId, Type = TransferType.ProductionOutput,
+                ToWarehouseId = finishedWarehouse.Id, Status = TransferStatus.Confirmed,
+                ConfirmedAt = DateTime.UtcNow, Note = $"Production Order #{order.Id}"
+            };
+            transfer.Items.Add(new TransferItem
+            {
+                ProductId = order.Recipe.OutputProductId,
+                Batch = batch, Quantity = totalOutput, UnitPrice = 0
+            });
+            _db.Transfers.Add(transfer);
         }
 
         await _db.SaveChangesAsync();
+        await tx.CommitAsync();
 
-        var totalQty = order.StageExecutions
-            .Where(se => se.Status == StageExecutionStatus.Completed)
-            .Sum(se => se.ActualQuantity);
         await _notifications.CreateAsync(tenantId, null,
             "Production Completed",
-            $"Buyurtma #{order.Id} bajarildi. {totalQty:N0} dona {order.Recipe.OutputProduct.Name} tayyor omborga kiritildi",
+            $"Buyurtma #{order.Id} bajarildi. {totalOutput:N0} dona {order.Recipe.OutputProduct.Name} tayyor omborga kiritildi",
             NotificationType.ProductionCompleted, "ProductionOrder", order.Id);
 
         return await GetOrderByIdAsync(tenantId, id);
+    }
+
+    /// FEFO-deducts the given quantity of a product from any of the tenant's
+    /// warehouses (earliest expiry first). Reserved stock is not touched.
+    private async Task DeductFromStockAsync(int tenantId, int productId, decimal quantity)
+    {
+        if (quantity <= 0) return;
+        var remaining = quantity;
+
+        var stocks = (await _db.WarehouseStocks
+                .Include(s => s.Batch)
+                .Where(s => s.TenantId == tenantId && s.ProductId == productId && s.Quantity > 0)
+                .OrderBy(s => s.Batch.ExpiryDate ?? DateTime.MaxValue)
+                .ToListAsync())
+            .Where(s => s.Quantity - s.ReservedQuantity > 0)
+            .ToList();
+
+        foreach (var stock in stocks)
+        {
+            if (remaining <= 0) break;
+            var take = Math.Min(remaining, stock.Quantity - stock.ReservedQuantity);
+            stock.Quantity -= take;
+            stock.Batch.RemainingQuantity -= take;
+            remaining -= take;
+        }
+
+        if (remaining > 0)
+        {
+            var product = await _db.Products.FindAsync(productId);
+            throw new AppException(
+                $"Insufficient stock for input '{product?.Name ?? productId.ToString()}' (short by {remaining:N2})");
+        }
+    }
+
+    /// Creates a new batch + stock row for produced goods in the given warehouse.
+    private async Task<Batch> AddProducedStockAsync(int tenantId, int warehouseId,
+        int productId, decimal quantity, string lotPrefix)
+    {
+        var location = await _db.Locations.FirstOrDefaultAsync(l => l.WarehouseId == warehouseId);
+        if (location == null)
+        {
+            location = new Location { WarehouseId = warehouseId, Name = "Default", Code = "DEF" };
+            _db.Locations.Add(location);
+        }
+
+        var product = await _db.Products
+            .FirstOrDefaultAsync(p => p.Id == productId && p.TenantId == tenantId);
+        var now = DateTime.UtcNow;
+        var batch = new Batch
+        {
+            TenantId = tenantId, ProductId = productId,
+            LotNumber = $"{lotPrefix}-{now:yyyyMMdd}-{Guid.NewGuid().ToString()[..6]}",
+            ManufacturedDate = now,
+            ExpiryDate = product?.ShelfLifeDays != null ? now.AddDays(product.ShelfLifeDays.Value) : null,
+            InitialQuantity = quantity, RemainingQuantity = quantity
+        };
+        _db.Batches.Add(batch);
+
+        _db.WarehouseStocks.Add(new WarehouseStock
+        {
+            TenantId = tenantId, WarehouseId = warehouseId,
+            Location = location, ProductId = productId,
+            Batch = batch, Quantity = quantity
+        });
+
+        return batch;
     }
 
     private static ProductionRecipeDto MapRecipeToDto(ProductionRecipe r) => new()

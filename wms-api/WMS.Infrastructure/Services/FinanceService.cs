@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using WMS.Application.Common;
 using WMS.Application.DTOs.Finance;
 using WMS.Application.Interfaces;
 using WMS.Domain.Entities;
@@ -36,6 +37,9 @@ public class FinanceService : IFinanceService
 
     public async Task<TransactionDto> CreateTransactionAsync(int tenantId, int userId, CreateTransactionDto dto)
     {
+        if (dto.Amount <= 0) throw new AppException("Amount must be greater than zero");
+        await ValidateReferencesAsync(tenantId, dto.CounterpartyId, dto.TransferId);
+
         var tx = new Transaction
         {
             TenantId = tenantId, Type = dto.Type, CounterpartyId = dto.CounterpartyId,
@@ -71,6 +75,9 @@ public class FinanceService : IFinanceService
 
     public async Task<PaymentHistoryDto> CreatePaymentAsync(int tenantId, int userId, CreatePaymentDto dto)
     {
+        if (dto.Amount <= 0) throw new AppException("Amount must be greater than zero");
+        await ValidateReferencesAsync(tenantId, dto.CounterpartyId, dto.TransferId);
+
         var payment = new PaymentHistory
         {
             TenantId = tenantId, CounterpartyId = dto.CounterpartyId,
@@ -80,17 +87,19 @@ public class FinanceService : IFinanceService
         };
         _db.PaymentHistories.Add(payment);
 
-        // Update debt
         var debt = await _db.Debts.FirstOrDefaultAsync(d =>
             d.TenantId == tenantId && d.CounterpartyId == dto.CounterpartyId);
-        if (debt != null)
+        if (debt == null)
         {
-            // Payment reduces absolute debt
-            if (debt.Amount > 0)
-                debt.Amount -= dto.Amount; // they owed us, now paying
-            else
-                debt.Amount += dto.Amount; // we owed them, now paying
+            debt = new Debt { TenantId = tenantId, CounterpartyId = dto.CounterpartyId, Amount = 0 };
+            _db.Debts.Add(debt);
         }
+
+        // Without an explicit direction, fall back to the debt sign: a negative
+        // balance means we owe the counterparty, so the payment is going out.
+        var direction = dto.Direction
+            ?? (debt.Amount < 0 ? PaymentDirection.Out : PaymentDirection.In);
+        debt.Amount += direction == PaymentDirection.In ? -dto.Amount : dto.Amount;
 
         await _db.SaveChangesAsync();
 
@@ -127,19 +136,33 @@ public class FinanceService : IFinanceService
 
     public async Task<FinanceSummaryDto> GetSummaryAsync(int tenantId)
     {
-        var income = await _db.Transactions
-            .Where(t => t.TenantId == tenantId && t.Type == TransactionType.Income)
-            .SumAsync(t => (double)t.Amount);
-        var expense = await _db.Transactions
-            .Where(t => t.TenantId == tenantId && t.Type == TransactionType.Expense)
-            .SumAsync(t => (double)t.Amount);
-        var debt = await _db.Debts.Where(d => d.TenantId == tenantId)
-            .SumAsync(d => (double)d.Amount);
+        // Sum in memory: money stays decimal end-to-end (SQLite stores it as REAL,
+        // but casting through double in the query loses the decimal contract).
+        var amounts = await _db.Transactions
+            .Where(t => t.TenantId == tenantId)
+            .Select(t => new { t.Type, t.Amount })
+            .ToListAsync();
+        var income = amounts.Where(t => t.Type == TransactionType.Income).Sum(t => t.Amount);
+        var expense = amounts.Where(t => t.Type == TransactionType.Expense).Sum(t => t.Amount);
+
+        var debt = (await _db.Debts.Where(d => d.TenantId == tenantId)
+            .Select(d => d.Amount).ToListAsync()).Sum();
 
         return new FinanceSummaryDto
         {
-            TotalIncome = (decimal)income, TotalExpense = (decimal)expense,
-            TotalDebt = (decimal)debt, NetProfit = (decimal)(income - expense)
+            TotalIncome = income, TotalExpense = expense,
+            TotalDebt = debt, NetProfit = income - expense
         };
+    }
+
+    private async Task ValidateReferencesAsync(int tenantId, int? counterpartyId, int? transferId)
+    {
+        if (counterpartyId.HasValue &&
+            !await _db.Counterparties.AnyAsync(c => c.Id == counterpartyId.Value && c.TenantId == tenantId))
+            throw new NotFoundException("Counterparty not found");
+
+        if (transferId.HasValue &&
+            !await _db.Transfers.AnyAsync(t => t.Id == transferId.Value && t.TenantId == tenantId))
+            throw new NotFoundException("Transfer not found");
     }
 }
