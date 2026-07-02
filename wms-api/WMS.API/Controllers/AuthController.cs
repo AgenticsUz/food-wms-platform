@@ -29,6 +29,14 @@ public class AuthController : BaseController
         }
     }
 
+    [HttpPost("register")]
+    [AllowAnonymous]
+    public async Task<IActionResult> Register([FromBody] RegisterDto dto)
+    {
+        var result = await _auth.RegisterAsync(dto);
+        return Ok(ApiResponse<AuthResponseDto>.Ok(result, "Registration successful"));
+    }
+
     [HttpGet("me")]
     public async Task<IActionResult> GetMe()
     {

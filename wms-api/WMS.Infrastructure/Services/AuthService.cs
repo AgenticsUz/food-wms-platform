@@ -91,6 +91,43 @@ public class AuthService : IAuthService
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
+    public async Task<AuthResponseDto> RegisterAsync(RegisterDto dto)
+    {
+        // Yangi tenantni to'liq provizatsiya qilamiz (tenant + modullar + Admin rol + admin user).
+        // Slug/parol validatsiyasi va noyoblik tekshiruvi provisioner ichida.
+        var (tenant, user) = await TenantProvisioner.ProvisionAsync(
+            _db, dto.TenantName, dto.Slug, dto.FullName, dto.Phone, dto.Password);
+
+        // Admin darhol tizimga kiradi — login javobini qaytaramiz.
+        var modules = await _db.Modules.Select(m => m.Code).ToListAsync();
+        var permissions = await _db.Permissions.Select(p => p.Code).ToListAsync();
+
+        var claims = new List<Claim>
+        {
+            new("tenantId", tenant.Id.ToString()),
+            new("userId", user.Id.ToString()),
+            new("fullName", user.FullName),
+            new(ClaimTypes.Role, "Admin")
+        };
+
+        return new AuthResponseDto
+        {
+            Token = GenerateToken(claims),
+            User = new UserInfoDto
+            {
+                Id = user.Id,
+                FullName = user.FullName,
+                Phone = user.Phone,
+                TenantId = tenant.Id,
+                TenantName = tenant.Name,
+                IsSuperAdmin = false,
+                Roles = new List<string> { "Admin" },
+                EnabledModules = modules,
+                Permissions = permissions
+            }
+        };
+    }
+
     public async Task<UserInfoDto> GetCurrentUserAsync(int userId, int tenantId)
     {
         var user = await _db.Users
