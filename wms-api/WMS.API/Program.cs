@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using QuestPDF.Infrastructure;
+using Serilog;
 using WMS.Application.Interfaces;
 using WMS.Infrastructure.Persistence;
 using WMS.Infrastructure.Services;
@@ -13,9 +14,19 @@ QuestPDF.Settings.License = LicenseType.Community;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Structured logging — konsol + kunlik aylanuvchi fayl (14 kun saqlanadi)
+builder.Host.UseSerilog((ctx, cfg) => cfg
+    .ReadFrom.Configuration(ctx.Configuration)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .WriteTo.File("logs/wms-.log", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 14));
+
 // Database
 builder.Services.AddDbContext<WmsDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("Default")));
+
+// Health check (DB ulanishi) — /health, monitoring / load balancer uchun
+builder.Services.AddHealthChecks().AddDbContextCheck<WmsDbContext>("database");
 
 // JWT Auth
 var jwtKey = builder.Configuration["Jwt:Key"]!;
@@ -141,6 +152,7 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.UseMiddleware<WMS.API.Middleware.ExceptionHandlingMiddleware>();
+app.UseSerilogRequestLogging();
 app.UseCors("AllowFrontend");
 app.UseRateLimiter();
 app.UseAuthentication();
@@ -148,4 +160,5 @@ app.UseAuthorization();
 app.UseSwagger();
 app.UseSwaggerUI();
 app.MapControllers();
+app.MapHealthChecks("/health");
 app.Run();
