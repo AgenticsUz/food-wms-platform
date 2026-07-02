@@ -20,7 +20,17 @@ public class UserInfoDto
     public string Phone { get; set; } = null!;
     public int TenantId { get; set; }
     public string TenantName { get; set; } = null!;
+    public bool IsSuperAdmin { get; set; }
     public List<string> Roles { get; set; } = new();
     public List<string> EnabledModules { get; set; } = new();
     public List<string> Permissions { get; set; } = new();
+}
+
+public class RegisterDto
+{
+    public string TenantName { get; set; } = null!;
+    public string Slug { get; set; } = null!;
+    public string FullName { get; set; } = null!;
+    public string Phone { get; set; } = null!;
+    public string Password { get; set; } = null!;
 }

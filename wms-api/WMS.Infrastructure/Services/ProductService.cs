@@ -81,6 +81,10 @@ public class ProductService : IProductService
 
     public async Task<CategoryDto> CreateCategoryAsync(int tenantId, CreateCategoryDto dto)
     {
+        if (dto.ParentId.HasValue &&
+            !await _db.Categories.AnyAsync(c => c.Id == dto.ParentId.Value && c.TenantId == tenantId))
+            throw new NotFoundException("Parent category not found");
+
         var cat = new Category { TenantId = tenantId, Name = dto.Name, ParentId = dto.ParentId };
         _db.Categories.Add(cat);
         await _db.SaveChangesAsync();
@@ -91,6 +95,13 @@ public class ProductService : IProductService
     {
         var cat = await _db.Categories.FirstOrDefaultAsync(c => c.Id == id && c.TenantId == tenantId)
             ?? throw new NotFoundException("Category not found");
+
+        if (dto.ParentId == id)
+            throw new AppException("A category cannot be its own parent");
+        if (dto.ParentId.HasValue &&
+            !await _db.Categories.AnyAsync(c => c.Id == dto.ParentId.Value && c.TenantId == tenantId))
+            throw new NotFoundException("Parent category not found");
+
         cat.Name = dto.Name;
         cat.ParentId = dto.ParentId;
         await _db.SaveChangesAsync();

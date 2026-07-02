@@ -62,6 +62,11 @@ public class KpiService : IKpiService
 
     public async Task<ShiftPlanDto> CreatePlanAsync(int tenantId, CreateShiftPlanDto dto)
     {
+        var shiftExists = await _db.Shifts.AnyAsync(s => s.Id == dto.ShiftId && s.TenantId == tenantId);
+        if (!shiftExists) throw new NotFoundException("Shift not found");
+        var productExists = await _db.Products.AnyAsync(p => p.Id == dto.ProductId && p.TenantId == tenantId);
+        if (!productExists) throw new NotFoundException("Product not found");
+
         var p = new ShiftPlan
         {
             TenantId = tenantId, ShiftId = dto.ShiftId, ProductId = dto.ProductId,
@@ -96,6 +101,11 @@ public class KpiService : IKpiService
 
     public async Task<ShiftActualDto> CreateActualAsync(int tenantId, CreateShiftActualDto dto)
     {
+        var shiftExists = await _db.Shifts.AnyAsync(s => s.Id == dto.ShiftId && s.TenantId == tenantId);
+        if (!shiftExists) throw new NotFoundException("Shift not found");
+        var productExists = await _db.Products.AnyAsync(p => p.Id == dto.ProductId && p.TenantId == tenantId);
+        if (!productExists) throw new NotFoundException("Product not found");
+
         var a = new ShiftActual
         {
             TenantId = tenantId, ShiftId = dto.ShiftId, ProductId = dto.ProductId,

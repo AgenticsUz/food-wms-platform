@@ -98,8 +98,57 @@ public class ProductionService : IProductionService
         return MapRecipeToDto(r);
     }
 
+    private async Task ValidateRecipeReferencesAsync(int tenantId, CreateRecipeDto dto)
+    {
+        // Products: recipe output + per-stage outputs + per-input products
+        var productIds = new List<int> { dto.OutputProductId };
+        productIds.AddRange(dto.Stages
+            .Where(s => s.OutputProductId.HasValue)
+            .Select(s => s.OutputProductId!.Value));
+        productIds.AddRange(dto.Stages.SelectMany(s => s.Inputs).Select(i => i.ProductId));
+        var distinctProductIds = productIds.Distinct().ToList();
+        var productCount = await _db.Products
+            .CountAsync(p => p.TenantId == tenantId && distinctProductIds.Contains(p.Id));
+        if (productCount != distinctProductIds.Count)
+            throw new NotFoundException("One or more products not found");
+
+        // Units: recipe output unit + per-input units
+        var unitIds = new List<int> { dto.OutputUnitId };
+        unitIds.AddRange(dto.Stages.SelectMany(s => s.Inputs).Select(i => i.UnitId));
+        var distinctUnitIds = unitIds.Distinct().ToList();
+        var unitCount = await _db.Units
+            .CountAsync(u => u.TenantId == tenantId && distinctUnitIds.Contains(u.Id));
+        if (unitCount != distinctUnitIds.Count)
+            throw new NotFoundException("One or more units not found");
+
+        // Production stages
+        var stageIds = dto.Stages.Select(s => s.StageId).Distinct().ToList();
+        if (stageIds.Count > 0)
+        {
+            var stageCount = await _db.ProductionStages
+                .CountAsync(s => s.TenantId == tenantId && stageIds.Contains(s.Id));
+            if (stageCount != stageIds.Count)
+                throw new NotFoundException("One or more production stages not found");
+        }
+
+        // Warehouses (per-stage output warehouse)
+        var warehouseIds = dto.Stages
+            .Where(s => s.OutputWarehouseId.HasValue)
+            .Select(s => s.OutputWarehouseId!.Value)
+            .Distinct().ToList();
+        if (warehouseIds.Count > 0)
+        {
+            var warehouseCount = await _db.Warehouses
+                .CountAsync(w => w.TenantId == tenantId && warehouseIds.Contains(w.Id));
+            if (warehouseCount != warehouseIds.Count)
+                throw new NotFoundException("One or more warehouses not found");
+        }
+    }
+
     public async Task<ProductionRecipeDto> CreateRecipeAsync(int tenantId, CreateRecipeDto dto)
     {
+        await ValidateRecipeReferencesAsync(tenantId, dto);
+
         var recipe = new ProductionRecipe
         {
             TenantId = tenantId, Name = dto.Name, OutputProductId = dto.OutputProductId,
@@ -133,6 +182,8 @@ public class ProductionService : IProductionService
 
     public async Task<ProductionRecipeDto> UpdateRecipeAsync(int tenantId, int id, CreateRecipeDto dto)
     {
+        await ValidateRecipeReferencesAsync(tenantId, dto);
+
         var recipe = await _db.ProductionRecipes
             .Include(r => r.RecipeStages).ThenInclude(rs => rs.Inputs)
             .FirstOrDefaultAsync(r => r.Id == id && r.TenantId == tenantId)

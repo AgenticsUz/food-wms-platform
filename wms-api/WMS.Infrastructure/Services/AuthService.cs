@@ -53,23 +53,19 @@ public class AuthService : IAuthService
             .Distinct()
             .ToListAsync();
 
-        var claims = new[]
+        var claims = new List<Claim>
         {
-            new Claim("tenantId", tenant.Id.ToString()),
-            new Claim("userId", user.Id.ToString()),
-            new Claim("fullName", user.FullName),
-            new Claim(ClaimTypes.Role, roleName)
+            new("tenantId", tenant.Id.ToString()),
+            new("userId", user.Id.ToString()),
+            new("fullName", user.FullName),
+            new(ClaimTypes.Role, roleName)
         };
-
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
-        var token = new JwtSecurityToken(
-            claims: claims,
-            expires: DateTime.UtcNow.AddDays(7),
-            signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
+        if (user.IsSuperAdmin)
+            claims.Add(new Claim("isSuperAdmin", "true"));
 
         return new AuthResponseDto
         {
-            Token = new JwtSecurityTokenHandler().WriteToken(token),
+            Token = GenerateToken(claims),
             User = new UserInfoDto
             {
                 Id = user.Id,
@@ -77,11 +73,22 @@ public class AuthService : IAuthService
                 Phone = user.Phone,
                 TenantId = tenant.Id,
                 TenantName = tenant.Name,
+                IsSuperAdmin = user.IsSuperAdmin,
                 Roles = roles,
                 EnabledModules = modules,
                 Permissions = permissions
             }
         };
+    }
+
+    private string GenerateToken(IEnumerable<Claim> claims)
+    {
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
+        var token = new JwtSecurityToken(
+            claims: claims,
+            expires: DateTime.UtcNow.AddDays(7),
+            signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
     public async Task<UserInfoDto> GetCurrentUserAsync(int userId, int tenantId)
@@ -113,6 +120,7 @@ public class AuthService : IAuthService
             Phone = user.Phone,
             TenantId = tenantId,
             TenantName = user.Tenant.Name,
+            IsSuperAdmin = user.IsSuperAdmin,
             Roles = user.UserRoles.Select(ur => ur.Role.Name).ToList(),
             EnabledModules = modules,
             Permissions = permissions

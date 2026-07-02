@@ -12,6 +12,7 @@ public static class DataInitializer
         if (await db.Tenants.AnyAsync())
         {
             await EnsureAdminPermissionsAsync(db);
+            await EnsureSuperAdminAsync(db);
             await SeedDemoDataAsync(db);
             return;
         }
@@ -60,7 +61,9 @@ public static class DataInitializer
             // Must match the normalization AuthService applies at login ("+998...").
             Phone = WMS.Application.Common.PhoneHelper.Normalize("998901234567")!,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(adminPassword),
-            IsActive = true
+            IsActive = true,
+            // Platform egasi — control plane (barcha tenantlar) uchun
+            IsSuperAdmin = true
         };
         db.Users.Add(user);
         await db.SaveChangesAsync();
@@ -437,6 +440,23 @@ public static class DataInitializer
                 debt.Amount -= tx.Amount;
         }
         await db.SaveChangesAsync();
+    }
+
+    /// Mavjud bazalarda tizim tenanti (id 1) adminini SuperAdmin qilib belgilaydi.
+    private static async Task EnsureSuperAdminAsync(WmsDbContext db)
+    {
+        var hasSuperAdmin = await db.Users.AnyAsync(u => u.IsSuperAdmin);
+        if (hasSuperAdmin) return;
+
+        var admin = await db.Users
+            .Where(u => u.TenantId == 1)
+            .OrderBy(u => u.Id)
+            .FirstOrDefaultAsync();
+        if (admin != null)
+        {
+            admin.IsSuperAdmin = true;
+            await db.SaveChangesAsync();
+        }
     }
 
     private static async Task EnsureAdminPermissionsAsync(WmsDbContext db)

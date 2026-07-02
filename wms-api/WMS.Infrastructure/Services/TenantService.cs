@@ -15,29 +15,48 @@ public class TenantService : ITenantService
 
     public async Task<List<TenantDto>> GetAllAsync()
     {
-        return await _db.Tenants.Select(t => new TenantDto
-        {
-            Id = t.Id, Name = t.Name, Slug = t.Slug, IsActive = t.IsActive
-        }).ToListAsync();
+        var userCounts = await _db.Users
+            .GroupBy(u => u.TenantId)
+            .Select(g => new { TenantId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.TenantId, x => x.Count);
+
+        var tenants = await _db.Tenants.OrderByDescending(t => t.CreatedAt).ToListAsync();
+        return tenants.Select(t => MapToDto(t, userCounts.GetValueOrDefault(t.Id, 0))).ToList();
     }
 
     public async Task<TenantDto> CreateAsync(CreateTenantDto dto)
     {
-        var tenant = new Tenant { Name = dto.Name, Slug = dto.Slug };
-        _db.Tenants.Add(tenant);
-        await _db.SaveChangesAsync();
-        return new TenantDto { Id = tenant.Id, Name = tenant.Name, Slug = tenant.Slug, IsActive = tenant.IsActive };
+        // To'liq provizatsiya: tenant + modullar + Admin rol + admin foydalanuvchi
+        var (tenant, _) = await TenantProvisioner.ProvisionAsync(
+            _db, dto.Name, dto.Slug, dto.AdminFullName, dto.AdminPhone, dto.AdminPassword);
+        return MapToDto(tenant, 1);
     }
 
     public async Task<TenantDto> UpdateAsync(int id, UpdateTenantDto dto)
     {
         var tenant = await _db.Tenants.FindAsync(id) ?? throw new NotFoundException("Tenant not found");
-        tenant.Name = dto.Name;
-        tenant.Slug = dto.Slug;
+
+        var slug = dto.Slug.Trim().ToLowerInvariant();
+        if (slug != tenant.Slug && await _db.Tenants.AnyAsync(t => t.Slug == slug && t.Id != id))
+            throw new AppException("This slug is already taken");
+
+        tenant.Name = dto.Name.Trim();
+        tenant.Slug = slug;
         tenant.IsActive = dto.IsActive;
+        if (dto.PlanType != null) tenant.PlanType = dto.PlanType;
+        if (dto.SubscriptionStatus.HasValue) tenant.SubscriptionStatus = dto.SubscriptionStatus.Value;
         await _db.SaveChangesAsync();
-        return new TenantDto { Id = tenant.Id, Name = tenant.Name, Slug = tenant.Slug, IsActive = tenant.IsActive };
+
+        var userCount = await _db.Users.CountAsync(u => u.TenantId == id);
+        return MapToDto(tenant, userCount);
     }
+
+    private static TenantDto MapToDto(Tenant t, int userCount) => new()
+    {
+        Id = t.Id, Name = t.Name, Slug = t.Slug, IsActive = t.IsActive,
+        PlanType = t.PlanType, SubscriptionStatus = t.SubscriptionStatus,
+        CreatedAt = t.CreatedAt, UserCount = userCount
+    };
 
     public async Task DeleteAsync(int id)
     {

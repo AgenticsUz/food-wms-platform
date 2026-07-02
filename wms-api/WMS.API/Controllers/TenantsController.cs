@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WMS.API.Middleware;
 using WMS.Application.Common;
@@ -6,62 +7,48 @@ using WMS.Application.Interfaces;
 
 namespace WMS.API.Controllers;
 
-[RequirePermission("settings.modules")]
 public class TenantsController : BaseController
 {
-    // The seeded "WMS Admin" tenant (id 1) is the platform owner; only its users
-    // may manage other tenants. Regular tenants can only touch their own modules.
-    private const int SystemTenantId = 1;
-
     private readonly ITenantService _tenants;
     public TenantsController(ITenantService tenants) => _tenants = tenants;
 
-    private bool IsSystemTenant => TenantId == SystemTenantId;
-
-    private IActionResult Forbidden()
-        => StatusCode(StatusCodes.Status403Forbidden,
-            ApiResponse<object>.Fail("Only the system tenant can manage other tenants"));
+    // ── Cross-tenant (control plane) — faqat SuperAdmin ──
 
     [HttpGet]
+    [Authorize(Policy = "SuperAdmin")]
     public async Task<IActionResult> GetAll()
-    {
-        if (!IsSystemTenant) return Forbidden();
-        return Ok(ApiResponse<List<TenantDto>>.Ok(await _tenants.GetAllAsync()));
-    }
+        => Ok(ApiResponse<List<TenantDto>>.Ok(await _tenants.GetAllAsync()));
 
     [HttpPost]
+    [Authorize(Policy = "SuperAdmin")]
     public async Task<IActionResult> Create([FromBody] CreateTenantDto dto)
-    {
-        if (!IsSystemTenant) return Forbidden();
-        return Ok(ApiResponse<TenantDto>.Ok(await _tenants.CreateAsync(dto)));
-    }
+        => Ok(ApiResponse<TenantDto>.Ok(await _tenants.CreateAsync(dto)));
 
     [HttpPut("{id}")]
+    [Authorize(Policy = "SuperAdmin")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateTenantDto dto)
-    {
-        if (!IsSystemTenant) return Forbidden();
-        return Ok(ApiResponse<TenantDto>.Ok(await _tenants.UpdateAsync(id, dto)));
-    }
+        => Ok(ApiResponse<TenantDto>.Ok(await _tenants.UpdateAsync(id, dto)));
 
     [HttpDelete("{id}")]
+    [Authorize(Policy = "SuperAdmin")]
     public async Task<IActionResult> Delete(int id)
-    {
-        if (!IsSystemTenant) return Forbidden();
-        await _tenants.DeleteAsync(id);
-        return Ok(ApiResponse<object>.Ok(null!, "Deleted"));
-    }
+    { await _tenants.DeleteAsync(id); return Ok(ApiResponse<object>.Ok(null!, "Deleted")); }
+
+    // ── Modul boshqaruvi — o'z tenanti (settings.modules) YOKI SuperAdmin ──
 
     [HttpGet("{id}/modules")]
+    [RequirePermission("settings.modules")]
     public async Task<IActionResult> GetModules(int id)
     {
-        if (id != TenantId && !IsSystemTenant) return Forbidden();
+        if (id != TenantId && !IsSuperAdmin) return Forbidden();
         return Ok(ApiResponse<List<TenantModuleDto>>.Ok(await _tenants.GetModulesAsync(id)));
     }
 
     [HttpPut("{id}/modules")]
+    [RequirePermission("settings.modules")]
     public async Task<IActionResult> ToggleModules(int id, [FromBody] ToggleModulesRequest request)
     {
-        if (id != TenantId && !IsSystemTenant) return Forbidden();
+        if (id != TenantId && !IsSuperAdmin) return Forbidden();
 
         if (request.Modules is { Count: > 0 })
             await _tenants.ToggleModulesAsync(id, request.Modules);
@@ -69,4 +56,8 @@ public class TenantsController : BaseController
             await _tenants.ToggleModuleAsync(id, new ToggleModuleDto { ModuleId = request.ModuleId, IsEnabled = request.IsEnabled });
         return Ok(ApiResponse<object>.Ok(null!, "Updated"));
     }
+
+    private IActionResult Forbidden()
+        => StatusCode(StatusCodes.Status403Forbidden,
+            ApiResponse<object>.Fail("You can only manage your own tenant's modules"));
 }

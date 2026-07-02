@@ -13,4 +13,7 @@ public abstract class BaseController : ControllerBase
 
     protected int UserId =>
         int.Parse(User.FindFirst("userId")?.Value ?? "0");
+
+    protected bool IsSuperAdmin =>
+        User.FindFirst("isSuperAdmin")?.Value == "true";
 }

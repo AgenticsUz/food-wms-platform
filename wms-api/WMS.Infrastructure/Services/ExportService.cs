@@ -88,7 +88,7 @@ public class ExportService : IExportService
         var filterParts = new List<string> { $"Exported: {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC" };
         if (warehouseId.HasValue)
         {
-            var wh = await _db.Warehouses.FindAsync(warehouseId.Value);
+            var wh = await _db.Warehouses.FirstOrDefaultAsync(w => w.Id == warehouseId.Value && w.TenantId == tenantId);
             if (wh != null) filterParts.Add($"Warehouse: {wh.Name}");
         }
 

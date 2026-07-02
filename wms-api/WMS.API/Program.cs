@@ -37,6 +37,8 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("MainApi", p => p.RequireClaim("userId"));
     options.AddPolicy("PortalOnly", p => p.RequireClaim("counterpartyId"));
     options.AddPolicy("AgentPortalOnly", p => p.RequireClaim("agentId"));
+    // Platform egasi (control plane) — barcha tenantlarni boshqaradi
+    options.AddPolicy("SuperAdmin", p => p.RequireClaim("isSuperAdmin", "true"));
 });
 
 // Services (DI)

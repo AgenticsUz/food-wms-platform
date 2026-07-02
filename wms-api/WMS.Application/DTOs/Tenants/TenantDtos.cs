@@ -1,3 +1,5 @@
+using WMS.Domain.Enums;
+
 namespace WMS.Application.DTOs.Tenants;
 
 public class TenantDto
@@ -6,12 +8,20 @@ public class TenantDto
     public string Name { get; set; } = null!;
     public string Slug { get; set; } = null!;
     public bool IsActive { get; set; }
+    public string? PlanType { get; set; }
+    public SubscriptionStatus SubscriptionStatus { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public int UserCount { get; set; }
 }
 
+// SuperAdmin tenant yaratadi: to'liq provizatsiya (admin user + modullar + rol)
 public class CreateTenantDto
 {
     public string Name { get; set; } = null!;
     public string Slug { get; set; } = null!;
+    public string AdminFullName { get; set; } = null!;
+    public string AdminPhone { get; set; } = null!;
+    public string AdminPassword { get; set; } = null!;
 }
 
 public class UpdateTenantDto
@@ -19,6 +29,8 @@ public class UpdateTenantDto
     public string Name { get; set; } = null!;
     public string Slug { get; set; } = null!;
     public bool IsActive { get; set; }
+    public string? PlanType { get; set; }
+    public SubscriptionStatus? SubscriptionStatus { get; set; }
 }
 
 public class TenantModuleDto
