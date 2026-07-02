@@ -1,0 +1,28 @@
+.table-wrapper { padding: 0; overflow: hidden; }
+.item-name { font-weight: 600; }
+.actions-cell { white-space: nowrap; }
+
+.empty-state {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 40px 0; color: var(--text-muted);
+  i { font-size: 32px; opacity: 0.5; }
+}
+
+.dialog-form { display: flex; flex-direction: column; gap: 14px; padding-top: 8px; }
+
+.form-field {
+  display: flex; flex-direction: column; gap: 6px;
+  label { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+}
+
+.form-field-inline {
+  display: flex; align-items: center; justify-content: space-between;
+  label { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+}
+
+.filters-bar {
+  display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; margin-bottom: 16px;
+}
+.filter-group { display: flex; flex-direction: column; gap: 4px; }
+.filter-label { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+.cursor-pointer { cursor: pointer; }

@@ -1,0 +1,49 @@
+<div class="page-enter" *transloco="let t">
+  <app-page-header [title]="t('delivery.newDelivery')" [subtitle]="t('delivery.deliveriesSubtitle')">
+    <p-button icon="pi pi-arrow-left" [label]="t('common.back')" [text]="true" (onClick)="goBack()" />
+  </app-page-header>
+
+  <div class="wms-card section-card">
+    <div class="form-grid">
+      <div class="form-field">
+        <label>{{ t('delivery.vehicle') }}</label>
+        <p-select [options]="vehicles()" [ngModel]="vehicleId()" (ngModelChange)="vehicleId.set($event)"
+          optionLabel="name" optionValue="id" [showClear]="true" [placeholder]="t('delivery.selectVehicle')" styleClass="w-full" />
+      </div>
+      <div class="form-field">
+        <label>{{ t('delivery.driver') }}</label>
+        <p-select [options]="drivers()" [ngModel]="driverId()" (ngModelChange)="driverId.set($event)"
+          optionLabel="fullName" optionValue="id" [showClear]="true" [placeholder]="t('delivery.selectDriver')" styleClass="w-full" />
+      </div>
+      <div class="form-field">
+        <label>{{ t('delivery.scheduledDate') }} *</label>
+        <p-datepicker [ngModel]="scheduledDate()" (ngModelChange)="scheduledDate.set($event)" dateFormat="yy-mm-dd" [showIcon]="true" styleClass="w-full" />
+      </div>
+      <div class="form-field span-2">
+        <label>{{ t('common.note') }}</label>
+        <textarea pTextarea [ngModel]="note()" (ngModelChange)="note.set($event)" rows="2" class="w-full"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="wms-card section-card">
+    <div class="stops-header">
+      <h3 class="section-title">{{ t('delivery.stops') }}</h3>
+      <p-button icon="pi pi-plus" [label]="t('delivery.addStop')" size="small" [outlined]="true" (onClick)="addStop()" />
+    </div>
+
+    @for (stop of stops(); track $index) {
+      <div class="stop-row">
+        <span class="stop-seq">{{ $index + 1 }}</span>
+        <p-select [options]="clients()" [ngModel]="stop.counterpartyId" (ngModelChange)="updateStop($index, 'counterpartyId', $event)"
+          optionLabel="name" optionValue="id" [filter]="true" [placeholder]="t('delivery.selectClient')" styleClass="stop-client" />
+        <input pInputText [ngModel]="stop.address" (ngModelChange)="updateStop($index, 'address', $event)" [placeholder]="t('delivery.address')" class="stop-address" />
+        <p-button icon="pi pi-trash" [text]="true" severity="danger" size="small" (onClick)="removeStop($index)" [disabled]="stops().length === 1" />
+      </div>
+    }
+  </div>
+
+  <div class="form-actions">
+    <p-button [label]="t('delivery.createDelivery')" icon="pi pi-check" [loading]="saving()" (onClick)="submit()" />
+  </div>
+</div>

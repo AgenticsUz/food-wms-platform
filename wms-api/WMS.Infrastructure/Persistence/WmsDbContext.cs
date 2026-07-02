@@ -37,6 +37,12 @@ public class WmsDbContext : DbContext
     public DbSet<Transfer> Transfers => Set<Transfer>();
     public DbSet<TransferItem> TransferItems => Set<TransferItem>();
 
+    // Delivery
+    public DbSet<Vehicle> Vehicles => Set<Vehicle>();
+    public DbSet<Driver> Drivers => Set<Driver>();
+    public DbSet<Delivery> Deliveries => Set<Delivery>();
+    public DbSet<DeliveryStop> DeliveryStops => Set<DeliveryStop>();
+
     // Production
     public DbSet<ProductionStage> ProductionStages => Set<ProductionStage>();
     public DbSet<ProductionRecipe> ProductionRecipes => Set<ProductionRecipe>();
@@ -132,6 +138,45 @@ public class WmsDbContext : DbContext
             .HasForeignKey(cr => cr.TransferId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // Delivery: multiple/optional FK — restrict to avoid cascade issues
+        modelBuilder.Entity<Delivery>()
+            .HasOne(d => d.Vehicle)
+            .WithMany()
+            .HasForeignKey(d => d.VehicleId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Delivery>()
+            .HasOne(d => d.Driver)
+            .WithMany()
+            .HasForeignKey(d => d.DriverId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Delivery>()
+            .HasOne(d => d.CreatedByUser)
+            .WithMany()
+            .HasForeignKey(d => d.CreatedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<DeliveryStop>()
+            .HasOne(s => s.Delivery)
+            .WithMany(d => d.Stops)
+            .HasForeignKey(s => s.DeliveryId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<DeliveryStop>()
+            .HasOne(s => s.Counterparty)
+            .WithMany()
+            .HasForeignKey(s => s.CounterpartyId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<DeliveryStop>()
+            .HasOne(s => s.Transfer)
+            .WithMany()
+            .HasForeignKey(s => s.TransferId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Delivery>().HasIndex(d => new { d.TenantId, d.Status });
+
         // Audit log — tenant + vaqt bo'yicha tez filtrlash uchun indeks
         modelBuilder.Entity<AuditLog>()
             .HasIndex(a => new { a.TenantId, a.CreatedAt });
@@ -190,7 +235,9 @@ public class WmsDbContext : DbContext
             new Permission { Id = 22, Code = "quality.manage", Name = "Manage Quality", Module = "QUALITY", CreatedAt = seedDate, UpdatedAt = seedDate },
             new Permission { Id = 23, Code = "agents.view", Name = "View Agents", Module = "AGENTS", CreatedAt = seedDate, UpdatedAt = seedDate },
             new Permission { Id = 24, Code = "agents.manage", Name = "Manage Agents", Module = "AGENTS", CreatedAt = seedDate, UpdatedAt = seedDate },
-            new Permission { Id = 25, Code = "audit.view", Name = "View Audit Log", Module = "SETTINGS", CreatedAt = seedDate, UpdatedAt = seedDate }
+            new Permission { Id = 25, Code = "audit.view", Name = "View Audit Log", Module = "SETTINGS", CreatedAt = seedDate, UpdatedAt = seedDate },
+            new Permission { Id = 26, Code = "delivery.view", Name = "View Delivery", Module = "DELIVERY", CreatedAt = seedDate, UpdatedAt = seedDate },
+            new Permission { Id = 27, Code = "delivery.manage", Name = "Manage Delivery", Module = "DELIVERY", CreatedAt = seedDate, UpdatedAt = seedDate }
         );
 
         if (Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")

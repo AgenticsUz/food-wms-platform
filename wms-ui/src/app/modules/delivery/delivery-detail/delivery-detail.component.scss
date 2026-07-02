@@ -1,0 +1,32 @@
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.detail-card { padding: 16px; }
+.detail-card-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin: 0 0 8px; }
+.detail-card-value { font-size: 22px; font-weight: 700; margin: 0; }
+.detail-card-label { font-size: 15px; font-weight: 500; margin: 0; }
+
+.status-actions { display: flex; gap: 10px; margin-bottom: 16px; }
+
+.table-wrapper { padding: 0; overflow: hidden; }
+.item-name { font-weight: 600; }
+.actions-cell { white-space: nowrap; }
+
+.stop-seq {
+  width: 24px; height: 24px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 999px; background: var(--bg-inset); font-size: 12px; font-weight: 700;
+}
+
+.empty-state {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 40px 0; color: var(--text-muted);
+  i { font-size: 32px; opacity: 0.5; }
+}
+
+@media (max-width: 900px) {
+  .detail-grid { grid-template-columns: repeat(2, 1fr); }
+}

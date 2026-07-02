@@ -111,6 +111,14 @@ export class SidebarComponent {
       ]
     },
     { key: 'nav.agents', icon: 'pi pi-id-card', route: '/agents', permissionCode: 'agents.view' },
+    {
+      key: 'nav.delivery', icon: 'pi pi-truck', permissionCode: 'delivery.view',
+      children: [
+        { key: 'delivery.deliveries', route: '/delivery' },
+        { key: 'delivery.vehicles', route: '/delivery/vehicles' },
+        { key: 'delivery.drivers', route: '/delivery/drivers' }
+      ]
+    },
     { key: 'nav.superadmin', icon: 'pi pi-building', route: '/superadmin/tenants', superAdminOnly: true },
   ];
 

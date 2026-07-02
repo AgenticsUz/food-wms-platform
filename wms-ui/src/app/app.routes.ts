@@ -61,6 +61,11 @@ export const routes: Routes = [
         loadChildren: () => import('./modules/products/products.routes')
       },
       {
+        path: 'delivery',
+        canActivate: [permissionGuard('delivery.view')],
+        loadChildren: () => import('./modules/delivery/delivery.routes')
+      },
+      {
         path: 'settings',
         loadChildren: () => import('./modules/settings/settings.routes')
       },
