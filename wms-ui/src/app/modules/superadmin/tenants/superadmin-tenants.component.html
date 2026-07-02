@@ -1,0 +1,104 @@
+<div class="page-enter" *transloco="let t">
+  <app-page-header [title]="t('superadmin.tenants')" [subtitle]="t('superadmin.tenantsSubtitle')">
+    <p-button icon="pi pi-plus" [label]="t('superadmin.newTenant')" (onClick)="openNew()" />
+  </app-page-header>
+
+  <div class="wms-card table-wrapper">
+    <p-table [value]="tenants()" [loading]="loading()" [paginator]="true" [rows]="20"
+      [scrollable]="true" styleClass="p-datatable-sm p-datatable-striped">
+      <ng-template #header>
+        <tr>
+          <th>{{ t('superadmin.name') }}</th>
+          <th>{{ t('superadmin.slug') }}</th>
+          <th>{{ t('superadmin.plan') }}</th>
+          <th>{{ t('superadmin.status') }}</th>
+          <th class="text-right">{{ t('superadmin.users') }}</th>
+          <th>{{ t('superadmin.created') }}</th>
+          <th></th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-row>
+        <tr [class.inactive-row]="!row.isActive">
+          <td><span class="item-name">{{ row.name }}</span></td>
+          <td><code>{{ row.slug }}</code></td>
+          <td>{{ row.planType || '—' }}</td>
+          <td><app-status-badge [status]="statusClass(row.subscriptionStatus)" [label]="statusLabel(row.subscriptionStatus)" /></td>
+          <td class="text-right"><span class="number">{{ row.userCount }}</span></td>
+          <td>{{ row.createdAt | date:'MMM d, y' }}</td>
+          <td class="text-center actions-cell">
+            <p-button icon="pi pi-th-large" [text]="true" size="small" [title]="t('superadmin.modules')" (onClick)="openModules(row)" />
+            <p-button icon="pi pi-pencil" [text]="true" size="small" (onClick)="openEdit(row)" />
+            <p-button icon="pi pi-trash" [text]="true" severity="danger" size="small" (onClick)="remove(row)" />
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr><td colspan="7"><div class="empty-state"><i class="pi pi-building"></i><p>{{ t('superadmin.noTenants') }}</p></div></td></tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <!-- Create / Edit dialog -->
+  <p-dialog [visible]="dialogVisible()" (visibleChange)="dialogVisible.set($event)"
+    [header]="editing() ? t('superadmin.editTenant') : t('superadmin.newTenant')"
+    [modal]="true" [style]="{ width: '460px' }" [draggable]="false">
+    <div class="dialog-form">
+      <div class="form-field">
+        <label>{{ t('superadmin.name') }} *</label>
+        <input pInputText [ngModel]="form().name" (ngModelChange)="updateForm('name', $event)" class="w-full" />
+      </div>
+      <div class="form-field">
+        <label>{{ t('superadmin.slug') }} *</label>
+        <input pInputText [ngModel]="form().slug" (ngModelChange)="updateForm('slug', $event)" autocomplete="off" class="w-full" />
+      </div>
+
+      @if (!editing()) {
+        <div class="form-divider">{{ t('superadmin.adminAccount') }}</div>
+        <div class="form-field">
+          <label>{{ t('auth.fullName') }} *</label>
+          <input pInputText [ngModel]="form().adminFullName" (ngModelChange)="updateForm('adminFullName', $event)" class="w-full" />
+        </div>
+        <div class="form-field">
+          <label>{{ t('auth.phone') }} *</label>
+          <input pInputText [ngModel]="form().adminPhone" (ngModelChange)="updateForm('adminPhone', $event)" placeholder="+998 88 123 45 67" class="w-full" />
+        </div>
+        <div class="form-field">
+          <label>{{ t('auth.password') }} *</label>
+          <p-password [ngModel]="form().adminPassword" (ngModelChange)="updateForm('adminPassword', $event)" [toggleMask]="true" [feedback]="false" styleClass="w-full" inputStyleClass="w-full" />
+        </div>
+      } @else {
+        <div class="form-field">
+          <label>{{ t('superadmin.plan') }}</label>
+          <input pInputText [ngModel]="form().planType" (ngModelChange)="updateForm('planType', $event)" class="w-full" />
+        </div>
+        <div class="form-field">
+          <label>{{ t('superadmin.status') }}</label>
+          <p-select [options]="statusOptions" [ngModel]="form().subscriptionStatus"
+            (ngModelChange)="updateForm('subscriptionStatus', $event)" optionLabel="label" optionValue="value" styleClass="w-full" />
+        </div>
+        <div class="form-field-inline">
+          <label>{{ t('superadmin.active') }}</label>
+          <p-toggleswitch [ngModel]="form().isActive" (ngModelChange)="updateForm('isActive', $event)" />
+        </div>
+      }
+    </div>
+    <ng-template #footer>
+      <p-button [label]="t('common.cancel')" [text]="true" (onClick)="dialogVisible.set(false)" />
+      <p-button [label]="t('common.save')" icon="pi pi-check" [loading]="saving()" (onClick)="save()" />
+    </ng-template>
+  </p-dialog>
+
+  <!-- Modules dialog -->
+  <p-dialog [visible]="modulesVisible()" (visibleChange)="modulesVisible.set($event)"
+    [header]="(modulesTenant()?.name ?? '') + ' — ' + t('superadmin.modules')"
+    [modal]="true" [style]="{ width: '420px' }" [draggable]="false">
+    <div class="module-list">
+      @for (m of modules(); track m.moduleId) {
+        <div class="module-row">
+          <span>{{ m.moduleName }}</span>
+          <p-toggleswitch [ngModel]="m.isEnabled" (ngModelChange)="toggleModule(m, $event)" />
+        </div>
+      }
+    </div>
+  </p-dialog>
+</div>

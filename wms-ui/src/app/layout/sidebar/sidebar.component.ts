@@ -19,6 +19,7 @@ export interface NavItem {
   route?: string;
   moduleCode?: string;
   permissionCode?: string;
+  superAdminOnly?: boolean;
   children?: NavChild[];
 }
 
@@ -110,6 +111,7 @@ export class SidebarComponent {
       ]
     },
     { key: 'nav.agents', icon: 'pi pi-id-card', route: '/agents', permissionCode: 'agents.view' },
+    { key: 'nav.superadmin', icon: 'pi pi-building', route: '/superadmin/tenants', superAdminOnly: true },
   ];
 
   settingsItem: NavItem = {
@@ -125,7 +127,9 @@ export class SidebarComponent {
   };
 
   visibleNavItems = computed(() => {
+    const superAdmin = this.authService.isSuperAdmin();
     return this.allNavItems.filter(item => {
+      if (item.superAdminOnly && !superAdmin) return false;
       if (item.moduleCode && !this.tenantService.isModuleEnabled(item.moduleCode)) return false;
       if (item.permissionCode && !this.permissionService.can(item.permissionCode)) return false;
       return true;

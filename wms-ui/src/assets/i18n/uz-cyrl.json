@@ -75,7 +75,18 @@
     "fillAllFields": "Барча майдонларни тўлдиринг",
     "phoneLength": "Телефон рақам 9 та рақамдан иборат бўлиши керак",
     "loginFailed": "Кириш амалга ошмади. Маълумотларни текширинг.",
-    "invalidCredentials": "Логин ёки парол нотўғри"
+    "invalidCredentials": "Логин ёки парол нотўғри",
+    "registerTitle": "Ҳисоб яратинг",
+    "registerSubtitle": "Заводингизни бир дақиқада созланг",
+    "companyName": "Компания / завод номи",
+    "companyNamePlaceholder": "масалан: Сарвар Музқаймоқ",
+    "slug": "Иш майдони манзили",
+    "fullName": "Тўлиқ исм",
+    "createAccount": "Ҳисоб яратиш",
+    "haveAccount": "Ҳисобингиз борми?",
+    "passwordTooShort": "Парол камида 6 белгидан иборат бўлсин",
+    "registerSuccess": "Хуш келибсиз! Иш майдонингиз тайёр",
+    "registerFailed": "Рўйхатдан ўтиб бўлмади"
   },
   "nav": {
     "dashboard": "Бош саҳифа",
@@ -88,7 +99,8 @@
     "counterparties": "Ҳамкорлар",
     "products": "Маҳсулотлар",
     "agents": "Агентлар",
-    "settings": "Созламалар"
+    "settings": "Созламалар",
+    "superadmin": "Платформа"
   },
   "agent": {
     "title": "Агентлар",
@@ -498,5 +510,22 @@
     "user": "Фойдаланувчи",
     "date": "Сана",
     "noLogs": "Аудит ёзувлари йўқ"
+  },
+  "superadmin": {
+    "tenants": "Тенантлар",
+    "tenantsSubtitle": "Платформадаги барча заводларни бошқариш",
+    "newTenant": "Янги тенант",
+    "editTenant": "Тенантни таҳрирлаш",
+    "name": "Номи",
+    "slug": "Slug",
+    "plan": "Тариф",
+    "status": "Ҳолат",
+    "users": "Юзерлар",
+    "created": "Яратилган",
+    "modules": "Модуллар",
+    "active": "Фаол",
+    "adminAccount": "Админ ҳисоби",
+    "adminRequired": "Админ исми, телефони ва 6+ белги парол керак",
+    "noTenants": "Тенантлар йўқ"
   }
 }

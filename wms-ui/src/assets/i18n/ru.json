@@ -75,7 +75,18 @@
     "fillAllFields": "Заполните все поля",
     "phoneLength": "Номер телефона должен состоять из 9 цифр",
     "loginFailed": "Не удалось войти. Проверьте данные.",
-    "invalidCredentials": "Неверный логин или пароль"
+    "invalidCredentials": "Неверный логин или пароль",
+    "registerTitle": "Создайте аккаунт",
+    "registerSubtitle": "Настройте вашу фабрику за минуту",
+    "companyName": "Название компании / фабрики",
+    "companyNamePlaceholder": "напр. Sarvar Ice Cream",
+    "slug": "Адрес рабочего пространства",
+    "fullName": "Полное имя",
+    "createAccount": "Создать аккаунт",
+    "haveAccount": "Уже есть аккаунт?",
+    "passwordTooShort": "Пароль минимум 6 символов",
+    "registerSuccess": "Добро пожаловать! Рабочее пространство готово",
+    "registerFailed": "Не удалось зарегистрироваться"
   },
   "nav": {
     "dashboard": "Главная",
@@ -88,7 +99,8 @@
     "counterparties": "Контрагенты",
     "products": "Продукты",
     "agents": "Агенты",
-    "settings": "Настройки"
+    "settings": "Настройки",
+    "superadmin": "Платформа"
   },
   "agent": {
     "title": "Агенты",
@@ -498,5 +510,22 @@
     "user": "Пользователь",
     "date": "Дата",
     "noLogs": "Нет записей аудита"
+  },
+  "superadmin": {
+    "tenants": "Арендаторы",
+    "tenantsSubtitle": "Управление всеми фабриками платформы",
+    "newTenant": "Новый арендатор",
+    "editTenant": "Изменить арендатора",
+    "name": "Название",
+    "slug": "Slug",
+    "plan": "Тариф",
+    "status": "Статус",
+    "users": "Польз.",
+    "created": "Создан",
+    "modules": "Модули",
+    "active": "Активен",
+    "adminAccount": "Аккаунт администратора",
+    "adminRequired": "Требуются имя, телефон администратора и пароль от 6 символов",
+    "noTenants": "Нет арендаторов"
   }
 }

@@ -68,6 +68,9 @@
       </form>
 
       <div class="login-alt-links">
+        <a routerLink="/auth/register"><i class="pi pi-user-plus"></i> {{ t('auth.createAccount') }}</a>
+      </div>
+      <div class="login-alt-links">
         <a routerLink="/agent-portal/login"><i class="pi pi-id-card"></i> {{ t('agentPortal.title') }}</a>
         <span class="divider">·</span>
         <a routerLink="/portal/login"><i class="pi pi-users"></i> {{ t('partners.portal') }}</a>

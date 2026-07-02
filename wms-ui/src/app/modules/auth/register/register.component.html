@@ -1,0 +1,88 @@
+<div class="login-page" *transloco="let t">
+  <!-- Left: hero -->
+  <aside class="login-hero">
+    <div class="hero-inner">
+      <div class="hero-brand">
+        <div class="hero-logo"><i class="pi pi-warehouse"></i></div>
+        <div class="hero-brand-text">
+          <span class="hero-brand-name">WMS Platform</span>
+          <span class="hero-brand-tag">{{ t('auth.brandTag') }}</span>
+        </div>
+      </div>
+
+      <h2 class="hero-slogan display">{{ t('auth.heroSlogan') }}</h2>
+      <p class="hero-sub">{{ t('auth.heroSub') }}</p>
+
+      <ul class="hero-points">
+        <li><i class="pi pi-check-circle"></i> {{ t('auth.heroPoint1') }}</li>
+        <li><i class="pi pi-check-circle"></i> {{ t('auth.heroPoint2') }}</li>
+        <li><i class="pi pi-check-circle"></i> {{ t('auth.heroPoint3') }}</li>
+      </ul>
+    </div>
+  </aside>
+
+  <!-- Right: form -->
+  <section class="login-form-area">
+    <div class="login-card">
+      <div class="login-header">
+        <h1 class="login-title">{{ t('auth.registerTitle') }}</h1>
+        <p class="login-subtitle">{{ t('auth.registerSubtitle') }}</p>
+      </div>
+
+      <form class="login-form" (ngSubmit)="register()">
+        <div class="field">
+          <label for="tenantName">{{ t('auth.companyName') }}</label>
+          <input pInputText id="tenantName" name="tenantName"
+                 [ngModel]="tenantName()" (ngModelChange)="onTenantNameInput($event)"
+                 [placeholder]="t('auth.companyNamePlaceholder')" class="w-full" />
+        </div>
+
+        <div class="field">
+          <label for="slug">{{ t('auth.slug') }}</label>
+          <input pInputText id="slug" name="slug"
+                 [ngModel]="slug()" (ngModelChange)="onSlugInput($event)"
+                 placeholder="my-factory" autocomplete="off" class="w-full" />
+        </div>
+
+        <div class="field">
+          <label for="fullName">{{ t('auth.fullName') }}</label>
+          <input pInputText id="fullName" name="fullName"
+                 [ngModel]="fullName()" (ngModelChange)="fullName.set($event)"
+                 autocomplete="name" class="w-full" />
+        </div>
+
+        <div class="field">
+          <label for="phone">{{ t('auth.phone') }}</label>
+          <p-inputgroup>
+            <p-inputgroup-addon>+998</p-inputgroup-addon>
+            <input pInputText id="phone" name="phone"
+                   [ngModel]="phone()" (ngModelChange)="onPhoneInput($event)"
+                   placeholder="88 123 45 67" maxlength="9" autocomplete="tel" class="w-full" />
+          </p-inputgroup>
+        </div>
+
+        <div class="field">
+          <label for="password">{{ t('auth.password') }}</label>
+          <p-password id="password" name="password"
+                      [ngModel]="password()" (ngModelChange)="password.set($event)"
+                      [toggleMask]="true" [feedback]="true" autocomplete="new-password"
+                      styleClass="w-full" inputStyleClass="w-full" />
+        </div>
+
+        <button type="submit" class="submit-btn" [disabled]="loading()">
+          @if (loading()) {
+            <i class="pi pi-spin pi-spinner"></i>
+          } @else {
+            <i class="pi pi-user-plus"></i>
+          }
+          <span>{{ t('auth.createAccount') }}</span>
+        </button>
+      </form>
+
+      <div class="login-alt-links">
+        <span>{{ t('auth.haveAccount') }}</span>
+        <a routerLink="/auth/login"><i class="pi pi-sign-in"></i> {{ t('auth.signIn') }}</a>
+      </div>
+    </div>
+  </section>
+</div>

@@ -75,7 +75,18 @@
     "fillAllFields": "Barcha maydonlarni to’ldiring",
     "phoneLength": "Telefon raqam 9 ta raqamdan iborat bo’lishi kerak",
     "loginFailed": "Kirish amalga oshmadi. Ma’lumotlarni tekshiring.",
-    "invalidCredentials": "Login yoki parol noto’g’ri"
+    "invalidCredentials": "Login yoki parol noto’g’ri",
+    "registerTitle": "Hisob yarating",
+    "registerSubtitle": "Zavodingizni bir daqiqada sozlang",
+    "companyName": "Kompaniya / zavod nomi",
+    "companyNamePlaceholder": "masalan: Sarvar Muzqaymoq",
+    "slug": "Ish maydoni manzili",
+    "fullName": "Toʻliq ism",
+    "createAccount": "Hisob yaratish",
+    "haveAccount": "Hisobingiz bormi?",
+    "passwordTooShort": "Parol kamida 6 belgidan iborat boʻlsin",
+    "registerSuccess": "Xush kelibsiz! Ish maydoningiz tayyor",
+    "registerFailed": "Roʻyxatdan oʻtib boʻlmadi"
   },
   "nav": {
     "dashboard": "Bosh sahifa",
@@ -88,7 +99,8 @@
     "counterparties": "Hamkorlar",
     "products": "Mahsulotlar",
     "agents": "Agentlar",
-    "settings": "Sozlamalar"
+    "settings": "Sozlamalar",
+    "superadmin": "Platforma"
   },
   "agent": {
     "title": "Agentlar",
@@ -498,5 +510,22 @@
     "user": "Foydalanuvchi",
     "date": "Sana",
     "noLogs": "Audit yozuvlari yoʻq"
+  },
+  "superadmin": {
+    "tenants": "Tenantlar",
+    "tenantsSubtitle": "Platformadagi barcha zavodlarni boshqarish",
+    "newTenant": "Yangi tenant",
+    "editTenant": "Tenantni tahrirlash",
+    "name": "Nomi",
+    "slug": "Slug",
+    "plan": "Tarif",
+    "status": "Holat",
+    "users": "Userlar",
+    "created": "Yaratilgan",
+    "modules": "Modullar",
+    "active": "Faol",
+    "adminAccount": "Admin hisobi",
+    "adminRequired": "Admin ismi, telefoni va 6+ belgi parol kerak",
+    "noTenants": "Tenantlar yoʻq"
   }
 }

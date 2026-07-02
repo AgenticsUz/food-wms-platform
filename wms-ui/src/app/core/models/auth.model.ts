@@ -12,8 +12,20 @@ export interface AuthResponse {
 export interface User {
   id: number;
   tenantId: number;
+  tenantName?: string;
   fullName: string;
   phone: string;
   isActive: boolean;
+  isSuperAdmin?: boolean;
   roles: string[];
+  permissions?: string[];
+  enabledModules?: string[];
+}
+
+export interface RegisterDto {
+  tenantName: string;
+  slug: string;
+  fullName: string;
+  phone: string;
+  password: string;
 }
