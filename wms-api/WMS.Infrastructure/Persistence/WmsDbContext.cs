@@ -136,6 +136,20 @@ public class WmsDbContext : DbContext
         modelBuilder.Entity<AuditLog>()
             .HasIndex(a => new { a.TenantId, a.CreatedAt });
 
+        // ── Performance indekslar — barcha so'rovlar TenantId bilan filtrlanadi ──
+        modelBuilder.Entity<Transfer>().HasIndex(t => new { t.TenantId, t.Status });
+        modelBuilder.Entity<Transfer>().HasIndex(t => new { t.TenantId, t.ConfirmedAt });
+        modelBuilder.Entity<WarehouseStock>().HasIndex(s => new { s.TenantId, s.WarehouseId, s.ProductId });
+        modelBuilder.Entity<Batch>().HasIndex(b => new { b.TenantId, b.ProductId });
+        modelBuilder.Entity<Batch>().HasIndex(b => b.ExpiryDate);
+        modelBuilder.Entity<Transaction>().HasIndex(t => new { t.TenantId, t.Date });
+        modelBuilder.Entity<Product>().HasIndex(p => p.TenantId);
+        modelBuilder.Entity<Counterparty>().HasIndex(c => c.TenantId);
+        modelBuilder.Entity<ShiftPlan>().HasIndex(p => new { p.TenantId, p.Date });
+        modelBuilder.Entity<ShiftActual>().HasIndex(a => new { a.TenantId, a.Date });
+        modelBuilder.Entity<Notification>().HasIndex(n => new { n.TenantId, n.UserId, n.IsRead });
+        modelBuilder.Entity<CommissionRecord>().HasIndex(c => new { c.TenantId, c.AgentId });
+
         // Seed Modules (static dates required by EF Core to avoid PendingModelChangesWarning)
         var seedDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         modelBuilder.Entity<Module>().HasData(
