@@ -32,12 +32,33 @@ export default class ProfileComponent implements OnInit {
   confirmPassword = signal('');
   changingPassword = signal(false);
 
+  telegramChatId = signal('');
+  savingTelegram = signal(false);
+
   ngOnInit() {
     const user = this.authService.currentUser();
     if (user) {
       this.fullName.set(user.fullName);
       this.phone.set(user.phone);
+      this.telegramChatId.set(user.telegramChatId ?? '');
     }
+  }
+
+  saveTelegram() {
+    this.savingTelegram.set(true);
+    const chatId = this.telegramChatId().trim() || null;
+    this.settingsService.setTelegram(chatId).subscribe({
+      next: () => {
+        this.savingTelegram.set(false);
+        this.notify.success('Telegram updated');
+        const user = this.authService.currentUser();
+        if (user) {
+          this.authService.currentUser.set({ ...user, telegramChatId: chatId });
+          localStorage.setItem('currentUser', JSON.stringify(this.authService.currentUser()));
+        }
+      },
+      error: () => this.savingTelegram.set(false)
+    });
   }
 
   saveProfile() {

@@ -10,7 +10,9 @@ namespace WMS.Infrastructure.Services;
 public class NotificationService : INotificationService
 {
     private readonly WmsDbContext _db;
-    public NotificationService(WmsDbContext db) => _db = db;
+    private readonly ITelegramService _telegram;
+    public NotificationService(WmsDbContext db, ITelegramService telegram)
+    { _db = db; _telegram = telegram; }
 
     public async Task<List<NotificationDto>> GetNotificationsAsync(int tenantId, int userId, bool unreadOnly = false)
     {
@@ -75,6 +77,29 @@ public class NotificationService : INotificationService
         };
         _db.Notifications.Add(notification);
         await _db.SaveChangesAsync();
+
+        // Telegram forward — faqat bot sozlangan bo'lsa (default holatda umuman ishlamaydi)
+        if (_telegram.IsEnabled)
+            await ForwardToTelegram(tenantId, userId, title, message);
+
         return notification;
+    }
+
+    private async Task ForwardToTelegram(int tenantId, int? userId, string title, string message)
+    {
+        try
+        {
+            var q = _db.Users.Where(u => u.TenantId == tenantId && u.IsActive && u.TelegramChatId != null);
+            if (userId != null) q = q.Where(u => u.Id == userId.Value);
+            var chatIds = await q.Select(u => u.TelegramChatId!).Distinct().ToListAsync();
+
+            var text = $"<b>{title}</b>\n{message}";
+            foreach (var chatId in chatIds)
+                await _telegram.SendMessageAsync(chatId, text);
+        }
+        catch
+        {
+            // Best-effort — bildirishnoma yaratish buzilmasin
+        }
     }
 }

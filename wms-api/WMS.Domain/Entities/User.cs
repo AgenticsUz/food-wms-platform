@@ -12,5 +12,7 @@ public class User : BaseEntity
     public bool IsActive { get; set; } = true;
     // Platform egasi — barcha tenantlarni boshqara oladi (control plane). Oddiy tenant admini emas.
     public bool IsSuperAdmin { get; set; } = false;
+    // Telegram bildirishnomalari uchun (foydalanuvchi o'zi ulaydi; ixtiyoriy)
+    public string? TelegramChatId { get; set; }
     public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
 }

@@ -20,6 +20,21 @@
     </div>
   </div>
 
+  <!-- Telegram notifications -->
+  <div class="wms-card section-card">
+    <h3 class="section-title"><i class="pi pi-telegram"></i> {{ t('settings.telegram') }}</h3>
+    <p class="section-hint">{{ t('settings.telegramHint') }}</p>
+    <div class="form-grid">
+      <div class="form-field">
+        <label>{{ t('settings.telegramChatId') }}</label>
+        <input pInputText [ngModel]="telegramChatId()" (ngModelChange)="telegramChatId.set($event)" class="w-full" placeholder="123456789" />
+      </div>
+    </div>
+    <div class="form-actions">
+      <p-button [label]="t('common.save')" icon="pi pi-check" (onClick)="saveTelegram()" [loading]="savingTelegram()" [outlined]="true" />
+    </div>
+  </div>
+
   <!-- Change Password -->
   <div class="wms-card section-card">
     <h3 class="section-title">{{ t('settings.changePassword') }}</h3>

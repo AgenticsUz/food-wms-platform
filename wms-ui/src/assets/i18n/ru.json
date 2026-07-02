@@ -364,7 +364,10 @@
     "valueType": "Тип значения",
     "minValue": "Мин. значение",
     "maxValue": "Макс. значение",
-    "audit": "Журнал аудита"
+    "audit": "Журнал аудита",
+    "telegram": "Telegram-уведомления",
+    "telegramHint": "Подключите Telegram для уведомлений. Узнайте chat ID у @userinfobot.",
+    "telegramChatId": "Chat ID"
   },
   "dashboard": {
     "goodMorning": "Доброе утро",

@@ -17,6 +17,7 @@ export interface User {
   phone: string;
   isActive: boolean;
   isSuperAdmin?: boolean;
+  telegramChatId?: string | null;
   roles: string[];
   permissions?: string[];
   enabledModules?: string[];

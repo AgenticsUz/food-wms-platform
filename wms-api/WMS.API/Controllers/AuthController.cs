@@ -69,4 +69,12 @@ public class AuthController : BaseController
         await _auth.ChangePasswordAsync(UserId, TenantId, dto);
         return Ok(ApiResponse<object>.Ok(null!, "Password changed"));
     }
+
+    [HttpPut("telegram")]
+    [Authorize(Policy = "MainApi")]
+    public async Task<IActionResult> SetTelegram([FromBody] SetTelegramDto dto)
+    {
+        await _auth.SetTelegramChatAsync(UserId, TenantId, dto);
+        return Ok(ApiResponse<object>.Ok(null!, "Telegram updated"));
+    }
 }

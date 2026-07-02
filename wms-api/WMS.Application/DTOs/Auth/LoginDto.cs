@@ -21,9 +21,15 @@ public class UserInfoDto
     public int TenantId { get; set; }
     public string TenantName { get; set; } = null!;
     public bool IsSuperAdmin { get; set; }
+    public string? TelegramChatId { get; set; }
     public List<string> Roles { get; set; } = new();
     public List<string> EnabledModules { get; set; } = new();
     public List<string> Permissions { get; set; } = new();
+}
+
+public class SetTelegramDto
+{
+    public string? ChatId { get; set; }
 }
 
 public class RegisterDto

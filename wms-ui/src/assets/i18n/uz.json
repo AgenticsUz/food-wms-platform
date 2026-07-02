@@ -364,7 +364,10 @@
     "valueType": "Qiymat turi",
     "minValue": "Min qiymat",
     "maxValue": "Maks qiymat",
-    "audit": "Audit jurnali"
+    "audit": "Audit jurnali",
+    "telegram": "Telegram bildirishnomalari",
+    "telegramHint": "Ogohlantirishlarni olish uchun Telegramni ulang. chat ID ni @userinfobot dan oling.",
+    "telegramChatId": "Chat ID"
   },
   "dashboard": {
     "goodMorning": "Xayrli tong",

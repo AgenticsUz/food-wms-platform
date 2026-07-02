@@ -48,4 +48,5 @@ export class SettingsService {
   // Profile
   changePassword(dto: ChangePasswordDto) { return this.api.put<void>('auth/change-password', dto); }
   updateProfile(dto: { fullName: string; phone: string }) { return this.api.put<void>('auth/profile', dto); }
+  setTelegram(chatId: string | null) { return this.api.put<void>('auth/telegram', { chatId }); }
 }

@@ -9,4 +9,5 @@ public interface IAuthService
     Task<UserInfoDto> GetCurrentUserAsync(int userId, int tenantId);
     Task UpdateProfileAsync(int userId, int tenantId, UpdateProfileDto dto);
     Task ChangePasswordAsync(int userId, int tenantId, ChangePasswordDto dto);
+    Task SetTelegramChatAsync(int userId, int tenantId, SetTelegramDto dto);
 }

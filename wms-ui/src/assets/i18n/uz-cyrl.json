@@ -364,7 +364,10 @@
     "valueType": "Қиймат тури",
     "minValue": "Мин қиймат",
     "maxValue": "Макс қиймат",
-    "audit": "Аудит журнали"
+    "audit": "Аудит журнали",
+    "telegram": "Telegram билдиришномалари",
+    "telegramHint": "Огоҳлантиришларни олиш учун Telegramни уланг. chat ID ни @userinfobot дан олинг.",
+    "telegramChatId": "Chat ID"
   },
   "dashboard": {
     "goodMorning": "Хайрли тонг",

@@ -364,7 +364,10 @@
     "valueType": "Value Type",
     "minValue": "Min Value",
     "maxValue": "Max Value",
-    "audit": "Audit Log"
+    "audit": "Audit Log",
+    "telegram": "Telegram notifications",
+    "telegramHint": "Link your Telegram to receive alerts. Get your chat ID from @userinfobot.",
+    "telegramChatId": "Chat ID"
   },
   "dashboard": {
     "goodMorning": "Good morning",

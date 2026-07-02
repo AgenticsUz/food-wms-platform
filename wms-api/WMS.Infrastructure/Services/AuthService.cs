@@ -158,6 +158,7 @@ public class AuthService : IAuthService
             TenantId = tenantId,
             TenantName = user.Tenant.Name,
             IsSuperAdmin = user.IsSuperAdmin,
+            TelegramChatId = user.TelegramChatId,
             Roles = user.UserRoles.Select(ur => ur.Role.Name).ToList(),
             EnabledModules = modules,
             Permissions = permissions
@@ -191,6 +192,16 @@ public class AuthService : IAuthService
             throw new AppException("New password must be at least 6 characters");
 
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+        await _db.SaveChangesAsync();
+    }
+
+    public async Task SetTelegramChatAsync(int userId, int tenantId, SetTelegramDto dto)
+    {
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId && u.TenantId == tenantId)
+            ?? throw new NotFoundException("User not found");
+
+        var chatId = dto.ChatId?.Trim();
+        user.TelegramChatId = string.IsNullOrWhiteSpace(chatId) ? null : chatId;
         await _db.SaveChangesAsync();
     }
 }
