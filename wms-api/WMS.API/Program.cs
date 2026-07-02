@@ -72,6 +72,7 @@ builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IBatchExpiryService, BatchExpiryService>();
 builder.Services.AddHostedService<BatchExpiryBackgroundService>();
+builder.Services.AddHostedService<DbBackupBackgroundService>();
 builder.Services.AddScoped<IExportService, ExportService>();
 builder.Services.AddScoped<ITransferPdfService, TransferPdfService>();
 builder.Services.AddScoped<IImportService, ImportService>();
