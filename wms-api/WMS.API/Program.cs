@@ -60,6 +60,7 @@ builder.Services.AddHostedService<BatchExpiryBackgroundService>();
 builder.Services.AddScoped<IExportService, ExportService>();
 builder.Services.AddScoped<ITransferPdfService, TransferPdfService>();
 builder.Services.AddScoped<IImportService, ImportService>();
+builder.Services.AddScoped<IAuditService, AuditService>();
 
 // CORS
 builder.Services.AddHttpClient();
@@ -77,7 +78,11 @@ builder.Services.AddCors(options =>
               .AllowCredentials());
 });
 
-builder.Services.AddControllers();
+// Har mutatsiyani avtomat audit qiladi (kim/nima/qachon)
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<WMS.API.Middleware.AuditLogFilter>();
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {

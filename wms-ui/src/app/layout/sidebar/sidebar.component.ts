@@ -119,6 +119,7 @@ export class SidebarComponent {
       { key: 'settings.roles', route: '/settings/roles', permissionCode: 'settings.roles' },
       { key: 'settings.modules', route: '/settings/modules', permissionCode: 'settings.modules' },
       { key: 'settings.qcParameters', route: '/settings/qc-parameters' },
+      { key: 'settings.audit', route: '/settings/audit', permissionCode: 'audit.view' },
       { key: 'settings.profile', route: '/settings/profile' }
     ]
   };

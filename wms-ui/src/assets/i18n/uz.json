@@ -351,7 +351,8 @@
     "portalPhone": "Portal telefon",
     "valueType": "Qiymat turi",
     "minValue": "Min qiymat",
-    "maxValue": "Maks qiymat"
+    "maxValue": "Maks qiymat",
+    "audit": "Audit jurnali"
   },
   "dashboard": {
     "goodMorning": "Xayrli tong",
@@ -486,5 +487,16 @@
     "useCbu": "MB kursi",
     "lastUpdated": "Yangilangan",
     "refresh": "Kurslarni yangilash"
+  },
+  "audit": {
+    "title": "Audit jurnali",
+    "subtitle": "Kim, nimani va qachon oʻzgartirgan",
+    "entityType": "Modul",
+    "entity": "Obyekt",
+    "record": "Yozuv",
+    "action": "Amal",
+    "user": "Foydalanuvchi",
+    "date": "Sana",
+    "noLogs": "Audit yozuvlari yoʻq"
   }
 }

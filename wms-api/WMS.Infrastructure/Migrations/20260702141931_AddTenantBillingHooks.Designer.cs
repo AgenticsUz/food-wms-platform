@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WMS.Infrastructure.Persistence;
 
@@ -10,9 +11,11 @@ using WMS.Infrastructure.Persistence;
 namespace WMS.Infrastructure.Migrations
 {
     [DbContext(typeof(WmsDbContext))]
-    partial class WmsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260702141931_AddTenantBillingHooks")]
+    partial class AddTenantBillingHooks
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.28");
@@ -110,52 +113,6 @@ namespace WMS.Infrastructure.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("AttendanceLogs");
-                });
-
-            modelBuilder.Entity("WMS.Domain.Entities.AuditLog", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Action")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("EntityAction")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int?>("EntityId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("EntityType")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Path")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("StatusCode")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("TenantId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int?>("UserId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("UserName")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TenantId", "CreatedAt");
-
-                    b.ToTable("AuditLogs");
                 });
 
             modelBuilder.Entity("WMS.Domain.Entities.Batch", b =>
@@ -906,16 +863,6 @@ namespace WMS.Infrastructure.Migrations
                             IsDeleted = false,
                             Module = "AGENTS",
                             Name = "Manage Agents",
-                            UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
-                        },
-                        new
-                        {
-                            Id = 25,
-                            Code = "audit.view",
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsDeleted = false,
-                            Module = "SETTINGS",
-                            Name = "View Audit Log",
                             UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         });
                 });

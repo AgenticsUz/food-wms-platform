@@ -67,6 +67,9 @@ public class WmsDbContext : DbContext
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
 
+    // Audit
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Apply all configurations from assembly
@@ -129,6 +132,10 @@ public class WmsDbContext : DbContext
             .HasForeignKey(cr => cr.TransferId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // Audit log — tenant + vaqt bo'yicha tez filtrlash uchun indeks
+        modelBuilder.Entity<AuditLog>()
+            .HasIndex(a => new { a.TenantId, a.CreatedAt });
+
         // Seed Modules (static dates required by EF Core to avoid PendingModelChangesWarning)
         var seedDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         modelBuilder.Entity<Module>().HasData(
@@ -168,7 +175,8 @@ public class WmsDbContext : DbContext
             new Permission { Id = 21, Code = "quality.view", Name = "View Quality", Module = "QUALITY", CreatedAt = seedDate, UpdatedAt = seedDate },
             new Permission { Id = 22, Code = "quality.manage", Name = "Manage Quality", Module = "QUALITY", CreatedAt = seedDate, UpdatedAt = seedDate },
             new Permission { Id = 23, Code = "agents.view", Name = "View Agents", Module = "AGENTS", CreatedAt = seedDate, UpdatedAt = seedDate },
-            new Permission { Id = 24, Code = "agents.manage", Name = "Manage Agents", Module = "AGENTS", CreatedAt = seedDate, UpdatedAt = seedDate }
+            new Permission { Id = 24, Code = "agents.manage", Name = "Manage Agents", Module = "AGENTS", CreatedAt = seedDate, UpdatedAt = seedDate },
+            new Permission { Id = 25, Code = "audit.view", Name = "View Audit Log", Module = "SETTINGS", CreatedAt = seedDate, UpdatedAt = seedDate }
         );
 
         if (Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")
