@@ -71,7 +71,12 @@
 
 ---
 
-## BOSQICH 2 — SaaS boshqaruv qatlami (Control Plane)
+## BOSQICH 2 — SaaS boshqaruv qatlami (Control Plane) — ✅ TUGADI (2026-07-02)
+
+> Batafsil hisobot: `BOSQICH2_CONTROL_PLANE_REPORT.md`. Bajarildi: tenant izolyatsiya audit
+> (jiddiy leak yo'q, 5 FK-bo'shliq yopildi), SuperAdmin (User.IsSuperAdmin + policy +
+> TenantsController), self-service `POST /api/auth/register`, frontend register sahifasi +
+> `/superadmin/tenants` boshqaruv UI. Ochilishdan oldin: rate limiting + slug qora ro'yxat tavsiya.
 
 **Darvoza:** 1–2 manual mijoz mahsulotni tasdiqlagach. Endi qo'lsiz tenant qo'shish kerak.
 
