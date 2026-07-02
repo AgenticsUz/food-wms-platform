@@ -8,7 +8,19 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { WarehouseService } from '../../../core/services/warehouse.service';
 import { NotificationService } from '../../../shared/services/notification.service';
-import { StockMovement } from '../../../core/models/warehouse.model';
+import { Transfer, TransferType } from '../../../core/models/transfer.model';
+import { transferTypeClass, transferTypeKey } from '../../../shared/utils/transfer-enums';
+import { toLocalDateString, parseUtc } from '../../../shared/utils/date.util';
+
+interface MovementRow {
+  productName: string;
+  unitShortName: string;
+  warehouseName: string;
+  type: TransferType;
+  quantity: number;
+  date: Date | null;
+  note: string | null;
+}
 
 @Component({
   selector: 'app-movements',
@@ -22,7 +34,11 @@ export default class MovementsComponent implements OnInit {
   private warehouseService = inject(WarehouseService);
   private notify = inject(NotificationService);
 
-  movements = signal<StockMovement[]>([]);
+  // helperlar (template'da chaqirish uchun)
+  protected transferTypeClass = transferTypeClass;
+  protected transferTypeKey = transferTypeKey;
+
+  movements = signal<MovementRow[]>([]);
   loading = signal(true);
   dateFrom = signal<Date | null>(null);
   dateTo = signal<Date | null>(null);
@@ -31,21 +47,49 @@ export default class MovementsComponent implements OnInit {
 
   loadMovements() {
     this.loading.set(true);
-    const params: Record<string, string | number | boolean> = { status: 2 }; // Confirmed only
-    if (this.dateFrom()) params['from'] = this.dateFrom()!.toISOString().split('T')[0];
-    if (this.dateTo()) params['to'] = this.dateTo()!.toISOString().split('T')[0];
+    const params: Record<string, string | number | boolean> = { status: 2, pageSize: 500 }; // Confirmed only
+    if (this.dateFrom()) params['from'] = toLocalDateString(this.dateFrom()!);
+    if (this.dateTo()) params['to'] = toLocalDateString(this.dateTo()!);
     this.warehouseService.getMovements(params).subscribe({
       next: (res) => {
-        this.movements.set(res.success && res.data ? res.data : []);
+        this.movements.set(res.success && res.data ? this.flatten(res.data) : []);
         this.loading.set(false);
       },
-      error: () => { this.loading.set(false); this.notify.error('Failed to load movements'); }
+      error: () => { this.loading.set(false); }
     });
   }
 
-  onDateChange() { this.loadMovements(); }
-
-  getMovementStatus(type: string): string {
-    return type === 'Incoming' ? 'Confirmed' : type === 'Outgoing' ? 'Cancelled' : 'InProgress';
+  /** Har transferni items bo'yicha alohida harakat qatorlariga yoyadi. */
+  private flatten(transfers: Transfer[]): MovementRow[] {
+    const rows: MovementRow[] = [];
+    for (const tr of transfers) {
+      const warehouseName = this.warehouseFor(tr);
+      const date = parseUtc(tr.confirmedAt ?? tr.createdAt);
+      for (const item of tr.items ?? []) {
+        rows.push({
+          productName: item.productName ?? '—',
+          unitShortName: item.unitShortName ?? '',
+          warehouseName,
+          type: tr.type,
+          quantity: item.quantity,
+          date,
+          note: tr.note
+        });
+      }
+    }
+    return rows;
   }
+
+  private warehouseFor(tr: Transfer): string {
+    switch (tr.type) {
+      case TransferType.Outgoing:
+        return tr.fromWarehouseName ?? '—';
+      case TransferType.Internal:
+        return `${tr.fromWarehouseName ?? '—'} → ${tr.toWarehouseName ?? '—'}`;
+      default: // Incoming, Return, ProductionOutput
+        return tr.toWarehouseName ?? '—';
+    }
+  }
+
+  onDateChange() { this.loadMovements(); }
 }

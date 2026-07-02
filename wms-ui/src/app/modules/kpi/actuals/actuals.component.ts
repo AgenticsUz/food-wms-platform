@@ -15,6 +15,7 @@ import { ProductService } from '../../../core/services/product.service';
 import { NotificationService } from '../../../shared/services/notification.service';
 import { Shift, ShiftActual, ShiftActualCreateDto } from '../../../core/models/kpi.model';
 import { Product } from '../../../core/models/product.model';
+import { toLocalDateString } from '../../../shared/utils/date.util';
 
 @Component({
   selector: 'app-actuals',
@@ -116,7 +117,7 @@ export default class ActualsComponent implements OnInit {
       productId: f.productId,
       actualQuantity: f.actualQuantity,
       wasteQuantity: f.wasteQuantity ?? 0,
-      date: f.date.toISOString(),
+      date: toLocalDateString(f.date),
       note: f.note?.trim() || null
     };
 

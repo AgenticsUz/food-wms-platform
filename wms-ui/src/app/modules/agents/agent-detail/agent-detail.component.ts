@@ -143,9 +143,10 @@ export default class AgentDetailComponent implements OnInit {
         this.notify.success('Commission paid');
         this.loadData();
       },
+      // Backend "butun yozuvni qoplamaydigan summa" kabi aniq xabar qaytaradi —
+      // uni error.interceptor ko'rsatadi, bu yerda generic toast qo'ymaymiz
       error: () => {
         this.paying.set(false);
-        this.notify.error('Failed to pay commission');
       }
     });
   }

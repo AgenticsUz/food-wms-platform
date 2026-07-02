@@ -36,6 +36,7 @@ export class StatusBadgeComponent {
     Outgoing:   'pill pill-warning',
     Internal:   'pill pill-neutral',
     Production: 'pill pill-info',
+    Return:     'pill pill-danger',
   };
 
   private defaultClass = 'pill pill-neutral';

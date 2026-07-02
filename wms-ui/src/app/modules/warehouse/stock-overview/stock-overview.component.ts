@@ -1,4 +1,5 @@
 import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { toLocalDateString } from '../../../shared/utils/date.util';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslocoDirective } from '@jsverse/transloco';
@@ -110,7 +111,7 @@ export default class StockOverviewComponent implements OnInit {
     if (this.selectedWarehouseId()) params['warehouseId'] = this.selectedWarehouseId();
     this.exportService.download('export/stock', `stock-${this.today()}.xlsx`, params);
   }
-  private today() { return new Date().toISOString().split('T')[0]; }
+  private today() { return toLocalDateString(new Date()); }
 
   private loadStockChart() {
     this.analyticsService.getStockLevels().subscribe({

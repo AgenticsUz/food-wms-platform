@@ -1,4 +1,5 @@
 import { Injectable, inject, signal } from '@angular/core';
+import { toLocalDateString } from '../../shared/utils/date.util';
 import { Router } from '@angular/router';
 import { ApiService } from './api.service';
 import { NotificationItem } from '../models/notification.model';
@@ -73,7 +74,7 @@ export class NotificationBellService {
    * Xato bo'lsa sezdirmasdan o'tib ketamiz — kritik emas.
    */
   triggerBatchExpiryCheck(warningDaysAhead = 3) {
-    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    const today = toLocalDateString(new Date()); // YYYY-MM-DD
     const last = localStorage.getItem(LAST_BATCH_EXPIRY_CHECK);
     if (last === today) return;
 
@@ -96,6 +97,9 @@ export class NotificationBellService {
   }
 
   startPolling() {
+    // Idempotent: qayta login/F5'da ikkinchi interval yaratilmasin
+    if (this.intervalId) return;
+
     this.loadUnreadCount();
     this.loadNotifications();
     // Login/boot vaqtida bir marta — kuniga bitta tekshiruv

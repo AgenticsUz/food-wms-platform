@@ -1,4 +1,5 @@
 import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@angular/core';
+import { toLocalDateString } from '../../../shared/utils/date.util';
 import { DecimalPipe, DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -8,7 +9,8 @@ import { DatePicker } from 'primeng/datepicker';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { PortalService } from '../../../core/services/portal.service';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
-import { Transfer, TransferType, TransferStatus } from '../../../core/models/transfer.model';
+import { Transfer } from '../../../core/models/transfer.model';
+import { transferStatusClass, transferStatusKey, transferTypeKey } from '../../../shared/utils/transfer-enums';
 
 @Component({
   selector: 'app-portal-transfers',
@@ -20,6 +22,11 @@ import { Transfer, TransferType, TransferStatus } from '../../../core/models/tra
 })
 export default class PortalTransfersComponent implements OnInit {
   private portalService = inject(PortalService);
+
+  // helperlar (template'da chaqirish uchun)
+  protected transferStatusClass = transferStatusClass;
+  protected transferStatusKey = transferStatusKey;
+  protected transferTypeKey = transferTypeKey;
 
   transfers = signal<Transfer[]>([]);
   loading = signal(true);
@@ -34,10 +41,10 @@ export default class PortalTransfersComponent implements OnInit {
     this.loading.set(true);
     const params: Record<string, string | number | boolean> = {};
     if (this.dateFrom()) {
-      params['from'] = this.dateFrom()!.toISOString();
+      params['from'] = toLocalDateString(this.dateFrom()!);
     }
     if (this.dateTo()) {
-      params['to'] = this.dateTo()!.toISOString();
+      params['to'] = toLocalDateString(this.dateTo()!);
     }
 
     this.portalService.getTransfers(params).subscribe({
@@ -53,25 +60,5 @@ export default class PortalTransfersComponent implements OnInit {
 
   onDateChange() {
     this.loadTransfers();
-  }
-
-  getStatusLabel(status: TransferStatus): string {
-    const map: Record<number, string> = {
-      [TransferStatus.Pending]: 'Pending',
-      [TransferStatus.Confirmed]: 'Confirmed',
-      [TransferStatus.Rejected]: 'Rejected',
-      [TransferStatus.Cancelled]: 'Cancelled'
-    };
-    return map[status] ?? 'Unknown';
-  }
-
-  getTypeName(type: TransferType): string {
-    const map: Record<number, string> = {
-      [TransferType.Incoming]: 'Incoming',
-      [TransferType.Outgoing]: 'Outgoing',
-      [TransferType.Internal]: 'Internal',
-      [TransferType.ProductionOutput]: 'Production'
-    };
-    return map[type] ?? 'Unknown';
   }
 }

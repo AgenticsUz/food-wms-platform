@@ -49,19 +49,10 @@ export interface ShiftEfficiencyDto {
 }
 
 export interface ProductDistributionDto {
-  productType: string;
-  count: number;
+  productName: string;
+  type: number;
+  totalStock: number;
   percentage: number;
-}
-
-export interface RecentTransferDto {
-  id: number;
-  type: string;
-  status: string;
-  counterpartyName: string;
-  totalAmount: number;
-  itemCount: number;
-  createdAt: string;
 }
 
 export interface TopDebtorDto {

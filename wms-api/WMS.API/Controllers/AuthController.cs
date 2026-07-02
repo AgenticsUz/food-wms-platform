@@ -42,4 +42,20 @@ public class AuthController : BaseController
         var permissions = await _users.GetUserPermissionsAsync(TenantId, UserId);
         return Ok(ApiResponse<List<string>>.Ok(permissions));
     }
+
+    [HttpPut("profile")]
+    [Authorize(Policy = "MainApi")]
+    public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileDto dto)
+    {
+        await _auth.UpdateProfileAsync(UserId, TenantId, dto);
+        return Ok(ApiResponse<object>.Ok(null!, "Profile updated"));
+    }
+
+    [HttpPut("change-password")]
+    [Authorize(Policy = "MainApi")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
+    {
+        await _auth.ChangePasswordAsync(UserId, TenantId, dto);
+        return Ok(ApiResponse<object>.Ok(null!, "Password changed"));
+    }
 }

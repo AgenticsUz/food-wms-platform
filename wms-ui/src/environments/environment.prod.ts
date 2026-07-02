@@ -1,5 +1,6 @@
 export const environment = {
   production: true,
-  apiUrl: 'http://api.warehouse-system.uz/api',
+  // Nginx orqasida relative — HTTPS'da mixed-content bloklanmasin (CLAUDE.md)
+  apiUrl: '/api',
   tenantSlug: 'admin'
 };

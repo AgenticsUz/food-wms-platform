@@ -140,11 +140,11 @@
       </div>
       <div class="add-item-field small">
         <p-inputNumber [ngModel]="itemQuantity()" (ngModelChange)="itemQuantity.set($event ?? 0)"
-          [placeholder]="t('common.quantity')" [minFractionDigits]="0" [maxFractionDigits]="2" [style]="{ width: '100%' }" />
+          [placeholder]="t('common.quantity')" [min]="0" [minFractionDigits]="0" [maxFractionDigits]="2" [style]="{ width: '100%' }" />
       </div>
       <div class="add-item-field small">
         <p-inputNumber [ngModel]="itemUnitPrice()" (ngModelChange)="itemUnitPrice.set($event ?? 0)"
-          [placeholder]="t('common.price')" [minFractionDigits]="0" [maxFractionDigits]="2" mode="decimal" [style]="{ width: '100%' }" />
+          [placeholder]="t('common.price')" [min]="0" [minFractionDigits]="0" [maxFractionDigits]="2" mode="decimal" [style]="{ width: '100%' }" />
       </div>
       <p-button icon="pi pi-plus" [label]="t('transfer.addItem')" (onClick)="addItem()" />
     </div>

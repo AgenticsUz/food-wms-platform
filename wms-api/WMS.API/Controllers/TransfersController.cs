@@ -17,9 +17,10 @@ public class TransfersController : BaseController
     public async Task<IActionResult> GetAll(
         [FromQuery] TransferType? type, [FromQuery] TransferStatus? status,
         [FromQuery] DateTime? from, [FromQuery] DateTime? to,
+        [FromQuery] int? counterpartyId,
         [FromQuery] int page = 1, [FromQuery] int pageSize = 50)
         => Ok(ApiResponse<List<TransferDto>>.Ok(
-            await _transfers.GetAllAsync(TenantId, type, status, from, to, page, pageSize)));
+            await _transfers.GetAllAsync(TenantId, type, status, from, to, counterpartyId, page, pageSize)));
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)

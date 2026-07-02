@@ -33,7 +33,8 @@ public class UserService : IUserService
         var user = new User
         {
             TenantId = tenantId, FullName = dto.FullName, Phone = phone,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password)
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+            IsActive = dto.IsActive
         };
         _db.Users.Add(user);
         await _db.SaveChangesAsync();

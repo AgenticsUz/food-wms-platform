@@ -7,7 +7,8 @@ import { TranslocoDirective } from '@jsverse/transloco';
 import { PortalService } from '../../../core/services/portal.service';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { PortalFinance } from '../../../core/models/settings.model';
-import { Transfer, TransferStatus } from '../../../core/models/transfer.model';
+import { Transfer } from '../../../core/models/transfer.model';
+import { transferStatusClass, transferStatusKey, transferTypeKey } from '../../../shared/utils/transfer-enums';
 
 @Component({
   selector: 'app-portal-dashboard',
@@ -20,12 +21,17 @@ import { Transfer, TransferStatus } from '../../../core/models/transfer.model';
 export default class PortalDashboardComponent implements OnInit {
   private portalService = inject(PortalService);
 
+  // helperlar (template'da chaqirish uchun)
+  protected transferStatusClass = transferStatusClass;
+  protected transferStatusKey = transferStatusKey;
+  protected transferTypeKey = transferTypeKey;
+
   finance = signal<PortalFinance | null>(null);
   transfers = signal<Transfer[]>([]);
   loading = signal(true);
 
   get counterpartyName(): string {
-    return this.portalService.counterparty()?.name ?? 'Guest';
+    return this.portalService.counterparty()?.name ?? '';
   }
 
   ngOnInit() {
@@ -50,20 +56,5 @@ export default class PortalDashboardComponent implements OnInit {
       },
       error: () => this.loading.set(false)
     });
-  }
-
-  getStatusLabel(status: TransferStatus): string {
-    const map: Record<number, string> = {
-      [TransferStatus.Pending]: 'Pending',
-      [TransferStatus.Confirmed]: 'Confirmed',
-      [TransferStatus.Rejected]: 'Rejected',
-      [TransferStatus.Cancelled]: 'Cancelled'
-    };
-    return map[status] ?? 'Unknown';
-  }
-
-  getTypeName(type: number): string {
-    const map: Record<number, string> = { 1: 'Incoming', 2: 'Outgoing', 3: 'Internal', 4: 'Production' };
-    return map[type] ?? 'Unknown';
   }
 }

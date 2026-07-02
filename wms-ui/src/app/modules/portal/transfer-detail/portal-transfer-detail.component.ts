@@ -6,7 +6,8 @@ import { Button } from 'primeng/button';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { PortalService } from '../../../core/services/portal.service';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
-import { Transfer, TransferType, TransferStatus } from '../../../core/models/transfer.model';
+import { Transfer } from '../../../core/models/transfer.model';
+import { transferStatusClass, transferStatusKey, transferTypeKey } from '../../../shared/utils/transfer-enums';
 
 @Component({
   selector: 'app-portal-transfer-detail',
@@ -19,6 +20,11 @@ import { Transfer, TransferType, TransferStatus } from '../../../core/models/tra
 export default class PortalTransferDetailComponent implements OnInit {
   private portalService = inject(PortalService);
   private route = inject(ActivatedRoute);
+
+  // helperlar (template'da chaqirish uchun)
+  protected transferStatusClass = transferStatusClass;
+  protected transferStatusKey = transferStatusKey;
+  protected transferTypeKey = transferTypeKey;
 
   transfer = signal<Transfer | null>(null);
   loading = signal(true);
@@ -40,25 +46,5 @@ export default class PortalTransferDetailComponent implements OnInit {
       },
       error: () => this.loading.set(false)
     });
-  }
-
-  getStatusLabel(status: TransferStatus): string {
-    const map: Record<number, string> = {
-      [TransferStatus.Pending]: 'Pending',
-      [TransferStatus.Confirmed]: 'Confirmed',
-      [TransferStatus.Rejected]: 'Rejected',
-      [TransferStatus.Cancelled]: 'Cancelled'
-    };
-    return map[status] ?? 'Unknown';
-  }
-
-  getTypeName(type: TransferType): string {
-    const map: Record<number, string> = {
-      [TransferType.Incoming]: 'Incoming',
-      [TransferType.Outgoing]: 'Outgoing',
-      [TransferType.Internal]: 'Internal',
-      [TransferType.ProductionOutput]: 'Production'
-    };
-    return map[type] ?? 'Unknown';
   }
 }

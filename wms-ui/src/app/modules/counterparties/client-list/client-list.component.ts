@@ -1,4 +1,5 @@
 import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { toLocalDateString } from '../../../shared/utils/date.util';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TableModule } from 'primeng/table';
@@ -115,7 +116,7 @@ export default class ClientListComponent implements OnInit {
   viewDetail(c: Counterparty) { this.router.navigate(['/counterparties', c.id]); }
 
   exportClients() {
-    this.exportService.download('export/counterparties', `clients-${new Date().toISOString().split('T')[0]}.xlsx`, { type: 'Client' });
+    this.exportService.download('export/counterparties', `clients-${toLocalDateString(new Date())}.xlsx`, { type: 'Client' });
   }
 
   updateForm(field: string, value: unknown) { this.form.update(f => ({ ...f, [field]: value })); }

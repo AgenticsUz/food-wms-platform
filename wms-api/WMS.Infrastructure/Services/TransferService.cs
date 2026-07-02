@@ -17,7 +17,7 @@ public class TransferService : ITransferService
     { _db = db; _notifications = notifications; }
 
     public async Task<List<TransferDto>> GetAllAsync(int tenantId, TransferType? type,
-        TransferStatus? status, DateTime? from, DateTime? to, int page, int pageSize)
+        TransferStatus? status, DateTime? from, DateTime? to, int? counterpartyId, int page, int pageSize)
     {
         var q = _db.Transfers.Where(t => t.TenantId == tenantId)
             .Include(t => t.FromWarehouse).Include(t => t.ToWarehouse)
@@ -28,6 +28,7 @@ public class TransferService : ITransferService
 
         if (type.HasValue) q = q.Where(t => t.Type == type.Value);
         if (status.HasValue) q = q.Where(t => t.Status == status.Value);
+        if (counterpartyId.HasValue) q = q.Where(t => t.CounterpartyId == counterpartyId.Value);
         if (from.HasValue) q = q.Where(t => t.CreatedAt >= from.Value);
         if (to.HasValue) q = q.Where(t => t.CreatedAt <= to.Value);
 

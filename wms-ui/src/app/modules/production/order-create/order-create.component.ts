@@ -1,4 +1,5 @@
 import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { toLocalDateString } from '../../../shared/utils/date.util';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Button } from 'primeng/button';
@@ -70,8 +71,8 @@ export default class OrderCreateComponent implements OnInit {
     const dto: ProductionOrderCreateDto = {
       recipeId: this.recipeId()!,
       plannedQuantity: this.plannedQuantity(),
-      plannedStartDate: this.plannedStartDate()!.toISOString(),
-      plannedEndDate: this.plannedEndDate()?.toISOString() ?? null,
+      plannedStartDate: toLocalDateString(this.plannedStartDate()!),
+      plannedEndDate: (this.plannedEndDate() ? toLocalDateString(this.plannedEndDate()!) : null) ?? null,
       assignedToUserId: this.assignedToUserId(),
       note: this.note().trim() || null
     };

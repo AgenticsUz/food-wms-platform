@@ -122,6 +122,37 @@ public class WarehouseService : IWarehouseService
         };
     }
 
+    public async Task<LocationDto> UpdateLocationAsync(int tenantId, int id, CreateLocationDto dto)
+    {
+        var loc = await _db.Locations.Include(l => l.Warehouse)
+            .FirstOrDefaultAsync(l => l.Id == id && l.Warehouse.TenantId == tenantId)
+            ?? throw new NotFoundException("Location not found");
+
+        loc.Name = dto.Name;
+        loc.Code = dto.Code;
+        await _db.SaveChangesAsync();
+
+        return new LocationDto
+        {
+            Id = loc.Id, WarehouseId = loc.WarehouseId, WarehouseName = loc.Warehouse.Name,
+            Name = loc.Name, Code = loc.Code
+        };
+    }
+
+    public async Task DeleteLocationAsync(int tenantId, int id)
+    {
+        var loc = await _db.Locations.Include(l => l.Warehouse)
+            .FirstOrDefaultAsync(l => l.Id == id && l.Warehouse.TenantId == tenantId)
+            ?? throw new NotFoundException("Location not found");
+
+        var hasStock = await _db.WarehouseStocks.AnyAsync(s => s.LocationId == id && s.Quantity > 0);
+        if (hasStock)
+            throw new AppException("Cannot delete location: it still has stock");
+
+        loc.IsDeleted = true;
+        await _db.SaveChangesAsync();
+    }
+
     public async Task<List<BatchDto>> GetBatchesAsync(int tenantId)
     {
         return await _db.Batches.Where(b => b.TenantId == tenantId)

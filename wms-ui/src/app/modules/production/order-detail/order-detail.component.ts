@@ -93,7 +93,8 @@ export default class OrderDetailComponent implements OnInit {
           this.notify.success('Production order started');
           this.loadOrder(o.id);
         },
-        error: () => this.notify.error('Failed to start order')
+        // Xatoni error.interceptor ko'rsatadi (backend xabari)
+        error: () => {}
       });
     });
   }
@@ -107,7 +108,8 @@ export default class OrderDetailComponent implements OnInit {
           this.notify.success('Production order completed');
           this.loadOrder(o.id);
         },
-        error: () => this.notify.error('Failed to complete order')
+        // Xatoni error.interceptor ko'rsatadi ("barcha bosqichlar tugashi kerak" va h.k.)
+        error: () => {}
       });
     });
   }
@@ -149,9 +151,9 @@ export default class OrderDetailComponent implements OnInit {
         this.notify.success('Stage executed successfully');
         this.loadOrder(o.id);
       },
+      // Xatoni error.interceptor ko'rsatadi ("Insufficient stock..." va h.k.)
       error: () => {
         this.executing.set(false);
-        this.notify.error('Failed to execute stage');
       }
     });
   }

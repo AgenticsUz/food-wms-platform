@@ -57,6 +57,16 @@ public class LocationsController : BaseController
     [RequirePermission("warehouse.manage")]
     public async Task<IActionResult> Create([FromBody] CreateLocationDto dto)
         => Ok(ApiResponse<LocationDto>.Ok(await _warehouses.CreateLocationAsync(TenantId, dto)));
+
+    [HttpPut("{id}")]
+    [RequirePermission("warehouse.manage")]
+    public async Task<IActionResult> Update(int id, [FromBody] CreateLocationDto dto)
+        => Ok(ApiResponse<LocationDto>.Ok(await _warehouses.UpdateLocationAsync(TenantId, id, dto)));
+
+    [HttpDelete("{id}")]
+    [RequirePermission("warehouse.manage")]
+    public async Task<IActionResult> Delete(int id)
+    { await _warehouses.DeleteLocationAsync(TenantId, id); return Ok(ApiResponse<object>.Ok(null!, "Deleted")); }
 }
 
 [ApiController]

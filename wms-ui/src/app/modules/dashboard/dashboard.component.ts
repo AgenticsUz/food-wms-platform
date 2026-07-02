@@ -14,10 +14,12 @@ import { StatusBadgeComponent } from '../../shared/components/status-badge/statu
 import { APEX_DEFAULTS } from '../../core/config/apex-defaults';
 import {
   DashboardSummaryDto,
-  RecentTransferDto,
   ExtendedDashboardSummaryDto,
   MonthlyComparisonDto
 } from '../../core/models/analytics.model';
+import { Transfer } from '../../core/models/transfer.model';
+import { transferStatusClass, transferStatusKey, transferTypeClass, transferTypeKey } from '../../shared/utils/transfer-enums';
+import { toLocalDateString } from '../../shared/utils/date.util';
 
 @Component({
   selector: 'app-dashboard',
@@ -36,11 +38,17 @@ export default class DashboardComponent implements OnInit {
   userName = this.authService.currentUser()?.fullName ?? 'User';
   today = new Date();
 
+  // helperlar (template'da chaqirish uchun)
+  protected transferStatusClass = transferStatusClass;
+  protected transferStatusKey = transferStatusKey;
+  protected transferTypeClass = transferTypeClass;
+  protected transferTypeKey = transferTypeKey;
+
   loading = signal(true);
   summary = signal<DashboardSummaryDto | null>(null);
   extSummary = signal<ExtendedDashboardSummaryDto | null>(null);
   extLoading = signal(true);
-  recentTransfers = signal<RecentTransferDto[]>([]);
+  recentTransfers = signal<Transfer[]>([]);
   selectedDays = signal(7);
 
   // Date range
@@ -184,9 +192,9 @@ export default class DashboardComponent implements OnInit {
       next: (res) => {
         if (res.success && res.data && res.data.length > 0) {
           this.productDistributionChart.set({
-            series: res.data.map(d => d.count),
+            series: res.data.map(d => d.totalStock),
             chart: { ...APEX_DEFAULTS.chart, type: 'donut', height: 240 },
-            labels: res.data.map(d => d.productType), colors: APEX_DEFAULTS.colors, tooltip: APEX_DEFAULTS.tooltip,
+            labels: res.data.map(d => d.productName), colors: APEX_DEFAULTS.colors, tooltip: APEX_DEFAULTS.tooltip,
             legend: { position: 'bottom' },
             plotOptions: { pie: { donut: { size: '65%', labels: { show: true, total: { show: true, label: 'Total' } } } } }
           });
@@ -257,11 +265,7 @@ export default class DashboardComponent implements OnInit {
     return 'evening';
   }
 
-  getTransferStatusLabel(status: string): string {
-    return status;
-  }
-
   private formatDate(d: Date): string {
-    return d.toISOString().split('T')[0];
+    return toLocalDateString(d);
   }
 }

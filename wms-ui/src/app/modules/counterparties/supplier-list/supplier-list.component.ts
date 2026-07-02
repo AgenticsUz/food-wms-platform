@@ -1,4 +1,5 @@
 import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { toLocalDateString } from '../../../shared/utils/date.util';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TableModule } from 'primeng/table';
@@ -104,7 +105,7 @@ export default class SupplierListComponent implements OnInit {
   viewDetail(c: Counterparty) { this.router.navigate(['/counterparties', c.id]); }
 
   exportSuppliers() {
-    this.exportService.download('export/counterparties', `suppliers-${new Date().toISOString().split('T')[0]}.xlsx`, { type: 'Supplier' });
+    this.exportService.download('export/counterparties', `suppliers-${toLocalDateString(new Date())}.xlsx`, { type: 'Supplier' });
   }
 
   updateForm(field: string, value: unknown) { this.form.update(f => ({ ...f, [field]: value })); }

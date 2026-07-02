@@ -140,7 +140,7 @@
       <div class="form-field">
         <label>{{ t('agent.amount') }} *</label>
         <p-inputnumber [ngModel]="payForm().amount" (ngModelChange)="updatePayForm('amount', $event)"
-          [min]="0" [minFractionDigits]="0" [maxFractionDigits]="2" styleClass="w-full" inputStyleClass="w-full" />
+          [min]="0" [max]="report()?.commissionDue ?? 0" [minFractionDigits]="0" [maxFractionDigits]="2" styleClass="w-full" inputStyleClass="w-full" />
       </div>
       <div class="form-field">
         <label>{{ t('agent.note') }}</label>

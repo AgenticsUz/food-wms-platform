@@ -52,6 +52,7 @@ export interface TransferItem {
   transferId?: number;
   productId: number;
   productName?: string;
+  unitShortName?: string;
   batchId: number | null;
   lotNumber?: string;
   quantity: number;

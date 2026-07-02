@@ -7,6 +7,7 @@ namespace WMS.Application.Interfaces;
 public interface ICounterpartyService
 {
     Task<List<CounterpartyDto>> GetAllAsync(int tenantId, CounterpartyType? type = null);
+    Task<CounterpartyDto> GetByIdAsync(int tenantId, int id);
     Task<CounterpartyDto> CreateAsync(int tenantId, CreateCounterpartyDto dto);
     Task<CounterpartyDto> UpdateAsync(int tenantId, int id, UpdateCounterpartyDto dto);
     Task DeleteAsync(int tenantId, int id);

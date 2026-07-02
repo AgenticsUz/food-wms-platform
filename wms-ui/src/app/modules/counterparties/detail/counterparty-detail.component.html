@@ -69,14 +69,14 @@
             <th>{{ t('common.date') }}</th>
           </tr>
         </ng-template>
-        <ng-template #body let-t>
+        <ng-template #body let-row>
           <tr>
-            <td><span class="item-name">{{ t.typeName ?? t.type }}</span></td>
-            <td class="text-right"><span class="number">{{ t.totalAmount | number:'1.0-2' }}</span></td>
+            <td><app-status-badge [status]="transferTypeClass(row.type)" [label]="t(transferTypeKey(row.type))" /></td>
+            <td class="text-right"><span class="number">{{ row.totalAmount | number:'1.0-2' }}</span></td>
             <td>
-              <app-status-badge [status]="t.statusName ?? t.status" [label]="getStatusLabel(t.statusName ?? t.status)" />
+              <app-status-badge [status]="transferStatusClass(row.status)" [label]="t(transferStatusKey(row.status))" />
             </td>
-            <td>{{ t.createdAt | date:'MMM d, yyyy' }}</td>
+            <td>{{ row.createdAt | date:'MMM d, yyyy' }}</td>
           </tr>
         </ng-template>
         <ng-template #emptymessage>

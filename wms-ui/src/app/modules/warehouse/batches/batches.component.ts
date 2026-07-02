@@ -1,4 +1,5 @@
 import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { toLocalDateString } from '../../../shared/utils/date.util';
 import { DecimalPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -154,7 +155,7 @@ export default class BatchesComponent implements OnInit {
     }
     const dto: UpdateBatchDto = {
       lotNumber: f.lotNumber.trim(),
-      expiryDate: f.expiryDate ? f.expiryDate.toISOString() : null,
+      expiryDate: f.expiryDate ? toLocalDateString(f.expiryDate) : null,
       notes: f.notes?.trim() ? f.notes.trim() : null
     };
     this.saving.set(true);

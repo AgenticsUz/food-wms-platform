@@ -1,4 +1,5 @@
 import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { toLocalDateString } from '../../../shared/utils/date.util';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
@@ -71,7 +72,9 @@ export default class ProductListComponent implements OnInit {
 
   loadProducts() {
     this.loading.set(true);
-    const params: Record<string, string | number | boolean> = {};
+    // Client-side filter/paginator butun ro'yxat ustida ishlaydi — backend default 20 emas,
+    // katta pageSize bilan hammasini olamiz.
+    const params: Record<string, string | number | boolean> = { page: 1, pageSize: 1000 };
     if (this.typeFilter()) {
       params['type'] = this.typeFilter()!;
     }
@@ -226,7 +229,7 @@ export default class ProductListComponent implements OnInit {
   }
 
   exportProducts() {
-    this.exportService.download('export/products', `products-${new Date().toISOString().split('T')[0]}.xlsx`);
+    this.exportService.download('export/products', `products-${toLocalDateString(new Date())}.xlsx`);
   }
 
   updateForm(field: string, value: unknown) {

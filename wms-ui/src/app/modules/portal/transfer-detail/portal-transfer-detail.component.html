@@ -8,7 +8,7 @@
     <div class="detail-grid">
       <div class="wms-card detail-card">
         <p class="detail-card-title">{{ t('common.status') }}</p>
-        <app-status-badge [status]="getStatusLabel(tr.status)" [label]="getStatusLabel(tr.status)" />
+        <app-status-badge [status]="transferStatusClass(tr.status)" [label]="t(transferStatusKey(tr.status))" />
       </div>
       <div class="wms-card detail-card">
         <p class="detail-card-title">{{ t('transfer.totalAmount') }}</p>
@@ -16,7 +16,7 @@
       </div>
       <div class="wms-card detail-card">
         <p class="detail-card-title">{{ t('common.type') }}</p>
-        <p class="detail-card-label">{{ getTypeName(tr.type) }}</p>
+        <p class="detail-card-label">{{ t(transferTypeKey(tr.type)) }}</p>
       </div>
       <div class="wms-card detail-card">
         <p class="detail-card-title">{{ t('common.date') }}</p>

@@ -29,18 +29,18 @@
             <th></th>
           </tr>
         </ng-template>
-        <ng-template #body let-t>
+        <ng-template #body let-row>
           <tr>
-            <td class="number">#{{ t.id }}</td>
-            <td>{{ getTypeName(t.type) }}</td>
-            <td>{{ t.counterpartyName ?? '-' }}</td>
-            <td class="text-right number">{{ t.totalAmount | number:'1.0-2' }}</td>
+            <td class="number">#{{ row.id }}</td>
+            <td>{{ t(transferTypeKey(row.type)) }}</td>
+            <td>{{ row.counterpartyName ?? '-' }}</td>
+            <td class="text-right number">{{ row.totalAmount | number:'1.0-2' }}</td>
             <td>
-              <app-status-badge [status]="getStatusLabel(t.status)" [label]="getStatusLabel(t.status)" />
+              <app-status-badge [status]="transferStatusClass(row.status)" [label]="t(transferStatusKey(row.status))" />
             </td>
-            <td>{{ t.createdAt | date:'mediumDate' }}</td>
+            <td>{{ row.createdAt | date:'mediumDate' }}</td>
             <td>
-              <p-button icon="pi pi-eye" [text]="true" size="small" [routerLink]="['/portal/transfers', t.id]" />
+              <p-button icon="pi pi-eye" [text]="true" size="small" [routerLink]="['/portal/transfers', row.id]" />
             </td>
           </tr>
         </ng-template>

@@ -48,7 +48,7 @@
                 <i class="pi pi-replay text-xs"></i> {{ t('transfer.return') }}
               </span>
             } @else {
-              <app-status-badge [status]="getTypeName(row.type)" [label]="getTypeName(row.type)" />
+              <app-status-badge [status]="transferTypeClass(row.type)" [label]="t(transferTypeKey(row.type))" />
             }
           </td>
           <td>
@@ -61,7 +61,7 @@
           </td>
           <td class="text-right"><span class="number">{{ row.totalAmount | number:'1.0-2' }}</span></td>
           <td>
-            <app-status-badge [status]="getStatusKey(row.status)" [label]="getStatusName(row.status)" />
+            <app-status-badge [status]="transferStatusClass(row.status)" [label]="t(transferStatusKey(row.status))" />
           </td>
           <td>{{ row.createdAt | date:'MMM d, yyyy HH:mm' }}</td>
           <td class="text-center actions-cell">

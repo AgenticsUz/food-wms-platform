@@ -166,6 +166,7 @@ export default class TransferCreateComponent implements OnInit {
     const price = this.itemUnitPrice();
     if (!pid) { this.notify.warn('Select a product'); return; }
     if (qty <= 0) { this.notify.warn('Quantity must be greater than 0'); return; }
+    if (price < 0) { this.notify.warn('Price cannot be negative'); return; }
     const product = this.products().find(p => p.id === pid);
     this.items.update(list => [...list, {
       productId: pid,
@@ -254,13 +255,20 @@ export default class TransferCreateComponent implements OnInit {
     if (type === TransferType.Internal && (!this.fromWarehouseId() || !this.toWarehouseId())) {
       this.notify.warn('Select source and destination warehouses'); return;
     }
+    if (type === TransferType.Internal && this.fromWarehouseId() === this.toWarehouseId()) {
+      this.notify.warn('Source and destination warehouses must differ'); return;
+    }
     if (type === TransferType.Return) {
       if (!this.toWarehouseId()) { this.notify.warn('Select a destination warehouse'); return; }
       if (!this.returnReason()) { this.notify.warn('Select a return reason'); return; }
     }
 
-    this.saving.set(true);
     const useAgent = this.isOutgoing && this.viaAgent();
+    if (useAgent && !this.agentId()) {
+      this.notify.warn('Select an agent or turn off "via agent"'); return;
+    }
+
+    this.saving.set(true);
     const isReturnT = this.isReturn;
     const dto: TransferCreateDto = {
       type,
@@ -286,7 +294,8 @@ export default class TransferCreateComponent implements OnInit {
         this.notify.success('Transfer created');
         this.router.navigate(['/transfers', res.data?.id ?? '']);
       },
-      error: () => { this.saving.set(false); this.notify.error('Failed to create transfer'); }
+      // Xatoni error.interceptor ko'rsatadi (backend xabari bilan) — bu yerda takrorlamaymiz
+      error: () => { this.saving.set(false); }
     });
   }
 

@@ -18,6 +18,10 @@ public class CounterpartiesController : BaseController
     public async Task<IActionResult> GetAll([FromQuery] CounterpartyType? type)
         => Ok(ApiResponse<List<CounterpartyDto>>.Ok(await _counterparties.GetAllAsync(TenantId, type)));
 
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(int id)
+        => Ok(ApiResponse<CounterpartyDto>.Ok(await _counterparties.GetByIdAsync(TenantId, id)));
+
     [HttpPost]
     [RequirePermission("partners.manage")]
     public async Task<IActionResult> Create([FromBody] CreateCounterpartyDto dto)

@@ -15,6 +15,8 @@ import { NotificationService } from '../../../shared/services/notification.servi
 import { ExportService } from '../../../core/services/export.service';
 import { HasPermissionDirective } from '../../../shared/directives/has-permission.directive';
 import { Transfer, TransferType, TransferStatus } from '../../../core/models/transfer.model';
+import { toLocalDateString } from '../../../shared/utils/date.util';
+import { transferStatusClass, transferStatusKey, transferTypeClass, transferTypeKey } from '../../../shared/utils/transfer-enums';
 
 @Component({
   selector: 'app-transfer-list',
@@ -68,8 +70,8 @@ export default class TransferListComponent implements OnInit {
     const params: Record<string, string | number | boolean> = { pageSize: 100 };
     if (this.typeFilter()) params['type'] = this.typeFilter()!;
     if (this.statusFilter()) params['status'] = this.statusFilter()!;
-    if (this.dateFrom()) params['from'] = this.dateFrom()!.toISOString().split('T')[0];
-    if (this.dateTo()) params['to'] = this.dateTo()!.toISOString().split('T')[0];
+    if (this.dateFrom()) params['from'] = toLocalDateString(this.dateFrom()!);
+    if (this.dateTo()) params['to'] = toLocalDateString(this.dateTo()!);
     this.transferService.getTransfers(params).subscribe({
       next: (res) => {
         this.transfers.set(res.success && res.data ? res.data : []);
@@ -83,46 +85,21 @@ export default class TransferListComponent implements OnInit {
   createNew() { this.router.navigate(['/transfers/new']); }
   viewDetail(t: Transfer) { this.router.navigate(['/transfers', t.id]); }
 
-  getTypeName(type: TransferType): string {
-    switch (type) {
-      case TransferType.Incoming: return 'Incoming';
-      case TransferType.Outgoing: return 'Outgoing';
-      case TransferType.Internal: return 'Internal';
-      case TransferType.ProductionOutput: return 'Production';
-      case TransferType.Return: return 'Return';
-      default: return 'Unknown';
-    }
-  }
+  // enum → UI helperlari (template'da chaqirish uchun)
+  protected transferStatusClass = transferStatusClass;
+  protected transferStatusKey = transferStatusKey;
+  protected transferTypeClass = transferTypeClass;
+  protected transferTypeKey = transferTypeKey;
 
   isReturnType(type: TransferType): boolean {
     return type === TransferType.Return;
   }
 
-  getStatusName(status: TransferStatus): string {
-    switch (status) {
-      case TransferStatus.Pending: return 'Pending';
-      case TransferStatus.Confirmed: return 'Confirmed';
-      case TransferStatus.Rejected: return 'Rejected';
-      case TransferStatus.Cancelled: return 'Cancelled';
-      default: return 'Unknown';
-    }
-  }
-
-  getStatusKey(status: TransferStatus): string {
-    switch (status) {
-      case TransferStatus.Pending: return 'Pending';
-      case TransferStatus.Confirmed: return 'Confirmed';
-      case TransferStatus.Rejected: return 'Rejected';
-      case TransferStatus.Cancelled: return 'Cancelled';
-      default: return 'Neutral';
-    }
-  }
-
   exportTransfers() {
     const params: Record<string, unknown> = {};
-    if (this.dateFrom()) params['fromDate'] = this.dateFrom()!.toISOString().split('T')[0];
-    if (this.dateTo()) params['toDate'] = this.dateTo()!.toISOString().split('T')[0];
+    if (this.dateFrom()) params['fromDate'] = toLocalDateString(this.dateFrom()!);
+    if (this.dateTo()) params['toDate'] = toLocalDateString(this.dateTo()!);
     this.exportService.download('export/transfers', `transfers-${this.today()}.xlsx`, params);
   }
-  private today() { return new Date().toISOString().split('T')[0]; }
+  private today() { return toLocalDateString(new Date()); }
 }

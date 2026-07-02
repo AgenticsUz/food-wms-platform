@@ -5,7 +5,6 @@ import {
   PlanVsActualDto,
   DailyTransferDto,
   ProductDistributionDto,
-  RecentTransferDto,
   StockLevelDto,
   TopDebtorDto,
   WasteByStageDto,
@@ -14,6 +13,7 @@ import {
   ExtendedDashboardSummaryDto,
   MonthlyComparisonDto
 } from '../models/analytics.model';
+import { Transfer } from '../models/transfer.model';
 
 @Injectable({ providedIn: 'root' })
 export class AnalyticsService {
@@ -41,7 +41,8 @@ export class AnalyticsService {
   }
 
   getRecentTransfers(count = 5) {
-    return this.api.get<RecentTransferDto[]>('transfers', { page: 1, pageSize: count });
+    // /transfers to'liq TransferDto qaytaradi (RecentTransferDto emas)
+    return this.api.get<Transfer[]>('transfers', { page: 1, pageSize: count });
   }
 
   getTopDebtors(top = 5) {

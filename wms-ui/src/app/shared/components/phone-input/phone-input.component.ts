@@ -3,11 +3,12 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormsModule } from '@angular/f
 import { InputText } from 'primeng/inputtext';
 import { InputGroup } from 'primeng/inputgroup';
 import { InputGroupAddon } from 'primeng/inputgroupaddon';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-phone-input',
   standalone: true,
-  imports: [FormsModule, InputText, InputGroup, InputGroupAddon],
+  imports: [FormsModule, InputText, InputGroup, InputGroupAddon, TranslocoPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
     {
@@ -24,11 +25,12 @@ import { InputGroupAddon } from 'primeng/inputgroupaddon';
              (ngModelChange)="onInput($event)"
              (blur)="onTouched()"
              placeholder="88 123 45 67"
-             maxlength="9"
+             inputmode="tel"
+             autocomplete="tel"
              class="w-full" />
     </p-inputgroup>
     @if (touched() && invalid()) {
-      <small class="phone-error">Telefon raqam 9 ta raqamdan iborat bo'lishi kerak</small>
+      <small class="phone-error">{{ 'auth.phoneLength' | transloco }}</small>
     }
   `,
   styles: [`
@@ -74,7 +76,11 @@ export class PhoneInputComponent implements ControlValueAccessor {
   }
 
   onInput(value: string): void {
-    const digits = value.replace(/\D/g, '').slice(0, 9);
+    // Barcha raqamlarni olamiz; to'liq raqam yopishtirilsa (998... yoki 12 xonali)
+    // yetakchi 998 ni tashlab, oxirgi 9 xonani saqlaymiz.
+    let digits = value.replace(/\D/g, '');
+    if (digits.length > 9 && digits.startsWith('998')) digits = digits.slice(3);
+    digits = digits.slice(-9);
     this.displayValue.set(digits);
     this.invalid.set(digits.length > 0 && digits.length !== 9);
 

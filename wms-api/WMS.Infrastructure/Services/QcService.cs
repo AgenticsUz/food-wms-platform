@@ -38,6 +38,30 @@ public class QcService : IQcService
         };
     }
 
+    public async Task<QcParameterDto> UpdateParameterAsync(int tenantId, int id, CreateQcParameterDto dto)
+    {
+        var p = await _db.QcParameters.FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId)
+            ?? throw new NotFoundException("QC parameter not found");
+
+        p.Name = dto.Name; p.Unit = dto.Unit;
+        p.MinValue = dto.MinValue; p.MaxValue = dto.MaxValue; p.ValueType = dto.ValueType;
+        await _db.SaveChangesAsync();
+
+        return new QcParameterDto
+        {
+            Id = p.Id, Name = p.Name, Unit = p.Unit,
+            MinValue = p.MinValue, MaxValue = p.MaxValue, ValueType = p.ValueType
+        };
+    }
+
+    public async Task DeleteParameterAsync(int tenantId, int id)
+    {
+        var p = await _db.QcParameters.FirstOrDefaultAsync(x => x.Id == id && x.TenantId == tenantId)
+            ?? throw new NotFoundException("QC parameter not found");
+        p.IsDeleted = true;
+        await _db.SaveChangesAsync();
+    }
+
     public async Task<List<QcCheckDto>> GetChecksAsync(int tenantId, int? transferId, int? stageExecutionId)
     {
         var q = _db.QcChecks.Where(c => c.TenantId == tenantId)

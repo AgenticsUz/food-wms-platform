@@ -118,4 +118,34 @@ public class AuthService : IAuthService
             Permissions = permissions
         };
     }
+
+    public async Task UpdateProfileAsync(int userId, int tenantId, UpdateProfileDto dto)
+    {
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId && u.TenantId == tenantId)
+            ?? throw new NotFoundException("User not found");
+
+        var normalizedPhone = PhoneHelper.Normalize(dto.Phone);
+        var phoneTaken = await _db.Users.AnyAsync(u =>
+            u.TenantId == tenantId && u.Id != userId && u.Phone == normalizedPhone);
+        if (phoneTaken) throw new AppException("Phone number already belongs to another user");
+
+        user.FullName = dto.FullName;
+        user.Phone = normalizedPhone;
+        await _db.SaveChangesAsync();
+    }
+
+    public async Task ChangePasswordAsync(int userId, int tenantId, ChangePasswordDto dto)
+    {
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId && u.TenantId == tenantId)
+            ?? throw new NotFoundException("User not found");
+
+        if (!BCrypt.Net.BCrypt.Verify(dto.CurrentPassword, user.PasswordHash))
+            throw new AppException("Current password is incorrect");
+
+        if (string.IsNullOrEmpty(dto.NewPassword) || dto.NewPassword.Length < 6)
+            throw new AppException("New password must be at least 6 characters");
+
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+        await _db.SaveChangesAsync();
+    }
 }

@@ -24,6 +24,16 @@ public class QcController : BaseController
     public async Task<IActionResult> CreateParameter([FromBody] CreateQcParameterDto dto)
         => Ok(ApiResponse<QcParameterDto>.Ok(await _qc.CreateParameterAsync(TenantId, dto)));
 
+    [HttpPut("parameters/{id}")]
+    [RequirePermission("quality.manage")]
+    public async Task<IActionResult> UpdateParameter(int id, [FromBody] CreateQcParameterDto dto)
+        => Ok(ApiResponse<QcParameterDto>.Ok(await _qc.UpdateParameterAsync(TenantId, id, dto)));
+
+    [HttpDelete("parameters/{id}")]
+    [RequirePermission("quality.manage")]
+    public async Task<IActionResult> DeleteParameter(int id)
+    { await _qc.DeleteParameterAsync(TenantId, id); return Ok(ApiResponse<object>.Ok(null!, "Deleted")); }
+
     [HttpGet("checks")]
     public async Task<IActionResult> GetChecks([FromQuery] int? transferId, [FromQuery] int? stageExecutionId)
         => Ok(ApiResponse<List<QcCheckDto>>.Ok(await _qc.GetChecksAsync(TenantId, transferId, stageExecutionId)));

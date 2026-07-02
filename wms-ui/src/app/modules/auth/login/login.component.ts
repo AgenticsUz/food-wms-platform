@@ -5,7 +5,7 @@ import { InputText } from 'primeng/inputtext';
 import { Password } from 'primeng/password';
 import { InputGroup } from 'primeng/inputgroup';
 import { InputGroupAddon } from 'primeng/inputgroupaddon';
-import { TranslocoDirective } from '@jsverse/transloco';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { AuthService } from '../../../core/services/auth.service';
 import { TenantService } from '../../../core/services/tenant.service';
 import { NotificationBellService } from '../../../core/services/notification-bell.service';
@@ -28,6 +28,7 @@ export default class LoginComponent {
   private router = inject(Router);
   private notify = inject(NotificationService);
   private loadingService = inject(LoadingService);
+  private transloco = inject(TranslocoService);
 
   phone = signal('');
   password = signal('');
@@ -39,12 +40,12 @@ export default class LoginComponent {
 
   login() {
     if (!this.phone() || !this.password()) {
-      this.notify.warn('Please fill in all fields');
+      this.notify.warn(this.transloco.translate('auth.fillAllFields'));
       return;
     }
 
     if (this.phone().length !== 9) {
-      this.notify.warn('Telefon raqam 9 ta raqamdan iborat bo\'lishi kerak');
+      this.notify.warn(this.transloco.translate('auth.phoneLength'));
       return;
     }
 
@@ -64,7 +65,7 @@ export default class LoginComponent {
       error: (err) => {
         this.loading.set(false);
         this.loadingService.hide();
-        this.notify.error(err.error?.message ?? 'Login failed. Please check your credentials.');
+        this.notify.error(err.error?.message ?? this.transloco.translate('auth.loginFailed'));
       }
     });
   }

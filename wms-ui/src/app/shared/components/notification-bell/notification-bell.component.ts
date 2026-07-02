@@ -4,6 +4,7 @@ import { Popover } from 'primeng/popover';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { NotificationBellService } from '../../../core/services/notification-bell.service';
 import { NotificationItem, NotificationType } from '../../../core/models/notification.model';
+import { parseUtc } from '../../utils/date.util';
 
 @Component({
   selector: 'app-notification-bell',
@@ -148,7 +149,9 @@ export class NotificationBellComponent {
   }
 
   getRelativeTime(dateStr: string): string {
-    const diff = Date.now() - new Date(dateStr).getTime();
+    // Backend sanani UTC deb parse qilamiz (Z suffiksisiz kelsa ham)
+    const parsed = parseUtc(dateStr);
+    const diff = Date.now() - (parsed ? parsed.getTime() : Date.now());
     const mins = Math.floor(diff / 60000);
     if (mins < 1) return 'Just now';
     if (mins < 60) return `${mins} min ago`;

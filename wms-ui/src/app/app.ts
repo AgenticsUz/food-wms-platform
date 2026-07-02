@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { RouterOutlet, Router, NavigationStart, NavigationEnd, NavigationCancel, NavigationError } from '@angular/router';
 import { Toast } from 'primeng/toast';
 import { ConfirmDialog } from 'primeng/confirmdialog';
@@ -13,7 +13,8 @@ import { NotificationBellService } from './core/services/notification-bell.servi
   selector: 'app-root',
   imports: [RouterOutlet, Toast, ConfirmDialog, ProgressBar],
   templateUrl: './app.html',
-  styleUrl: './app.css'
+  styleUrl: './app.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class App implements OnInit {
   private themeService = inject(ThemeService);
@@ -30,9 +31,13 @@ export class App implements OnInit {
       this.transloco.setActiveLang(savedLang);
     }
 
-    if (this.authService.isAuthenticated()) {
+    // Faqat asosiy ilova sessiyasida (portal/agent-portal route'larida emas) polling
+    // boshlaymiz — aks holda portal foydalanuvchisidagi eski asosiy token 401 → logout keltiradi.
+    // Permissionlarni authGuard yangilaydi (bu yerda takrorlamaymiz).
+    const path = window.location.pathname;
+    const isPortalRoute = path.startsWith('/portal') || path.startsWith('/agent-portal');
+    if (this.authService.isAuthenticated() && !isPortalRoute) {
       this.bellService.startPolling();
-      this.authService.refreshPermissions().subscribe();
     }
 
     this.router.events.subscribe(event => {

@@ -31,11 +31,11 @@
           <td><span class="item-name">{{ m.productName }}</span></td>
           <td>{{ m.warehouseName }}</td>
           <td>
-            <app-status-badge [status]="getMovementStatus(m.type)" [label]="m.type" />
+            <app-status-badge [status]="transferTypeClass(m.type)" [label]="t(transferTypeKey(m.type))" />
           </td>
           <td class="text-right"><span class="number">{{ m.quantity | number:'1.0-2' }}</span></td>
           <td>{{ m.unitShortName }}</td>
-          <td>{{ m.date | date:'MMM d, yyyy' }}</td>
+          <td>{{ m.date ? (m.date | date:'MMM d, yyyy') : '—' }}</td>
           <td>{{ m.note || '—' }}</td>
         </tr>
       </ng-template>

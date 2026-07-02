@@ -14,6 +14,7 @@ import { ProductService } from '../../../core/services/product.service';
 import { NotificationService } from '../../../shared/services/notification.service';
 import { Shift, ShiftPlan, ShiftPlanCreateDto } from '../../../core/models/kpi.model';
 import { Product } from '../../../core/models/product.model';
+import { toLocalDateString } from '../../../shared/utils/date.util';
 
 @Component({
   selector: 'app-plans',
@@ -98,7 +99,7 @@ export default class PlansComponent implements OnInit {
       shiftId: f.shiftId,
       productId: f.productId,
       plannedQuantity: f.plannedQuantity,
-      date: f.date.toISOString()
+      date: toLocalDateString(f.date)
     };
 
     this.kpiService.createPlan(dto).subscribe({

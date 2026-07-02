@@ -47,7 +47,12 @@
     "address": "Address",
     "view": "View",
     "details": "Details",
-    "all": "All"
+    "all": "All",
+    "success": "Success",
+    "error": "Error",
+    "warning": "Warning",
+    "info": "Info",
+    "confirmDelete": "Confirm Delete"
   },
   "auth": {
     "login": "Login",
@@ -66,7 +71,11 @@
     "heroSub": "From raw material to finished goods — in one place. Run shifts, warehouse and finance from a single dashboard.",
     "heroPoint1": "Real-time stock and batch traceability",
     "heroPoint2": "KPI: planned vs actual by product",
-    "heroPoint3": "Partners, debts and payment history"
+    "heroPoint3": "Partners, debts and payment history",
+    "fillAllFields": "Please fill in all fields",
+    "phoneLength": "Phone number must be 9 digits",
+    "loginFailed": "Login failed. Please check your credentials.",
+    "invalidCredentials": "Invalid credentials"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -466,5 +475,16 @@
     "useCbu": "Use CBU",
     "lastUpdated": "Last updated",
     "refresh": "Refresh rates"
+  },
+  "import": {
+    "template": "Template",
+    "downloadTemplate": "Download Excel template",
+    "importExcel": "Import Excel",
+    "importing": "Importing...",
+    "result": "Import result",
+    "totalRows": "Total rows",
+    "imported": "Imported",
+    "errors": "Errors",
+    "success": "records imported successfully."
   }
 }

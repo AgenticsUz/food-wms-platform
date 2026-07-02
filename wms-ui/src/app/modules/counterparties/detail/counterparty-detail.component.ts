@@ -10,6 +10,7 @@ import { CounterpartyService } from '../../../core/services/counterparty.service
 import { NotificationService } from '../../../shared/services/notification.service';
 import { Counterparty, CounterpartyBalance, PaymentHistory, PaymentMethod } from '../../../core/models/counterparty.model';
 import { Transfer } from '../../../core/models/transfer.model';
+import { transferStatusClass, transferStatusKey, transferTypeClass, transferTypeKey } from '../../../shared/utils/transfer-enums';
 
 @Component({
   selector: 'app-counterparty-detail',
@@ -24,6 +25,12 @@ export default class CounterpartyDetailComponent implements OnInit {
   private router = inject(Router);
   private service = inject(CounterpartyService);
   private notify = inject(NotificationService);
+
+  // helperlar (template'da chaqirish uchun)
+  protected transferStatusClass = transferStatusClass;
+  protected transferStatusKey = transferStatusKey;
+  protected transferTypeClass = transferTypeClass;
+  protected transferTypeKey = transferTypeKey;
 
   counterparty = signal<Counterparty | null>(null);
   balance = signal<CounterpartyBalance | null>(null);
@@ -75,10 +82,6 @@ export default class CounterpartyDetailComponent implements OnInit {
 
   getTypeName(type: number): string {
     switch (type) { case 1: return 'Supplier'; case 2: return 'Client'; case 3: return 'Both'; default: return 'Unknown'; }
-  }
-
-  getStatusLabel(status: string): string {
-    return status || 'Unknown';
   }
 
   getPaymentMethodName(method: PaymentMethod): string {

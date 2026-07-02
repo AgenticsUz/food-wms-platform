@@ -28,6 +28,11 @@ public class FinanceController : BaseController
     public async Task<IActionResult> CreateTransaction([FromBody] CreateTransactionDto dto)
         => Ok(ApiResponse<TransactionDto>.Ok(await _finance.CreateTransactionAsync(TenantId, UserId, dto)));
 
+    [HttpDelete("transactions/{id}")]
+    [RequirePermission("finance.manage")]
+    public async Task<IActionResult> DeleteTransaction(int id)
+    { await _finance.DeleteTransactionAsync(TenantId, id); return Ok(ApiResponse<object>.Ok(null!, "Deleted")); }
+
     [HttpGet("debts")]
     public async Task<IActionResult> GetDebts()
         => Ok(ApiResponse<List<DebtDto>>.Ok(await _finance.GetDebtsAsync(TenantId)));

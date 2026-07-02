@@ -235,6 +235,35 @@ h3 { font-size: 18px; font-weight: 600; }
   --p-drawer-background: #ffffff;
 }
 
+/* Dark mode PrimeNG token override — aks holda dialog/input/drawer/jadval oq qoladi */
+.dark-mode,
+.dark {
+  --p-surface-0:   #2c2620;
+  --p-surface-50:  #332d26;
+  --p-surface-100: #3a332b;
+  --p-surface-200: #443c2f;
+
+  --p-content-background: var(--bg-surface);
+  --p-content-border-color: var(--border-subtle);
+  --p-content-color: var(--text-primary);
+
+  --p-inputtext-background: var(--bg-surface);
+  --p-inputtext-border-color: var(--border-default);
+  --p-inputtext-color: var(--text-primary);
+
+  --p-datatable-header-cell-background: var(--bg-inset);
+  --p-datatable-header-cell-color: var(--text-muted);
+  --p-datatable-row-striped-background: rgba(255, 255, 255, 0.03);
+  --p-datatable-row-hover-background: rgba(255, 255, 255, 0.06);
+  --p-datatable-border-color: var(--border-subtle);
+
+  --p-dialog-background: var(--bg-surface);
+  --p-drawer-background: var(--bg-surface);
+
+  --p-button-secondary-background: var(--bg-inset);
+  --p-button-secondary-color: var(--text-primary);
+}
+
 /* ---- Custom card class — qayta foydalaniladigan ---- */
 .wms-card {
   background: var(--bg-surface);

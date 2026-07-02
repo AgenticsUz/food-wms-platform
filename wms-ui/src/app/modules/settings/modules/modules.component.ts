@@ -33,7 +33,7 @@ export default class ModulesComponent implements OnInit {
 
   loadModules() {
     const user = this.authService.currentUser();
-    if (!user) return;
+    if (!user) { this.loading.set(false); return; }
 
     this.loading.set(true);
     this.settingsService.getModules(user.tenantId).subscribe({

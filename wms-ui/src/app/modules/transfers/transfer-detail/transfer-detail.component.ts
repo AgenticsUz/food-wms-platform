@@ -6,6 +6,7 @@ import { TableModule } from 'primeng/table';
 import { Button } from 'primeng/button';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
+import { transferStatusClass, transferStatusKey, transferTypeKey } from '../../../shared/utils/transfer-enums';
 import { TransferService } from '../../../core/services/transfer.service';
 import { NotificationService } from '../../../shared/services/notification.service';
 import { HasPermissionDirective } from '../../../shared/directives/has-permission.directive';
@@ -64,7 +65,7 @@ export default class TransferDetailComponent implements OnInit {
           this.notify.success('Transfer confirmed');
           this.loadTransfer(t.id);
         },
-        error: () => { this.confirming.set(false); this.notify.error('Failed to confirm transfer'); }
+        error: () => { this.confirming.set(false); }
       });
     });
   }
@@ -80,7 +81,7 @@ export default class TransferDetailComponent implements OnInit {
           this.notify.success('Transfer rejected');
           this.loadTransfer(t.id);
         },
-        error: () => { this.rejecting.set(false); this.notify.error('Failed to reject transfer'); }
+        error: () => { this.rejecting.set(false); }
       });
     });
   }
@@ -89,36 +90,10 @@ export default class TransferDetailComponent implements OnInit {
     return this.transfer()?.status === TransferStatus.Pending;
   }
 
-  getTypeName(type: TransferType): string {
-    switch (type) {
-      case TransferType.Incoming: return 'Incoming';
-      case TransferType.Outgoing: return 'Outgoing';
-      case TransferType.Internal: return 'Internal';
-      case TransferType.ProductionOutput: return 'Production Output';
-      case TransferType.Return: return 'Return';
-      default: return 'Unknown';
-    }
-  }
-
-  getStatusName(status: TransferStatus): string {
-    switch (status) {
-      case TransferStatus.Pending: return 'Pending';
-      case TransferStatus.Confirmed: return 'Confirmed';
-      case TransferStatus.Rejected: return 'Rejected';
-      case TransferStatus.Cancelled: return 'Cancelled';
-      default: return 'Unknown';
-    }
-  }
-
-  getStatusKey(status: TransferStatus): string {
-    switch (status) {
-      case TransferStatus.Pending: return 'Pending';
-      case TransferStatus.Confirmed: return 'Confirmed';
-      case TransferStatus.Rejected: return 'Rejected';
-      case TransferStatus.Cancelled: return 'Cancelled';
-      default: return 'Neutral';
-    }
-  }
+  // enum → UI helperlari (template'da chaqirish uchun)
+  protected transferStatusClass = transferStatusClass;
+  protected transferStatusKey = transferStatusKey;
+  protected transferTypeKey = transferTypeKey;
 
   goBack() { this.router.navigate(['/transfers']); }
 }

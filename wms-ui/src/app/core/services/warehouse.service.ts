@@ -11,9 +11,9 @@ import {
   UpdateBatchDto,
   WarehouseStockGrouped,
   WarehouseStockDetail,
-  WarehouseStockRow,
-  StockMovement
+  WarehouseStockRow
 } from '../models/warehouse.model';
+import { Transfer } from '../models/transfer.model';
 
 @Injectable({ providedIn: 'root' })
 export class WarehouseService {
@@ -68,9 +68,9 @@ export class WarehouseService {
     return this.api.get<WarehouseStockDetail[]>(`warehouses/${warehouseId}/stock/detail`);
   }
 
-  // Movements
+  // Movements — /transfers confirmed transferlarni qaytaradi; komponent items'ni flatten qiladi
   getMovements(params?: Record<string, string | number | boolean>) {
-    return this.api.get<StockMovement[]>('transfers', params);
+    return this.api.get<Transfer[]>('transfers', params);
   }
 
   // Locations

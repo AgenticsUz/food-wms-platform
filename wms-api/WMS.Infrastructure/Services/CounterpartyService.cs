@@ -28,6 +28,20 @@ public class CounterpartyService : ICounterpartyService
         }).ToListAsync();
     }
 
+    public async Task<CounterpartyDto> GetByIdAsync(int tenantId, int id)
+    {
+        return await _db.Counterparties
+            .Where(c => c.Id == id && c.TenantId == tenantId)
+            .Select(c => new CounterpartyDto
+            {
+                Id = c.Id, Name = c.Name, Type = c.Type, Phone = c.Phone,
+                Address = c.Address, Note = c.Note, AgentId = c.AgentId,
+                AgentName = c.Agent != null ? c.Agent.Name : null,
+                PortalEnabled = c.PortalEnabled, PortalPhone = c.PortalPhone
+            }).FirstOrDefaultAsync()
+            ?? throw new NotFoundException("Counterparty not found");
+    }
+
     public async Task<CounterpartyDto> CreateAsync(int tenantId, CreateCounterpartyDto dto)
     {
         await ValidateAgentAsync(tenantId, dto.AgentId);

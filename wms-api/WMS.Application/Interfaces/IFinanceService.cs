@@ -8,6 +8,7 @@ public interface IFinanceService
     Task<List<TransactionDto>> GetTransactionsAsync(int tenantId, TransactionType? type = null,
         DateTime? from = null, DateTime? to = null, int page = 1, int pageSize = 20);
     Task<TransactionDto> CreateTransactionAsync(int tenantId, int userId, CreateTransactionDto dto);
+    Task DeleteTransactionAsync(int tenantId, int id);
     Task<List<DebtDto>> GetDebtsAsync(int tenantId);
     Task<PaymentHistoryDto> CreatePaymentAsync(int tenantId, int userId, CreatePaymentDto dto);
     Task<List<PaymentHistoryDto>> GetPaymentsAsync(int tenantId, int? counterpartyId = null, int page = 1, int pageSize = 50);

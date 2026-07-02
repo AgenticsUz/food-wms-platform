@@ -137,6 +137,16 @@ export default class RecipeCreateComponent implements OnInit {
     for (let i = 0; i < this.stages().length; i++) {
       const stage = this.stages()[i];
       if (!stage.stageId) { this.notify.warn(`Select a production stage for Stage ${i + 1}`); return; }
+
+      // To'liq bo'lmagan ingredient qatorlari jimgina tashlanmasin — foydalanuvchini ogohlantiramiz
+      for (let j = 0; j < stage.inputs.length; j++) {
+        const inp = stage.inputs[j];
+        const anySet = !!inp.productId || !!inp.unitId || inp.quantity > 0;
+        if (anySet && (!inp.productId || !inp.unitId || inp.quantity <= 0)) {
+          this.notify.warn(`Stage ${i + 1}: complete or remove the ingredient row ${j + 1}`);
+          return;
+        }
+      }
     }
 
     this.saving.set(true);
@@ -172,7 +182,6 @@ export default class RecipeCreateComponent implements OnInit {
       },
       error: () => {
         this.saving.set(false);
-        this.notify.error('Failed to create recipe');
       }
     });
   }

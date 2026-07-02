@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { InputText } from 'primeng/inputtext';
 import { Password } from 'primeng/password';
 import { Button } from 'primeng/button';
-import { TranslocoDirective } from '@jsverse/transloco';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { AgentPortalService } from '../../../core/services/agent-portal.service';
 import { NotificationService } from '../../../shared/services/notification.service';
 
@@ -20,6 +20,7 @@ export default class AgentPortalLoginComponent {
   private portalService = inject(AgentPortalService);
   private notify = inject(NotificationService);
   private router = inject(Router);
+  private transloco = inject(TranslocoService);
 
   phone = signal('');
   password = signal('');
@@ -30,7 +31,7 @@ export default class AgentPortalLoginComponent {
     const passVal = this.password().trim();
 
     if (!phoneVal || !passVal) {
-      this.notify.warn('Please enter phone and password');
+      this.notify.warn(this.transloco.translate('auth.fillAllFields'));
       return;
     }
 
@@ -38,15 +39,15 @@ export default class AgentPortalLoginComponent {
     this.portalService.login({ phone: phoneVal, password: passVal }).subscribe({
       next: (res) => {
         if (res.success && res.data) {
-          this.notify.success('Welcome');
+          this.notify.success(this.transloco.translate('auth.welcome'));
           this.router.navigate(['/agent-portal/dashboard']);
         } else {
-          this.notify.error(res.message ?? 'Login failed');
+          this.notify.error(res.message ?? this.transloco.translate('auth.loginFailed'));
         }
         this.loading.set(false);
       },
       error: (err) => {
-        this.notify.error(err?.error?.message ?? 'Invalid credentials');
+        this.notify.error(err?.error?.message ?? this.transloco.translate('auth.invalidCredentials'));
         this.loading.set(false);
       }
     });

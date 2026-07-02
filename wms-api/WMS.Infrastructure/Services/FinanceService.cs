@@ -62,6 +62,14 @@ public class FinanceService : IFinanceService
         };
     }
 
+    public async Task DeleteTransactionAsync(int tenantId, int id)
+    {
+        var tx = await _db.Transactions.FirstOrDefaultAsync(t => t.Id == id && t.TenantId == tenantId)
+            ?? throw new NotFoundException("Transaction not found");
+        tx.IsDeleted = true;
+        await _db.SaveChangesAsync();
+    }
+
     public async Task<List<DebtDto>> GetDebtsAsync(int tenantId)
     {
         return await _db.Debts.Where(d => d.TenantId == tenantId)

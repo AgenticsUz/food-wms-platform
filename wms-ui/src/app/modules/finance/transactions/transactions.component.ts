@@ -19,6 +19,7 @@ import { ExportService } from '../../../core/services/export.service';
 import { CounterpartyService } from '../../../core/services/counterparty.service';
 import { Transaction, TransactionCreateDto, TransactionType } from '../../../core/models/finance.model';
 import { Counterparty } from '../../../core/models/counterparty.model';
+import { toLocalDateString } from '../../../shared/utils/date.util';
 
 @Component({
   selector: 'app-transactions',
@@ -66,7 +67,7 @@ export default class TransactionsComponent implements OnInit {
     transferId: null,
     amount: 0,
     description: null,
-    date: new Date().toISOString().split('T')[0]
+    date: toLocalDateString(new Date())
   });
 
   formDate = signal<Date>(new Date());
@@ -80,8 +81,8 @@ export default class TransactionsComponent implements OnInit {
     this.loading.set(true);
     const params: Record<string, string | number | boolean> = {};
     if (this.typeFilter()) params['type'] = this.typeFilter()!;
-    if (this.dateFrom()) params['from'] = this.dateFrom()!.toISOString().split('T')[0];
-    if (this.dateTo()) params['to'] = this.dateTo()!.toISOString().split('T')[0];
+    if (this.dateFrom()) params['from'] = toLocalDateString(this.dateFrom()!);
+    if (this.dateTo()) params['to'] = toLocalDateString(this.dateTo()!);
     this.financeSvc.getTransactions(params).subscribe({
       next: (res) => {
         this.transactions.set(res.success && res.data ? res.data : []);
@@ -113,7 +114,7 @@ export default class TransactionsComponent implements OnInit {
       transferId: null,
       amount: 0,
       description: null,
-      date: new Date().toISOString().split('T')[0]
+      date: toLocalDateString(new Date())
     });
     this.formDate.set(new Date());
     this.editing.set(false);
@@ -134,7 +135,7 @@ export default class TransactionsComponent implements OnInit {
       transferId: f.transferId,
       amount: f.amount,
       description: f.description,
-      date: this.formDate().toISOString()
+      date: toLocalDateString(this.formDate())
     };
 
     this.financeSvc.createTransaction(dto).subscribe({
@@ -179,9 +180,9 @@ export default class TransactionsComponent implements OnInit {
 
   exportTransactions() {
     const params: Record<string, unknown> = {};
-    if (this.dateFrom()) params['fromDate'] = this.dateFrom()!.toISOString().split('T')[0];
-    if (this.dateTo()) params['toDate'] = this.dateTo()!.toISOString().split('T')[0];
+    if (this.dateFrom()) params['fromDate'] = toLocalDateString(this.dateFrom()!);
+    if (this.dateTo()) params['toDate'] = toLocalDateString(this.dateTo()!);
     this.exportService.download('export/transactions', `transactions-${this.today()}.xlsx`, params);
   }
-  private today() { return new Date().toISOString().split('T')[0]; }
+  private today() { return toLocalDateString(new Date()); }
 }

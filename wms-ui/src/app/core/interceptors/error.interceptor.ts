@@ -6,10 +6,13 @@ import { NotificationService } from '../../shared/services/notification.service'
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const notify = inject(NotificationService);
 
+  // Login so'rovlarida xatoni login komponenti o'zi ko'rsatadi — bu yerda takrorlamaymiz
+  const isLoginRequest = req.url.includes('/login');
+
   return next(req).pipe(
     catchError(err => {
       // Don't show notification for 401 (handled by auth interceptor)
-      if (err.status === 401) {
+      if (err.status === 401 || isLoginRequest) {
         return throwError(() => err);
       }
 

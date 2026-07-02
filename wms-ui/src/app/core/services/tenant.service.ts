@@ -1,4 +1,4 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, inject, signal, isDevMode } from '@angular/core';
 import { ApiService } from './api.service';
 import { AuthService } from './auth.service';
 
@@ -35,17 +35,9 @@ export class TenantService {
         }
       },
       error: () => {
-        // Fallback: load from localStorage or enable all for dev
-        const stored = localStorage.getItem('enabledModules');
-        if (stored) {
-          try {
-            this.enabledModules.set(JSON.parse(stored));
-          } catch {
-            this.enableAllForDev();
-          }
-        } else {
-          this.enableAllForDev();
-        }
+        // Xatoda faqat saqlangan ro'yxatga qaytamiz. Prod'da hech qachon
+        // "hammasini yoqish" — aks holda o'chirilgan modul bir xatodan keyin ochilib qoladi.
+        this.restoreModules();
       }
     });
   }
@@ -55,12 +47,14 @@ export class TenantService {
     if (stored) {
       try {
         this.enabledModules.set(JSON.parse(stored));
+        return;
       } catch {
-        this.enableAllForDev();
+        // buzuq JSON — pastdagi fallback'ga tushamiz
       }
-    } else {
-      this.enableAllForDev();
     }
+    // Saqlangan ro'yxat yo'q: dev'da qulaylik uchun hammasini yoqamiz,
+    // prod'da esa bo'sh qoldiramiz (loadModules() serverdan to'g'ri ro'yxatni oladi).
+    this.enabledModules.set(isDevMode() ? this.allModules() : []);
   }
 
   setModules(modules: string[]) {
@@ -68,11 +62,15 @@ export class TenantService {
     localStorage.setItem('enabledModules', JSON.stringify(modules));
   }
 
-  private enableAllForDev() {
-    const all = [
+  clearModules() {
+    this.enabledModules.set([]);
+    localStorage.removeItem('enabledModules');
+  }
+
+  private allModules(): string[] {
+    return [
       'WAREHOUSE_RAW', 'PRODUCTION', 'WAREHOUSE_FINISHED',
       'TRANSFERS', 'FINANCE', 'KPI', 'SUPPLIERS', 'CLIENTS', 'QUALITY'
     ];
-    this.enabledModules.set(all);
   }
 }

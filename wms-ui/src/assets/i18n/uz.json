@@ -47,7 +47,12 @@
     "address": "Manzil",
     "view": "Ko'rish",
     "details": "Tafsilotlar",
-    "all": "Hammasi"
+    "all": "Hammasi",
+    "success": "Muvaffaqiyatli",
+    "error": "Xatolik",
+    "warning": "Ogohlantirish",
+    "info": "Maʼlumot",
+    "confirmDelete": "Oʻchirishni tasdiqlang"
   },
   "auth": {
     "login": "Kirish",
@@ -66,7 +71,11 @@
     "heroSub": "Xomashyodan tayyor mahsulotgacha — bitta tizimda. Smenangizni, omboringizni va hisobingizni bir joyda boshqaring.",
     "heroPoint1": "Real vaqt rejimida ombor va partiyalar nazorati",
     "heroPoint2": "Reja va haqiqiy ko'rsatkichlar bo'yicha KPI",
-    "heroPoint3": "Hamkorlar, qarzlar va to'lovlar tarixi"
+    "heroPoint3": "Hamkorlar, qarzlar va to'lovlar tarixi",
+    "fillAllFields": "Barcha maydonlarni to’ldiring",
+    "phoneLength": "Telefon raqam 9 ta raqamdan iborat bo’lishi kerak",
+    "loginFailed": "Kirish amalga oshmadi. Ma’lumotlarni tekshiring.",
+    "invalidCredentials": "Login yoki parol noto’g’ri"
   },
   "nav": {
     "dashboard": "Bosh sahifa",
