@@ -1,5 +1,7 @@
 using System.Text;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using QuestPDF.Infrastructure;
@@ -64,6 +66,21 @@ builder.Services.AddScoped<ITransferPdfService, TransferPdfService>();
 builder.Services.AddScoped<IImportService, ImportService>();
 builder.Services.AddScoped<IAuditService, AuditService>();
 
+// Rate limiting — auth endpoint'larni IP bo'yicha cheklaymiz (register spam / brute-force'ga qarshi)
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("auth", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
+});
+
 // CORS
 builder.Services.AddHttpClient();
 
@@ -125,6 +142,7 @@ using (var scope = app.Services.CreateScope())
 
 app.UseMiddleware<WMS.API.Middleware.ExceptionHandlingMiddleware>();
 app.UseCors("AllowFrontend");
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseSwagger();

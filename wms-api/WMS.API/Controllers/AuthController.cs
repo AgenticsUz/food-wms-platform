@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using WMS.Application.Common;
 using WMS.Application.DTOs.Auth;
 using WMS.Application.Interfaces;
@@ -16,6 +17,7 @@ public class AuthController : BaseController
 
     [HttpPost("login")]
     [AllowAnonymous]
+    [EnableRateLimiting("auth")]
     public async Task<IActionResult> Login([FromBody] LoginDto dto)
     {
         try
@@ -31,6 +33,7 @@ public class AuthController : BaseController
 
     [HttpPost("register")]
     [AllowAnonymous]
+    [EnableRateLimiting("auth")]
     public async Task<IActionResult> Register([FromBody] RegisterDto dto)
     {
         var result = await _auth.RegisterAsync(dto);

@@ -12,6 +12,15 @@ namespace WMS.Infrastructure.Persistence;
 /// </summary>
 public static class TenantProvisioner
 {
+    // Zaxira slug'lar — tizim yo'llari bilan to'qnashmasin / adashtirmasin.
+    private static readonly HashSet<string> ReservedSlugs = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "admin", "api", "www", "app", "auth", "login", "register", "portal",
+        "agent-portal", "superadmin", "super-admin", "settings", "dashboard",
+        "system", "root", "support", "help", "static", "assets", "public",
+        "billing", "payment", "webhook", "health", "status"
+    };
+
     public static async Task<(Tenant tenant, User admin)> ProvisionAsync(
         WmsDbContext db, string tenantName, string slug,
         string adminFullName, string adminPhone, string adminPassword)
@@ -19,6 +28,10 @@ public static class TenantProvisioner
         slug = slug.Trim().ToLowerInvariant();
         if (string.IsNullOrWhiteSpace(tenantName)) throw new AppException("Tenant name is required");
         if (string.IsNullOrWhiteSpace(slug)) throw new AppException("Slug is required");
+        if (!System.Text.RegularExpressions.Regex.IsMatch(slug, "^[a-z0-9](?:[a-z0-9-]{1,48}[a-z0-9])?$"))
+            throw new AppException("Slug may only contain lowercase letters, digits and hyphens (3-50 chars)");
+        if (ReservedSlugs.Contains(slug))
+            throw new AppException("This slug is reserved, please choose another");
         if (string.IsNullOrWhiteSpace(adminPassword) || adminPassword.Length < 6)
             throw new AppException("Admin password must be at least 6 characters");
 
