@@ -93,7 +93,11 @@
 
 ---
 
-## BOSQICH 3 — O'sish (Growth, AI va to'lovsiz)
+## BOSQICH 3 — O'sish (Growth, AI va to'lovsiz) — ✅ (Telegram + Delivery tugadi, 2026-07-02)
+
+> Batafsil: `BOSQICH3-4_REPORT.md`. Telegram bildirishnomalar (config-gated) va Delivery moduli
+> (transport/haydovchi/yetkazish/waybill PDF, backend + frontend) bajarildi. Public marketing
+> sayt qoldirildi (dizayn/kontent ishi).
 
 **Darvoza:** Control plane ishlagach, bir necha aktiv mijoz bo'lganda.
 
@@ -105,7 +109,12 @@
 
 ---
 
-## BOSQICH 4 — Miqyos va operatsion yetuklik (Scale)
+## BOSQICH 4 — Miqyos va operatsion yetuklik (Scale) — ✅ (asosiy qism tugadi, 2026-07-02)
+
+> Batafsil: `BOSQICH3-4_REPORT.md`. Avtomat kunlik DB backup (VACUUM INTO snapshot), health
+> check (`/health`) + structured logging (Serilog), CI/CD (GitHub Actions), performance
+> indekslar bajarildi. Sentry/off-site backup — config-hook qoldirildi (tashqi kalit kerak).
+> DB-per-tenant qarori hozircha shart emas (shared DB + TenantId).
 
 **Darvoza:** Mijoz soni oshib, manual operatsiya to'siq bo'la boshlaganda.
 
