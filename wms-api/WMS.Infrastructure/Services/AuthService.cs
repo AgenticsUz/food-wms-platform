@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using WMS.Application.Common;
 using WMS.Application.DTOs.Auth;
 using WMS.Application.Interfaces;
+using WMS.Domain.Enums;
 using WMS.Infrastructure.Persistence;
 
 namespace WMS.Infrastructure.Services;
@@ -35,6 +36,14 @@ public class AuthService : IAuthService
 
         if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
             throw new AppException("Invalid credentials");
+
+        // Subscription enforcement — super admins bypass. Block suspended tenants and
+        // trials whose TrialEndsAt has passed.
+        if (!user.IsSuperAdmin &&
+            (tenant.SubscriptionStatus == SubscriptionStatus.Suspended ||
+             (tenant.SubscriptionStatus == SubscriptionStatus.Trial &&
+              tenant.TrialEndsAt != null && tenant.TrialEndsAt < DateTime.UtcNow)))
+            throw new AppException("This account is suspended or the trial has expired. Please contact support.");
 
         var modules = await _db.TenantModules
             .Include(tm => tm.Module)

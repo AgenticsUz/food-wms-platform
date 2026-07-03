@@ -12,6 +12,9 @@ public class TenantDto
     public SubscriptionStatus SubscriptionStatus { get; set; }
     public DateTime CreatedAt { get; set; }
     public int UserCount { get; set; }
+    public int? PlanId { get; set; }
+    public string? PlanName { get; set; }
+    public DateTime? TrialEndsAt { get; set; }
 }
 
 // SuperAdmin tenant yaratadi: to'liq provizatsiya (admin user + modullar + rol)
@@ -22,6 +25,7 @@ public class CreateTenantDto
     public string AdminFullName { get; set; } = null!;
     public string AdminPhone { get; set; } = null!;
     public string AdminPassword { get; set; } = null!;
+    public int? PlanId { get; set; }
 }
 
 public class UpdateTenantDto
@@ -31,6 +35,8 @@ public class UpdateTenantDto
     public bool IsActive { get; set; }
     public string? PlanType { get; set; }
     public SubscriptionStatus? SubscriptionStatus { get; set; }
+    public int? PlanId { get; set; }
+    public DateTime? TrialEndsAt { get; set; }
 }
 
 public class TenantModuleDto

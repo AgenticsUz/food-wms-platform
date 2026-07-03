@@ -16,6 +16,7 @@ public class WmsDbContext : DbContext
     public DbSet<UserRole> UserRoles => Set<UserRole>();
     public DbSet<Module> Modules => Set<Module>();
     public DbSet<TenantModule> TenantModules => Set<TenantModule>();
+    public DbSet<Plan> Plans => Set<Plan>();
 
     // Products
     public DbSet<Category> Categories => Set<Category>();
@@ -93,6 +94,13 @@ public class WmsDbContext : DbContext
                 method.Invoke(null, new object[] { modelBuilder });
             }
         }
+
+        // Tenant → Plan (control plane) — nullable, detach the plan on delete
+        modelBuilder.Entity<Tenant>()
+            .HasOne(t => t.Plan)
+            .WithMany()
+            .HasForeignKey(t => t.PlanId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         // Transfer: multiple FK to Warehouse
         modelBuilder.Entity<Transfer>()

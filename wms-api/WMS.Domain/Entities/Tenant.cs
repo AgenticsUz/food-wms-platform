@@ -14,6 +14,11 @@ public class Tenant : BaseEntity
     public string? PlanType { get; set; }                                    // "trial" | "basic" | "pro" | null
     public SubscriptionStatus SubscriptionStatus { get; set; } = SubscriptionStatus.Active;
 
+    // Subscription plan (control plane) — nullable; SetNull if the plan is deleted.
+    public int? PlanId { get; set; }
+    public Plan? Plan { get; set; }
+    public DateTime? TrialEndsAt { get; set; }
+
     public ICollection<User> Users { get; set; } = new List<User>();
     public ICollection<TenantModule> TenantModules { get; set; } = new List<TenantModule>();
 }

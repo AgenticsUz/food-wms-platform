@@ -5,7 +5,6 @@ import { moduleGuard } from './core/guards/module.guard';
 import { portalGuard } from './core/guards/portal.guard';
 import { agentPortalGuard } from './core/guards/agent-portal.guard';
 import { permissionGuard } from './core/guards/permission.guard';
-import { superAdminGuard } from './core/guards/superadmin.guard';
 
 export const routes: Routes = [
   {
@@ -68,11 +67,6 @@ export const routes: Routes = [
       {
         path: 'settings',
         loadChildren: () => import('./modules/settings/settings.routes')
-      },
-      {
-        path: 'superadmin/tenants',
-        canActivate: [superAdminGuard],
-        loadComponent: () => import('./modules/superadmin/tenants/superadmin-tenants.component')
       }
     ]
   },
