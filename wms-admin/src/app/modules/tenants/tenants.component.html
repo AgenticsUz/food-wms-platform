@@ -1,0 +1,82 @@
+<div class="page">
+  <header class="page-head">
+    <div><h1>Tenants</h1><p>Manage all factories on the platform</p></div>
+    <p-button icon="pi pi-plus" label="New tenant" (onClick)="openNew()" />
+  </header>
+
+  <div class="wms-card table-wrapper">
+    <p-table [value]="tenants()" [loading]="loading()" [paginator]="true" [rows]="20" styleClass="p-datatable-sm p-datatable-striped">
+      <ng-template #header>
+        <tr>
+          <th>Name</th><th>Slug</th><th>Plan</th><th>Status</th>
+          <th class="text-right">Users</th><th>Created</th><th></th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-row>
+        <tr [class.inactive-row]="!row.isActive">
+          <td><span class="item-name">{{ row.name }}</span></td>
+          <td><code>{{ row.slug }}</code></td>
+          <td>{{ planName(row.planId) }}</td>
+          <td><span [class]="statusClass(row.subscriptionStatus)">{{ statusLabel(row.subscriptionStatus) }}</span></td>
+          <td class="text-right"><span class="num">{{ row.userCount }}</span></td>
+          <td>{{ row.createdAt | date:'MMM d, y' }}</td>
+          <td class="actions-cell">
+            @if (row.subscriptionStatus === S.Suspended) {
+              <p-button icon="pi pi-play" [text]="true" size="small" severity="success" title="Activate" (onClick)="activate(row)" />
+            } @else {
+              <p-button icon="pi pi-ban" [text]="true" size="small" severity="warn" title="Suspend" (onClick)="suspend(row)" />
+            }
+            <p-button icon="pi pi-th-large" [text]="true" size="small" title="Modules" (onClick)="openModules(row)" />
+            <p-button icon="pi pi-pencil" [text]="true" size="small" (onClick)="openEdit(row)" />
+            <p-button icon="pi pi-trash" [text]="true" size="small" severity="danger" (onClick)="remove(row)" />
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr><td colspan="7"><div class="empty-state"><i class="pi pi-building"></i><p>No tenants yet</p></div></td></tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <!-- Create / edit -->
+  <p-dialog [visible]="dialogVisible()" (visibleChange)="dialogVisible.set($event)"
+    [header]="editing() ? 'Edit tenant' : 'New tenant'" [modal]="true" [style]="{ width: '460px' }" [draggable]="false">
+    <div class="dialog-form">
+      <div class="ff"><label>Name *</label><input pInputText [ngModel]="form().name" (ngModelChange)="updateForm('name', $event)" class="w-full" /></div>
+      <div class="ff"><label>Slug *</label><input pInputText [ngModel]="form().slug" (ngModelChange)="updateForm('slug', $event)" autocomplete="off" class="w-full" /></div>
+      <div class="ff"><label>Plan</label>
+        <p-select [options]="planOptions()" [ngModel]="form().planId" (ngModelChange)="updateForm('planId', $event)"
+          optionLabel="label" optionValue="value" [showClear]="true" placeholder="No plan" styleClass="w-full" />
+      </div>
+
+      @if (!editing()) {
+        <div class="divider">Admin account</div>
+        <div class="ff"><label>Full name *</label><input pInputText [ngModel]="form().adminFullName" (ngModelChange)="updateForm('adminFullName', $event)" class="w-full" /></div>
+        <div class="ff"><label>Phone *</label><input pInputText [ngModel]="form().adminPhone" (ngModelChange)="updateForm('adminPhone', $event)" placeholder="+998 88 123 45 67" class="w-full" /></div>
+        <div class="ff"><label>Password *</label><p-password [ngModel]="form().adminPassword" (ngModelChange)="updateForm('adminPassword', $event)" [toggleMask]="true" [feedback]="false" styleClass="w-full" inputStyleClass="w-full" /></div>
+      } @else {
+        <div class="ff"><label>Status</label>
+          <p-select [options]="statusOptions" [ngModel]="form().subscriptionStatus" (ngModelChange)="updateForm('subscriptionStatus', $event)" optionLabel="label" optionValue="value" styleClass="w-full" />
+        </div>
+        <div class="ff"><label>Trial ends</label>
+          <p-datepicker [ngModel]="form().trialEndsAt" (ngModelChange)="updateForm('trialEndsAt', $event)" dateFormat="yy-mm-dd" [showIcon]="true" [showClear]="true" styleClass="w-full" />
+        </div>
+        <div class="ff-inline"><label>Active</label><p-toggleswitch [ngModel]="form().isActive" (ngModelChange)="updateForm('isActive', $event)" /></div>
+      }
+    </div>
+    <ng-template #footer>
+      <p-button label="Cancel" [text]="true" (onClick)="dialogVisible.set(false)" />
+      <p-button label="Save" icon="pi pi-check" [loading]="saving()" (onClick)="save()" />
+    </ng-template>
+  </p-dialog>
+
+  <!-- Modules -->
+  <p-dialog [visible]="modulesVisible()" (visibleChange)="modulesVisible.set($event)"
+    [header]="(modulesTenant()?.name ?? '') + ' — Modules'" [modal]="true" [style]="{ width: '420px' }" [draggable]="false">
+    <div class="module-list">
+      @for (m of modules(); track m.moduleId) {
+        <div class="module-row"><span>{{ m.moduleName }}</span><p-toggleswitch [ngModel]="m.isEnabled" (ngModelChange)="toggleModule(m, $event)" /></div>
+      }
+    </div>
+  </p-dialog>
+</div>

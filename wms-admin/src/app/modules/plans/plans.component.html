@@ -1,0 +1,60 @@
+<div class="page">
+  <header class="page-head">
+    <div><h1>Plans</h1><p>Subscription plans: module sets and limits</p></div>
+    <p-button icon="pi pi-plus" label="New plan" (onClick)="openNew()" />
+  </header>
+
+  <div class="wms-card table-wrapper">
+    <p-table [value]="plans()" [loading]="loading()" [paginator]="true" [rows]="20" styleClass="p-datatable-sm p-datatable-striped">
+      <ng-template #header>
+        <tr>
+          <th>Name</th><th>Code</th><th class="text-right">Price</th><th class="text-right">Modules</th>
+          <th class="text-right">Users</th><th class="text-right">Whs</th><th class="text-right">Tenants</th>
+          <th>Status</th><th></th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-row>
+        <tr>
+          <td><span class="item-name">{{ row.name }}</span></td>
+          <td><code>{{ row.code }}</code></td>
+          <td class="text-right"><span class="num">{{ row.price | number:'1.0-2' }}</span></td>
+          <td class="text-right"><span class="num">{{ row.moduleCodes.length }}</span></td>
+          <td class="text-right"><span class="num">{{ row.maxUsers }}</span></td>
+          <td class="text-right"><span class="num">{{ row.maxWarehouses }}</span></td>
+          <td class="text-right"><span class="num">{{ row.tenantCount }}</span></td>
+          <td><span [class]="row.isActive ? 'pill pill-success' : 'pill pill-neutral'">{{ row.isActive ? 'Active' : 'Inactive' }}</span></td>
+          <td class="actions-cell">
+            <p-button icon="pi pi-pencil" [text]="true" size="small" (onClick)="openEdit(row)" />
+            <p-button icon="pi pi-trash" [text]="true" size="small" severity="danger" (onClick)="remove(row)" />
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr><td colspan="9"><div class="empty-state"><i class="pi pi-tags"></i><p>No plans yet</p></div></td></tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <p-dialog [visible]="dialogVisible()" (visibleChange)="dialogVisible.set($event)"
+    [header]="editing() ? 'Edit plan' : 'New plan'" [modal]="true" [style]="{ width: '480px' }" [draggable]="false">
+    <div class="dialog-form">
+      <div class="ff"><label>Name *</label><input pInputText [ngModel]="form().name" (ngModelChange)="updateForm('name', $event)" class="w-full" placeholder="Pro" /></div>
+      <div class="ff"><label>Code *</label><input pInputText [ngModel]="form().code" (ngModelChange)="updateForm('code', $event)" autocomplete="off" class="w-full" placeholder="pro" /></div>
+      <div class="ff"><label>Price (per month)</label><p-inputNumber [ngModel]="form().price" (ngModelChange)="updateForm('price', $event ?? 0)" [min]="0" [minFractionDigits]="0" [maxFractionDigits]="2" styleClass="w-full" inputStyleClass="w-full" /></div>
+      <div class="ff"><label>Modules</label>
+        <p-multiselect [options]="moduleOptions()" [ngModel]="form().moduleCodes" (ngModelChange)="updateForm('moduleCodes', $event)"
+          optionLabel="label" optionValue="value" placeholder="Select modules" [filter]="true" styleClass="w-full" [style]="{ width: '100%' }" />
+      </div>
+      <div class="limits-grid">
+        <div class="ff"><label>Max users</label><p-inputNumber [ngModel]="form().maxUsers" (ngModelChange)="updateForm('maxUsers', $event ?? 0)" [min]="1" styleClass="w-full" inputStyleClass="w-full" /></div>
+        <div class="ff"><label>Max warehouses</label><p-inputNumber [ngModel]="form().maxWarehouses" (ngModelChange)="updateForm('maxWarehouses', $event ?? 0)" [min]="1" styleClass="w-full" inputStyleClass="w-full" /></div>
+        <div class="ff"><label>Transfers / month</label><p-inputNumber [ngModel]="form().maxTransfersPerMonth" (ngModelChange)="updateForm('maxTransfersPerMonth', $event ?? 0)" [min]="1" styleClass="w-full" inputStyleClass="w-full" /></div>
+      </div>
+      <div class="ff-inline"><label>Active</label><p-toggleswitch [ngModel]="form().isActive" (ngModelChange)="updateForm('isActive', $event)" /></div>
+    </div>
+    <ng-template #footer>
+      <p-button label="Cancel" [text]="true" (onClick)="dialogVisible.set(false)" />
+      <p-button label="Save" icon="pi pi-check" [loading]="saving()" (onClick)="save()" />
+    </ng-template>
+  </p-dialog>
+</div>

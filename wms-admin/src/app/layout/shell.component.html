@@ -1,0 +1,35 @@
+<div class="admin-shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-logo"><i class="pi pi-server"></i></div>
+      <div class="brand-text">
+        <span class="brand-name">WMS Platform</span>
+        <span class="brand-tag">Admin console</span>
+      </div>
+    </div>
+
+    <nav class="nav">
+      @for (item of nav; track item.route) {
+        <a [routerLink]="item.route" routerLinkActive="active" class="nav-item">
+          <i [class]="item.icon"></i>
+          <span>{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user">
+        <div class="user-avatar">{{ (user()?.fullName || 'A').charAt(0) }}</div>
+        <div class="user-info">
+          <span class="user-name">{{ user()?.fullName }}</span>
+          <span class="user-role">Super admin</span>
+        </div>
+      </div>
+      <button class="logout-btn" (click)="logout()"><i class="pi pi-sign-out"></i> Sign out</button>
+    </div>
+  </aside>
+
+  <main class="content">
+    <router-outlet />
+  </main>
+</div>
