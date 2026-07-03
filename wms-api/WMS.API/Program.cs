@@ -57,6 +57,7 @@ builder.Services.AddAuthorization(options =>
 // Services (DI)
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITenantService, TenantService>();
+builder.Services.AddScoped<IPlanService, PlanService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICounterpartyService, CounterpartyService>();
@@ -101,7 +102,7 @@ builder.Services.AddHttpClient();
 
 var allowedOrigins = builder.Configuration
     .GetSection("Cors:AllowedOrigins")
-    .Get<string[]>() ?? ["http://localhost:7050"];
+    .Get<string[]>() ?? ["http://localhost:7050", "http://localhost:7060"];
 
 builder.Services.AddCors(options =>
 {
