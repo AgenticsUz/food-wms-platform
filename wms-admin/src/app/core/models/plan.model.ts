@@ -9,6 +9,10 @@ export interface Plan {
   maxWarehouses: number;
   maxTransfersPerMonth: number;
   tenantCount: number;
+  /** Sinov muddati (kun). 0 = pullik plan. */
+  trialDays: number;
+  /** Self-service registratsiya shu planga bog'lanadi (bittagina bo'lishi mumkin). */
+  isDefault: boolean;
 }
 
 export interface CreatePlanDto {
@@ -20,6 +24,8 @@ export interface CreatePlanDto {
   maxUsers: number;
   maxWarehouses: number;
   maxTransfersPerMonth: number;
+  trialDays: number;
+  isDefault: boolean;
 }
 
 export interface PlatformStats {

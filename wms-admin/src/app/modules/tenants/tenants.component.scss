@@ -10,6 +10,7 @@ code { font-family: var(--font-mono, monospace); font-size: 12px; }
 .text-right { text-align: right; }
 .text-muted { color: var(--text-muted); }
 
+.default-badge { font-size: 10px; margin-left: 8px; }
 .trial-cell { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
 .trial-date { font-size: 13px; }
 
