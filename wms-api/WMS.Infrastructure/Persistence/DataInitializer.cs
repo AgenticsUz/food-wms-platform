@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using WMS.Domain.Entities;
 using WMS.Domain.Enums;
+using WMS.Application.Common;
 using AppModules = WMS.Application.Common.ModuleCodes;
 
 namespace WMS.Infrastructure.Persistence;
@@ -10,8 +11,12 @@ public static class DataInitializer
 {
     public static async Task SeedAsync(WmsDbContext db, IConfiguration? config = null)
     {
+        // Feature katalogi planlardan oldin — plan FeatureCodes shu katalogdan quriladi.
+        await SeedFeaturesAsync(db);
+
         // Planlar tenantlardan oldin: registratsiya default planga bog'lanadi (T5/T9).
         await SeedPlansAsync(db);
+        await EnsurePlanFeatureCodesAsync(db);
 
         if (await db.Tenants.AnyAsync())
         {
@@ -86,6 +91,99 @@ public static class DataInitializer
 
         // 7. Seed demo data
         await SeedDemoDataAsync(db);
+    }
+
+    /// <summary>
+    /// Feature katalogi. Har kod haqiqiy sahifa yoki endpoint guruhiga mos keladi —
+    /// boshqarib bo'lmaydigan feature yozilmaydi. Qo'shish idempotent: mavjud yozuv
+    /// hech qachon qayta yozilmaydi (operator o'zgartirgan qiymat saqlanadi).
+    ///
+    /// Hammasi DefaultEnabled = true bilan keladi va planlarga o'z modullariga qarab
+    /// to'ldiriladi, ya'ni bu bosqich hech kimdan hech narsani tortib olmaydi.
+    /// </summary>
+    private static async Task SeedFeaturesAsync(WmsDbContext db)
+    {
+        var catalog = new (string Code, string Name, string? Module, int Sort)[]
+        {
+            (FeatureCodes.WarehouseStock,      "Stock overview",        AppModules.WarehouseRaw, 10),
+            (FeatureCodes.WarehouseLocations,  "Storage locations",     AppModules.WarehouseRaw, 20),
+            (FeatureCodes.WarehouseBatches,    "Batches / lots",        AppModules.WarehouseRaw, 30),
+
+            (FeatureCodes.TransfersIncoming,   "Incoming transfers",    AppModules.Transfers, 40),
+            (FeatureCodes.TransfersOutgoing,   "Outgoing transfers",    AppModules.Transfers, 50),
+            (FeatureCodes.TransfersInternal,   "Internal transfers",    AppModules.Transfers, 60),
+            (FeatureCodes.TransfersReturn,     "Returns",               AppModules.Transfers, 70),
+
+            (FeatureCodes.ProductionStages,    "Production stages",     AppModules.Production, 80),
+            (FeatureCodes.ProductionRecipes,   "Recipes",               AppModules.Production, 90),
+            (FeatureCodes.ProductionOrders,    "Production orders",     AppModules.Production, 100),
+
+            (FeatureCodes.QcParameters,        "QC parameters",         AppModules.Quality, 110),
+            (FeatureCodes.QcChecks,            "QC checks",             AppModules.Quality, 120),
+
+            (FeatureCodes.FinanceTransactions, "Transactions",          AppModules.Finance, 130),
+            (FeatureCodes.FinanceDebts,        "Debts",                 AppModules.Finance, 140),
+            (FeatureCodes.FinancePayments,     "Payments",              AppModules.Finance, 150),
+
+            (FeatureCodes.CounterpartiesSuppliers, "Suppliers",         AppModules.Suppliers, 155),
+            (FeatureCodes.CounterpartiesClients,   "Clients",           AppModules.Clients, 158),
+            (FeatureCodes.CounterpartiesPortal,"Counterparty portal",   AppModules.Clients, 160),
+
+            (FeatureCodes.KpiShifts,           "Shifts",                AppModules.Kpi, 170),
+            (FeatureCodes.KpiPlans,            "Shift plans & actuals", AppModules.Kpi, 180),
+            (FeatureCodes.KpiAttendance,       "Attendance",            AppModules.Kpi, 190),
+            (FeatureCodes.KpiEfficiency,       "Efficiency reports",    AppModules.Kpi, 200),
+
+            (FeatureCodes.DeliveryFleet,       "Vehicles & drivers",    AppModules.Delivery, 210),
+            (FeatureCodes.DeliveryRoutes,      "Delivery routes",       AppModules.Delivery, 220),
+
+            (FeatureCodes.AgentsCommissions,   "Agent commissions",     AppModules.Agents, 230),
+
+            (FeatureCodes.AnalyticsAdvanced,   "Advanced analytics",    null, 240),
+            (FeatureCodes.ExportExcel,         "Excel export",          null, 250),
+            (FeatureCodes.ExportPdf,           "PDF documents",         null, 260),
+            (FeatureCodes.ImportExcel,         "Excel import",          null, 270)
+        };
+
+        var existing = await db.Features.Select(f => f.Code).ToListAsync();
+        var known = new HashSet<string>(existing, StringComparer.OrdinalIgnoreCase);
+
+        var added = false;
+        foreach (var (code, name, module, sort) in catalog)
+        {
+            if (known.Contains(code)) continue;
+            db.Features.Add(new Feature
+            {
+                Code = code, Name = name, ModuleCode = module,
+                DefaultEnabled = true, SortOrder = sort
+            });
+            added = true;
+        }
+        if (added) await db.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Plan FeatureCodes bo'sh bo'lsa — plan modullariga mos barcha feature'lar bilan
+    /// to'ldiriladi. Mavjud o'rnatishlarda menyu o'zgarmasligini shu ta'minlaydi.
+    /// Custom feature hech qachon planga qo'shilmaydi.
+    /// </summary>
+    private static async Task EnsurePlanFeatureCodesAsync(WmsDbContext db)
+    {
+        var plans = await db.Plans.Where(p => p.FeatureCodes == "" || p.FeatureCodes == null).ToListAsync();
+        if (plans.Count == 0) return;
+
+        var features = await db.Features.Where(f => !f.IsCustom).ToListAsync();
+        if (features.Count == 0) return;
+
+        foreach (var plan in plans)
+        {
+            var modules = new HashSet<string>(PlanModules.Split(plan.ModuleCodes), StringComparer.OrdinalIgnoreCase);
+            var codes = features
+                .Where(f => f.ModuleCode == null || modules.Contains(f.ModuleCode))
+                .Select(f => f.Code);
+            plan.FeatureCodes = PlanModules.Join(codes);
+        }
+        await db.SaveChangesAsync();
     }
 
     /// <summary>

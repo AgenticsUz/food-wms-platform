@@ -20,6 +20,7 @@ public class ExportController : BaseController
 
     [HttpGet("transfers")]
     [RequirePermission("transfers.view")]
+    [RequireFeature(FeatureCodes.ExportExcel)]
     [RequireModule(ModuleCodes.Transfers)]
     public async Task<IActionResult> ExportTransfers([FromQuery] DateTime? fromDate, [FromQuery] DateTime? toDate)
     {
@@ -29,6 +30,7 @@ public class ExportController : BaseController
 
     [HttpGet("stock")]
     [RequirePermission("warehouse.view")]
+    [RequireFeature(FeatureCodes.ExportExcel)]
     [RequireModule(ModuleCodes.WarehouseRaw, ModuleCodes.WarehouseFinished)]
     public async Task<IActionResult> ExportStock([FromQuery] int? warehouseId)
     {
@@ -38,6 +40,7 @@ public class ExportController : BaseController
 
     [HttpGet("transactions")]
     [RequirePermission("finance.view")]
+    [RequireFeature(FeatureCodes.ExportExcel)]
     [RequireModule(ModuleCodes.Finance)]
     public async Task<IActionResult> ExportTransactions([FromQuery] DateTime? fromDate, [FromQuery] DateTime? toDate)
     {
@@ -47,6 +50,7 @@ public class ExportController : BaseController
 
     [HttpGet("products")]
     [RequirePermission("products.view")]
+    [RequireFeature(FeatureCodes.ExportExcel)]
     public async Task<IActionResult> ExportProducts()
     {
         var bytes = await _export.ExportProductsAsync(TenantId);
@@ -55,6 +59,7 @@ public class ExportController : BaseController
 
     [HttpGet("counterparties")]
     [RequirePermission("partners.view")]
+    [RequireFeature(FeatureCodes.ExportExcel)]
     [RequireModule(ModuleCodes.Suppliers, ModuleCodes.Clients)]
     public async Task<IActionResult> ExportCounterparties([FromQuery] CounterpartyType? type)
     {
@@ -64,6 +69,7 @@ public class ExportController : BaseController
 
     [HttpGet("transfers/{id}/pdf")]
     [RequirePermission("transfers.view")]
+    [RequireFeature(FeatureCodes.ExportPdf)]
     [RequireModule(ModuleCodes.Transfers)]
     public async Task<IActionResult> ExportTransferPdf(int id)
     {
@@ -71,6 +77,14 @@ public class ExportController : BaseController
         {
             var bytes = await _transferPdf.GenerateTransferPdfAsync(id, TenantId);
             return File(bytes, "application/pdf", $"transfer-{id}.pdf");
+        }
+        catch (AppException ex) when (ex is PaymentRequiredException
+                                      or ModuleDisabledException
+                                      or FeatureDisabledException)
+        {
+            // Entitlement and subscription refusals carry their own status and code —
+            // let the exception middleware map them instead of flattening to 400.
+            throw;
         }
         catch (Exception ex)
         {

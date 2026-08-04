@@ -18,11 +18,13 @@ public class PortalAuthService : IPortalAuthService
 {
     private readonly WmsDbContext _db;
     private readonly IConfiguration _config;
+    private readonly ITenantStateService _tenantState;
 
-    public PortalAuthService(WmsDbContext db, IConfiguration config)
+    public PortalAuthService(WmsDbContext db, IConfiguration config, ITenantStateService tenantState)
     {
         _db = db;
         _config = config;
+        _tenantState = tenantState;
     }
 
     public async Task<PortalAuthResponseDto> LoginAsync(PortalLoginDto dto)
@@ -35,6 +37,13 @@ public class PortalAuthService : IPortalAuthService
         if (string.IsNullOrEmpty(counterparty.PortalPasswordHash) ||
             !BCrypt.Net.BCrypt.Verify(dto.Password, counterparty.PortalPasswordHash))
             throw new AppException("Invalid credentials");
+
+        // The portal is sold as a feature: if the host tenant does not have it, its
+        // counterparties cannot log in — checked here because login is anonymous and
+        // therefore out of reach of the RequireFeature attribute.
+        var state = await _tenantState.GetAsync(counterparty.TenantId);
+        if (state != null && !state.EnabledFeatures.Contains(FeatureCodes.CounterpartiesPortal))
+            throw new FeatureDisabledException(FeatureCodes.CounterpartiesPortal);
 
         var claims = new[]
         {

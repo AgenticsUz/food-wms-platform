@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using WMS.Application.DTOs.Transfers;
 using WMS.Application.Interfaces;
 using WMS.Domain.Entities;
@@ -13,8 +13,10 @@ public class TransferService : ITransferService
 {
     private readonly WmsDbContext _db;
     private readonly INotificationService _notifications;
-    public TransferService(WmsDbContext db, INotificationService notifications)
-    { _db = db; _notifications = notifications; }
+    private readonly ITenantStateService _tenantState;
+    public TransferService(WmsDbContext db, INotificationService notifications,
+        ITenantStateService tenantState)
+    { _db = db; _notifications = notifications; _tenantState = tenantState; }
 
     public async Task<List<TransferDto>> GetAllAsync(int tenantId, TransferType? type,
         TransferStatus? status, DateTime? from, DateTime? to, int? counterpartyId, int page, int pageSize)
@@ -48,6 +50,7 @@ public class TransferService : ITransferService
     public async Task<TransferDto> CreateAsync(int tenantId, int userId, CreateTransferDto dto)
     {
         await PlanLimits.EnsureCanCreateTransferAsync(_db, tenantId);
+        await EnsureTransferTypeAllowedAsync(tenantId, dto.Type);
         await ValidateCreateAsync(tenantId, dto);
 
         var transfer = new Transfer
@@ -163,6 +166,28 @@ public class TransferService : ITransferService
     }
 
     // ── Validation ──
+
+    /// <summary>
+    /// Incoming, outgoing, internal and return movements are sold separately: a customer
+    /// that only receives goods should not be paying for the sales side. The check lives
+    /// here rather than in an attribute because the entitlement depends on the payload.
+    /// </summary>
+    private async Task EnsureTransferTypeAllowedAsync(int tenantId, TransferType type)
+    {
+        var code = type switch
+        {
+            TransferType.Incoming => FeatureCodes.TransfersIncoming,
+            TransferType.Outgoing => FeatureCodes.TransfersOutgoing,
+            TransferType.Internal => FeatureCodes.TransfersInternal,
+            TransferType.Return => FeatureCodes.TransfersReturn,
+            _ => null   // ProductionOutput is created by the system, never by a user request
+        };
+        if (code == null) return;
+
+        var state = await _tenantState.GetAsync(tenantId);
+        if (state != null && !state.EnabledFeatures.Contains(code))
+            throw new FeatureDisabledException(code);
+    }
 
     private async Task ValidateCreateAsync(int tenantId, CreateTransferDto dto)
     {

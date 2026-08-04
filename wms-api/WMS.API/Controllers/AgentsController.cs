@@ -42,10 +42,12 @@ public class AgentsController : BaseController
         => Ok(ApiResponse<AgentSalesReportDto>.Ok(await _agents.GetSalesReportAsync(TenantId, id, from, to)));
 
     [HttpGet("{id}/commissions")]
+    [RequireFeature(FeatureCodes.AgentsCommissions)]
     public async Task<IActionResult> GetCommissions(int id)
         => Ok(ApiResponse<List<CommissionRecordDto>>.Ok(await _agents.GetCommissionsAsync(TenantId, id)));
 
     [HttpPost("{id}/commissions/pay")]
+    [RequireFeature(FeatureCodes.AgentsCommissions)]
     [RequirePermission("agents.manage")]
     public async Task<IActionResult> PayCommission(int id, [FromBody] PayCommissionDto dto)
     {
@@ -54,6 +56,7 @@ public class AgentsController : BaseController
     }
 
     [HttpPut("commissions/{recordId}/status")]
+    [RequireFeature(FeatureCodes.AgentsCommissions)]
     [RequirePermission("agents.manage")]
     public async Task<IActionResult> UpdateCommissionStatus(int recordId, [FromBody] UpdateCommissionStatusDto dto)
     {

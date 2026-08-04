@@ -11,6 +11,7 @@ namespace WMS.API.Controllers;
 [Microsoft.AspNetCore.Authorization.Authorize]
 [RequirePermission("kpi.view")]
 [RequireModule(ModuleCodes.Kpi)]
+[RequireFeature(FeatureCodes.KpiShifts)]
 public class ShiftsController : BaseController
 {
     private readonly IKpiService _kpi;
@@ -47,28 +48,34 @@ public class KpiController : BaseController
     public KpiController(IKpiService kpi) => _kpi = kpi;
 
     [HttpGet("plans")]
+    [RequireFeature(FeatureCodes.KpiPlans)]
     public async Task<IActionResult> GetPlans([FromQuery] DateTime? date)
         => Ok(ApiResponse<List<ShiftPlanDto>>.Ok(await _kpi.GetPlansAsync(TenantId, date)));
 
     [HttpPost("plans")]
+    [RequireFeature(FeatureCodes.KpiPlans)]
     [RequirePermission("kpi.manage")]
     public async Task<IActionResult> CreatePlan([FromBody] CreateShiftPlanDto dto)
         => Ok(ApiResponse<ShiftPlanDto>.Ok(await _kpi.CreatePlanAsync(TenantId, dto)));
 
     [HttpGet("actuals")]
+    [RequireFeature(FeatureCodes.KpiPlans)]
     public async Task<IActionResult> GetActuals([FromQuery] DateTime? date)
         => Ok(ApiResponse<List<ShiftActualDto>>.Ok(await _kpi.GetActualsAsync(TenantId, date)));
 
     [HttpPost("actuals")]
+    [RequireFeature(FeatureCodes.KpiPlans)]
     [RequirePermission("kpi.manage")]
     public async Task<IActionResult> CreateActual([FromBody] CreateShiftActualDto dto)
         => Ok(ApiResponse<ShiftActualDto>.Ok(await _kpi.CreateActualAsync(TenantId, dto)));
 
     [HttpGet("summary")]
+    [RequireFeature(FeatureCodes.KpiEfficiency)]
     public async Task<IActionResult> GetSummary([FromQuery] DateTime? from, [FromQuery] DateTime? to)
         => Ok(ApiResponse<KpiSummaryDto>.Ok(await _kpi.GetSummaryAsync(TenantId, from, to)));
 
     [HttpGet("efficiency")]
+    [RequireFeature(FeatureCodes.KpiEfficiency)]
     public async Task<IActionResult> GetEfficiency([FromQuery] DateTime? from, [FromQuery] DateTime? to)
         => Ok(ApiResponse<List<EfficiencyDto>>.Ok(await _kpi.GetEfficiencyAsync(TenantId, from, to)));
 }
@@ -78,6 +85,7 @@ public class KpiController : BaseController
 [Microsoft.AspNetCore.Authorization.Authorize]
 [RequirePermission("kpi.view")]
 [RequireModule(ModuleCodes.Kpi)]
+[RequireFeature(FeatureCodes.KpiAttendance)]
 public class AttendanceController : BaseController
 {
     private readonly IKpiService _kpi;

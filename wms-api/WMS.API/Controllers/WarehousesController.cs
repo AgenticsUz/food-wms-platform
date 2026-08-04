@@ -33,10 +33,12 @@ public class WarehousesController : BaseController
     { await _warehouses.DeleteAsync(TenantId, id); return Ok(ApiResponse<object>.Ok(null!, "Deleted")); }
 
     [HttpGet("{id}/stock")]
+    [RequireFeature(FeatureCodes.WarehouseStock)]
     public async Task<IActionResult> GetStock(int id)
         => Ok(ApiResponse<List<StockDto>>.Ok(await _warehouses.GetStockAsync(TenantId, id)));
 
     [HttpGet("{id}/stock/detail")]
+    [RequireFeature(FeatureCodes.WarehouseStock)]
     public async Task<IActionResult> GetStockDetail(int id)
         => Ok(ApiResponse<List<StockDetailDto>>.Ok(await _warehouses.GetStockDetailAsync(TenantId, id)));
 }
@@ -45,6 +47,7 @@ public class WarehousesController : BaseController
 [Route("api/locations")]
 [Microsoft.AspNetCore.Authorization.Authorize]
 [RequirePermission("warehouse.view")]
+[RequireFeature(FeatureCodes.WarehouseLocations)]
 public class LocationsController : BaseController
 {
     private readonly IWarehouseService _warehouses;
@@ -74,6 +77,7 @@ public class LocationsController : BaseController
 [Route("api/batches")]
 [Microsoft.AspNetCore.Authorization.Authorize]
 [RequirePermission("warehouse.view")]
+[RequireFeature(FeatureCodes.WarehouseBatches)]
 public class BatchesController : BaseController
 {
     private readonly IWarehouseService _warehouses;

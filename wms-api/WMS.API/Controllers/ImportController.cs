@@ -7,6 +7,7 @@ using WMS.Application.Interfaces;
 namespace WMS.API.Controllers;
 
 [Route("api/import")]
+[RequireFeature(FeatureCodes.ImportExcel)]
 public class ImportController : BaseController
 {
     private readonly IImportService _import;

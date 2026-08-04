@@ -40,6 +40,7 @@ public class PlanService : IPlanService
             Price = dto.Price,
             IsActive = dto.IsActive,
             ModuleCodes = PlanModules.Join(dto.ModuleCodes),
+            FeatureCodes = PlanModules.Join(await ValidateFeatureCodesAsync(dto.FeatureCodes, dto.ModuleCodes)),
             MaxUsers = dto.MaxUsers,
             MaxWarehouses = dto.MaxWarehouses,
             MaxTransfersPerMonth = dto.MaxTransfersPerMonth,
@@ -67,6 +68,7 @@ public class PlanService : IPlanService
         plan.Price = dto.Price;
         plan.IsActive = dto.IsActive;
         plan.ModuleCodes = PlanModules.Join(dto.ModuleCodes);
+        plan.FeatureCodes = PlanModules.Join(await ValidateFeatureCodesAsync(dto.FeatureCodes, dto.ModuleCodes));
         plan.MaxUsers = dto.MaxUsers;
         plan.MaxWarehouses = dto.MaxWarehouses;
         plan.MaxTransfersPerMonth = dto.MaxTransfersPerMonth;
@@ -105,10 +107,43 @@ public class PlanService : IPlanService
         await _db.SaveChangesAsync();
     }
 
+    /// <summary>
+    /// Empty list = derive the feature set from the plan's modules (what a plan means by
+    /// default). A custom feature can never be part of a plan: it is written for one
+    /// customer and is granted per tenant, otherwise "custom" quietly becomes "standard".
+    /// </summary>
+    private async Task<List<string>> ValidateFeatureCodesAsync(List<string> requested, List<string> moduleCodes)
+    {
+        var features = await _db.Features.AsNoTracking().ToListAsync();
+        if (features.Count == 0) return new List<string>();
+
+        if (requested is not { Count: > 0 })
+        {
+            var modules = new HashSet<string>(moduleCodes ?? new List<string>(), StringComparer.OrdinalIgnoreCase);
+            return features
+                .Where(f => !f.IsCustom && (f.ModuleCode == null || modules.Contains(f.ModuleCode)))
+                .Select(f => f.Code)
+                .ToList();
+        }
+
+        var known = features.ToDictionary(f => f.Code, StringComparer.OrdinalIgnoreCase);
+        var result = new List<string>();
+        foreach (var code in requested.Select(c => c?.Trim()).Where(c => !string.IsNullOrEmpty(c)))
+        {
+            if (!known.TryGetValue(code!, out var feature))
+                throw new AppException($"Unknown feature code '{code}'");
+            if (feature.IsCustom)
+                throw new AppException($"'{code}' is a custom feature and cannot be part of a plan — grant it to the tenant instead");
+            result.Add(feature.Code);
+        }
+        return result;
+    }
+
     private static PlanDto MapToDto(Plan p, int tenantCount) => new()
     {
         Id = p.Id, Name = p.Name, Code = p.Code, Price = p.Price, IsActive = p.IsActive,
         ModuleCodes = PlanModules.Split(p.ModuleCodes),
+        FeatureCodes = PlanModules.Split(p.FeatureCodes),
         MaxUsers = p.MaxUsers, MaxWarehouses = p.MaxWarehouses,
         MaxTransfersPerMonth = p.MaxTransfersPerMonth, TenantCount = tenantCount,
         TrialDays = p.TrialDays, IsDefault = p.IsDefault
