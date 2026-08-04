@@ -34,7 +34,10 @@ public class TenantsController : BaseController
     public async Task<IActionResult> Delete(int id)
     { await _tenants.DeleteAsync(id); return Ok(ApiResponse<object>.Ok(null!, "Deleted")); }
 
-    // ── Modul boshqaruvi — o'z tenanti (settings.modules) YOKI SuperAdmin ──
+    // ── Modullar — FAQAT KO'RISH ──
+    // Modul to'plamini plan belgilaydi (control plane). Tenant admin o'z modullarini
+    // ko'ra oladi, lekin yoqa olmaydi — aks holda plan gating o'z-o'zidan yechiladi.
+    // O'zgartirish faqat SuperAdmin uchun: PUT /api/admin/tenants/{id}/modules.
 
     [HttpGet("{id}/modules")]
     [RequirePermission("settings.modules")]
@@ -45,11 +48,9 @@ public class TenantsController : BaseController
     }
 
     [HttpPut("{id}/modules")]
-    [RequirePermission("settings.modules")]
+    [Authorize(Policy = "SuperAdmin")]
     public async Task<IActionResult> ToggleModules(int id, [FromBody] ToggleModulesRequest request)
     {
-        if (id != TenantId && !IsSuperAdmin) return Forbidden();
-
         if (request.Modules is { Count: > 0 })
             await _tenants.ToggleModulesAsync(id, request.Modules);
         else if (request.ModuleId > 0)
@@ -59,5 +60,5 @@ public class TenantsController : BaseController
 
     private IActionResult Forbidden()
         => StatusCode(StatusCodes.Status403Forbidden,
-            ApiResponse<object>.Fail("You can only manage your own tenant's modules"));
+            ApiResponse<object>.Fail("You can only view your own tenant's modules"));
 }
