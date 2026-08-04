@@ -1,0 +1,103 @@
+using Microsoft.EntityFrameworkCore;
+using WMS.Application.Common;
+using WMS.Application.DTOs.Subscription;
+using WMS.Domain.Entities;
+
+namespace WMS.Infrastructure.Persistence;
+
+/// <summary>
+/// Plan limitlarini majburlaydi (MaxUsers / MaxWarehouses / MaxTransfersPerMonth).
+/// Avval bu qiymatlar faqat saqlanardi — hech qayerda tekshirilmasdi.
+///
+/// Qoida: plani bor tenant → plan limitlari; plani yo'q tenant (tizim tenanti va eski
+/// yozuvlar) → cheksiz. Limit oshsa 402 (PaymentRequiredException) qaytadi.
+/// </summary>
+public static class PlanLimits
+{
+    public const string Users = "users";
+    public const string Warehouses = "warehouses";
+    public const string TransfersThisMonth = "transfersThisMonth";
+
+    private static async Task<Plan?> GetPlanAsync(WmsDbContext db, int tenantId, CancellationToken ct = default)
+    {
+        var planId = await db.Tenants.AsNoTracking()
+            .Where(t => t.Id == tenantId)
+            .Select(t => t.PlanId)
+            .FirstOrDefaultAsync(ct);
+        return planId == null ? null : await db.Plans.AsNoTracking().FirstOrDefaultAsync(p => p.Id == planId, ct);
+    }
+
+    public static async Task EnsureCanAddUserAsync(WmsDbContext db, int tenantId, CancellationToken ct = default)
+    {
+        var plan = await GetPlanAsync(db, tenantId, ct);
+        if (plan is not { MaxUsers: > 0 }) return;
+
+        var used = await db.Users.CountAsync(u => u.TenantId == tenantId, ct);
+        if (used >= plan.MaxUsers)
+            throw new PaymentRequiredException("limit_users",
+                $"Your plan ({plan.Name}) allows {plan.MaxUsers} users. Upgrade the plan to add more.");
+    }
+
+    /// Nechta foydalanuvchi qo'shish mumkin. <c>null</c> = cheksiz (plansiz tenant).
+    /// Ommaviy import bitta-bitta 402 tashlash o'rniga shu bilan hisoblab boradi.
+    public static async Task<int?> GetRemainingUsersAsync(WmsDbContext db, int tenantId, CancellationToken ct = default)
+    {
+        var plan = await GetPlanAsync(db, tenantId, ct);
+        if (plan is not { MaxUsers: > 0 }) return null;
+
+        var used = await db.Users.CountAsync(u => u.TenantId == tenantId, ct);
+        return Math.Max(0, plan.MaxUsers - used);
+    }
+
+    public static async Task EnsureCanAddWarehouseAsync(WmsDbContext db, int tenantId, CancellationToken ct = default)
+    {
+        var plan = await GetPlanAsync(db, tenantId, ct);
+        if (plan is not { MaxWarehouses: > 0 }) return;
+
+        var used = await db.Warehouses.CountAsync(w => w.TenantId == tenantId, ct);
+        if (used >= plan.MaxWarehouses)
+            throw new PaymentRequiredException("limit_warehouses",
+                $"Your plan ({plan.Name}) allows {plan.MaxWarehouses} warehouses. Upgrade the plan to add more.");
+    }
+
+    public static async Task EnsureCanCreateTransferAsync(WmsDbContext db, int tenantId, CancellationToken ct = default)
+    {
+        var plan = await GetPlanAsync(db, tenantId, ct);
+        if (plan is not { MaxTransfersPerMonth: > 0 }) return;
+
+        var monthStart = MonthStart(DateTime.UtcNow);
+        var used = await db.Transfers.CountAsync(t => t.TenantId == tenantId && t.CreatedAt >= monthStart, ct);
+        if (used >= plan.MaxTransfersPerMonth)
+            throw new PaymentRequiredException("limit_transfers",
+                $"Your plan ({plan.Name}) allows {plan.MaxTransfersPerMonth} transfers per month. " +
+                "Upgrade the plan to continue.");
+    }
+
+    /// Joriy foydalanish — /api/subscription/me uchun.
+    public static async Task<List<LimitUsageDto>> GetUsageAsync(WmsDbContext db, int tenantId, Plan? plan,
+        CancellationToken ct = default)
+    {
+        var monthStart = MonthStart(DateTime.UtcNow);
+        return
+        [
+            new LimitUsageDto
+            {
+                Key = Users, Limit = plan?.MaxUsers ?? 0,
+                Used = await db.Users.CountAsync(u => u.TenantId == tenantId, ct)
+            },
+            new LimitUsageDto
+            {
+                Key = Warehouses, Limit = plan?.MaxWarehouses ?? 0,
+                Used = await db.Warehouses.CountAsync(w => w.TenantId == tenantId, ct)
+            },
+            new LimitUsageDto
+            {
+                Key = TransfersThisMonth, Limit = plan?.MaxTransfersPerMonth ?? 0,
+                Used = await db.Transfers.CountAsync(t => t.TenantId == tenantId && t.CreatedAt >= monthStart, ct)
+            }
+        ];
+    }
+
+    private static DateTime MonthStart(DateTime utcNow)
+        => new(utcNow.Year, utcNow.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+}

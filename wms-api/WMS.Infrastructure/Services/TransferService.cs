@@ -47,6 +47,7 @@ public class TransferService : ITransferService
 
     public async Task<TransferDto> CreateAsync(int tenantId, int userId, CreateTransferDto dto)
     {
+        await PlanLimits.EnsureCanCreateTransferAsync(_db, tenantId);
         await ValidateCreateAsync(tenantId, dto);
 
         var transfer = new Transfer

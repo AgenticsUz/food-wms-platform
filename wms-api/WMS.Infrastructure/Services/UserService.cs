@@ -26,6 +26,8 @@ public class UserService : IUserService
 
     public async Task<UserDto> CreateAsync(int tenantId, CreateUserDto dto)
     {
+        await PlanLimits.EnsureCanAddUserAsync(_db, tenantId);
+
         var phone = PhoneHelper.Normalize(dto.Phone);
         if (await _db.Users.AnyAsync(u => u.TenantId == tenantId && u.Phone == phone))
             throw new AppException("A user with this phone already exists");

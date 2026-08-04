@@ -210,6 +210,9 @@ public class ImportService : IImportService
         var lastRow = ws.LastRowUsed()?.RowNumber() ?? 0;
 
         var result = new ImportResultDto();
+        // Plan limiti ommaviy importda ham amal qiladi — aks holda MaxUsers cheklovini
+        // Excel yuklash orqali chetlab o'tish mumkin bo'lardi. null = cheksiz.
+        var remainingSlots = await PlanLimits.GetRemainingUsersAsync(_db, tenantId);
         var roles = await _db.Roles.Where(r => r.TenantId == tenantId).ToListAsync();
         var existingPhones = new HashSet<string>(
             await _db.Users.Where(u => u.TenantId == tenantId).Select(u => u.Phone).ToListAsync(),
@@ -253,6 +256,17 @@ public class ImportService : IImportService
                 continue;
             }
 
+            if (remainingSlots is <= 0)
+            {
+                result.Errors.Add(new ImportErrorDto
+                {
+                    Row = row, Field = "-",
+                    Message = "Plan limit reached — upgrade the plan to add more users"
+                });
+                result.ErrorCount++;
+                continue;
+            }
+
             var user = new User
             {
                 TenantId = tenantId,
@@ -275,6 +289,7 @@ public class ImportService : IImportService
                 }
 
                 existingPhones.Add(phone);
+                if (remainingSlots.HasValue) remainingSlots--;
                 result.SuccessCount++;
             }
             catch (Exception ex)

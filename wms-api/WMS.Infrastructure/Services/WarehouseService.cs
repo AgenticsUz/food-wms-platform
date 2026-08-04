@@ -23,6 +23,8 @@ public class WarehouseService : IWarehouseService
 
     public async Task<WarehouseDto> CreateAsync(int tenantId, CreateWarehouseDto dto)
     {
+        await PlanLimits.EnsureCanAddWarehouseAsync(_db, tenantId);
+
         var w = new Warehouse
         {
             TenantId = tenantId, Name = dto.Name, Type = dto.Type, Description = dto.Description
