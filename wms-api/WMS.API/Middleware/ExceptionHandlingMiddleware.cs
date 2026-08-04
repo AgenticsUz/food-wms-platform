@@ -25,11 +25,13 @@ public class ExceptionHandlingMiddleware
         }
         catch (Exception ex)
         {
-            var (statusCode, message) = ex switch
+            var (statusCode, message, code) = ex switch
             {
-                NotFoundException => (StatusCodes.Status404NotFound, ex.Message),
-                AppException => (StatusCodes.Status400BadRequest, ex.Message),
-                _ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred")
+                NotFoundException => (StatusCodes.Status404NotFound, ex.Message, null),
+                PaymentRequiredException pre => (StatusCodes.Status402PaymentRequired, ex.Message, pre.Code),
+                ModuleDisabledException mde => (StatusCodes.Status403Forbidden, ex.Message, "module_disabled:" + mde.ModuleCode),
+                AppException => (StatusCodes.Status400BadRequest, ex.Message, null),
+                _ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred", (string?)null)
             };
 
             if (statusCode == StatusCodes.Status500InternalServerError)
@@ -40,8 +42,11 @@ public class ExceptionHandlingMiddleware
 
             context.Response.StatusCode = statusCode;
             context.Response.ContentType = "application/json";
+            var payload = code == null
+                ? ApiResponse<object>.Fail(message)
+                : ApiResponse<object>.Fail(message, code);
             await context.Response.WriteAsync(JsonSerializer.Serialize(
-                ApiResponse<object>.Fail(message),
+                payload,
                 new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
         }
     }
