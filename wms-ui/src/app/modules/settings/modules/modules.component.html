@@ -1,6 +1,17 @@
 <div class="page-enter" *transloco="let t">
   <app-page-header [title]="t('settings.modules')" [subtitle]="t('settings.moduleSubtitle')" />
 
+  <div class="readonly-notice">
+    <i class="pi pi-info-circle"></i>
+    <div class="notice-body">
+      <p class="notice-text">{{ t('settings.modulesReadonlyNotice') }}</p>
+      <a class="notice-link" routerLink="/settings/subscription">
+        {{ t('settings.modulesViewSubscription') }}
+        <i class="pi pi-arrow-right"></i>
+      </a>
+    </div>
+  </div>
+
   <div class="wms-card module-list">
     @if (loading()) {
       <div class="loading-state">
@@ -19,11 +30,11 @@
             <div class="module-name">{{ module.moduleName }}</div>
             <div class="module-code">{{ module.moduleCode }}</div>
           </div>
-          <p-toggleswitch
-            [ngModel]="module.isEnabled"
-            (ngModelChange)="onToggle(module, $event)"
-            [disabled]="saving()"
-          />
+          @if (module.isEnabled) {
+            <span class="badge-success">{{ t('settings.modulesEnabled') }}</span>
+          } @else {
+            <span class="badge-neutral">{{ t('settings.modulesDisabled') }}</span>
+          }
         </div>
       }
     }

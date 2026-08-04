@@ -1,5 +1,49 @@
 @use '../../../shared/styles/module-common';
 
+.readonly-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--color-blueberry-500);
+  border-radius: var(--radius-md);
+  background: var(--bg-muted);
+
+  > i {
+    font-size: 16px;
+    margin-top: 2px;
+    color: var(--color-blueberry-500);
+  }
+}
+
+.notice-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.notice-text {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.notice-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-blueberry-500);
+  text-decoration: none;
+
+  &:hover { text-decoration: underline; }
+  i { font-size: 11px; }
+}
+
 .module-list {
   padding: 0;
   &:hover { transform: none; }
