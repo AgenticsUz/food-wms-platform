@@ -52,7 +52,7 @@ export const routes: Routes = [
       },
       {
         path: 'agents',
-        canActivate: [permissionGuard('agents.view')],
+        canActivate: [moduleGuard('AGENTS'), permissionGuard('agents.view')],
         loadChildren: () => import('./modules/agents/agents.routes')
       },
       {
@@ -61,7 +61,7 @@ export const routes: Routes = [
       },
       {
         path: 'delivery',
-        canActivate: [permissionGuard('delivery.view')],
+        canActivate: [moduleGuard('DELIVERY'), permissionGuard('delivery.view')],
         loadChildren: () => import('./modules/delivery/delivery.routes')
       },
       {

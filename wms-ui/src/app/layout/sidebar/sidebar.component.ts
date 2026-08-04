@@ -109,9 +109,9 @@ export class SidebarComponent {
         { key: 'products.units', route: '/products/units' }
       ]
     },
-    { key: 'nav.agents', icon: 'pi pi-id-card', route: '/agents', permissionCode: 'agents.view' },
+    { key: 'nav.agents', icon: 'pi pi-id-card', route: '/agents', moduleCode: 'AGENTS', permissionCode: 'agents.view' },
     {
-      key: 'nav.delivery', icon: 'pi pi-truck', permissionCode: 'delivery.view',
+      key: 'nav.delivery', icon: 'pi pi-truck', moduleCode: 'DELIVERY', permissionCode: 'delivery.view',
       children: [
         { key: 'delivery.deliveries', route: '/delivery' },
         { key: 'delivery.vehicles', route: '/delivery/vehicles' },

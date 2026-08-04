@@ -70,7 +70,8 @@ export class TenantService {
   private allModules(): string[] {
     return [
       'WAREHOUSE_RAW', 'PRODUCTION', 'WAREHOUSE_FINISHED',
-      'TRANSFERS', 'FINANCE', 'KPI', 'SUPPLIERS', 'CLIENTS', 'QUALITY'
+      'TRANSFERS', 'FINANCE', 'KPI', 'SUPPLIERS', 'CLIENTS', 'QUALITY',
+      'AGENTS', 'DELIVERY'
     ];
   }
 }
