@@ -54,10 +54,17 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("SuperAdmin", p => p.RequireClaim("isSuperAdmin", "true"));
 });
 
+// Subscription / obuna sozlamalari (trial uzunligi, grace, cache) — env orqali beriladi
+builder.Services.Configure<WMS.Application.Common.SubscriptionOptions>(
+    builder.Configuration.GetSection(WMS.Application.Common.SubscriptionOptions.SectionName));
+builder.Services.AddMemoryCache();
+
 // Services (DI)
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITenantService, TenantService>();
 builder.Services.AddScoped<IPlanService, PlanService>();
+builder.Services.AddScoped<ITenantStateService, TenantStateService>();
+builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICounterpartyService, CounterpartyService>();
@@ -75,6 +82,7 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IBatchExpiryService, BatchExpiryService>();
 builder.Services.AddHostedService<BatchExpiryBackgroundService>();
 builder.Services.AddHostedService<DbBackupBackgroundService>();
+builder.Services.AddHostedService<SubscriptionExpiryBackgroundService>();
 builder.Services.AddScoped<IExportService, ExportService>();
 builder.Services.AddScoped<ITransferPdfService, TransferPdfService>();
 builder.Services.AddScoped<IDeliveryService, DeliveryService>();
@@ -162,6 +170,9 @@ app.UseCors("AllowFrontend");
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
+// Obuna har so'rovda tekshiriladi (suspend/trial tugashi darhol kuchga kiradi) —
+// autentifikatsiyadan keyin turishi shart.
+app.UseMiddleware<WMS.API.Middleware.SubscriptionEnforcementMiddleware>();
 app.UseSwagger();
 app.UseSwaggerUI();
 app.MapControllers();
