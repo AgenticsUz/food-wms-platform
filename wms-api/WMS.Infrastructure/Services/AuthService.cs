@@ -1,4 +1,4 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
@@ -51,7 +51,11 @@ public class AuthService : IAuthService
             {
                 Id = tenant.Id, Name = tenant.Name, Slug = tenant.Slug,
                 IsActive = tenant.IsActive, Status = tenant.SubscriptionStatus,
-                TrialEndsAt = tenant.TrialEndsAt, PlanId = tenant.PlanId
+                TrialEndsAt = tenant.TrialEndsAt, PlanId = tenant.PlanId,
+                PaidUntil = tenant.PaidUntil,
+                SuspendReason = tenant.SuspendReason,
+                SuspendPublicMessage = tenant.SuspendPublicMessage,
+                SuspendedUntil = tenant.SuspendedUntil
             };
             var verdict = SubscriptionPolicy.Evaluate(state, _subscription, DateTime.UtcNow);
             if (!verdict.Allowed)
@@ -63,6 +67,7 @@ public class AuthService : IAuthService
             .Where(tm => tm.TenantId == tenant.Id && tm.IsEnabled)
             .Select(tm => tm.Module.Code)
             .ToListAsync();
+        var features = await ResolveFeatureCodesAsync(tenant.Id, modules);
 
         var roles = user.UserRoles.Select(ur => ur.Role.Name).ToList();
         var roleName = roles.FirstOrDefault() ?? "User";
@@ -98,9 +103,19 @@ public class AuthService : IAuthService
                 IsSuperAdmin = user.IsSuperAdmin,
                 Roles = roles,
                 EnabledModules = modules,
+                EnabledFeatures = features,
                 Permissions = permissions
             }
         };
+    }
+
+    /// Feature layer for the login/me responses. The frontend hides menu items by these
+    /// codes; the server still enforces them with RequireFeature.
+    private async Task<List<string>> ResolveFeatureCodesAsync(int tenantId, List<string> moduleCodes)
+    {
+        var moduleSet = new HashSet<string>(moduleCodes, StringComparer.OrdinalIgnoreCase);
+        var resolved = await FeatureResolver.ResolveAsync(_db, tenantId, moduleSet);
+        return resolved.Where(f => f.IsEnabled).Select(f => f.Code).ToList();
     }
 
     private string GenerateToken(IEnumerable<Claim> claims)
@@ -115,6 +130,12 @@ public class AuthService : IAuthService
 
     public async Task<AuthResponseDto> RegisterAsync(RegisterDto dto)
     {
+        // Self-service registration is off by default: tenants are created by the platform
+        // owner after a conversation and a payment. The code stays because lead conversion
+        // reuses exactly this provisioning path.
+        if (!_config.GetValue("Registration:SelfServiceEnabled", false))
+            throw new NotFoundException("Not found");
+
         // Yangi tenantni to'liq provizatsiya qilamiz (tenant + default plan modullari +
         // Admin rol + admin user). Slug/parol validatsiyasi provisioner ichida.
         var (tenant, user) = await TenantProvisioner.ProvisionAsync(
@@ -126,6 +147,8 @@ public class AuthService : IAuthService
             .Where(tm => tm.TenantId == tenant.Id && tm.IsEnabled)
             .Select(tm => tm.Module.Code)
             .ToListAsync();
+
+        var features = await ResolveFeatureCodesAsync(tenant.Id, modules);
 
         var roleIds = await _db.UserRoles.Where(ur => ur.UserId == user.Id)
             .Select(ur => ur.RoleId).ToListAsync();
@@ -156,6 +179,7 @@ public class AuthService : IAuthService
                 IsSuperAdmin = false,
                 Roles = new List<string> { "Admin" },
                 EnabledModules = modules,
+                EnabledFeatures = features,
                 Permissions = permissions
             }
         };
@@ -183,6 +207,8 @@ public class AuthService : IAuthService
             .Distinct()
             .ToListAsync();
 
+        var features = await ResolveFeatureCodesAsync(tenantId, modules);
+
         return new UserInfoDto
         {
             Id = user.Id,
@@ -194,6 +220,7 @@ public class AuthService : IAuthService
             TelegramChatId = user.TelegramChatId,
             Roles = user.UserRoles.Select(ur => ur.Role.Name).ToList(),
             EnabledModules = modules,
+            EnabledFeatures = features,
             Permissions = permissions
         };
     }
