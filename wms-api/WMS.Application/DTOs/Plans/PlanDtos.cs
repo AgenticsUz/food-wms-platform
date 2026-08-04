@@ -14,6 +14,10 @@ public class PlanDto
     public int MaxWarehouses { get; set; }
     public int MaxTransfersPerMonth { get; set; }
     public int TenantCount { get; set; }
+    /// Trial uzunligi (kun). 0 = trial emas (pullik plan).
+    public int TrialDays { get; set; }
+    /// Self-service registratsiya shu planga bog'lanadi (bitta plan).
+    public bool IsDefault { get; set; }
 }
 
 // Used for both create AND update.
@@ -27,6 +31,8 @@ public class CreatePlanDto
     public int MaxUsers { get; set; } = 10;
     public int MaxWarehouses { get; set; } = 3;
     public int MaxTransfersPerMonth { get; set; } = 1000;
+    public int TrialDays { get; set; }
+    public bool IsDefault { get; set; }
 }
 
 public class AssignPlanDto

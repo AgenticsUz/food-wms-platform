@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using WMS.Domain.Entities;
 using WMS.Domain.Enums;
+using AppModules = WMS.Application.Common.ModuleCodes;
 
 namespace WMS.Infrastructure.Persistence;
 
@@ -9,10 +10,14 @@ public static class DataInitializer
 {
     public static async Task SeedAsync(WmsDbContext db, IConfiguration? config = null)
     {
+        // Planlar tenantlardan oldin: registratsiya default planga bog'lanadi (T5/T9).
+        await SeedPlansAsync(db);
+
         if (await db.Tenants.AnyAsync())
         {
             await EnsureAdminPermissionsAsync(db);
             await EnsureSuperAdminAsync(db);
+            await BackfillMissingTenantModulesAsync(db);
             await SeedDemoDataAsync(db);
             return;
         }
@@ -81,6 +86,109 @@ public static class DataInitializer
 
         // 7. Seed demo data
         await SeedDemoDataAsync(db);
+    }
+
+    /// <summary>
+    /// Platformaning default planlari. Planlar bo'lmasa registratsiya hech qanday
+    /// cheklovga bog'lanmaydi (T5), shuning uchun bo'sh bazada albatta yaratiladi.
+    /// Mavjud planlar hech qachon qayta yozilmaydi — faqat "default" bayrog'i yo'q bo'lsa
+    /// trial planga qo'yiladi.
+    /// </summary>
+    private static async Task SeedPlansAsync(WmsDbContext db)
+    {
+        if (await db.Plans.AnyAsync())
+        {
+            if (!await db.Plans.AnyAsync(p => p.IsDefault))
+            {
+                var fallback = await db.Plans.FirstOrDefaultAsync(p => p.Code == "trial")
+                               ?? await db.Plans.OrderBy(p => p.Price).FirstOrDefaultAsync();
+                if (fallback != null)
+                {
+                    fallback.IsDefault = true;
+                    if (fallback.TrialDays == 0 && fallback.Price <= 0) fallback.TrialDays = 14;
+                    await db.SaveChangesAsync();
+                }
+            }
+            return;
+        }
+
+        var basicModules = new[]
+        {
+            AppModules.WarehouseRaw, AppModules.WarehouseFinished, AppModules.Transfers,
+            AppModules.Suppliers, AppModules.Clients
+        };
+        var proModules = new[]
+        {
+            AppModules.WarehouseRaw, AppModules.WarehouseFinished, AppModules.Transfers,
+            AppModules.Suppliers, AppModules.Clients, AppModules.Production,
+            AppModules.Finance, AppModules.Quality
+        };
+
+        db.Plans.AddRange(
+            // Trial — to'liq mahsulot, lekin muddatli va kichik limitlar bilan.
+            new Plan
+            {
+                Name = "Trial", Code = "trial", Price = 0, IsActive = true, IsDefault = true,
+                TrialDays = 14, ModuleCodes = PlanModules.Join(AppModules.All),
+                MaxUsers = 3, MaxWarehouses = 2, MaxTransfersPerMonth = 200
+            },
+            new Plan
+            {
+                Name = "Basic", Code = "basic", Price = 1_200_000, IsActive = true,
+                ModuleCodes = PlanModules.Join(basicModules),
+                MaxUsers = 5, MaxWarehouses = 3, MaxTransfersPerMonth = 1000
+            },
+            new Plan
+            {
+                Name = "Pro", Code = "pro", Price = 2_900_000, IsActive = true,
+                ModuleCodes = PlanModules.Join(proModules),
+                MaxUsers = 25, MaxWarehouses = 10, MaxTransfersPerMonth = 10_000
+            },
+            new Plan
+            {
+                Name = "Enterprise", Code = "enterprise", Price = 5_900_000, IsActive = true,
+                ModuleCodes = PlanModules.Join(AppModules.All),
+                MaxUsers = 200, MaxWarehouses = 50, MaxTransfersPerMonth = 100_000
+            });
+        await db.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Yangi qo'shilgan modullar (AGENTS, DELIVERY) uchun mavjud tenantlarda TenantModule
+    /// yozuvi yo'q — modul gating ularni bloklab qo'ymasligi uchun to'ldiriladi.
+    /// Planli tenantda qiymat plandan olinadi, plansizda (eski/tizim tenanti) yoqiladi.
+    /// </summary>
+    private static async Task BackfillMissingTenantModulesAsync(WmsDbContext db)
+    {
+        var moduleIds = await db.Modules.Select(m => new { m.Id, m.Code }).ToListAsync();
+        var tenants = await db.Tenants.Select(t => new { t.Id, t.PlanId }).ToListAsync();
+        var plans = await db.Plans.ToDictionaryAsync(p => p.Id, p => p.ModuleCodes);
+
+        var existing = await db.TenantModules
+            .Select(tm => new { tm.TenantId, tm.ModuleId })
+            .ToListAsync();
+        var existingSet = existing.Select(x => (x.TenantId, x.ModuleId)).ToHashSet();
+
+        var added = false;
+        foreach (var tenant in tenants)
+        {
+            var allowed = tenant.PlanId != null && plans.TryGetValue(tenant.PlanId.Value, out var csv)
+                ? new HashSet<string>(PlanModules.Split(csv), StringComparer.OrdinalIgnoreCase)
+                : null;
+
+            foreach (var module in moduleIds)
+            {
+                if (existingSet.Contains((tenant.Id, module.Id))) continue;
+                db.TenantModules.Add(new TenantModule
+                {
+                    TenantId = tenant.Id,
+                    ModuleId = module.Id,
+                    IsEnabled = allowed?.Contains(module.Code) ?? true
+                });
+                added = true;
+            }
+        }
+        if (added) await db.SaveChangesAsync();
     }
 
     private static async Task SeedDemoDataAsync(WmsDbContext db)

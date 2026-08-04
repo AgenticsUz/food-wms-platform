@@ -42,10 +42,13 @@ public class PlanService : IPlanService
             ModuleCodes = PlanModules.Join(dto.ModuleCodes),
             MaxUsers = dto.MaxUsers,
             MaxWarehouses = dto.MaxWarehouses,
-            MaxTransfersPerMonth = dto.MaxTransfersPerMonth
+            MaxTransfersPerMonth = dto.MaxTransfersPerMonth,
+            TrialDays = dto.TrialDays,
+            IsDefault = dto.IsDefault
         };
         _db.Plans.Add(plan);
         await _db.SaveChangesAsync();
+        await EnsureSingleDefaultAsync(plan);
         return MapToDto(plan, 0);
     }
 
@@ -67,7 +70,10 @@ public class PlanService : IPlanService
         plan.MaxUsers = dto.MaxUsers;
         plan.MaxWarehouses = dto.MaxWarehouses;
         plan.MaxTransfersPerMonth = dto.MaxTransfersPerMonth;
+        plan.TrialDays = dto.TrialDays;
+        plan.IsDefault = dto.IsDefault;
         await _db.SaveChangesAsync();
+        await EnsureSingleDefaultAsync(plan);
 
         var count = await _db.Tenants.CountAsync(t => t.PlanId == id);
         return MapToDto(plan, count);
@@ -79,7 +85,23 @@ public class PlanService : IPlanService
         if (await _db.Tenants.AnyAsync(t => t.PlanId == id))
             throw new AppException("This plan is still assigned to one or more tenants");
 
+        if (plan.IsDefault)
+            throw new AppException("This is the default registration plan — make another plan default first");
+
         plan.IsDeleted = true;
+        await _db.SaveChangesAsync();
+    }
+
+    /// Registratsiya uchun default plan bittagina bo'lishi kerak — yangisi qo'yilsa
+    /// qolganlaridan bayroq olinadi.
+    private async Task EnsureSingleDefaultAsync(Plan plan)
+    {
+        if (!plan.IsDefault) return;
+
+        var others = await _db.Plans.Where(p => p.IsDefault && p.Id != plan.Id).ToListAsync();
+        if (others.Count == 0) return;
+
+        foreach (var other in others) other.IsDefault = false;
         await _db.SaveChangesAsync();
     }
 
@@ -88,6 +110,7 @@ public class PlanService : IPlanService
         Id = p.Id, Name = p.Name, Code = p.Code, Price = p.Price, IsActive = p.IsActive,
         ModuleCodes = PlanModules.Split(p.ModuleCodes),
         MaxUsers = p.MaxUsers, MaxWarehouses = p.MaxWarehouses,
-        MaxTransfersPerMonth = p.MaxTransfersPerMonth, TenantCount = tenantCount
+        MaxTransfersPerMonth = p.MaxTransfersPerMonth, TenantCount = tenantCount,
+        TrialDays = p.TrialDays, IsDefault = p.IsDefault
     };
 }
