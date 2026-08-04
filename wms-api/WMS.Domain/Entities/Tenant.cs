@@ -19,6 +19,25 @@ public class Tenant : BaseEntity
     public Plan? Plan { get; set; }
     public DateTime? TrialEndsAt { get; set; }
 
+    /// Manual billing: paid through this date. Null = never blocked for payment,
+    /// which is what keeps pre-billing tenants and the system tenant working.
+    public DateTime? PaidUntil { get; set; }
+
+    // ── Suspension detail (why, until when, who) ──
+    public SuspendReason? SuspendReason { get; set; }
+    /// Internal note — never returned to the tenant.
+    public string? SuspendNote { get; set; }
+    /// Optional message shown to the tenant instead of the generic text.
+    public string? SuspendPublicMessage { get; set; }
+    /// Auto-reactivation date. Null = suspended until someone activates it by hand.
+    public DateTime? SuspendedUntil { get; set; }
+    public DateTime? SuspendedAt { get; set; }
+    public int? SuspendedByUserId { get; set; }
+
+    /// The real company behind this tenant (platform-level identity, see Organization).
+    public int? OrganizationId { get; set; }
+    public Organization? Organization { get; set; }
+
     public ICollection<User> Users { get; set; } = new List<User>();
     public ICollection<TenantModule> TenantModules { get; set; } = new List<TenantModule>();
 }

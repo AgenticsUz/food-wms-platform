@@ -18,6 +18,13 @@ public class WmsDbContext : DbContext
     public DbSet<TenantModule> TenantModules => Set<TenantModule>();
     public DbSet<Plan> Plans => Set<Plan>();
 
+    // Control plane (platform-level, no tenant scoping)
+    public DbSet<PaymentRecord> PaymentRecords => Set<PaymentRecord>();
+    public DbSet<Lead> Leads => Set<Lead>();
+    public DbSet<Feature> Features => Set<Feature>();
+    public DbSet<TenantFeature> TenantFeatures => Set<TenantFeature>();
+    public DbSet<Organization> Organizations => Set<Organization>();
+
     // Products
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<Unit> Units => Set<Unit>();
@@ -202,6 +209,32 @@ public class WmsDbContext : DbContext
         modelBuilder.Entity<ShiftActual>().HasIndex(a => new { a.TenantId, a.Date });
         modelBuilder.Entity<Notification>().HasIndex(n => new { n.TenantId, n.UserId, n.IsRead });
         modelBuilder.Entity<CommissionRecord>().HasIndex(c => new { c.TenantId, c.AgentId });
+
+        // ── Control plane (platforma darajasi) ──
+        modelBuilder.Entity<PaymentRecord>().HasIndex(p => new { p.TenantId, p.PeriodEnd });
+        modelBuilder.Entity<PaymentRecord>()
+            .HasOne(p => p.Tenant).WithMany()
+            .HasForeignKey(p => p.TenantId).OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Lead>().HasIndex(l => l.Phone);
+        modelBuilder.Entity<Lead>().HasIndex(l => l.Status);
+
+        modelBuilder.Entity<Feature>().HasIndex(f => f.Code).IsUnique().HasFilter("\"IsDeleted\" = 0");
+        modelBuilder.Entity<TenantFeature>().HasIndex(tf => new { tf.TenantId, tf.FeatureCode }).IsUnique();
+        modelBuilder.Entity<TenantFeature>()
+            .HasOne(tf => tf.Tenant).WithMany()
+            .HasForeignKey(tf => tf.TenantId).OnDelete(DeleteBehavior.Cascade);
+
+        // INN noyob — bir kompaniya platformada bitta Organization bo'lishi kerak.
+        // Filtr: faqat to'ldirilgan va o'chirilmagan yozuvlar (SQLite'da NULL lar takrorlanadi).
+        modelBuilder.Entity<Organization>()
+            .HasIndex(o => o.Inn).IsUnique().HasFilter("\"Inn\" IS NOT NULL AND \"IsDeleted\" = 0");
+        modelBuilder.Entity<Tenant>()
+            .HasOne(t => t.Organization).WithMany()
+            .HasForeignKey(t => t.OrganizationId).OnDelete(DeleteBehavior.SetNull);
+        modelBuilder.Entity<Counterparty>()
+            .HasOne(c => c.Organization).WithMany()
+            .HasForeignKey(c => c.OrganizationId).OnDelete(DeleteBehavior.SetNull);
 
         // ── Noyoblik kafolatlari (DB darajasida) ──
         // Slug login uchun kalit: ikkita tirik tenant bir xil slug bilan bo'lsa, mijoz

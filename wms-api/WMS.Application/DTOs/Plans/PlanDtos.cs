@@ -10,6 +10,7 @@ public class PlanDto
     public decimal Price { get; set; }
     public bool IsActive { get; set; }
     public List<string> ModuleCodes { get; set; } = new();
+    public List<string> FeatureCodes { get; set; } = new();
     public int MaxUsers { get; set; }
     public int MaxWarehouses { get; set; }
     public int MaxTransfersPerMonth { get; set; }
@@ -28,6 +29,9 @@ public class CreatePlanDto
     public decimal Price { get; set; }
     public bool IsActive { get; set; } = true;
     public List<string> ModuleCodes { get; set; } = new();
+    /// Empty on create/update = keep whatever the plan already has (or, for a new plan,
+    /// everything its modules allow). Sending a list replaces the plan's feature set.
+    public List<string> FeatureCodes { get; set; } = new();
     public int MaxUsers { get; set; } = 10;
     public int MaxWarehouses { get; set; } = 3;
     public int MaxTransfersPerMonth { get; set; } = 1000;

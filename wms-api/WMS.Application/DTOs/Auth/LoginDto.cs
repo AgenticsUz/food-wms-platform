@@ -24,6 +24,8 @@ public class UserInfoDto
     public string? TelegramChatId { get; set; }
     public List<string> Roles { get; set; } = new();
     public List<string> EnabledModules { get; set; } = new();
+    /// Finer-grained entitlements resolved for this tenant (feature layer).
+    public List<string> EnabledFeatures { get; set; } = new();
     public List<string> Permissions { get; set; } = new();
 }
 

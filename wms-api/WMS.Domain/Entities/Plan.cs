@@ -14,6 +14,10 @@ public class Plan : BaseEntity
     public bool IsActive { get; set; } = true;
     public string ModuleCodes { get; set; } = "";          // CSV of module codes, e.g. "WAREHOUSE_RAW,TRANSFERS"
 
+    /// CSV of feature codes included in this plan, same style as ModuleCodes.
+    /// A tenant-level TenantFeature row overrides whatever this says.
+    public string FeatureCodes { get; set; } = "";
+
     /// The plan self-service registration attaches to a brand-new tenant (the trial plan).
     /// Exactly one plan should carry this flag — PlanService clears it from the others.
     public bool IsDefault { get; set; }

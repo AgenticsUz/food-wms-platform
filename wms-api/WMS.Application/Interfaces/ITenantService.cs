@@ -1,4 +1,5 @@
 using WMS.Application.DTOs.Plans;
+using WMS.Application.DTOs.Platform;
 using WMS.Application.DTOs.Tenants;
 
 namespace WMS.Application.Interfaces;
@@ -17,7 +18,7 @@ public interface ITenantService
 
     // Platform-admin (control plane) — operate on any tenant by id, no tenant filter.
     Task<PlatformStatsDto> GetStatsAsync();
-    Task<TenantDto> SuspendAsync(int id);
+    Task<TenantDto> SuspendAsync(int id, SuspendTenantDto? dto = null, int suspendedByUserId = 0);
     Task<TenantDto> ActivateAsync(int id);
     Task<TenantDto> AssignPlanAsync(int id, int planId);
 }

@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using WMS.Domain.Enums;
 
 namespace WMS.Application.DTOs.Tenants;
@@ -15,6 +16,21 @@ public class TenantDto
     public int? PlanId { get; set; }
     public string? PlanName { get; set; }
     public DateTime? TrialEndsAt { get; set; }
+
+    // Manual billing + suspension detail (S1, S2). SuspendNote is internal — it is returned
+    // here because this DTO is SuperAdmin-only; it must never reach a tenant response.
+    public DateTime? PaidUntil { get; set; }
+    /// Name, not number ("ClientRequest") — same vocabulary the suspend request uses.
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public SuspendReason? SuspendReason { get; set; }
+    public string? SuspendNote { get; set; }
+    public string? SuspendPublicMessage { get; set; }
+    public DateTime? SuspendedUntil { get; set; }
+    public DateTime? SuspendedAt { get; set; }
+
+    /// Taxpayer id of the linked Organization (S6) — shown and edited in the console.
+    public string? Inn { get; set; }
+    public int? OrganizationId { get; set; }
 }
 
 // SuperAdmin tenant yaratadi: to'liq provizatsiya (admin user + modullar + rol)
@@ -26,6 +42,10 @@ public class CreateTenantDto
     public string AdminPhone { get; set; } = null!;
     public string AdminPassword { get; set; } = null!;
     public int? PlanId { get; set; }
+    /// Optional taxpayer id — links the new tenant to its platform-level Organization (S6).
+    public string? Inn { get; set; }
+    /// Paid through this date from day one (a tenant is usually created after payment).
+    public DateTime? PaidUntil { get; set; }
 }
 
 public class UpdateTenantDto
@@ -37,6 +57,10 @@ public class UpdateTenantDto
     public SubscriptionStatus? SubscriptionStatus { get; set; }
     public int? PlanId { get; set; }
     public DateTime? TrialEndsAt { get; set; }
+    public DateTime? PaidUntil { get; set; }
+    /// Sending an INN links (or re-links) the tenant to its Organization; sending an empty
+    /// string unlinks it. Omitting the field leaves the link untouched.
+    public string? Inn { get; set; }
 }
 
 public class TenantModuleDto
