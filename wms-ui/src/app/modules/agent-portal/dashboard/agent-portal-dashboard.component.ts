@@ -2,6 +2,7 @@ import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@ang
 import { DecimalPipe, DatePipe } from '@angular/common';
 import { TableModule } from 'primeng/table';
 import { TranslocoDirective } from '@jsverse/transloco';
+import { UpgradeBannerComponent } from '../../../shared/components/upgrade-banner/upgrade-banner.component';
 import { AgentPortalService } from '../../../core/services/agent-portal.service';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { AgentSalesReport, CommissionRecord, CommissionStatus } from '../../../core/models/agent.model';
@@ -9,7 +10,7 @@ import { AgentSalesReport, CommissionRecord, CommissionStatus } from '../../../c
 @Component({
   selector: 'app-agent-portal-dashboard',
   standalone: true,
-  imports: [DecimalPipe, DatePipe, TableModule, StatusBadgeComponent, TranslocoDirective],
+  imports: [UpgradeBannerComponent, DecimalPipe, DatePipe, TableModule, StatusBadgeComponent, TranslocoDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './agent-portal-dashboard.component.html',
   styleUrl: './agent-portal-dashboard.component.scss'

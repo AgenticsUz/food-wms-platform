@@ -1,0 +1,55 @@
+/* Taklif, reklama emas — tinch ranglar, mavjud dizayn tili bilan mos */
+.upgrade-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--color-pistachio-500);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+
+  > i { font-size: 18px; color: var(--color-pistachio-600); }
+}
+
+.banner-body { flex: 1; min-width: 0; }
+
+.banner-title { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+
+.banner-text {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+
+  a { color: var(--color-pistachio-600); font-weight: 600; text-decoration: none; margin-left: 4px; }
+  a:hover { text-decoration: underline; }
+}
+
+.banner-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 2px 4px;
+  line-height: 1;
+
+  &:hover { color: var(--text-secondary); }
+  i { font-size: 12px; }
+}
+
+.upgrade-form { display: flex; flex-direction: column; gap: 14px; padding-top: 8px; }
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  label { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+}
+
+.w-full { width: 100%; }
+
+@media (max-width: 600px) {
+  .upgrade-banner { flex-wrap: wrap; }
+}

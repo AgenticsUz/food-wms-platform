@@ -648,5 +648,25 @@
       "subtitle": "A capability enabled for this client only",
       "placeholder": "This is a skeleton page. A real custom feature starts here."
     }
+  },
+  "upgrade": {
+    "title": "The full WMS",
+    "text": "Run your own warehouse, production and reporting in one system.",
+    "learnMore": "Learn more",
+    "interested": "I am interested",
+    "sentTitle": "Request received",
+    "sentText": "We will contact you shortly.",
+    "pageTitle": "What the full version gives you",
+    "pageLead": "The portal you are using is a small part of a larger system. The full version runs your own factory.",
+    "ctaTitle": "Interested?",
+    "ctaText": "Press \"I am interested\" on the dashboard and we will get in touch.",
+    "item": {
+      "warehouse": "Stock with batch and expiry control",
+      "production": "Production by recipe, order and stage",
+      "transfers": "Incoming, outgoing and internal transfers",
+      "finance": "Debts, payments and financial reporting",
+      "kpi": "Shift plan, actuals and efficiency",
+      "delivery": "Routes, drivers and waybills"
+    }
   }
 }

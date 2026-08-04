@@ -648,5 +648,25 @@
       "subtitle": "Faqat shu mijoz uchun yoqilgan imkoniyat",
       "placeholder": "Bu — skelet sahifa. Haqiqiy maxsus fitcha shu yerdan boshlanadi."
     }
+  },
+  "upgrade": {
+    "title": "To'liq WMS tizimi",
+    "text": "O'z omboringiz, ishlab chiqarishingiz va hisobotlaringizni bitta tizimda yuriting.",
+    "learnMore": "Batafsil",
+    "interested": "Qiziqaman",
+    "sentTitle": "So'rovingiz qabul qilindi",
+    "sentText": "Tez orada siz bilan bog'lanamiz.",
+    "pageTitle": "To'liq versiya nima beradi",
+    "pageLead": "Siz hozir ko'rayotgan portal — katta tizimning kichik bir qismi. To'liq versiyada o'z zavodingizni boshqarasiz.",
+    "ctaTitle": "Qiziqdingizmi?",
+    "ctaText": "Dashboard'dagi \"Qiziqaman\" tugmasini bosing — biz bog'lanamiz.",
+    "item": {
+      "warehouse": "Partiya va muddat nazorati bilan ombor qoldig'i",
+      "production": "Retsept, buyurtma va bosqichlar bo'yicha ishlab chiqarish",
+      "transfers": "Kirim, chiqim va ichki o'tkazmalar",
+      "finance": "Qarzlar, to'lovlar va moliyaviy hisobot",
+      "kpi": "Smena rejasi, haqiqiy natija va samaradorlik",
+      "delivery": "Marshrut, haydovchi va yuk xati"
+    }
   }
 }

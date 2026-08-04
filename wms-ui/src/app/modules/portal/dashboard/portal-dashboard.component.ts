@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { TableModule } from 'primeng/table';
 import { Button } from 'primeng/button';
 import { TranslocoDirective } from '@jsverse/transloco';
+import { UpgradeBannerComponent } from '../../../shared/components/upgrade-banner/upgrade-banner.component';
 import { PortalService } from '../../../core/services/portal.service';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { PortalFinance } from '../../../core/models/settings.model';
@@ -13,7 +14,7 @@ import { transferStatusClass, transferStatusKey, transferTypeKey } from '../../.
 @Component({
   selector: 'app-portal-dashboard',
   standalone: true,
-  imports: [DecimalPipe, DatePipe, RouterLink, TableModule, Button, StatusBadgeComponent, TranslocoDirective],
+  imports: [UpgradeBannerComponent, DecimalPipe, DatePipe, RouterLink, TableModule, Button, StatusBadgeComponent, TranslocoDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './portal-dashboard.component.html',
   styleUrl: './portal-dashboard.component.scss'
