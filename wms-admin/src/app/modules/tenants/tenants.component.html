@@ -81,6 +81,15 @@
     <div class="dialog-form">
       <div class="ff"><label>Name *</label><input pInputText [ngModel]="form().name" (ngModelChange)="updateForm('name', $event)" class="w-full" /></div>
       <div class="ff"><label>Slug *</label><input pInputText [ngModel]="form().slug" (ngModelChange)="updateForm('slug', $event)" autocomplete="off" class="w-full" /></div>
+      <div class="ff"><label>TIN (STIR)</label>
+        <input pInputText [ngModel]="form().inn" (ngModelChange)="updateForm('inn', $event)"
+          maxlength="9" inputmode="numeric" autocomplete="off" class="w-full" />
+        @if (innInvalid()) {
+          <small class="field-hint field-error">TIN must be exactly 9 digits.</small>
+        } @else {
+          <small class="field-hint">Links this tenant to the platform-wide company record.</small>
+        }
+      </div>
       <div class="ff"><label>Plan</label>
         <p-select [options]="planOptions()" [ngModel]="form().planId" (ngModelChange)="updateForm('planId', $event)"
           optionLabel="label" optionValue="value" [showClear]="true" placeholder="No plan" styleClass="w-full" />

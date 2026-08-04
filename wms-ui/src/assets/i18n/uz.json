@@ -431,6 +431,10 @@
     "waste": "Brak"
   },
   "partners": {
+    "inn": "STIR",
+    "innHint": "9 raqam. Kelajakda hamkor bilan avtomatik bog'lanish uchun kerak.",
+    "innInvalid": "STIR 9 ta raqamdan iborat bo'lishi kerak",
+    "onPlatform": "Bu kompaniya platformada o'z tizimiga ega",
     "suppliers": "Yetkazib beruvchilar",
     "manageSuppliers": "Yetkazib beruvchilarni boshqarish",
     "clients": "Mijozlar",

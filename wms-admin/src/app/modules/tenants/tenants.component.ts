@@ -24,7 +24,7 @@ import { TenantFeature } from '../../core/models/feature.model';
 import { utcDateOnly, daysUntil } from '../../core/utils/date.util';
 
 interface TenantForm {
-  id?: number; name: string; slug: string;
+  id?: number; name: string; slug: string; inn: string;
   adminFullName: string; adminPhone: string; adminPassword: string;
   isActive: boolean; planId: number | null; subscriptionStatus: SubscriptionStatus; trialEndsAt: Date | null;
 }
@@ -116,7 +116,7 @@ export default class TenantsComponent implements OnInit {
   ];
 
   private empty(): TenantForm {
-    return { name: '', slug: '', adminFullName: '', adminPhone: '', adminPassword: '',
+    return { name: '', slug: '', inn: '', adminFullName: '', adminPhone: '', adminPassword: '',
       isActive: true, planId: null, subscriptionStatus: SubscriptionStatus.Trial, trialEndsAt: null };
   }
 
@@ -140,13 +140,19 @@ export default class TenantsComponent implements OnInit {
     });
   }
 
+  /** O'zbekiston STIR — aynan 9 raqam yoki bo'sh. */
+  innInvalid = computed(() => {
+    const inn = this.form().inn.trim();
+    return !!inn && !/^[0-9]{9}$/.test(inn);
+  });
+
   planOptions() { return this.plans().map(p => ({ label: p.name, value: p.id })); }
   planName(id: number | null) { return this.plans().find(p => p.id === id)?.name ?? '—'; }
 
   openNew() { this.form.set(this.empty()); this.editing.set(false); this.dialogVisible.set(true); }
   openEdit(t: Tenant) {
     this.form.set({
-      id: t.id, name: t.name, slug: t.slug, adminFullName: '', adminPhone: '', adminPassword: '',
+      id: t.id, name: t.name, slug: t.slug, inn: t.inn ?? '', adminFullName: '', adminPhone: '', adminPassword: '',
       isActive: t.isActive, planId: t.planId, subscriptionStatus: t.subscriptionStatus,
       trialEndsAt: t.trialEndsAt ? new Date(t.trialEndsAt) : null
     });
@@ -157,10 +163,11 @@ export default class TenantsComponent implements OnInit {
   save() {
     const f = this.form();
     if (!f.name.trim() || !f.slug.trim()) { this.notify.warn('Name and slug are required'); return; }
+    if (this.innInvalid()) { this.notify.warn('TIN must be exactly 9 digits'); return; }
     this.saving.set(true);
     if (this.editing()) {
       this.service.updateTenant(f.id!, {
-        name: f.name.trim(), slug: f.slug.trim(), isActive: f.isActive, planId: f.planId,
+        name: f.name.trim(), slug: f.slug.trim(), inn: f.inn.trim() || null, isActive: f.isActive, planId: f.planId,
         subscriptionStatus: f.subscriptionStatus,
         trialEndsAt: f.trialEndsAt ? utcDateOnly(f.trialEndsAt) : null
       }).subscribe({ next: () => this.afterSave(), error: () => this.saving.set(false) });
@@ -169,7 +176,8 @@ export default class TenantsComponent implements OnInit {
         this.saving.set(false); this.notify.warn('Admin name, phone and a 6+ char password are required'); return;
       }
       this.service.createTenant({
-        name: f.name.trim(), slug: f.slug.trim(), adminFullName: f.adminFullName.trim(),
+        name: f.name.trim(), slug: f.slug.trim(), inn: f.inn.trim() || null,
+        adminFullName: f.adminFullName.trim(),
         adminPhone: f.adminPhone.trim(), adminPassword: f.adminPassword, planId: f.planId
       }).subscribe({ next: () => this.afterSave(), error: () => this.saving.set(false) });
     }

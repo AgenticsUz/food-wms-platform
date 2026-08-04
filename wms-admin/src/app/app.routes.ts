@@ -13,6 +13,7 @@ export const routes: Routes = [
       { path: 'dashboard', loadComponent: () => import('./modules/dashboard/dashboard.component') },
       { path: 'tenants', loadComponent: () => import('./modules/tenants/tenants.component') },
       { path: 'leads', loadComponent: () => import('./modules/leads/leads.component') },
+      { path: 'organizations', loadComponent: () => import('./modules/organizations/organizations.component') },
       { path: 'plans', loadComponent: () => import('./modules/plans/plans.component') }
     ]
   },

@@ -5,6 +5,11 @@ export interface Counterparty {
   phone: string | null;
   address: string | null;
   note: string | null;
+  /** STIR — 9 raqam. Kelajakda hamkor bilan avtomatik bog'lanish uchun. */
+  inn: string | null;
+  /** Shu kompaniya platformada o'z tizimiga ega bo'lsa to'ldiriladi. */
+  organizationId: number | null;
+  isPlatformTenant?: boolean;
   portalPhone: string | null;
   portalEnabled: boolean;
   agentId: number | null;
@@ -25,6 +30,7 @@ export interface CounterpartyCreateDto {
   phone: string | null;
   address: string | null;
   note: string | null;
+  inn: string | null;
   portalPhone: string | null;
   portalEnabled: boolean;
   agentId?: number | null;

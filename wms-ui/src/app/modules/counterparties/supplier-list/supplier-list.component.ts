@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { toLocalDateString } from '../../../shared/utils/date.util';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -8,7 +8,7 @@ import { InputText } from 'primeng/inputtext';
 import { Dialog } from 'primeng/dialog';
 import { ToggleSwitch } from 'primeng/toggleswitch';
 import { Textarea } from 'primeng/textarea';
-import { TranslocoDirective } from '@jsverse/transloco';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { CounterpartyService } from '../../../core/services/counterparty.service';
 import { NotificationService } from '../../../shared/services/notification.service';
@@ -29,6 +29,7 @@ import { Counterparty, CounterpartyCreateDto, CounterpartyType } from '../../../
 export default class SupplierListComponent implements OnInit {
   private service = inject(CounterpartyService);
   private notify = inject(NotificationService);
+  private transloco = inject(TranslocoService);
   private router = inject(Router);
   exportService = inject(ExportService);
 
@@ -42,7 +43,7 @@ export default class SupplierListComponent implements OnInit {
 
   form = signal<CounterpartyCreateDto & { id?: number }>({
     name: '', type: CounterpartyType.Supplier, phone: null, address: null,
-    note: null, portalPhone: null, portalEnabled: false
+    note: null, inn: null, portalPhone: null, portalEnabled: false
   });
 
   ngOnInit() { this.loadData(); }
@@ -63,29 +64,37 @@ export default class SupplierListComponent implements OnInit {
   applyFilter() {
     const q = this.search().toLowerCase();
     this.filtered.set(q ? this.items().filter(c =>
-      c.name.toLowerCase().includes(q) || (c.phone && c.phone.includes(q))
+      c.name.toLowerCase().includes(q) || (c.phone && c.phone.includes(q)) ||
+      (c.inn && c.inn.includes(q))
     ) : this.items());
   }
 
   onSearch(value: string) { this.search.set(value); this.applyFilter(); }
 
   openNew() {
-    this.form.set({ name: '', type: CounterpartyType.Supplier, phone: null, address: null, note: null, portalPhone: null, portalEnabled: false });
+    this.form.set({ name: '', type: CounterpartyType.Supplier, phone: null, address: null, note: null, inn: null, portalPhone: null, portalEnabled: false });
     this.editing.set(false);
     this.dialogVisible.set(true);
   }
 
   openEdit(c: Counterparty) {
-    this.form.set({ id: c.id, name: c.name, type: c.type, phone: c.phone, address: c.address, note: c.note, portalPhone: c.portalPhone, portalEnabled: c.portalEnabled });
+    this.form.set({ id: c.id, name: c.name, type: c.type, phone: c.phone, inn: c.inn ?? null, address: c.address, note: c.note, portalPhone: c.portalPhone, portalEnabled: c.portalEnabled });
     this.editing.set(true);
     this.dialogVisible.set(true);
   }
 
+  /** O'zbekiston STIR — aynan 9 raqam yoki bo'sh. */
+  innInvalid = computed(() => {
+    const inn = this.form().inn?.trim();
+    return !!inn && !/^\d{9}$/.test(inn);
+  });
+
   save() {
+    if (this.innInvalid()) { this.notify.warn(this.transloco.translate('partners.innInvalid')); return; }
     const f = this.form();
     if (!f.name.trim()) { this.notify.warn('Name is required'); return; }
     this.saving.set(true);
-    const dto: CounterpartyCreateDto = { name: f.name, type: f.type, phone: f.phone, address: f.address, note: f.note, portalPhone: f.portalPhone, portalEnabled: f.portalEnabled };
+    const dto: CounterpartyCreateDto = { name: f.name, type: f.type, inn: f.inn?.trim() || null, phone: f.phone, address: f.address, note: f.note, portalPhone: f.portalPhone, portalEnabled: f.portalEnabled };
     const obs = this.editing() ? this.service.updateCounterparty(f.id!, dto) : this.service.createCounterparty(dto);
     obs.subscribe({
       next: () => { this.saving.set(false); this.dialogVisible.set(false); this.notify.success(this.editing() ? 'Supplier updated' : 'Supplier created'); this.loadData(); },

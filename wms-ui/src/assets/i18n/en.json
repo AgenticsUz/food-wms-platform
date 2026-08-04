@@ -431,6 +431,10 @@
     "waste": "Waste"
   },
   "partners": {
+    "inn": "TIN",
+    "innHint": "9 digits. Needed to link partners automatically later.",
+    "innInvalid": "TIN must be exactly 9 digits",
+    "onPlatform": "This company has its own system on the platform",
     "suppliers": "Suppliers",
     "manageSuppliers": "Manage your suppliers",
     "clients": "Clients",

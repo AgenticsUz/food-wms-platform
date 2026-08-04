@@ -21,6 +21,7 @@ export class ShellComponent {
     { label: 'Dashboard', icon: 'pi pi-chart-bar', route: '/dashboard' },
     { label: 'Tenants', icon: 'pi pi-building', route: '/tenants' },
     { label: 'Leads', icon: 'pi pi-inbox', route: '/leads' },
+    { label: 'Organizations', icon: 'pi pi-sitemap', route: '/organizations' },
     { label: 'Plans', icon: 'pi pi-tags', route: '/plans' }
   ];
 

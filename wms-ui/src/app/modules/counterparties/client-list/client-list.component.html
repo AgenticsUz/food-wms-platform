@@ -23,6 +23,7 @@
         <tr>
           <th pSortableColumn="name">{{ t('common.name') }} <p-sortIcon field="name" /></th>
           <th>{{ t('common.phone') }}</th>
+          <th>{{ t('partners.inn') }}</th>
           <th>{{ t('common.address') }}</th>
           <th>{{ t('agent.title') }}</th>
           <th class="text-center">{{ t('partners.portal') }}</th>
@@ -33,6 +34,16 @@
         <tr>
           <td><span class="item-name clickable" (click)="viewDetail(item)">{{ item.name }}</span></td>
           <td>{{ item.phone || '—' }}</td>
+          <td>
+            @if (item.inn) {
+              <span class="inn-value">{{ item.inn }}</span>
+              @if (item.isPlatformTenant) {
+                <i class="pi pi-verified platform-mark" [title]="t('partners.onPlatform')"></i>
+              }
+            } @else {
+              <span class="text-muted">—</span>
+            }
+          </td>
           <td>{{ item.address || '—' }}</td>
           <td>
             @if (item.agentId) {
@@ -70,6 +81,17 @@
       <div class="form-field">
         <label>{{ t('common.phone') }}</label>
         <app-phone-input [ngModel]="form().phone" (ngModelChange)="updateForm('phone', $event)" />
+      </div>
+
+      <div class="form-field">
+        <label>{{ t('partners.inn') }}</label>
+        <input pInputText [ngModel]="form().inn ?? ''" (ngModelChange)="updateForm('inn', $event || null)"
+               maxlength="9" inputmode="numeric" class="w-full" [class.ng-invalid]="innInvalid()" />
+        @if (innInvalid()) {
+          <small class="field-error">{{ t('partners.innInvalid') }}</small>
+        } @else {
+          <small class="field-hint">{{ t('partners.innHint') }}</small>
+        }
       </div>
       <div class="form-field">
         <label>{{ t('settings.portalPhone') }}</label>
