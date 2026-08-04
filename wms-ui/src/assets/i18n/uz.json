@@ -637,5 +637,12 @@
     "availablePlans": "Mavjud planlar",
     "currentPlan": "Joriy",
     "contactUs": "Planni o'zgartirish uchun biz bilan bog'laning"
+  },
+  "custom": {
+    "exampleFeature": {
+      "title": "Namuna maxsus fitcha",
+      "subtitle": "Faqat shu mijoz uchun yoqilgan imkoniyat",
+      "placeholder": "Bu — skelet sahifa. Haqiqiy maxsus fitcha shu yerdan boshlanadi."
+    }
   }
 }

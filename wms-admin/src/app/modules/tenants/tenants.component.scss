@@ -120,3 +120,8 @@ code { font-family: var(--font-mono, monospace); font-size: 12px; }
   input { cursor: inherit; }
 }
 @media (max-width: 520px) { .plan-feature-list { grid-template-columns: 1fr; } }
+.feature-owner {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px; color: var(--color-caramel-600);
+  i { font-size: 9px; }
+}

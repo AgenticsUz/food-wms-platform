@@ -27,7 +27,12 @@ export class FeatureService {
 
   isEnabled(code: string): boolean {
     const list = this.enabledFeatures();
-    return list.length === 0 || list.includes(code);
+    if (list.includes(code)) return true;
+    // Maxsus fitcha hech qachon "sukut bo'yicha ochiq" emas: u bitta mijoz uchun
+    // yozilgan va faqat aniq yoqilganda ko'rinadi. Umumiy feature'lar esa ro'yxat
+    // bo'sh bo'lsa ochiq qoladi — regressiya bo'lmasin.
+    if (code.startsWith('custom.')) return false;
+    return list.length === 0;
   }
 
   setFeatures(codes: string[]) {

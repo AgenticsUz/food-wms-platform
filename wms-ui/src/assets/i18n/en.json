@@ -637,5 +637,12 @@
     "availablePlans": "Available plans",
     "currentPlan": "Current",
     "contactUs": "Contact us to change your plan"
+  },
+  "custom": {
+    "exampleFeature": {
+      "title": "Example custom feature",
+      "subtitle": "A capability enabled for this client only",
+      "placeholder": "This is a skeleton page. A real custom feature starts here."
+    }
   }
 }

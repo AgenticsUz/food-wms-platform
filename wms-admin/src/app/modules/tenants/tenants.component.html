@@ -240,6 +240,8 @@
     <div class="feature-head">
       <input pInputText [ngModel]="featureSearch()" (ngModelChange)="featureSearch.set($event)"
         placeholder="Search features" class="feature-search" />
+      <p-button [label]="customOnly() ? 'All' : 'Custom'" icon="pi pi-star" size="small"
+        [outlined]="!customOnly()" title="Show only custom features" (onClick)="customOnly.set(!customOnly())" />
       <p-button label="Reset all to plan" icon="pi pi-undo" size="small" [outlined]="true" (onClick)="resetAllFeatures()" />
     </div>
 
@@ -271,6 +273,14 @@
                         }
                       </span>
                       <span class="feature-code">{{ f.code }}</span>
+                      @if (isCustomFeature(f)) {
+                        <span class="feature-owner">
+                          <i class="pi pi-star"></i>
+                          Built for {{ f.ownerTenantName ?? 'another client' }}
+                          @if (f.requestedAt) { · {{ f.requestedAt | date:'MMM y' }} }
+                          @if (f.reason) { · {{ f.reason }} }
+                        </span>
+                      }
                       @if (f.note) { <span class="feature-note">{{ f.note }}</span> }
                     </div>
                     <div class="state-buttons">

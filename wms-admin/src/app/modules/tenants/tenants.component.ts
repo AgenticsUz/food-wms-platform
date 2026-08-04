@@ -329,10 +329,15 @@ export default class TenantsComponent implements OnInit {
   /** Modul o'chiq bo'lsa uning feature'lari kuchga kirmaydi — buni UI'da ko'rsatamiz. */
   private enabledModuleCodes = signal<string[]>([]);
 
+  /** Maxsus fitchalar alohida ko'rinsin — ular bitta mijoz uchun yozilgan. */
+  customOnly = signal(false);
+
   featureGroups = computed(() => {
     const q = this.featureSearch().trim().toLowerCase();
+    const onlyCustom = this.customOnly();
     const groups = new Map<string, TenantFeature[]>();
     for (const f of this.features()) {
+      if (onlyCustom && !this.isCustomFeature(f)) continue;
       if (q && !f.code.toLowerCase().includes(q) && !f.name.toLowerCase().includes(q)) continue;
       const list = groups.get(f.moduleCode);
       if (list) list.push(f); else groups.set(f.moduleCode, [f]);
@@ -383,7 +388,29 @@ export default class TenantsComponent implements OnInit {
     return f.source === 'tenant';
   }
 
+  isCustomFeature(f: TenantFeature): boolean {
+    return f.isCustom === true || f.code.startsWith('custom.');
+  }
+
+  /** Boshqa mijoz uchun yozilgan fitchani yoqish — ongli qaror bo'lishi kerak. */
+  private isForeignCustom(f: TenantFeature): boolean {
+    const t = this.featuresTenant();
+    return this.isCustomFeature(f) && !!f.ownerTenantId && !!t && f.ownerTenantId !== t.id;
+  }
+
   setFeatureState(f: TenantFeature, state: 'plan' | 'on' | 'off') {
+    if (state === 'on' && this.isForeignCustom(f)) {
+      this.notify.confirmAction(
+        `"${f.name}" was built for ${f.ownerTenantName ?? 'another client'}. Enable anyway?`,
+        'Custom feature',
+        () => this.applyFeatureState(f, state)
+      );
+      return;
+    }
+    this.applyFeatureState(f, state);
+  }
+
+  private applyFeatureState(f: TenantFeature, state: 'plan' | 'on' | 'off') {
     const t = this.featuresTenant(); if (!t) return;
     const isEnabled = state === 'plan' ? null : state === 'on';
     this.service.updateTenantFeatures(t.id, {

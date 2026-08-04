@@ -5,6 +5,7 @@ import { moduleGuard } from './core/guards/module.guard';
 import { portalGuard } from './core/guards/portal.guard';
 import { agentPortalGuard } from './core/guards/agent-portal.guard';
 import { permissionGuard } from './core/guards/permission.guard';
+import { featureGuard } from './core/guards/feature.guard';
 
 export const routes: Routes = [
   {
@@ -67,6 +68,13 @@ export const routes: Routes = [
       {
         path: 'settings',
         loadChildren: () => import('./modules/settings/settings.routes')
+      },
+      // Maxsus (custom) fitchalar — har biri o'z feature'i bilan yopiladi.
+      // Konvensiya: modules/custom/README.md
+      {
+        path: 'custom/example-feature',
+        canActivate: [featureGuard('custom.example-feature')],
+        loadComponent: () => import('./modules/custom/example-feature/example-feature.component')
       }
     ]
   },

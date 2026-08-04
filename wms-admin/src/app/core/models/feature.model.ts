@@ -28,6 +28,8 @@ export interface TenantFeature {
   isCustom?: boolean;
   ownerTenantId?: number | null;
   ownerTenantName?: string | null;
+  requestedAt?: string | null;
+  reason?: string | null;
 }
 
 /** `isEnabled: null` — override olib tashlanadi, plan qiymatiga qaytadi. */

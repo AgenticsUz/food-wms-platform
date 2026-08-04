@@ -114,6 +114,11 @@ export class SidebarComponent {
       ]
     },
     { key: 'nav.agents', icon: 'pi pi-id-card', route: '/agents', moduleCode: 'AGENTS', permissionCode: 'agents.view' },
+    // Custom fitcha namunasi — faqat feature yoqilgan tenantda ko'rinadi
+    {
+      key: 'custom.exampleFeature.title', icon: 'pi pi-star', route: '/custom/example-feature',
+      featureCode: 'custom.example-feature'
+    },
     {
       key: 'nav.delivery', icon: 'pi pi-truck', moduleCode: 'DELIVERY', permissionCode: 'delivery.view',
       children: [
