@@ -12,6 +12,10 @@ public class SubscriptionOptions
     /// is warned. Access is blocked only after TrialEndsAt + GraceDays.
     public int GraceDays { get; set; } = 3;
 
+    /// Same idea for manual billing: days of slack after PaidUntil before access stops,
+    /// so a payment that arrives a day late does not stop a factory.
+    public int PaidGraceDays { get; set; } = 3;
+
     /// How long a tenant's subscription state is cached before it is re-read from the DB.
     /// Bounds how long a suspend takes to bite (default: at most one minute).
     public int StateCacheSeconds { get; set; } = 60;

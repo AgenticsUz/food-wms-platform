@@ -42,6 +42,11 @@ public class TenantStateService : ITenantStateService
                 .Where(tm => tm.TenantId == tenantId && tm.IsEnabled)
                 .Select(tm => tm.Module.Code)
                 .ToListAsync(ct);
+            var moduleSet = new HashSet<string>(modules, StringComparer.OrdinalIgnoreCase);
+
+            // Features are resolved and cached together with modules, so a per-request
+            // feature check costs nothing extra.
+            var features = await FeatureResolver.ResolveAsync(_db, tenantId, moduleSet, ct);
 
             state = new TenantState
             {
@@ -52,7 +57,13 @@ public class TenantStateService : ITenantStateService
                 Status = tenant.SubscriptionStatus,
                 TrialEndsAt = tenant.TrialEndsAt,
                 PlanId = tenant.PlanId,
-                EnabledModules = new HashSet<string>(modules, StringComparer.OrdinalIgnoreCase)
+                PaidUntil = tenant.PaidUntil,
+                SuspendReason = tenant.SuspendReason,
+                SuspendPublicMessage = tenant.SuspendPublicMessage,
+                SuspendedUntil = tenant.SuspendedUntil,
+                EnabledModules = moduleSet,
+                EnabledFeatures = new HashSet<string>(
+                    features.Where(f => f.IsEnabled).Select(f => f.Code), StringComparer.OrdinalIgnoreCase)
             };
         }
 

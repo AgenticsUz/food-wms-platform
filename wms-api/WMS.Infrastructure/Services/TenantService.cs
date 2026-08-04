@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using WMS.Application.Common;
 using WMS.Application.DTOs.Plans;
+using WMS.Application.DTOs.Platform;
 using WMS.Application.DTOs.Tenants;
 using WMS.Application.Interfaces;
 using WMS.Domain.Entities;
@@ -33,10 +34,12 @@ public class TenantService : ITenantService
 
         var planNames = await _db.Plans
             .ToDictionaryAsync(p => p.Id, p => p.Name);
+        var inns = await _db.Organizations.ToDictionaryAsync(o => o.Id, o => o.Inn);
 
         var tenants = await _db.Tenants.OrderByDescending(t => t.CreatedAt).ToListAsync();
         return tenants.Select(t => MapToDto(t, userCounts.GetValueOrDefault(t.Id, 0),
-            t.PlanId != null ? planNames.GetValueOrDefault(t.PlanId.Value) : null)).ToList();
+            t.PlanId != null ? planNames.GetValueOrDefault(t.PlanId.Value) : null,
+            t.OrganizationId != null ? inns.GetValueOrDefault(t.OrganizationId.Value) : null)).ToList();
     }
 
     public async Task<TenantDto> CreateAsync(CreateTenantDto dto)
@@ -45,13 +48,23 @@ public class TenantService : ITenantService
         // foydalanuvchi. Plan berilmasa platformaning default (trial) plani qo'llanadi.
         var (tenant, _) = await TenantProvisioner.ProvisionAsync(
             _db, dto.Name, dto.Slug, dto.AdminFullName, dto.AdminPhone, dto.AdminPassword,
-            _subscription, dto.PlanId);
+            _subscription, dto.PlanId, dto.Inn);
+
+        // A tenant is normally created right after a payment, so the console may send the
+        // paid-through date with the creation itself — that also ends the default trial.
+        if (dto.PaidUntil is { } paidUntil)
+        {
+            tenant.PaidUntil = paidUntil;
+            tenant.SubscriptionStatus = SubscriptionStatus.Active;
+            tenant.TrialEndsAt = null;
+            await _db.SaveChangesAsync();
+        }
 
         var planName = tenant.PlanId != null
             ? (await _db.Plans.FindAsync(tenant.PlanId.Value))?.Name
             : null;
 
-        return MapToDto(tenant, 1, planName);
+        return MapToDto(tenant, 1, planName, await GetInnAsync(tenant.OrganizationId));
     }
 
     public async Task<TenantDto> UpdateAsync(int id, UpdateTenantDto dto)
@@ -70,6 +83,22 @@ public class TenantService : ITenantService
         // Faqat kelgan bo'lsa yoziladi — aks holda formada bu maydon bo'lmasa mavjud
         // trial sanasi jimgina o'chib ketardi.
         if (dto.TrialEndsAt.HasValue) tenant.TrialEndsAt = dto.TrialEndsAt;
+        if (dto.PaidUntil.HasValue) tenant.PaidUntil = dto.PaidUntil;
+
+        // INN: a value (re-)links the tenant to its Organization, an empty string unlinks it,
+        // null (field omitted) leaves the existing link alone.
+        if (dto.Inn != null)
+        {
+            if (string.IsNullOrWhiteSpace(dto.Inn))
+            {
+                tenant.OrganizationId = null;
+            }
+            else
+            {
+                var organization = await OrganizationMatcher.ResolveAsync(_db, dto.Inn, tenant.Name);
+                tenant.OrganizationId = organization?.Id;
+            }
+        }
 
         Plan? plan = null;
         var planChanged = dto.PlanId != tenant.PlanId;
@@ -103,8 +132,13 @@ public class TenantService : ITenantService
         var planName = tenant.PlanId != null
             ? (plan?.Name ?? (await _db.Plans.FindAsync(tenant.PlanId.Value))?.Name)
             : null;
-        return MapToDto(tenant, userCount, planName);
+        return MapToDto(tenant, userCount, planName, await GetInnAsync(tenant.OrganizationId));
     }
+
+    private async Task<string?> GetInnAsync(int? organizationId)
+        => organizationId == null
+            ? null
+            : await _db.Organizations.Where(o => o.Id == organizationId).Select(o => o.Inn).FirstOrDefaultAsync();
 
     /// <summary>
     /// Holat mashinasi (avval aniqlanmagan edi — plan biriktirilsa ham status Trial bo'lib
@@ -132,12 +166,16 @@ public class TenantService : ITenantService
         }
     }
 
-    private static TenantDto MapToDto(Tenant t, int userCount, string? planName) => new()
+    private static TenantDto MapToDto(Tenant t, int userCount, string? planName, string? inn = null) => new()
     {
         Id = t.Id, Name = t.Name, Slug = t.Slug, IsActive = t.IsActive,
         PlanType = t.PlanType, SubscriptionStatus = t.SubscriptionStatus,
         CreatedAt = t.CreatedAt, UserCount = userCount,
-        PlanId = t.PlanId, PlanName = planName, TrialEndsAt = t.TrialEndsAt
+        PlanId = t.PlanId, PlanName = planName, TrialEndsAt = t.TrialEndsAt,
+        PaidUntil = t.PaidUntil, SuspendReason = t.SuspendReason, SuspendNote = t.SuspendNote,
+        SuspendPublicMessage = t.SuspendPublicMessage, SuspendedUntil = t.SuspendedUntil,
+        SuspendedAt = t.SuspendedAt,
+        Inn = inn, OrganizationId = t.OrganizationId
     };
 
     public async Task DeleteAsync(int id)
@@ -248,10 +286,18 @@ public class TenantService : ITenantService
         };
     }
 
-    public async Task<TenantDto> SuspendAsync(int id)
+    public async Task<TenantDto> SuspendAsync(int id, SuspendTenantDto? dto = null, int suspendedByUserId = 0)
     {
         var tenant = await _db.Tenants.FindAsync(id) ?? throw new NotFoundException("Tenant not found");
+
         tenant.SubscriptionStatus = SubscriptionStatus.Suspended;
+        tenant.SuspendReason = dto?.Reason ?? SuspendReason.Other;
+        tenant.SuspendNote = dto?.Note;
+        tenant.SuspendPublicMessage = string.IsNullOrWhiteSpace(dto?.PublicMessage) ? null : dto!.PublicMessage!.Trim();
+        tenant.SuspendedUntil = dto?.Until;
+        tenant.SuspendedAt = DateTime.UtcNow;
+        tenant.SuspendedByUserId = suspendedByUserId > 0 ? suspendedByUserId : null;
+
         await _db.SaveChangesAsync();
         // Cache tozalanadi — suspend keyingi so'rovdayoq kuchga kiradi (kutish yo'q).
         _tenantState.Invalidate(id);
@@ -263,9 +309,22 @@ public class TenantService : ITenantService
         var tenant = await _db.Tenants.FindAsync(id) ?? throw new NotFoundException("Tenant not found");
         tenant.SubscriptionStatus = SubscriptionStatus.Active;
         tenant.IsActive = true;
+        ClearSuspension(tenant);
         await _db.SaveChangesAsync();
         _tenantState.Invalidate(id);
         return await MapWithCountsAsync(tenant);
+    }
+
+    /// Qayta yoqishda barcha to'xtatish maydonlari tozalanadi — aks holda keyingi
+    /// suspend eski sabab va izoh bilan aralashib ketadi.
+    internal static void ClearSuspension(Tenant tenant)
+    {
+        tenant.SuspendReason = null;
+        tenant.SuspendNote = null;
+        tenant.SuspendPublicMessage = null;
+        tenant.SuspendedUntil = null;
+        tenant.SuspendedAt = null;
+        tenant.SuspendedByUserId = null;
     }
 
     public async Task<TenantDto> AssignPlanAsync(int id, int planId)
@@ -281,7 +340,7 @@ public class TenantService : ITenantService
         _tenantState.Invalidate(id);
 
         var userCount = await _db.Users.CountAsync(u => u.TenantId == id);
-        return MapToDto(tenant, userCount, plan.Name);
+        return MapToDto(tenant, userCount, plan.Name, await GetInnAsync(tenant.OrganizationId));
     }
 
     private async Task<TenantDto> MapWithCountsAsync(Tenant tenant)
@@ -290,6 +349,6 @@ public class TenantService : ITenantService
         var planName = tenant.PlanId != null
             ? (await _db.Plans.FindAsync(tenant.PlanId.Value))?.Name
             : null;
-        return MapToDto(tenant, userCount, planName);
+        return MapToDto(tenant, userCount, planName, await GetInnAsync(tenant.OrganizationId));
     }
 }
