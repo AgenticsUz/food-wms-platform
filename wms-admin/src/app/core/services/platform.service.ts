@@ -5,6 +5,7 @@ import {
   PaymentRecord, CreatePaymentDto, SuspendTenantDto
 } from '../models/tenant.model';
 import { Plan, CreatePlanDto, PlatformStats, ModuleInfo } from '../models/plan.model';
+import { Lead, UpdateLeadDto, ConvertLeadDto } from '../models/lead.model';
 
 @Injectable({ providedIn: 'root' })
 export class PlatformService {
@@ -29,6 +30,12 @@ export class PlatformService {
     return this.api.post<PaymentRecord>(`admin/tenants/${tenantId}/payments`, dto);
   }
   deletePayment(paymentId: number) { return this.api.delete<void>(`admin/payments/${paymentId}`); }
+
+  // Leads (demo so'rovlari)
+  getLeads() { return this.api.get<Lead[] | { items: Lead[] }>('admin/leads', { page: 1, pageSize: 200 }); }
+  getLead(id: number) { return this.api.get<Lead>(`admin/leads/${id}`); }
+  updateLead(id: number, dto: UpdateLeadDto) { return this.api.put<Lead>(`admin/leads/${id}`, dto); }
+  convertLead(id: number, dto: ConvertLeadDto) { return this.api.post<Tenant>(`admin/leads/${id}/convert`, dto); }
 
   // Plans
   getPlans() { return this.api.get<Plan[]>('admin/plans'); }

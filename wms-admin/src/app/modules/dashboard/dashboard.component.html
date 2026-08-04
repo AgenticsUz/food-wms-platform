@@ -34,6 +34,10 @@
         <div class="stat-icon" style="background: var(--color-caramel-50); color: var(--color-caramel-600)"><i class="pi pi-calendar-clock"></i></div>
         <div><div class="stat-value">{{ expiringSoon() | number }}</div><div class="stat-label">Expiring soon (7d)</div></div>
       </a>
+      <a class="stat-card stat-link" routerLink="/leads" [queryParams]="{ status: 'New' }">
+        <div class="stat-icon" style="background: var(--color-blueberry-100); color: var(--color-blueberry-600)"><i class="pi pi-inbox"></i></div>
+        <div><div class="stat-value">{{ newLeads() | number }}</div><div class="stat-label">New leads</div></div>
+      </a>
       <a class="stat-card stat-link" routerLink="/tenants" [queryParams]="{ filter: 'expired' }">
         <div class="stat-icon" style="background: var(--color-berry-50); color: var(--color-berry-700)"><i class="pi pi-exclamation-triangle"></i></div>
         <div><div class="stat-value">{{ expired() | number }}</div><div class="stat-label">Payment expired</div></div>

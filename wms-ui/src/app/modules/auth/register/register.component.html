@@ -21,68 +21,78 @@
     </div>
   </aside>
 
-  <!-- Right: form -->
+  <!-- Right: demo request -->
   <section class="login-form-area">
     <div class="login-card">
-      <div class="login-header">
-        <h1 class="login-title">{{ t('auth.registerTitle') }}</h1>
-        <p class="login-subtitle">{{ t('auth.registerSubtitle') }}</p>
-      </div>
-
-      <form class="login-form" (ngSubmit)="register()">
-        <div class="field">
-          <label for="tenantName">{{ t('auth.companyName') }}</label>
-          <input pInputText id="tenantName" name="tenantName"
-                 [ngModel]="tenantName()" (ngModelChange)="onTenantNameInput($event)"
-                 [placeholder]="t('auth.companyNamePlaceholder')" class="w-full" />
+      @if (sent()) {
+        <div class="demo-sent">
+          <div class="sent-icon"><i class="pi pi-check"></i></div>
+          <h1 class="login-title">{{ t('auth.demoSuccessTitle') }}</h1>
+          <p class="login-subtitle">{{ t('auth.demoSuccessText') }}</p>
+          <p class="sent-contact">{{ t('auth.demoContact') }} <a [href]="'tel:' + supportPhone">{{ supportPhone }}</a></p>
+          <div class="login-alt-links">
+            <a routerLink="/auth/login"><i class="pi pi-sign-in"></i> {{ t('auth.signIn') }}</a>
+          </div>
+        </div>
+      } @else {
+        <div class="login-header">
+          <h1 class="login-title">{{ t('auth.demoTitle') }}</h1>
+          <p class="login-subtitle">{{ t('auth.demoSubtitle') }}</p>
         </div>
 
-        <div class="field">
-          <label for="slug">{{ t('auth.slug') }}</label>
-          <input pInputText id="slug" name="slug"
-                 [ngModel]="slug()" (ngModelChange)="onSlugInput($event)"
-                 placeholder="my-factory" autocomplete="off" class="w-full" />
+        <form class="login-form" (ngSubmit)="submit()">
+          <div class="field">
+            <label for="companyName">{{ t('auth.companyName') }}</label>
+            <input pInputText id="companyName" name="companyName"
+                   [ngModel]="companyName()" (ngModelChange)="companyName.set($event)"
+                   [placeholder]="t('auth.companyNamePlaceholder')" class="w-full" />
+          </div>
+
+          <div class="field">
+            <label for="contactName">{{ t('auth.contactName') }}</label>
+            <input pInputText id="contactName" name="contactName"
+                   [ngModel]="contactName()" (ngModelChange)="contactName.set($event)"
+                   autocomplete="name" class="w-full" />
+          </div>
+
+          <div class="field">
+            <label for="phone">{{ t('auth.phone') }}</label>
+            <p-inputgroup>
+              <p-inputgroup-addon>+998</p-inputgroup-addon>
+              <input pInputText id="phone" name="phone"
+                     [ngModel]="phone()" (ngModelChange)="onPhoneInput($event)"
+                     placeholder="88 123 45 67" maxlength="9" autocomplete="tel" class="w-full" />
+            </p-inputgroup>
+          </div>
+
+          <div class="field">
+            <label for="email">{{ t('auth.emailOptional') }}</label>
+            <input pInputText id="email" name="email" type="email"
+                   [ngModel]="email()" (ngModelChange)="email.set($event)"
+                   autocomplete="email" class="w-full" />
+          </div>
+
+          <div class="field">
+            <label for="note">{{ t('auth.demoNote') }}</label>
+            <textarea pTextarea id="note" name="note" rows="2"
+                      [ngModel]="note()" (ngModelChange)="note.set($event)" class="w-full"></textarea>
+          </div>
+
+          <button type="submit" class="submit-btn" [disabled]="loading()">
+            @if (loading()) {
+              <i class="pi pi-spin pi-spinner"></i>
+            } @else {
+              <i class="pi pi-send"></i>
+            }
+            <span>{{ t('auth.sendRequest') }}</span>
+          </button>
+        </form>
+
+        <div class="login-alt-links">
+          <span>{{ t('auth.haveAccount') }}</span>
+          <a routerLink="/auth/login"><i class="pi pi-sign-in"></i> {{ t('auth.signIn') }}</a>
         </div>
-
-        <div class="field">
-          <label for="fullName">{{ t('auth.fullName') }}</label>
-          <input pInputText id="fullName" name="fullName"
-                 [ngModel]="fullName()" (ngModelChange)="fullName.set($event)"
-                 autocomplete="name" class="w-full" />
-        </div>
-
-        <div class="field">
-          <label for="phone">{{ t('auth.phone') }}</label>
-          <p-inputgroup>
-            <p-inputgroup-addon>+998</p-inputgroup-addon>
-            <input pInputText id="phone" name="phone"
-                   [ngModel]="phone()" (ngModelChange)="onPhoneInput($event)"
-                   placeholder="88 123 45 67" maxlength="9" autocomplete="tel" class="w-full" />
-          </p-inputgroup>
-        </div>
-
-        <div class="field">
-          <label for="password">{{ t('auth.password') }}</label>
-          <p-password id="password" name="password"
-                      [ngModel]="password()" (ngModelChange)="password.set($event)"
-                      [toggleMask]="true" [feedback]="true" autocomplete="new-password"
-                      styleClass="w-full" inputStyleClass="w-full" />
-        </div>
-
-        <button type="submit" class="submit-btn" [disabled]="loading()">
-          @if (loading()) {
-            <i class="pi pi-spin pi-spinner"></i>
-          } @else {
-            <i class="pi pi-user-plus"></i>
-          }
-          <span>{{ t('auth.createAccount') }}</span>
-        </button>
-      </form>
-
-      <div class="login-alt-links">
-        <span>{{ t('auth.haveAccount') }}</span>
-        <a routerLink="/auth/login"><i class="pi pi-sign-in"></i> {{ t('auth.signIn') }}</a>
-      </div>
+      }
     </div>
   </section>
 </div>

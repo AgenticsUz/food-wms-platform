@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { tap, switchMap, map, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { LoginDto, AuthResponse, User, RegisterDto } from '../models/auth.model';
+import { LoginDto, AuthResponse, User } from '../models/auth.model';
 import { ApiResponse } from '../models/api-response.model';
 import { PermissionService } from './permission.service';
 import { NotificationBellService } from './notification-bell.service';
@@ -54,19 +54,6 @@ export class AuthService {
           );
         }
         return of(res);
-      })
-    );
-  }
-
-  register(dto: RegisterDto) {
-    return this.http.post<ApiResponse<AuthResponse>>(`${environment.apiUrl}/auth/register`, dto).pipe(
-      tap(res => {
-        this.applyAuth(res);
-        // Register javobi permissionlarni ham qaytaradi (Admin — barchasi)
-        if (res.success && res.data?.user.permissions) {
-          this.permissionService.setPermissions(res.data.user.permissions);
-          localStorage.setItem('permissions', JSON.stringify(res.data.user.permissions));
-        }
       })
     );
   }

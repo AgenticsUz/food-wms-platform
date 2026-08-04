@@ -36,6 +36,9 @@ export default class DashboardComponent implements OnInit {
     return d !== null && d < 0;
   }).length);
 
+  /** Javob berilmagan demo so'rovlari. */
+  newLeads = signal(0);
+
   ngOnInit() {
     this.service.getStats().subscribe({
       next: (res) => {
@@ -51,6 +54,11 @@ export default class DashboardComponent implements OnInit {
     // miqyosida ro'yxat kichik, alohida endpoint kerak emas.
     this.service.getTenants().subscribe(res => {
       if (res.success && res.data) this.tenants.set(res.data);
+    });
+    this.service.getLeads().subscribe(res => {
+      const data = res.success ? res.data : null;
+      const list = Array.isArray(data) ? data : (data?.items ?? []);
+      this.newLeads.set(list.filter(l => l.status === 'New').length);
     });
   }
 

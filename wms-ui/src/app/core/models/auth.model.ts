@@ -23,10 +23,3 @@ export interface User {
   enabledModules?: string[];
 }
 
-export interface RegisterDto {
-  tenantName: string;
-  slug: string;
-  fullName: string;
-  phone: string;
-  password: string;
-}

@@ -1,65 +1,50 @@
 import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { InputText } from 'primeng/inputtext';
-import { Password } from 'primeng/password';
+import { Textarea } from 'primeng/textarea';
 import { InputGroup } from 'primeng/inputgroup';
 import { InputGroupAddon } from 'primeng/inputgroupaddon';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
-import { AuthService } from '../../../core/services/auth.service';
-import { TenantService } from '../../../core/services/tenant.service';
-import { NotificationBellService } from '../../../core/services/notification-bell.service';
+import { LeadService } from '../../../core/services/lead.service';
 import { NotificationService } from '../../../shared/services/notification.service';
+import { environment } from '../../../../environments/environment';
 
+/**
+ * Avval bu sahifa tenant yaratardi. Yangi modelda hisobni faqat platforma egasi
+ * ochadi, shuning uchun sahifa demo so'rovini qoldiradi — slug, parol va modul
+ * tanlash umuman yo'q.
+ */
 @Component({
-  selector: 'app-register',
+  selector: 'app-request-demo',
   standalone: true,
-  imports: [FormsModule, RouterLink, InputText, Password, InputGroup, InputGroupAddon, TranslocoDirective],
+  imports: [FormsModule, RouterLink, InputText, Textarea, InputGroup, InputGroupAddon, TranslocoDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './register.component.html',
   styleUrl: '../login/login.component.scss'
 })
-export default class RegisterComponent {
-  private authService = inject(AuthService);
-  private tenantService = inject(TenantService);
-  private bellService = inject(NotificationBellService);
-  private router = inject(Router);
+export default class RequestDemoComponent {
+  private leads = inject(LeadService);
   private notify = inject(NotificationService);
   private transloco = inject(TranslocoService);
 
-  tenantName = signal('');
-  slug = signal('');
-  slugEdited = signal(false);
-  fullName = signal('');
+  companyName = signal('');
+  contactName = signal('');
   phone = signal('');
-  password = signal('');
+  email = signal('');
+  note = signal('');
   loading = signal(false);
+  /** Yuborilgach forma o'rniga tasdiq ekrani qoladi — qayta yuborish yo'q. */
+  sent = signal(false);
 
-  onTenantNameInput(value: string) {
-    this.tenantName.set(value);
-    // Slug avtomatik taklif qilinadi (foydalanuvchi qo'lda o'zgartirmagan bo'lsa)
-    if (!this.slugEdited()) this.slug.set(this.slugify(value));
-  }
-
-  onSlugInput(value: string) {
-    this.slugEdited.set(true);
-    this.slug.set(this.slugify(value));
-  }
+  readonly supportPhone = environment.supportPhone;
 
   onPhoneInput(value: string) {
     this.phone.set(value.replace(/\D/g, ''));
   }
 
-  private slugify(v: string): string {
-    return v.toLowerCase().trim()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/[\s-]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-  }
-
-  register() {
-    if (!this.tenantName().trim() || !this.slug().trim() || !this.fullName().trim()
-      || !this.phone() || !this.password()) {
+  submit() {
+    if (!this.companyName().trim() || !this.contactName().trim() || !this.phone()) {
       this.notify.warn(this.transloco.translate('auth.fillAllFields'));
       return;
     }
@@ -67,33 +52,23 @@ export default class RegisterComponent {
       this.notify.warn(this.transloco.translate('auth.phoneLength'));
       return;
     }
-    if (this.password().length < 6) {
-      this.notify.warn(this.transloco.translate('auth.passwordTooShort'));
-      return;
-    }
 
     this.loading.set(true);
-    this.authService.register({
-      tenantName: this.tenantName().trim(),
-      slug: this.slug().trim(),
-      fullName: this.fullName().trim(),
+    this.leads.requestDemo({
+      companyName: this.companyName().trim(),
+      contactName: this.contactName().trim(),
       phone: '+998' + this.phone(),
-      password: this.password()
+      email: this.email().trim() || null,
+      note: this.note().trim() || null
     }).subscribe({
-      next: (res) => {
-        this.loading.set(false);
-        if (res.success && res.data) {
-          this.tenantService.loadModules();
-          this.bellService.startPolling();
-          this.notify.success(this.transloco.translate('auth.registerSuccess'));
-          this.router.navigate(['/dashboard']);
-        } else {
-          this.notify.error(res.message ?? this.transloco.translate('auth.registerFailed'));
-        }
-      },
+      next: () => { this.loading.set(false); this.sent.set(true); },
       error: (err) => {
         this.loading.set(false);
-        this.notify.error(err.error?.message ?? this.transloco.translate('auth.registerFailed'));
+        if (err.status === 429) {
+          this.notify.warn(this.transloco.translate('auth.demoTooMany'));
+          return;
+        }
+        this.notify.error(err.error?.message ?? this.transloco.translate('auth.demoFailed'));
       }
     });
   }
