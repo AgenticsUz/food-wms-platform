@@ -8,6 +8,7 @@ import { InputText } from 'primeng/inputtext';
 import { InputNumber } from 'primeng/inputnumber';
 import { MultiSelect } from 'primeng/multiselect';
 import { ToggleSwitch } from 'primeng/toggleswitch';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { PlatformService } from '../../core/services/platform.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { Plan } from '../../core/models/plan.model';
@@ -27,7 +28,7 @@ const GENERAL_GROUP = 'GENERAL';
 @Component({
   selector: 'app-plans',
   standalone: true,
-  imports: [DecimalPipe, FormsModule, TableModule, Button, Dialog, InputText, InputNumber, MultiSelect, ToggleSwitch],
+  imports: [TranslocoDirective, DecimalPipe, FormsModule, TableModule, Button, Dialog, InputText, InputNumber, MultiSelect, ToggleSwitch],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './plans.component.html',
   styleUrl: '../tenants/tenants.component.scss'
@@ -35,6 +36,7 @@ const GENERAL_GROUP = 'GENERAL';
 export default class PlansComponent implements OnInit {
   private service = inject(PlatformService);
   private notify = inject(NotificationService);
+  private transloco = inject(TranslocoService);
 
   plans = signal<Plan[]>([]);
   modules = signal<ModuleInfo[]>([]);
@@ -110,7 +112,7 @@ export default class PlansComponent implements OnInit {
 
   save() {
     const f = this.form();
-    if (!f.name.trim() || !f.code.trim()) { this.notify.warn('Name and code are required'); return; }
+    if (!f.name.trim() || !f.code.trim()) { this.notify.warn(this.transloco.translate('plans.nameRequired')); return; }
     this.saving.set(true);
     const dto = { name: f.name.trim(), code: f.code.trim(), price: f.price, isActive: f.isActive,
       moduleCodes: f.moduleCodes, featureCodes: f.featureCodes,
@@ -118,14 +120,17 @@ export default class PlansComponent implements OnInit {
       maxTransfersPerMonth: f.maxTransfersPerMonth, trialDays: f.trialDays, isDefault: f.isDefault };
     const obs = this.editing() ? this.service.updatePlan(f.id!, dto) : this.service.createPlan(dto);
     obs.subscribe({
-      next: () => { this.saving.set(false); this.dialogVisible.set(false); this.notify.success('Saved'); this.load(); },
+      next: () => { this.saving.set(false); this.dialogVisible.set(false); this.notify.success(this.transloco.translate('plans.saved')); this.load(); },
       error: () => this.saving.set(false)
     });
   }
 
   remove(p: Plan) {
-    this.notify.confirmDelete(`Delete plan "${p.name}"?`, () => {
-      this.service.deletePlan(p.id).subscribe(() => { this.notify.success('Deleted'); this.load(); });
+    this.notify.confirmDelete(this.transloco.translate('plans.deleteConfirm', { name: p.name }), () => {
+      this.service.deletePlan(p.id).subscribe(() => {
+        this.notify.success(this.transloco.translate('plans.deleted'));
+        this.load();
+      });
     });
   }
 }

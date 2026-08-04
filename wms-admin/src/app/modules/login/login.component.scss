@@ -46,3 +46,17 @@
 
 .login-hint { text-align: center; color: var(--text-muted); font-size: 13px; margin: 20px 0 0; }
 .w-full { width: 100%; }
+
+/* Til tanlagich — kirishdan oldin ham */
+.lang-switch { display: flex; gap: 6px; justify-content: center; margin-bottom: 18px; }
+.lang-btn {
+  padding: 5px 14px; font-size: 12px; font-weight: 600;
+  border: 1px solid var(--border-default); border-radius: 8px;
+  background: transparent; color: var(--text-muted); cursor: pointer;
+  &:hover { background: var(--bg-inset); }
+  &.active {
+    background: var(--color-pistachio-50);
+    border-color: var(--color-pistachio-500);
+    color: var(--color-pistachio-700);
+  }
+}

@@ -6,6 +6,7 @@ import { TableModule } from 'primeng/table';
 import { Button } from 'primeng/button';
 import { Drawer } from 'primeng/drawer';
 import { InputText } from 'primeng/inputtext';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { PlatformService } from '../../core/services/platform.service';
 import { Organization, OrganizationDetail } from '../../core/models/organization.model';
 
@@ -16,7 +17,7 @@ import { Organization, OrganizationDetail } from '../../core/models/organization
 @Component({
   selector: 'app-organizations',
   standalone: true,
-  imports: [DatePipe, FormsModule, TableModule, Button, Drawer, InputText],
+  imports: [TranslocoDirective, DatePipe, FormsModule, TableModule, Button, Drawer, InputText],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './organizations.component.html',
   styleUrl: '../leads/leads.component.scss'

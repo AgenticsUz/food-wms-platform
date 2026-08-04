@@ -1,30 +1,30 @@
-<div class="page">
+<div class="page" *transloco="let t">
   <header class="page-head">
     <div>
-      <h1>Leads</h1>
-      <p>Demo requests waiting for a call</p>
+      <h1>{{ t('leads.title') }}</h1>
+      <p>{{ t('leads.subtitle') }}</p>
     </div>
     @if (newCount() > 0) {
-      <span class="pill pill-info new-count">{{ newCount() }} new</span>
+      <span class="pill pill-info new-count">{{ t('leads.newCount', { count: newCount() }) }}</span>
     }
   </header>
 
   <div class="wms-card filters-bar">
-    <input pInputText [ngModel]="search()" (ngModelChange)="search.set($event)" placeholder="Company or phone" class="filter-search" />
-    <p-select [options]="statusOptions" [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)"
-      optionLabel="label" optionValue="value" [showClear]="true" placeholder="Any status" styleClass="filter-select" />
-    <p-select [options]="sourceOptions" [ngModel]="sourceFilter()" (ngModelChange)="sourceFilter.set($event)"
-      optionLabel="label" optionValue="value" [showClear]="true" placeholder="Any source" styleClass="filter-select" />
-    <p-datepicker [ngModel]="fromDate()" (ngModelChange)="fromDate.set($event)" dateFormat="yy-mm-dd" placeholder="From" [showClear]="true" />
-    <p-datepicker [ngModel]="toDate()" (ngModelChange)="toDate.set($event)" dateFormat="yy-mm-dd" placeholder="To" [showClear]="true" />
-    <p-button icon="pi pi-filter-slash" [text]="true" title="Clear filters" (onClick)="clearFilters()" />
+    <input pInputText [ngModel]="search()" (ngModelChange)="search.set($event)" [placeholder]="t('leads.search')" class="filter-search" />
+    <p-select [options]="statusOptions()" [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)"
+      optionLabel="label" optionValue="value" [showClear]="true" [placeholder]="t('leads.anyStatus')" styleClass="filter-select" />
+    <p-select [options]="sourceOptions()" [ngModel]="sourceFilter()" (ngModelChange)="sourceFilter.set($event)"
+      optionLabel="label" optionValue="value" [showClear]="true" [placeholder]="t('leads.anySource')" styleClass="filter-select" />
+    <p-datepicker [ngModel]="fromDate()" (ngModelChange)="fromDate.set($event)" dateFormat="yy-mm-dd" [placeholder]="t('common.from')" [showClear]="true" />
+    <p-datepicker [ngModel]="toDate()" (ngModelChange)="toDate.set($event)" dateFormat="yy-mm-dd" [placeholder]="t('common.to')" [showClear]="true" />
+    <p-button icon="pi pi-filter-slash" [text]="true" [title]="t('leads.clearFilters')" (onClick)="clearFilters()" />
   </div>
 
   <div class="wms-card table-wrapper">
     <p-table [value]="visibleLeads()" [loading]="loading()" [paginator]="true" [rows]="20" styleClass="p-datatable-sm p-datatable-striped">
       <ng-template #header>
         <tr>
-          <th>Company</th><th>Contact</th><th>Phone</th><th>Source</th><th>Via</th><th>Status</th><th>Received</th><th></th>
+          <th>{{ t('leads.company') }}</th><th>{{ t('leads.contact') }}</th><th>{{ t('common.phone') }}</th><th>{{ t('leads.source') }}</th><th>{{ t('leads.via') }}</th><th>{{ t('common.status') }}</th><th>{{ t('leads.received') }}</th><th></th>
         </tr>
       </ng-template>
       <ng-template #body let-row>
@@ -32,7 +32,7 @@
           <td><span class="item-name">{{ row.companyName }}</span></td>
           <td>{{ row.contactName }}</td>
           <td><code>{{ row.phone }}</code></td>
-          <td>{{ row.source }}</td>
+          <td>{{ t('leads.source_.' + row.source) }}</td>
           <td>
             @if (row.referrerTenantName) {
               <span class="via-tenant" (click)="goToTenant(row.referrerTenantId)">{{ row.referrerTenantName }}</span>
@@ -43,70 +43,70 @@
           <td><span [class]="statusClass(row.status)">{{ statusLabel(row.status) }}</span></td>
           <td>{{ row.createdAt | date:'MMM d, y' }}</td>
           <td class="actions-cell">
-            <p-button icon="pi pi-eye" [text]="true" size="small" title="Open" (onClick)="open(row)" />
+            <p-button icon="pi pi-eye" [text]="true" size="small" [title]="t('leads.open')" (onClick)="open(row)" />
           </td>
         </tr>
       </ng-template>
       <ng-template #emptymessage>
-        <tr><td colspan="8"><div class="empty-state"><i class="pi pi-inbox"></i><p>No leads match this filter</p></div></td></tr>
+        <tr><td colspan="8"><div class="empty-state"><i class="pi pi-inbox"></i><p>{{ t('leads.noMatch') }}</p></div></td></tr>
       </ng-template>
     </p-table>
   </div>
 
   <!-- Detail -->
   <p-drawer [visible]="drawerVisible()" (visibleChange)="drawerVisible.set($event)" position="right"
-    [style]="{ width: '460px' }" [header]="selected()?.companyName ?? 'Lead'">
+    [style]="{ width: '460px' }" [header]="selected()?.companyName ?? t('leads.title')">
     @if (selected(); as lead) {
       <div class="drawer-body">
         <div class="detail-grid">
-          <span class="detail-label">Contact</span><span>{{ lead.contactName }}</span>
-          <span class="detail-label">Phone</span><span><a [href]="'tel:' + lead.phone">{{ lead.phone }}</a></span>
-          <span class="detail-label">Email</span><span>{{ lead.email || '—' }}</span>
-          <span class="detail-label">Source</span><span>{{ lead.source }}</span>
+          <span class="detail-label">{{ t('leads.contact') }}</span><span>{{ lead.contactName }}</span>
+          <span class="detail-label">{{ t('common.phone') }}</span><span><a [href]="'tel:' + lead.phone">{{ lead.phone }}</a></span>
+          <span class="detail-label">{{ t('common.email') }}</span><span>{{ lead.email || '—' }}</span>
+          <span class="detail-label">{{ t('leads.source') }}</span><span>{{ t('leads.source_.' + lead.source) }}</span>
           @if (lead.referrerTenantName) {
-            <span class="detail-label">Via</span>
+            <span class="detail-label">{{ t('leads.via') }}</span>
             <span class="via-tenant" (click)="goToTenant(lead.referrerTenantId!)">{{ lead.referrerTenantName }}</span>
           }
-          <span class="detail-label">Received</span><span>{{ lead.createdAt | date:'MMM d, y HH:mm' }}</span>
+          <span class="detail-label">{{ t('leads.received') }}</span><span>{{ lead.createdAt | date:'MMM d, y HH:mm' }}</span>
           @if (lead.updatedAt) {
-            <span class="detail-label">Updated</span><span>{{ lead.updatedAt | date:'MMM d, y HH:mm' }}</span>
+            <span class="detail-label">{{ t('leads.detailUpdated') }}</span><span>{{ lead.updatedAt | date:'MMM d, y HH:mm' }}</span>
           }
         </div>
 
         @if (lead.note) {
           <div class="detail-note">
-            <span class="detail-label">Note</span>
+            <span class="detail-label">{{ t('common.note') }}</span>
             <p>{{ lead.note }}</p>
           </div>
         }
 
         @if (lead.statusNote) {
           <div class="detail-note">
-            <span class="detail-label">Last status note</span>
+            <span class="detail-label">{{ t('leads.lastStatusNote') }}</span>
             <p>{{ lead.statusNote }}</p>
           </div>
         }
 
-        <div class="divider">Status</div>
+        <div class="divider">{{ t('common.status') }}</div>
         <div class="ff">
-          <p-select [options]="statusOptions" [ngModel]="statusDraft()" (ngModelChange)="statusDraft.set($event)"
+          <p-select [options]="statusOptions()" [ngModel]="statusDraft()" (ngModelChange)="statusDraft.set($event)"
             optionLabel="label" optionValue="value" styleClass="w-full" />
         </div>
         <div class="ff">
-          <label>Note</label>
+          <label>{{ t('common.note') }}</label>
           <textarea pTextarea [ngModel]="statusNote()" (ngModelChange)="statusNote.set($event)" rows="2" class="w-full"></textarea>
         </div>
-        <p-button label="Save status" icon="pi pi-check" [loading]="saving()" (onClick)="saveStatus()" styleClass="w-full" />
+        <p-button [label]="t('leads.saveStatus')" icon="pi pi-check" [loading]="saving()" (onClick)="saveStatus()" styleClass="w-full" />
 
-        <div class="divider">Conversion</div>
+        <div class="divider">{{ t('leads.conversion') }}</div>
         @if (lead.convertedTenantId) {
           <div class="converted-note">
             <i class="pi pi-check-circle"></i>
-            <span>Converted to a tenant.</span>
-            <a (click)="goToTenant(lead.convertedTenantId)">Open tenant</a>
+            <span>{{ t('leads.converted') }}</span>
+            <a (click)="goToTenant(lead.convertedTenantId)">{{ t('leads.openTenant') }}</a>
           </div>
         } @else {
-          <p-button label="Convert to tenant" icon="pi pi-building" severity="success"
+          <p-button [label]="t('leads.convert')" icon="pi pi-building" severity="success"
             (onClick)="openConvert()" styleClass="w-full" />
         }
       </div>
@@ -115,31 +115,31 @@
 
   <!-- Convert -->
   <p-dialog [visible]="convertVisible()" (visibleChange)="convertVisible.set($event)"
-    header="Convert lead to tenant" [modal]="true" [style]="{ width: '460px' }" [draggable]="false">
+    [header]="t('leads.convertTitle')" [modal]="true" [style]="{ width: '460px' }" [draggable]="false">
     <div class="dialog-form">
-      <div class="ff"><label>Name *</label><input pInputText [ngModel]="convertForm().name" (ngModelChange)="updateConvert('name', $event)" class="w-full" /></div>
-      <div class="ff"><label>Slug *</label>
+      <div class="ff"><label>{{ t('common.name') }} *</label><input pInputText [ngModel]="convertForm().name" (ngModelChange)="updateConvert('name', $event)" class="w-full" /></div>
+      <div class="ff"><label>{{ t('tenants.form.slug') }} *</label>
         <input pInputText [ngModel]="convertForm().slug" (ngModelChange)="updateConvert('slug', $event)" autocomplete="off" class="w-full" />
-        <small class="field-hint">Must be unique across the platform.</small>
+        <small class="field-hint">{{ t('leads.slugHint') }}</small>
       </div>
-      <div class="ff"><label>Plan</label>
+      <div class="ff"><label>{{ t('tenants.plan') }}</label>
         <p-select [options]="planOptions()" [ngModel]="convertForm().planId" (ngModelChange)="updateConvert('planId', $event)"
-          optionLabel="label" optionValue="value" [showClear]="true" placeholder="No plan" styleClass="w-full" />
+          optionLabel="label" optionValue="value" [showClear]="true" [placeholder]="t('common.dash')" styleClass="w-full" />
       </div>
-      <div class="ff"><label>Paid until</label>
+      <div class="ff"><label>{{ t('tenants.paidUntil') }}</label>
         <p-datepicker [ngModel]="convertForm().paidUntil" (ngModelChange)="updateConvert('paidUntil', $event)"
           dateFormat="yy-mm-dd" [showIcon]="true" [showClear]="true" styleClass="w-full" />
-        <small class="field-hint">Leave empty if the customer has not paid yet.</small>
+        <small class="field-hint">{{ t('leads.paidUntilHint') }}</small>
       </div>
 
-      <div class="divider">Admin account</div>
-      <div class="ff"><label>Full name *</label><input pInputText [ngModel]="convertForm().adminFullName" (ngModelChange)="updateConvert('adminFullName', $event)" class="w-full" /></div>
-      <div class="ff"><label>Phone *</label><input pInputText [ngModel]="convertForm().adminPhone" (ngModelChange)="updateConvert('adminPhone', $event)" class="w-full" /></div>
-      <div class="ff"><label>Password *</label><p-password [ngModel]="convertForm().adminPassword" (ngModelChange)="updateConvert('adminPassword', $event)" [toggleMask]="true" [feedback]="false" styleClass="w-full" inputStyleClass="w-full" /></div>
+      <div class="divider">{{ t('tenants.form.adminAccount') }}</div>
+      <div class="ff"><label>{{ t('tenants.form.fullName') }} *</label><input pInputText [ngModel]="convertForm().adminFullName" (ngModelChange)="updateConvert('adminFullName', $event)" class="w-full" /></div>
+      <div class="ff"><label>{{ t('common.phone') }} *</label><input pInputText [ngModel]="convertForm().adminPhone" (ngModelChange)="updateConvert('adminPhone', $event)" class="w-full" /></div>
+      <div class="ff"><label>{{ t('tenants.form.password') }} *</label><p-password [ngModel]="convertForm().adminPassword" (ngModelChange)="updateConvert('adminPassword', $event)" [toggleMask]="true" [feedback]="false" styleClass="w-full" inputStyleClass="w-full" /></div>
     </div>
     <ng-template #footer>
-      <p-button label="Cancel" [text]="true" (onClick)="convertVisible.set(false)" />
-      <p-button label="Create tenant" icon="pi pi-check" [loading]="saving()" (onClick)="convert()" />
+      <p-button [label]="t('common.cancel')" [text]="true" (onClick)="convertVisible.set(false)" />
+      <p-button [label]="t('leads.createTenant')" icon="pi pi-check" [loading]="saving()" (onClick)="convert()" />
     </ng-template>
   </p-dialog>
 </div>

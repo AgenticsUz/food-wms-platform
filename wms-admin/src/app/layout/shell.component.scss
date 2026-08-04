@@ -70,3 +70,30 @@
   .nav { flex-direction: row; flex-wrap: wrap; }
   .content { padding: 16px; }
 }
+
+/* Til tanlagich */
+.lang-switch {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.lang-btn {
+  flex: 1;
+  padding: 5px 0;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+
+  &:hover { background: var(--bg-inset); color: var(--text-secondary); }
+  &.active {
+    background: var(--color-pistachio-50);
+    border-color: var(--color-pistachio-500);
+    color: var(--color-pistachio-700);
+  }
+}

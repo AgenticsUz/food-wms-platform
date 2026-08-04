@@ -1,14 +1,14 @@
-<div class="page">
+<div class="page" *transloco="let t">
   <header class="page-head">
-    <div><h1>Tenants</h1><p>Manage all factories on the platform</p></div>
+    <div><h1>{{ t('tenants.title') }}</h1><p>{{ t('tenants.subtitle') }}</p></div>
     <div class="head-actions">
-      <p-select [options]="filterOptions" [ngModel]="filter()" (ngModelChange)="filter.set($event)"
+      <p-select [options]="filterOptions()" [ngModel]="filter()" (ngModelChange)="filter.set($event)"
         optionLabel="label" optionValue="value" styleClass="filter-select" />
       @if (filter() === 'suspended') {
-        <p-select [options]="reasonOptions" [ngModel]="reasonFilter()" (ngModelChange)="reasonFilter.set($event)"
-          optionLabel="label" optionValue="value" [showClear]="true" placeholder="Any reason" styleClass="filter-select" />
+        <p-select [options]="reasonOptions()" [ngModel]="reasonFilter()" (ngModelChange)="reasonFilter.set($event)"
+          optionLabel="label" optionValue="value" [showClear]="true" [placeholder]="t('tenants.anyReason')" styleClass="filter-select" />
       }
-      <p-button icon="pi pi-plus" label="New tenant" (onClick)="openNew()" />
+      <p-button icon="pi pi-plus" [label]="t('tenants.newTenant')" (onClick)="openNew()" />
     </div>
   </header>
 
@@ -16,8 +16,8 @@
     <p-table [value]="visibleTenants()" [loading]="loading()" [paginator]="true" [rows]="20" styleClass="p-datatable-sm p-datatable-striped">
       <ng-template #header>
         <tr>
-          <th>Name</th><th>Slug</th><th>Plan</th><th>Status</th><th>Paid until</th><th>Trial ends</th>
-          <th class="text-right">Users</th><th></th>
+          <th>{{ t('common.name') }}</th><th>{{ t('tenants.form.slug') }}</th><th>{{ t('tenants.plan') }}</th><th>{{ t('common.status') }}</th><th>{{ t('tenants.paidUntil') }}</th><th>{{ t('tenants.trialEnds') }}</th>
+          <th class="text-right">{{ t('tenants.users') }}</th><th></th>
         </tr>
       </ng-template>
       <ng-template #body let-row>
@@ -30,7 +30,7 @@
               {{ statusLabel(row.subscriptionStatus) }}@if (row.subscriptionStatus === S.Suspended && row.suspendReason) {<span> · {{ reasonLabel(row.suspendReason) }}</span>}
             </span>
             @if (row.subscriptionStatus === S.Suspended && row.suspendedUntil) {
-              <div class="until-note">until {{ row.suspendedUntil | date:'MMM d' }}</div>
+              <div class="until-note">{{ t('tenants.until', { date: (row.suspendedUntil | date:'MMM d') }) }}</div>
             }
           </td>
           <td>
@@ -40,7 +40,7 @@
                 <span [class]="paidClass(row)">{{ paidLabel(row) }}</span>
               </div>
             } @else {
-              <span class="text-muted" title="No payment deadline — this tenant is never blocked for non-payment">—</span>
+              <span class="text-muted" [title]="t('tenants.noLimitTooltip')">—</span>
             }
           </td>
           <td>
@@ -55,133 +55,133 @@
           </td>
           <td class="text-right"><span class="num">{{ row.userCount }}</span></td>
           <td class="actions-cell">
-            <p-button icon="pi pi-wallet" [text]="true" size="small" severity="success" title="Record payment" (onClick)="openPayment(row)" />
-            <p-button icon="pi pi-history" [text]="true" size="small" title="Payment history" (onClick)="openHistory(row)" />
+            <p-button icon="pi pi-wallet" [text]="true" size="small" severity="success" [title]="t('tenants.payment.record')" (onClick)="openPayment(row)" />
+            <p-button icon="pi pi-history" [text]="true" size="small" [title]="t('tenants.payment.history')" (onClick)="openHistory(row)" />
             @if (row.subscriptionStatus === S.Suspended) {
-              <p-button icon="pi pi-play" [text]="true" size="small" severity="success" title="Activate" (onClick)="activate(row)" />
+              <p-button icon="pi pi-play" [text]="true" size="small" severity="success" [title]="t('tenants.suspend.activate')" (onClick)="activate(row)" />
             } @else {
-              <p-button icon="pi pi-ban" [text]="true" size="small" severity="warn" title="Suspend" (onClick)="openSuspend(row)" />
+              <p-button icon="pi pi-ban" [text]="true" size="small" severity="warn" [title]="t('tenants.suspend.action')" (onClick)="openSuspend(row)" />
             }
-            <p-button icon="pi pi-th-large" [text]="true" size="small" title="Modules" (onClick)="openModules(row)" />
-            <p-button icon="pi pi-sliders-h" [text]="true" size="small" title="Features" (onClick)="openFeatures(row)" />
+            <p-button icon="pi pi-th-large" [text]="true" size="small" [title]="t('tenants.modules.action')" (onClick)="openModules(row)" />
+            <p-button icon="pi pi-sliders-h" [text]="true" size="small" [title]="t('tenants.features.action')" (onClick)="openFeatures(row)" />
             <p-button icon="pi pi-pencil" [text]="true" size="small" (onClick)="openEdit(row)" />
             <p-button icon="pi pi-trash" [text]="true" size="small" severity="danger" (onClick)="remove(row)" />
           </td>
         </tr>
       </ng-template>
       <ng-template #emptymessage>
-        <tr><td colspan="8"><div class="empty-state"><i class="pi pi-building"></i><p>No tenants match this filter</p></div></td></tr>
+        <tr><td colspan="8"><div class="empty-state"><i class="pi pi-building"></i><p>{{ t('tenants.noMatch') }}</p></div></td></tr>
       </ng-template>
     </p-table>
   </div>
 
   <!-- Create / edit -->
   <p-dialog [visible]="dialogVisible()" (visibleChange)="dialogVisible.set($event)"
-    [header]="editing() ? 'Edit tenant' : 'New tenant'" [modal]="true" [style]="{ width: '460px' }" [draggable]="false">
+    [header]="editing() ? t('tenants.editTenant') : t('tenants.newTenant')" [modal]="true" [style]="{ width: '460px' }" [draggable]="false">
     <div class="dialog-form">
-      <div class="ff"><label>Name *</label><input pInputText [ngModel]="form().name" (ngModelChange)="updateForm('name', $event)" class="w-full" /></div>
-      <div class="ff"><label>Slug *</label><input pInputText [ngModel]="form().slug" (ngModelChange)="updateForm('slug', $event)" autocomplete="off" class="w-full" /></div>
-      <div class="ff"><label>TIN (STIR)</label>
+      <div class="ff"><label>{{ t('common.name') }} *</label><input pInputText [ngModel]="form().name" (ngModelChange)="updateForm('name', $event)" class="w-full" /></div>
+      <div class="ff"><label>{{ t('tenants.form.slug') }} *</label><input pInputText [ngModel]="form().slug" (ngModelChange)="updateForm('slug', $event)" autocomplete="off" class="w-full" /></div>
+      <div class="ff"><label>{{ t('tenants.form.tin') }}</label>
         <input pInputText [ngModel]="form().inn" (ngModelChange)="updateForm('inn', $event)"
           maxlength="9" inputmode="numeric" autocomplete="off" class="w-full" />
         @if (innInvalid()) {
-          <small class="field-hint field-error">TIN must be exactly 9 digits.</small>
+          <small class="field-hint field-error">{{ t('tenants.tinInvalid') }}</small>
         } @else {
-          <small class="field-hint">Links this tenant to the platform-wide company record.</small>
+          <small class="field-hint">{{ t('tenants.form.tinHint') }}</small>
         }
       </div>
-      <div class="ff"><label>Plan</label>
+      <div class="ff"><label>{{ t('tenants.plan') }}</label>
         <p-select [options]="planOptions()" [ngModel]="form().planId" (ngModelChange)="updateForm('planId', $event)"
-          optionLabel="label" optionValue="value" [showClear]="true" placeholder="No plan" styleClass="w-full" />
+          optionLabel="label" optionValue="value" [showClear]="true" [placeholder]="t('common.dash')" styleClass="w-full" />
         @if (!editing()) {
-          <small class="field-hint">If no plan is selected, the default (trial) plan is applied.</small>
+          <small class="field-hint">{{ t('tenants.form.planHintNew') }}</small>
         } @else {
-          <small class="field-hint">Removing the plan leaves the tenant unrestricted.</small>
+          <small class="field-hint">{{ t('tenants.form.planHintEdit') }}</small>
         }
       </div>
 
       @if (!editing()) {
-        <div class="divider">Admin account</div>
-        <div class="ff"><label>Full name *</label><input pInputText [ngModel]="form().adminFullName" (ngModelChange)="updateForm('adminFullName', $event)" class="w-full" /></div>
-        <div class="ff"><label>Phone *</label><input pInputText [ngModel]="form().adminPhone" (ngModelChange)="updateForm('adminPhone', $event)" placeholder="+998 88 123 45 67" class="w-full" /></div>
-        <div class="ff"><label>Password *</label><p-password [ngModel]="form().adminPassword" (ngModelChange)="updateForm('adminPassword', $event)" [toggleMask]="true" [feedback]="false" styleClass="w-full" inputStyleClass="w-full" /></div>
+        <div class="divider">{{ t('tenants.form.adminAccount') }}</div>
+        <div class="ff"><label>{{ t('tenants.form.fullName') }} *</label><input pInputText [ngModel]="form().adminFullName" (ngModelChange)="updateForm('adminFullName', $event)" class="w-full" /></div>
+        <div class="ff"><label>{{ t('common.phone') }} *</label><input pInputText [ngModel]="form().adminPhone" (ngModelChange)="updateForm('adminPhone', $event)" placeholder="+998 88 123 45 67" class="w-full" /></div>
+        <div class="ff"><label>{{ t('tenants.form.password') }} *</label><p-password [ngModel]="form().adminPassword" (ngModelChange)="updateForm('adminPassword', $event)" [toggleMask]="true" [feedback]="false" styleClass="w-full" inputStyleClass="w-full" /></div>
       } @else {
-        <div class="ff"><label>Status</label>
-          <p-select [options]="statusOptions" [ngModel]="form().subscriptionStatus" (ngModelChange)="updateForm('subscriptionStatus', $event)" optionLabel="label" optionValue="value" styleClass="w-full" />
+        <div class="ff"><label>{{ t('common.status') }}</label>
+          <p-select [options]="statusOptions()" [ngModel]="form().subscriptionStatus" (ngModelChange)="updateForm('subscriptionStatus', $event)" optionLabel="label" optionValue="value" styleClass="w-full" />
         </div>
-        <div class="ff"><label>Trial ends</label>
+        <div class="ff"><label>{{ t('tenants.trialEnds') }}</label>
           <p-datepicker [ngModel]="form().trialEndsAt" (ngModelChange)="updateForm('trialEndsAt', $event)" dateFormat="yy-mm-dd" [showIcon]="true" [showClear]="true" styleClass="w-full" />
-          <small class="field-hint">Leave empty to keep the current date. Paid until is set by recording a payment.</small>
+          <small class="field-hint">{{ t('tenants.form.trialEndsHint') }}</small>
         </div>
-        <div class="ff-inline"><label>Active</label><p-toggleswitch [ngModel]="form().isActive" (ngModelChange)="updateForm('isActive', $event)" /></div>
+        <div class="ff-inline"><label>{{ t('tenants.form.activeLabel') }}</label><p-toggleswitch [ngModel]="form().isActive" (ngModelChange)="updateForm('isActive', $event)" /></div>
       }
     </div>
     <ng-template #footer>
-      <p-button label="Cancel" [text]="true" (onClick)="dialogVisible.set(false)" />
-      <p-button label="Save" icon="pi pi-check" [loading]="saving()" (onClick)="save()" />
+      <p-button [label]="t('common.cancel')" [text]="true" (onClick)="dialogVisible.set(false)" />
+      <p-button [label]="t('common.save')" icon="pi pi-check" [loading]="saving()" (onClick)="save()" />
     </ng-template>
   </p-dialog>
 
   <!-- Record payment -->
   <p-dialog [visible]="paymentVisible()" (visibleChange)="paymentVisible.set($event)"
-    [header]="'Record payment — ' + (paymentTenant()?.name ?? '')" [modal]="true" [style]="{ width: '480px' }" [draggable]="false">
+    [header]="t('tenants.payment.title', { name: paymentTenant()?.name ?? '' })" [modal]="true" [style]="{ width: '480px' }" [draggable]="false">
     <div class="dialog-form">
       @if (paymentTenant()?.paidUntil; as until) {
-        <div class="current-paid">Currently paid until <strong>{{ until | date:'MMM d, y' }}</strong></div>
+        <div class="current-paid">{{ t('tenants.payment.currentlyPaid') }} <strong>{{ until | date:'MMM d, y' }}</strong></div>
       } @else {
-        <div class="current-paid">No payment deadline set yet</div>
+        <div class="current-paid">{{ t('tenants.payment.noDeadline') }}</div>
       }
 
       <div class="quick-row">
-        <span class="quick-label">Quick period</span>
-        <p-button label="+1 month" size="small" [outlined]="true" (onClick)="addPeriod(1)" />
-        <p-button label="+3 months" size="small" [outlined]="true" (onClick)="addPeriod(3)" />
-        <p-button label="+6 months" size="small" [outlined]="true" (onClick)="addPeriod(6)" />
-        <p-button label="+1 year" size="small" [outlined]="true" (onClick)="addPeriod(12)" />
+        <span class="quick-label">{{ t('tenants.payment.quickPeriod') }}</span>
+        <p-button [label]="t('tenants.payment.month1')" size="small" [outlined]="true" (onClick)="addPeriod(1)" />
+        <p-button [label]="t('tenants.payment.month3')" size="small" [outlined]="true" (onClick)="addPeriod(3)" />
+        <p-button [label]="t('tenants.payment.month6')" size="small" [outlined]="true" (onClick)="addPeriod(6)" />
+        <p-button [label]="t('tenants.payment.year1')" size="small" [outlined]="true" (onClick)="addPeriod(12)" />
       </div>
 
       <div class="limits-grid two">
-        <div class="ff"><label>Period start *</label>
+        <div class="ff"><label>{{ t('tenants.payment.periodStart') }} *</label>
           <p-datepicker [ngModel]="paymentForm().periodStart" (ngModelChange)="updatePayment('periodStart', $event)"
             dateFormat="yy-mm-dd" [showIcon]="true" styleClass="w-full" />
         </div>
-        <div class="ff"><label>Period end *</label>
+        <div class="ff"><label>{{ t('tenants.payment.periodEnd') }} *</label>
           <p-datepicker [ngModel]="paymentForm().periodEnd" (ngModelChange)="updatePayment('periodEnd', $event)"
             dateFormat="yy-mm-dd" [showIcon]="true" styleClass="w-full" />
         </div>
       </div>
 
       <div class="limits-grid two">
-        <div class="ff"><label>Amount *</label>
+        <div class="ff"><label>{{ t('tenants.payment.amount') }} *</label>
           <p-inputNumber [ngModel]="paymentForm().amount" (ngModelChange)="updatePayment('amount', $event ?? 0)"
             [min]="0" [useGrouping]="true" [maxFractionDigits]="2" styleClass="w-full" inputStyleClass="w-full" />
         </div>
-        <div class="ff"><label>Currency</label>
+        <div class="ff"><label>{{ t('tenants.payment.currency') }}</label>
           <input pInputText [ngModel]="paymentForm().currency" (ngModelChange)="updatePayment('currency', $event)" class="w-full" />
         </div>
       </div>
 
-      <div class="ff"><label>Method</label>
-        <p-select [options]="methodOptions" [ngModel]="paymentForm().method" (ngModelChange)="updatePayment('method', $event)"
+      <div class="ff"><label>{{ t('tenants.payment.method') }}</label>
+        <p-select [options]="methodOptions()" [ngModel]="paymentForm().method" (ngModelChange)="updatePayment('method', $event)"
           optionLabel="label" optionValue="value" styleClass="w-full" />
       </div>
-      <div class="ff"><label>Note</label>
+      <div class="ff"><label>{{ t('common.note') }}</label>
         <textarea pTextarea [ngModel]="paymentForm().note" (ngModelChange)="updatePayment('note', $event)" rows="2" class="w-full"></textarea>
       </div>
     </div>
     <ng-template #footer>
-      <p-button label="Cancel" [text]="true" (onClick)="paymentVisible.set(false)" />
-      <p-button label="Record payment" icon="pi pi-check" [loading]="saving()" (onClick)="savePayment()" />
+      <p-button [label]="t('common.cancel')" [text]="true" (onClick)="paymentVisible.set(false)" />
+      <p-button [label]="t('tenants.payment.record')" icon="pi pi-check" [loading]="saving()" (onClick)="savePayment()" />
     </ng-template>
   </p-dialog>
 
   <!-- Payment history -->
   <p-dialog [visible]="historyVisible()" (visibleChange)="historyVisible.set($event)"
-    [header]="'Payment history — ' + (paymentTenant()?.name ?? '')" [modal]="true" [style]="{ width: '760px' }" [draggable]="false">
+    [header]="t('tenants.payment.historyTitle', { name: paymentTenant()?.name ?? '' })" [modal]="true" [style]="{ width: '760px' }" [draggable]="false">
     <p-table [value]="payments()" [loading]="loadingPayments()" styleClass="p-datatable-sm">
       <ng-template #header>
         <tr>
-          <th>Recorded</th><th>Period</th><th class="text-right">Amount</th><th>Method</th><th>Note</th><th>By</th><th></th>
+          <th>{{ t('tenants.payment.recorded') }}</th><th>{{ t('tenants.payment.period') }}</th><th class="text-right">{{ t('tenants.payment.amount') }}</th><th>{{ t('tenants.payment.method') }}</th><th>{{ t('common.note') }}</th><th>{{ t('tenants.payment.by') }}</th><th></th>
         </tr>
       </ng-template>
       <ng-template #body let-row>
@@ -189,73 +189,73 @@
           <td>{{ row.recordedAt | date:'MMM d, y' }}</td>
           <td>{{ row.periodStart | date:'MMM d' }} — {{ row.periodEnd | date:'MMM d, y' }}</td>
           <td class="text-right"><span class="num">{{ row.amount | number:'1.0-2' }}</span> {{ row.currency }}</td>
-          <td>{{ row.method }}</td>
+          <td>{{ t('paymentMethod.' + row.method) }}</td>
           <td class="note-cell">{{ row.note || '—' }}</td>
           <td>{{ row.recordedByName || '—' }}</td>
           <td class="actions-cell">
-            <p-button icon="pi pi-times" [text]="true" size="small" severity="danger" title="Cancel record" (onClick)="cancelPayment(row)" />
+            <p-button icon="pi pi-times" [text]="true" size="small" severity="danger" [title]="t('tenants.payment.cancelRecord')" (onClick)="cancelPayment(row)" />
           </td>
         </tr>
       </ng-template>
       <ng-template #emptymessage>
-        <tr><td colspan="7"><div class="empty-state"><i class="pi pi-wallet"></i><p>No payments recorded</p></div></td></tr>
+        <tr><td colspan="7"><div class="empty-state"><i class="pi pi-wallet"></i><p>{{ t('tenants.payment.noPayments') }}</p></div></td></tr>
       </ng-template>
     </p-table>
   </p-dialog>
 
   <!-- Suspend -->
   <p-dialog [visible]="suspendVisible()" (visibleChange)="suspendVisible.set($event)"
-    [header]="'Suspend — ' + (suspendTenantRef()?.name ?? '')" [modal]="true" [style]="{ width: '520px' }" [draggable]="false">
+    [header]="t('tenants.suspend.title', { name: suspendTenantRef()?.name ?? '' })" [modal]="true" [style]="{ width: '520px' }" [draggable]="false">
     <div class="dialog-form">
-      <div class="ff"><label>Reason *</label>
-        <p-select [options]="reasonOptions" [ngModel]="suspendForm().reason" (ngModelChange)="updateSuspend('reason', $event)"
-          optionLabel="label" optionValue="value" placeholder="Select a reason" styleClass="w-full" />
+      <div class="ff"><label>{{ t('tenants.suspend.reason') }} *</label>
+        <p-select [options]="reasonOptions()" [ngModel]="suspendForm().reason" (ngModelChange)="updateSuspend('reason', $event)"
+          optionLabel="label" optionValue="value" [placeholder]="t('tenants.suspend.selectReason')" styleClass="w-full" />
       </div>
 
-      <div class="ff"><label>Internal note</label>
+      <div class="ff"><label>{{ t('tenants.suspend.internalNote') }}</label>
         <textarea pTextarea [ngModel]="suspendForm().note" (ngModelChange)="updateSuspend('note', $event)" rows="2" class="w-full"></textarea>
-        <small class="field-hint internal-hint"><i class="pi pi-lock"></i> Internal — not shown to the client</small>
+        <small class="field-hint internal-hint"><i class="pi pi-lock"></i> {{ t('tenants.suspend.internalHint') }}</small>
       </div>
 
-      <div class="ff"><label>Message to the client</label>
+      <div class="ff"><label>{{ t('tenants.suspend.clientMessage') }}</label>
         <textarea pTextarea [ngModel]="suspendForm().publicMessage" (ngModelChange)="updateSuspend('publicMessage', $event)" rows="2" class="w-full"></textarea>
         <div class="client-preview">
-          <span class="preview-label">The client sees:</span>
-          <span class="preview-text">{{ suspendForm().publicMessage.trim() || 'The default message for the selected reason.' }}</span>
+          <span class="preview-label">{{ t('tenants.suspend.clientSees') }}</span>
+          <span class="preview-text">{{ suspendForm().publicMessage.trim() || t('tenants.suspend.defaultMessage') }}</span>
         </div>
       </div>
 
       <div class="ff-inline">
-        <label>Temporary suspension</label>
+        <label>{{ t('tenants.suspend.temporary') }}</label>
         <p-toggleswitch [ngModel]="suspendForm().temporary" (ngModelChange)="updateSuspend('temporary', $event)" />
       </div>
       @if (suspendForm().temporary) {
-        <div class="ff"><label>Auto-reactivate on *</label>
+        <div class="ff"><label>{{ t('tenants.suspend.autoOn') }} *</label>
           <p-datepicker [ngModel]="suspendForm().until" (ngModelChange)="updateSuspend('until', $event)"
             dateFormat="yy-mm-dd" [showIcon]="true" styleClass="w-full" />
-          <small class="field-hint">Tenant will be reactivated automatically on this date.</small>
+          <small class="field-hint">{{ t('tenants.suspend.autoHint') }}</small>
         </div>
       }
     </div>
     <ng-template #footer>
-      <p-button label="Cancel" [text]="true" (onClick)="suspendVisible.set(false)" />
-      <p-button label="Suspend" icon="pi pi-ban" severity="danger" [loading]="saving()" [disabled]="!canSuspend()" (onClick)="confirmSuspend()" />
+      <p-button [label]="t('common.cancel')" [text]="true" (onClick)="suspendVisible.set(false)" />
+      <p-button [label]="t('tenants.suspend.action')" icon="pi pi-ban" severity="danger" [loading]="saving()" [disabled]="!canSuspend()" (onClick)="confirmSuspend()" />
     </ng-template>
   </p-dialog>
 
   <!-- Features -->
   <p-dialog [visible]="featuresVisible()" (visibleChange)="featuresVisible.set($event)"
-    [header]="(featuresTenant()?.name ?? '') + ' — Features'" [modal]="true" [style]="{ width: '620px' }" [draggable]="false">
+    [header]="t('tenants.features.title', { name: featuresTenant()?.name ?? '' })" [modal]="true" [style]="{ width: '620px' }" [draggable]="false">
     <div class="feature-head">
       <input pInputText [ngModel]="featureSearch()" (ngModelChange)="featureSearch.set($event)"
-        placeholder="Search features" class="feature-search" />
-      <p-button [label]="customOnly() ? 'All' : 'Custom'" icon="pi pi-star" size="small"
-        [outlined]="!customOnly()" title="Show only custom features" (onClick)="customOnly.set(!customOnly())" />
-      <p-button label="Reset all to plan" icon="pi pi-undo" size="small" [outlined]="true" (onClick)="resetAllFeatures()" />
+        [placeholder]="t('tenants.features.search')" class="feature-search" />
+      <p-button [label]="customOnly() ? t('tenants.features.all') : t('tenants.features.custom')" icon="pi pi-star" size="small"
+        [outlined]="!customOnly()" [title]="t('tenants.features.customTip')" (onClick)="customOnly.set(!customOnly())" />
+      <p-button [label]="t('tenants.features.resetAll')" icon="pi pi-undo" size="small" [outlined]="true" (onClick)="resetAllFeatures()" />
     </div>
 
     @if (loadingFeatures()) {
-      <div class="empty-state"><i class="pi pi-spin pi-spinner"></i><p>Loading…</p></div>
+      <div class="empty-state"><i class="pi pi-spin pi-spinner"></i><p>{{ t('common.loading') }}</p></div>
     } @else {
       <div class="feature-groups">
         @for (group of featureGroups(); track group.moduleCode) {
@@ -267,7 +267,7 @@
             </button>
 
             @if (!group.moduleEnabled) {
-              <div class="module-off-note"><i class="pi pi-info-circle"></i> Module disabled — features have no effect</div>
+              <div class="module-off-note"><i class="pi pi-info-circle"></i> {{ t('tenants.features.moduleDisabled') }}</div>
             }
 
             @if (isGroupOpen(group.moduleCode)) {
@@ -278,14 +278,14 @@
                       <span class="feature-name">
                         {{ f.name }}
                         @if (isFeatureOutsidePlan(f)) {
-                          <span class="pill pill-warning outside-plan" title="Set manually — differs from the plan">override</span>
+                          <span class="pill pill-warning outside-plan" [title]="t('tenants.features.overrideTip')">{{ t('tenants.features.override') }}</span>
                         }
                       </span>
                       <span class="feature-code">{{ f.code }}</span>
                       @if (isCustomFeature(f)) {
                         <span class="feature-owner">
                           <i class="pi pi-star"></i>
-                          Built for {{ f.ownerTenantName ?? 'another client' }}
+                          {{ t('tenants.features.builtFor', { name: f.ownerTenantName ?? t('tenants.features.unknownClient') }) }}
                           @if (f.requestedAt) { · {{ f.requestedAt | date:'MMM y' }} }
                           @if (f.reason) { · {{ f.reason }} }
                         </span>
@@ -294,11 +294,11 @@
                     </div>
                     <div class="state-buttons">
                       <button type="button" class="state-btn" [class.active]="featureState(f) === 'plan'"
-                        title="Follow the plan" (click)="setFeatureState(f, 'plan')">Plan</button>
+                        [title]="t('tenants.features.statePlanTip')" (click)="setFeatureState(f, 'plan')">{{ t('tenants.features.statePlan') }}</button>
                       <button type="button" class="state-btn state-on" [class.active]="featureState(f) === 'on'"
-                        title="Force on" (click)="setFeatureState(f, 'on')">On</button>
+                        [title]="t('tenants.features.stateOnTip')" (click)="setFeatureState(f, 'on')">{{ t('tenants.features.stateOn') }}</button>
                       <button type="button" class="state-btn state-off" [class.active]="featureState(f) === 'off'"
-                        title="Force off" (click)="setFeatureState(f, 'off')">Off</button>
+                        [title]="t('tenants.features.stateOffTip')" (click)="setFeatureState(f, 'off')">{{ t('tenants.features.stateOff') }}</button>
                     </div>
                   </div>
                 }
@@ -306,7 +306,7 @@
             }
           </div>
         } @empty {
-          <div class="empty-state"><i class="pi pi-sliders-h"></i><p>No features match</p></div>
+          <div class="empty-state"><i class="pi pi-sliders-h"></i><p>{{ t('tenants.features.noMatch') }}</p></div>
         }
       </div>
     }
@@ -314,14 +314,14 @@
 
   <!-- Modules -->
   <p-dialog [visible]="modulesVisible()" (visibleChange)="modulesVisible.set($event)"
-    [header]="(modulesTenant()?.name ?? '') + ' — Modules'" [modal]="true" [style]="{ width: '420px' }" [draggable]="false">
+    [header]="t('tenants.modules.title', { name: modulesTenant()?.name ?? '' })" [modal]="true" [style]="{ width: '420px' }" [draggable]="false">
     <div class="module-list">
       @for (m of modules(); track m.moduleId) {
         <div class="module-row">
           <span class="module-label">
             {{ m.moduleName }}
             @if (isOutsidePlan(m)) {
-              <span class="pill pill-warning outside-plan" title="Enabled manually — not part of the tenant's plan">outside plan</span>
+              <span class="pill pill-warning outside-plan" [title]="t('tenants.modules.outsidePlanTip')">{{ t('tenants.modules.outsidePlan') }}</span>
             }
           </span>
           <p-toggleswitch [ngModel]="m.isEnabled" (ngModelChange)="toggleModule(m, $event)" />

@@ -12,6 +12,7 @@ import { Password } from 'primeng/password';
 import { Select } from 'primeng/select';
 import { DatePicker } from 'primeng/datepicker';
 import { ToggleSwitch } from 'primeng/toggleswitch';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { PlatformService } from '../../core/services/platform.service';
 import { NotificationService } from '../../core/services/notification.service';
 import {
@@ -50,7 +51,7 @@ const GENERAL_GROUP = 'GENERAL';
 @Component({
   selector: 'app-tenants',
   standalone: true,
-  imports: [DatePipe, DecimalPipe, FormsModule, TableModule, Button, Dialog, InputText,
+  imports: [TranslocoDirective, DatePipe, DecimalPipe, FormsModule, TableModule, Button, Dialog, InputText,
     InputNumber, Textarea, Password, Select, DatePicker, ToggleSwitch],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './tenants.component.html',
@@ -60,6 +61,7 @@ export default class TenantsComponent implements OnInit {
   private service = inject(PlatformService);
   private notify = inject(NotificationService);
   private route = inject(ActivatedRoute);
+  private transloco = inject(TranslocoService);
 
   tenants = signal<Tenant[]>([]);
   plans = signal<Plan[]>([]);
@@ -68,14 +70,17 @@ export default class TenantsComponent implements OnInit {
 
   filter = signal<TenantFilter>('all');
   reasonFilter = signal<SuspendReason | null>(null);
-  filterOptions = [
-    { label: 'All tenants', value: 'all' as TenantFilter },
-    { label: 'Expiring soon (7d)', value: 'expiring' as TenantFilter },
-    { label: 'Expired', value: 'expired' as TenantFilter },
-    { label: 'No limit', value: 'nolimit' as TenantFilter },
-    { label: 'Suspended', value: 'suspended' as TenantFilter }
+  private readonly filterKeys: { key: string; value: TenantFilter }[] = [
+    { key: 'tenants.filterAll', value: 'all' },
+    { key: 'tenants.filterExpiring', value: 'expiring' },
+    { key: 'tenants.filterExpired', value: 'expired' },
+    { key: 'tenants.filterNoLimit', value: 'nolimit' },
+    { key: 'tenants.filterSuspended', value: 'suspended' }
   ];
-  readonly reasonOptions = SUSPEND_REASONS;
+  filterOptions = computed(() =>
+    this.filterKeys.map(o => ({ label: this.transloco.translate(o.key), value: o.value })));
+  reasonOptions = computed(() =>
+    SUSPEND_REASONS.map(o => ({ label: this.transloco.translate('suspendReason.' + o.value), value: o.value })));
 
   visibleTenants = computed(() => {
     const f = this.filter();
@@ -110,13 +115,14 @@ export default class TenantsComponent implements OnInit {
   historyVisible = signal(false);
   payments = signal<PaymentRecord[]>([]);
   loadingPayments = signal(false);
-  readonly methodOptions = PAYMENT_METHODS;
+  methodOptions = computed(() =>
+    PAYMENT_METHODS.map(o => ({ label: this.transloco.translate('paymentMethod.' + o.value), value: o.value })));
 
-  statusOptions = [
-    { label: 'Trial', value: SubscriptionStatus.Trial },
-    { label: 'Active', value: SubscriptionStatus.Active },
-    { label: 'Suspended', value: SubscriptionStatus.Suspended }
-  ];
+  statusOptions = computed(() => [
+    { label: this.transloco.translate('status.Trial'), value: SubscriptionStatus.Trial },
+    { label: this.transloco.translate('status.Active'), value: SubscriptionStatus.Active },
+    { label: this.transloco.translate('status.Suspended'), value: SubscriptionStatus.Suspended }
+  ]);
 
   private empty(): TenantForm {
     return { name: '', slug: '', inn: '', adminFullName: '', adminPhone: '', adminPassword: '',
@@ -132,7 +138,7 @@ export default class TenantsComponent implements OnInit {
     this.service.getPlans().subscribe(r => { if (r.success && r.data) this.plans.set(r.data); });
     // Dashboard kartalari shu filtr bilan havola qiladi
     const f = this.route.snapshot.queryParamMap.get('filter') as TenantFilter | null;
-    if (f && this.filterOptions.some(o => o.value === f)) this.filter.set(f);
+    if (f && this.filterKeys.some(o => o.value === f)) this.filter.set(f);
   }
 
   load() {
@@ -165,8 +171,8 @@ export default class TenantsComponent implements OnInit {
 
   save() {
     const f = this.form();
-    if (!f.name.trim() || !f.slug.trim()) { this.notify.warn('Name and slug are required'); return; }
-    if (this.innInvalid()) { this.notify.warn('TIN must be exactly 9 digits'); return; }
+    if (!f.name.trim() || !f.slug.trim()) { this.notify.warn(this.transloco.translate('tenants.nameRequired')); return; }
+    if (this.innInvalid()) { this.notify.warn(this.transloco.translate('tenants.tinInvalid')); return; }
     this.saving.set(true);
     if (this.editing()) {
       this.service.updateTenant(f.id!, {
@@ -176,7 +182,7 @@ export default class TenantsComponent implements OnInit {
       }).subscribe({ next: () => this.afterSave(), error: () => this.saving.set(false) });
     } else {
       if (!f.adminFullName.trim() || !f.adminPhone.trim() || f.adminPassword.length < 6) {
-        this.saving.set(false); this.notify.warn('Admin name, phone and a 6+ char password are required'); return;
+        this.saving.set(false); this.notify.warn(this.transloco.translate('tenants.adminRequired')); return;
       }
       this.service.createTenant({
         name: f.name.trim(), slug: f.slug.trim(), inn: f.inn.trim() || null,
@@ -185,7 +191,7 @@ export default class TenantsComponent implements OnInit {
       }).subscribe({ next: () => this.afterSave(), error: () => this.saving.set(false) });
     }
   }
-  private afterSave() { this.saving.set(false); this.dialogVisible.set(false); this.notify.success('Saved'); this.load(); }
+  private afterSave() { this.saving.set(false); this.dialogVisible.set(false); this.notify.success(this.transloco.translate('tenants.saved')); this.load(); }
 
   // ---- Suspend ------------------------------------------------------------
 
@@ -226,23 +232,33 @@ export default class TenantsComponent implements OnInit {
       next: () => {
         this.saving.set(false); this.suspendVisible.set(false);
         this.notify.success(f.temporary && f.until
-          ? `Suspended until ${f.until.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`
-          : 'Suspended');
+          ? this.transloco.translate('tenants.suspend.suspendedUntil', { date: this.formatDate(f.until) })
+          : this.transloco.translate('tenants.suspend.suspended'));
         this.load();
       },
       error: () => this.saving.set(false)
     });
   }
 
-  activate(t: Tenant) { this.service.activateTenant(t.id).subscribe(() => { this.notify.success('Activated'); this.load(); }); }
+  activate(t: Tenant) { this.service.activateTenant(t.id).subscribe(() => { this.notify.success(this.transloco.translate('tenants.activated')); this.load(); }); }
 
   reasonLabel(reason: SuspendReason | null): string {
-    return SUSPEND_REASONS.find(r => r.value === reason)?.label ?? '';
+    return reason ? this.transloco.translate('suspendReason.' + reason) : '';
+  }
+
+  /** Sana toastlarda bir xil ko'rinsin — brauzer lokali emas, tanlangan til. */
+  private formatDate(d: Date): string {
+    return d.toLocaleDateString(this.transloco.getActiveLang(), {
+      day: 'numeric', month: 'short', year: 'numeric'
+    });
   }
 
   remove(t: Tenant) {
-    this.notify.confirmDelete(`Delete "${t.name}"?`, () => {
-      this.service.deleteTenant(t.id).subscribe(() => { this.notify.success('Deleted'); this.load(); });
+    this.notify.confirmDelete(this.transloco.translate('tenants.deleteConfirm', { name: t.name }), () => {
+      this.service.deleteTenant(t.id).subscribe(() => {
+        this.notify.success(this.transloco.translate('tenants.deleted'));
+        this.load();
+      });
     });
   }
 
@@ -283,9 +299,9 @@ export default class TenantsComponent implements OnInit {
   savePayment() {
     const t = this.paymentTenant(); const f = this.paymentForm();
     if (!t) return;
-    if (!f.periodStart || !f.periodEnd) { this.notify.warn('Period start and end are required'); return; }
-    if (f.periodEnd <= f.periodStart) { this.notify.warn('Period end must be after the start'); return; }
-    if (f.amount <= 0) { this.notify.warn('Amount must be greater than zero'); return; }
+    if (!f.periodStart || !f.periodEnd) { this.notify.warn(this.transloco.translate('tenants.payment.periodRequired')); return; }
+    if (f.periodEnd <= f.periodStart) { this.notify.warn(this.transloco.translate('tenants.payment.periodOrder')); return; }
+    if (f.amount <= 0) { this.notify.warn(this.transloco.translate('tenants.payment.amountRequired')); return; }
 
     const wasSuspendedForNonPayment =
       t.subscriptionStatus === SubscriptionStatus.Suspended && t.suspendReason === 'NonPayment';
@@ -297,8 +313,8 @@ export default class TenantsComponent implements OnInit {
     }).subscribe({
       next: () => {
         this.saving.set(false); this.paymentVisible.set(false);
-        this.notify.success(`Paid until ${f.periodEnd!.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`);
-        if (wasSuspendedForNonPayment) this.notify.info('Tenant reactivated');
+        this.notify.success(this.transloco.translate('tenants.payment.paidUntilToast', { date: this.formatDate(f.periodEnd!) }));
+        if (wasSuspendedForNonPayment) this.notify.info(this.transloco.translate('tenants.payment.reactivated'));
         this.load();
       },
       error: () => this.saving.set(false)
@@ -316,10 +332,10 @@ export default class TenantsComponent implements OnInit {
 
   cancelPayment(p: PaymentRecord) {
     this.notify.confirmDelete(
-      'Cancel this payment record? Paid until will be recalculated from the remaining records.',
+      this.transloco.translate('tenants.payment.cancelConfirm'),
       () => {
         this.service.deletePayment(p.id).subscribe(() => {
-          this.notify.success('Payment record cancelled');
+          this.notify.success(this.transloco.translate('tenants.payment.cancelled'));
           this.payments.update(list => list.filter(x => x.id !== p.id));
           this.load();
         });
@@ -415,8 +431,11 @@ export default class TenantsComponent implements OnInit {
   setFeatureState(f: TenantFeature, state: 'plan' | 'on' | 'off') {
     if (state === 'on' && this.isForeignCustom(f)) {
       this.notify.confirmAction(
-        `"${f.name}" was built for ${f.ownerTenantName ?? 'another client'}. Enable anyway?`,
-        'Custom feature',
+        this.transloco.translate('tenants.features.customConfirm', {
+          name: f.name,
+          owner: f.ownerTenantName ?? this.transloco.translate('tenants.features.unknownClient')
+        }),
+        this.transloco.translate('tenants.features.customConfirmHeader'),
         () => this.applyFeatureState(f, state)
       );
       return;
@@ -430,7 +449,8 @@ export default class TenantsComponent implements OnInit {
     this.service.updateTenantFeatures(t.id, {
       features: [{ code: f.code, isEnabled, note: f.note }]
     }).subscribe(() => {
-      this.notify.success(state === 'plan' ? `${f.name} follows the plan again` : `${f.name} ${state === 'on' ? 'enabled' : 'disabled'}`);
+      const key = state === 'plan' ? 'followsPlanToast' : state === 'on' ? 'enabledToast' : 'disabledToast';
+      this.notify.success(this.transloco.translate('tenants.features.' + key, { name: f.name }));
       this.reloadFeatures();
     });
   }
@@ -438,13 +458,16 @@ export default class TenantsComponent implements OnInit {
   resetAllFeatures() {
     const t = this.featuresTenant(); if (!t) return;
     const overridden = this.features().filter(f => f.source === 'tenant');
-    if (overridden.length === 0) { this.notify.info('No overrides to reset'); return; }
+    if (overridden.length === 0) { this.notify.info(this.transloco.translate('tenants.features.noOverrides')); return; }
     this.notify.confirmDelete(
-      `Reset ${overridden.length} override(s) so every feature follows the plan?`,
+      this.transloco.translate('tenants.features.resetConfirm', { count: overridden.length }),
       () => {
         this.service.updateTenantFeatures(t.id, {
           features: overridden.map(f => ({ code: f.code, isEnabled: null, note: null }))
-        }).subscribe(() => { this.notify.success('All features follow the plan'); this.reloadFeatures(); });
+        }).subscribe(() => {
+          this.notify.success(this.transloco.translate('tenants.features.allFollowPlan'));
+          this.reloadFeatures();
+        });
       }
     );
   }
@@ -471,7 +494,9 @@ export default class TenantsComponent implements OnInit {
   trialLabel(t: Tenant): string {
     const days = this.trialDaysLeft(t);
     if (days === null) return '';
-    return days < 0 ? `${-days}d overdue` : `${days}d left`;
+    return days < 0
+      ? this.transloco.translate('tenants.daysOverdue', { days: -days })
+      : this.transloco.translate('tenants.daysLeft', { days });
   }
 
   paidDaysLeft(t: Tenant): number | null { return daysUntil(t.paidUntil); }
@@ -487,8 +512,9 @@ export default class TenantsComponent implements OnInit {
   paidLabel(t: Tenant): string {
     const days = this.paidDaysLeft(t);
     if (days === null) return '';
-    if (days < 0) return 'expired';
-    return `${days}d left`;
+    return days < 0
+      ? this.transloco.translate('tenants.expired')
+      : this.transloco.translate('tenants.daysLeft', { days });
   }
 
   /** Modul yoqilgan, lekin tenant planining to'plamiga kirmaydi — qo'lda yoqilgan. */
@@ -502,7 +528,10 @@ export default class TenantsComponent implements OnInit {
   }
 
   readonly S = SubscriptionStatus;
-  statusLabel(s: SubscriptionStatus) { return SubscriptionStatus[s] ?? '—'; }
+  statusLabel(s: SubscriptionStatus) {
+    const key = SubscriptionStatus[s];
+    return key ? this.transloco.translate('status.' + key) : '—';
+  }
   statusClass(s: SubscriptionStatus) {
     return s === SubscriptionStatus.Active ? 'pill pill-success' : s === SubscriptionStatus.Trial ? 'pill pill-warning' : 'pill pill-danger';
   }

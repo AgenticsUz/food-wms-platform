@@ -11,6 +11,7 @@ import { Textarea } from 'primeng/textarea';
 import { Password } from 'primeng/password';
 import { Select } from 'primeng/select';
 import { DatePicker } from 'primeng/datepicker';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { PlatformService } from '../../core/services/platform.service';
 import { NotificationService } from '../../core/services/notification.service';
 import {
@@ -28,7 +29,7 @@ interface ConvertForm {
 @Component({
   selector: 'app-leads',
   standalone: true,
-  imports: [DatePipe, FormsModule, TableModule, Button, Dialog, Drawer, InputText,
+  imports: [TranslocoDirective, DatePipe, FormsModule, TableModule, Button, Dialog, Drawer, InputText,
     Textarea, Password, Select, DatePicker],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './leads.component.html',
@@ -39,6 +40,7 @@ export default class LeadsComponent implements OnInit {
   private notify = inject(NotificationService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private transloco = inject(TranslocoService);
 
   leads = signal<Lead[]>([]);
   plans = signal<Plan[]>([]);
@@ -51,8 +53,13 @@ export default class LeadsComponent implements OnInit {
   fromDate = signal<Date | null>(null);
   toDate = signal<Date | null>(null);
 
-  readonly statusOptions = LEAD_STATUSES;
-  readonly sourceOptions = LEAD_SOURCES;
+  // Select variantlari til bilan birga yangilanadi
+  statusOptions = computed(() => LEAD_STATUSES.map(o => ({
+    label: this.transloco.translate('leads.status.' + o.value), value: o.value
+  })));
+  sourceOptions = computed(() => LEAD_SOURCES.map(o => ({
+    label: this.transloco.translate('leads.source_.' + o.value), value: o.value
+  })));
 
   /**
    * Platforma miqyosida lead soni kichik — bir marta yuklab, filtrlarni
@@ -125,7 +132,7 @@ export default class LeadsComponent implements OnInit {
   planOptions() { return this.plans().map(p => ({ label: p.name, value: p.id })); }
 
   statusClass(status: LeadStatus) { return LEAD_STATUS_CLASS[status] ?? 'pill pill-neutral'; }
-  statusLabel(status: LeadStatus) { return LEAD_STATUSES.find(s => s.value === status)?.label ?? status; }
+  statusLabel(status: LeadStatus) { return this.transloco.translate('leads.status.' + status); }
 
   clearFilters() {
     this.statusFilter.set(null); this.sourceFilter.set(null);
@@ -150,7 +157,7 @@ export default class LeadsComponent implements OnInit {
     }).subscribe({
       next: (r) => {
         this.saving.set(false);
-        this.notify.success('Lead updated');
+        this.notify.success(this.transloco.translate('leads.updated'));
         if (r.success && r.data) this.selected.set(r.data);
         this.load();
       },
@@ -191,9 +198,9 @@ export default class LeadsComponent implements OnInit {
   convert() {
     const lead = this.selected(); const f = this.convertForm();
     if (!lead) return;
-    if (!f.name.trim() || !f.slug.trim()) { this.notify.warn('Name and slug are required'); return; }
+    if (!f.name.trim() || !f.slug.trim()) { this.notify.warn(this.transloco.translate('leads.nameRequired')); return; }
     if (!f.adminFullName.trim() || !f.adminPhone.trim() || f.adminPassword.length < 6) {
-      this.notify.warn('Admin name, phone and a 6+ char password are required'); return;
+      this.notify.warn(this.transloco.translate('leads.adminRequired')); return;
     }
 
     this.saving.set(true);
@@ -207,7 +214,7 @@ export default class LeadsComponent implements OnInit {
         // Slug band bo'lsa backend 400 qaytaradi va lead o'zgarmaydi
         this.saving.set(false);
         this.convertVisible.set(false);
-        this.notify.success(`Tenant "${f.name.trim()}" created — lead marked as won`);
+        this.notify.success(this.transloco.translate('leads.createdToast', { name: f.name.trim() }));
         this.load();
         this.drawerVisible.set(false);
       },

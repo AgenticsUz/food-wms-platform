@@ -3,6 +3,7 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { TableModule } from 'primeng/table';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { PlatformService } from '../../core/services/platform.service';
 import { PlatformStats } from '../../core/models/plan.model';
 import { Tenant } from '../../core/models/tenant.model';
@@ -11,13 +12,14 @@ import { daysUntil } from '../../core/utils/date.util';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [DatePipe, DecimalPipe, RouterLink, NgApexchartsModule, TableModule],
+  imports: [TranslocoDirective, DatePipe, DecimalPipe, RouterLink, NgApexchartsModule, TableModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
 export default class DashboardComponent implements OnInit {
   private service = inject(PlatformService);
+  private transloco = inject(TranslocoService);
 
   stats = signal<PlatformStats | null>(null);
   loading = signal(true);
@@ -77,7 +79,8 @@ export default class DashboardComponent implements OnInit {
   }
 
   statusLabel(status: number): string {
-    return status === 2 ? 'Active' : status === 1 ? 'Trial' : status === 3 ? 'Suspended' : '—';
+    const key = status === 2 ? 'Active' : status === 1 ? 'Trial' : status === 3 ? 'Suspended' : null;
+    return key ? this.transloco.translate('status.' + key) : '—';
   }
   statusClass(status: number): string {
     return status === 2 ? 'pill pill-success' : status === 1 ? 'pill pill-warning' : status === 3 ? 'pill pill-danger' : 'pill pill-neutral';
