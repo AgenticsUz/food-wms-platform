@@ -21,5 +21,6 @@ export interface User {
   roles: string[];
   permissions?: string[];
   enabledModules?: string[];
+  enabledFeatures?: string[];
 }
 

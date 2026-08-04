@@ -5,12 +5,14 @@ import { TranslocoService } from '@jsverse/transloco';
 import { TenantService } from '../../core/services/tenant.service';
 import { AuthService } from '../../core/services/auth.service';
 import { PermissionService } from '../../core/services/permission.service';
+import { FeatureService } from '../../core/services/feature.service';
 import { NotificationService } from '../../shared/services/notification.service';
 
 export interface NavChild {
   key: string;
   route: string;
   permissionCode?: string;
+  featureCode?: string;
 }
 
 export interface NavItem {
@@ -19,6 +21,7 @@ export interface NavItem {
   route?: string;
   moduleCode?: string;
   permissionCode?: string;
+  featureCode?: string;
   children?: NavChild[];
 }
 
@@ -34,6 +37,7 @@ export class SidebarComponent {
   private tenantService = inject(TenantService);
   private authService = inject(AuthService);
   private permissionService = inject(PermissionService);
+  private featureService = inject(FeatureService);
   private router = inject(Router);
   private notify = inject(NotificationService);
   private transloco = inject(TranslocoService);
@@ -58,17 +62,17 @@ export class SidebarComponent {
       children: [
         { key: 'warehouse.stockOverview', route: '/warehouse' },
         { key: 'warehouse.warehouses', route: '/warehouse/warehouses' },
-        { key: 'warehouse.locations', route: '/warehouse/locations' },
-        { key: 'warehouse.batches', route: '/warehouse/batches' },
+        { key: 'warehouse.locations', route: '/warehouse/locations', featureCode: 'warehouse.locations' },
+        { key: 'warehouse.batches', route: '/warehouse/batches', featureCode: 'warehouse.batches' },
         { key: 'warehouse.movements', route: '/warehouse/movements' }
       ]
     },
     {
       key: 'nav.production', icon: 'pi pi-cog', moduleCode: 'PRODUCTION', permissionCode: 'production.view',
       children: [
-        { key: 'production.orders', route: '/production/orders' },
-        { key: 'production.recipes', route: '/production/recipes' },
-        { key: 'production.stages', route: '/production/stages' }
+        { key: 'production.orders', route: '/production/orders', featureCode: 'production.orders' },
+        { key: 'production.recipes', route: '/production/recipes', featureCode: 'production.recipes' },
+        { key: 'production.stages', route: '/production/stages', featureCode: 'production.stages' }
       ]
     },
     {
@@ -79,8 +83,8 @@ export class SidebarComponent {
       key: 'nav.finance', icon: 'pi pi-wallet', moduleCode: 'FINANCE', permissionCode: 'finance.view',
       children: [
         { key: 'finance.overview', route: '/finance' },
-        { key: 'finance.transactions', route: '/finance/transactions' },
-        { key: 'finance.debts', route: '/finance/debts' },
+        { key: 'finance.transactions', route: '/finance/transactions', featureCode: 'finance.transactions' },
+        { key: 'finance.debts', route: '/finance/debts', featureCode: 'finance.debts' },
         { key: 'finance.payments', route: '/finance/payments' }
       ]
     },
@@ -88,17 +92,17 @@ export class SidebarComponent {
       key: 'nav.kpi', icon: 'pi pi-chart-line', moduleCode: 'KPI', permissionCode: 'kpi.view',
       children: [
         { key: 'kpi.dashboard', route: '/kpi' },
-        { key: 'kpi.shifts', route: '/kpi/shifts' },
+        { key: 'kpi.shifts', route: '/kpi/shifts', featureCode: 'kpi.shifts' },
         { key: 'kpi.plans', route: '/kpi/plans' },
         { key: 'kpi.actuals', route: '/kpi/actuals' },
-        { key: 'kpi.attendance', route: '/kpi/attendance' }
+        { key: 'kpi.attendance', route: '/kpi/attendance', featureCode: 'kpi.attendance' }
       ]
     },
     {
       key: 'nav.counterparties', icon: 'pi pi-users', permissionCode: 'partners.view',
       children: [
-        { key: 'partners.suppliers', route: '/counterparties/suppliers' },
-        { key: 'partners.clients', route: '/counterparties/clients' }
+        { key: 'partners.suppliers', route: '/counterparties/suppliers', featureCode: 'counterparties.suppliers' },
+        { key: 'partners.clients', route: '/counterparties/clients', featureCode: 'counterparties.clients' }
       ]
     },
     {
@@ -127,22 +131,27 @@ export class SidebarComponent {
       { key: 'settings.roles', route: '/settings/roles', permissionCode: 'settings.roles' },
       { key: 'settings.modules', route: '/settings/modules', permissionCode: 'settings.modules' },
       { key: 'subscription.title', route: '/settings/subscription' },
-      { key: 'settings.qcParameters', route: '/settings/qc-parameters' },
+      { key: 'settings.qcParameters', route: '/settings/qc-parameters', featureCode: 'qc.parameters' },
       { key: 'settings.audit', route: '/settings/audit', permissionCode: 'audit.view' },
       { key: 'settings.profile', route: '/settings/profile' }
     ]
   };
 
+  // Tartib muhim: modul yuqori qatlam — o'chiq bo'lsa butun bo'lim ko'rinmaydi,
+  // feature uni yenga olmaydi.
   visibleNavItems = computed(() => {
     return this.allNavItems.filter(item => {
       if (item.moduleCode && !this.tenantService.isModuleEnabled(item.moduleCode)) return false;
+      if (item.featureCode && !this.featureService.isEnabled(item.featureCode)) return false;
       if (item.permissionCode && !this.permissionService.can(item.permissionCode)) return false;
       return true;
     });
   });
 
   getVisibleChildren(children: NavChild[]): NavChild[] {
-    return children.filter(c => !c.permissionCode || this.permissionService.can(c.permissionCode));
+    return children.filter(c =>
+      (!c.featureCode || this.featureService.isEnabled(c.featureCode)) &&
+      (!c.permissionCode || this.permissionService.can(c.permissionCode)));
   }
 
   toggleCollapse() {

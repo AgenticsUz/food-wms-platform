@@ -6,6 +6,7 @@ import {
 } from '../models/tenant.model';
 import { Plan, CreatePlanDto, PlatformStats, ModuleInfo } from '../models/plan.model';
 import { Lead, UpdateLeadDto, ConvertLeadDto } from '../models/lead.model';
+import { FeatureInfo, TenantFeature, UpdateFeaturesDto } from '../models/feature.model';
 
 @Injectable({ providedIn: 'root' })
 export class PlatformService {
@@ -42,6 +43,13 @@ export class PlatformService {
   createPlan(dto: CreatePlanDto) { return this.api.post<Plan>('admin/plans', dto); }
   updatePlan(id: number, dto: CreatePlanDto) { return this.api.put<Plan>(`admin/plans/${id}`, dto); }
   deletePlan(id: number) { return this.api.delete<void>(`admin/plans/${id}`); }
+
+  // Features (menyu darajasidagi boshqaruv)
+  getFeatures() { return this.api.get<FeatureInfo[]>('admin/features'); }
+  getTenantFeatures(tenantId: number) { return this.api.get<TenantFeature[]>(`admin/tenants/${tenantId}/features`); }
+  updateTenantFeatures(tenantId: number, dto: UpdateFeaturesDto) {
+    return this.api.put<void>(`admin/tenants/${tenantId}/features`, dto);
+  }
 
   // Meta + stats
   getModules() { return this.api.get<ModuleInfo[]>('admin/modules'); }

@@ -20,6 +20,7 @@ import {
   SuspendReason, SUSPEND_REASONS
 } from '../../core/models/tenant.model';
 import { Plan } from '../../core/models/plan.model';
+import { TenantFeature } from '../../core/models/feature.model';
 import { utcDateOnly, daysUntil } from '../../core/utils/date.util';
 
 interface TenantForm {
@@ -313,6 +314,105 @@ export default class TenantsComponent implements OnInit {
         });
       }
     );
+  }
+
+  // ---- Features -----------------------------------------------------------
+
+  featuresVisible = signal(false);
+  featuresTenant = signal<Tenant | null>(null);
+  features = signal<TenantFeature[]>([]);
+  loadingFeatures = signal(false);
+  featureSearch = signal('');
+  /** Qaysi guruh ochiq — akkordeon holati. */
+  openGroups = signal<Set<string>>(new Set());
+
+  /** Modul o'chiq bo'lsa uning feature'lari kuchga kirmaydi — buni UI'da ko'rsatamiz. */
+  private enabledModuleCodes = signal<string[]>([]);
+
+  featureGroups = computed(() => {
+    const q = this.featureSearch().trim().toLowerCase();
+    const groups = new Map<string, TenantFeature[]>();
+    for (const f of this.features()) {
+      if (q && !f.code.toLowerCase().includes(q) && !f.name.toLowerCase().includes(q)) continue;
+      const list = groups.get(f.moduleCode);
+      if (list) list.push(f); else groups.set(f.moduleCode, [f]);
+    }
+    return [...groups.entries()]
+      .map(([moduleCode, items]) => ({
+        moduleCode,
+        items,
+        moduleEnabled: this.enabledModuleCodes().includes(moduleCode)
+      }))
+      .sort((a, b) => a.moduleCode.localeCompare(b.moduleCode));
+  });
+
+  openFeatures(t: Tenant) {
+    this.featuresTenant.set(t);
+    this.features.set([]);
+    this.featureSearch.set('');
+    this.featuresVisible.set(true);
+    this.loadingFeatures.set(true);
+    this.service.getTenantFeatures(t.id).subscribe({
+      next: (r) => { this.features.set(r.success && r.data ? r.data : []); this.loadingFeatures.set(false); },
+      error: () => this.loadingFeatures.set(false)
+    });
+    // Modul holati alohida keladi — guruhni kulrang qilish uchun kerak
+    this.service.getTenantModules(t.id).subscribe(r => {
+      if (r.success && r.data) this.enabledModuleCodes.set(r.data.filter(m => m.isEnabled).map(m => m.moduleCode));
+    });
+  }
+
+  toggleGroup(moduleCode: string) {
+    this.openGroups.update(set => {
+      const next = new Set(set);
+      next.has(moduleCode) ? next.delete(moduleCode) : next.add(moduleCode);
+      return next;
+    });
+  }
+
+  isGroupOpen(moduleCode: string) { return this.openGroups().has(moduleCode); }
+
+  /** Uch holat: plan (override yo'q) · on · off. */
+  featureState(f: TenantFeature): 'plan' | 'on' | 'off' {
+    if (f.source !== 'tenant') return 'plan';
+    return f.isEnabled ? 'on' : 'off';
+  }
+
+  /** Plan yoki katalog qiymatidan farq qilsa — bu qo'lda qo'yilgan. */
+  isFeatureOutsidePlan(f: TenantFeature): boolean {
+    return f.source === 'tenant';
+  }
+
+  setFeatureState(f: TenantFeature, state: 'plan' | 'on' | 'off') {
+    const t = this.featuresTenant(); if (!t) return;
+    const isEnabled = state === 'plan' ? null : state === 'on';
+    this.service.updateTenantFeatures(t.id, {
+      features: [{ code: f.code, isEnabled, note: f.note }]
+    }).subscribe(() => {
+      this.notify.success(state === 'plan' ? `${f.name} follows the plan again` : `${f.name} ${state === 'on' ? 'enabled' : 'disabled'}`);
+      this.reloadFeatures();
+    });
+  }
+
+  resetAllFeatures() {
+    const t = this.featuresTenant(); if (!t) return;
+    const overridden = this.features().filter(f => f.source === 'tenant');
+    if (overridden.length === 0) { this.notify.info('No overrides to reset'); return; }
+    this.notify.confirmDelete(
+      `Reset ${overridden.length} override(s) so every feature follows the plan?`,
+      () => {
+        this.service.updateTenantFeatures(t.id, {
+          features: overridden.map(f => ({ code: f.code, isEnabled: null, note: null }))
+        }).subscribe(() => { this.notify.success('All features follow the plan'); this.reloadFeatures(); });
+      }
+    );
+  }
+
+  private reloadFeatures() {
+    const t = this.featuresTenant(); if (!t) return;
+    this.service.getTenantFeatures(t.id).subscribe(r => {
+      if (r.success && r.data) this.features.set(r.data);
+    });
   }
 
   // ---- Trial / paid columns ----------------------------------------------

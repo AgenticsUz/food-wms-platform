@@ -57,6 +57,29 @@
         <p-multiselect [options]="moduleOptions()" [ngModel]="form().moduleCodes" (ngModelChange)="updateForm('moduleCodes', $event)"
           optionLabel="label" optionValue="value" placeholder="Select modules" [filter]="true" styleClass="w-full" [style]="{ width: '100%' }" />
       </div>
+      <div class="ff"><label>Features</label>
+        <small class="field-hint">A feature only takes effect when its module is part of the plan.</small>
+        <div class="plan-feature-groups">
+          @for (group of featureGroups(); track group.moduleCode) {
+            <div class="plan-feature-group" [class.module-off]="!group.moduleSelected">
+              <div class="group-name">{{ group.moduleCode }}</div>
+              <div class="plan-feature-list">
+                @for (f of group.items; track f.code) {
+                  <label class="feature-check" [class.disabled]="!group.moduleSelected">
+                    <input type="checkbox" [checked]="isFeatureSelected(f.code)"
+                      [disabled]="!group.moduleSelected"
+                      (change)="toggleFeature(f.code, $any($event.target).checked)" />
+                    <span>{{ f.name }}</span>
+                  </label>
+                }
+              </div>
+            </div>
+          } @empty {
+            <p class="field-hint">Feature catalogue is empty.</p>
+          }
+        </div>
+      </div>
+
       <div class="limits-grid">
         <div class="ff"><label>Max users</label><p-inputNumber [ngModel]="form().maxUsers" (ngModelChange)="updateForm('maxUsers', $event ?? 0)" [min]="1" styleClass="w-full" inputStyleClass="w-full" /></div>
         <div class="ff"><label>Max warehouses</label><p-inputNumber [ngModel]="form().maxWarehouses" (ngModelChange)="updateForm('maxWarehouses', $event ?? 0)" [min]="1" styleClass="w-full" inputStyleClass="w-full" /></div>

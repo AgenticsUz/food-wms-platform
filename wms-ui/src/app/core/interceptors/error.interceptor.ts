@@ -48,6 +48,8 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         case 403:
           if (code.startsWith('module_disabled')) {
             notify.error(transloco.translate('errors.moduleDisabled'));
+          } else if (code.startsWith('feature_disabled')) {
+            notify.error(transloco.translate('errors.featureDisabled'));
           } else {
             notify.error(transloco.translate('errors.accessDenied'));
           }

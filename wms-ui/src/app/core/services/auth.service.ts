@@ -9,6 +9,7 @@ import { ApiResponse } from '../models/api-response.model';
 import { PermissionService } from './permission.service';
 import { NotificationBellService } from './notification-bell.service';
 import { SubscriptionService } from './subscription.service';
+import { FeatureService } from './feature.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -17,6 +18,7 @@ export class AuthService {
   private permissionService = inject(PermissionService);
   private bellService = inject(NotificationBellService);
   private subscriptionService = inject(SubscriptionService);
+  private featureService = inject(FeatureService);
 
   token = signal<string | null>(localStorage.getItem('token'));
   currentUser = signal<User | null>(this.loadUserFromStorage());
@@ -38,6 +40,10 @@ export class AuthService {
       localStorage.setItem('currentUser', JSON.stringify(res.data.user));
       this.permissionService.setRoles(res.data.user.roles ?? []);
       localStorage.setItem('userRoles', JSON.stringify(res.data.user.roles ?? []));
+      // Login javobi feature ro'yxatini ham beradi — sahifa yangilangunicha shu ishlatiladi
+      if (res.data.user.enabledFeatures) {
+        this.featureService.setFeatures(res.data.user.enabledFeatures);
+      }
     }
   }
 
@@ -77,6 +83,7 @@ export class AuthService {
     this.permissionService.clearPermissions();
     // Obuna holati ham tozalanadi — boshqa tenant kirsa eski banner ko'rinmasin
     this.subscriptionService.clear();
+    this.featureService.clear();
     localStorage.removeItem('token');
     localStorage.removeItem('currentUser');
     // Modul ro'yxatini ham tozalaymiz — boshqa tenant/user kirsa eski sidebar ko'rinmasin

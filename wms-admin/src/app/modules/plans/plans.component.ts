@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
@@ -12,10 +12,12 @@ import { PlatformService } from '../../core/services/platform.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { Plan } from '../../core/models/plan.model';
 import { ModuleInfo } from '../../core/models/plan.model';
+import { FeatureInfo } from '../../core/models/feature.model';
 
 interface PlanForm {
   id?: number; name: string; code: string; price: number; isActive: boolean;
-  moduleCodes: string[]; maxUsers: number; maxWarehouses: number; maxTransfersPerMonth: number;
+  moduleCodes: string[]; featureCodes: string[];
+  maxUsers: number; maxWarehouses: number; maxTransfersPerMonth: number;
   trialDays: number; isDefault: boolean;
 }
 
@@ -33,6 +35,7 @@ export default class PlansComponent implements OnInit {
 
   plans = signal<Plan[]>([]);
   modules = signal<ModuleInfo[]>([]);
+  features = signal<FeatureInfo[]>([]);
   loading = signal(true);
   saving = signal(false);
   dialogVisible = signal(false);
@@ -40,16 +43,42 @@ export default class PlansComponent implements OnInit {
   form = signal<PlanForm>(this.empty());
 
   private empty(): PlanForm {
-    return { name: '', code: '', price: 0, isActive: true, moduleCodes: [], maxUsers: 10, maxWarehouses: 3,
-      maxTransfersPerMonth: 1000, trialDays: 0, isDefault: false };
+    return { name: '', code: '', price: 0, isActive: true, moduleCodes: [], featureCodes: [],
+      maxUsers: 10, maxWarehouses: 3, maxTransfersPerMonth: 1000, trialDays: 0, isDefault: false };
   }
 
   ngOnInit() {
     this.load();
     this.service.getModules().subscribe(r => { if (r.success && r.data) this.modules.set(r.data); });
+    // Custom feature'lar planga kirmaydi — ular faqat tenant override orqali yoqiladi
+    this.service.getFeatures().subscribe(r => {
+      if (r.success && r.data) this.features.set(r.data.filter(f => !f.isCustom));
+    });
   }
 
   moduleOptions() { return this.modules().map(m => ({ label: m.moduleName, value: m.moduleCode })); }
+
+  /** Feature'lar modul bo'yicha guruhlanadi; moduli tanlanmagan guruh o'chirilgan ko'rinadi. */
+  featureGroups = computed(() => {
+    const selected = this.form().moduleCodes;
+    const groups = new Map<string, FeatureInfo[]>();
+    for (const f of this.features()) {
+      const list = groups.get(f.moduleCode);
+      if (list) list.push(f); else groups.set(f.moduleCode, [f]);
+    }
+    return [...groups.entries()]
+      .map(([moduleCode, items]) => ({ moduleCode, items, moduleSelected: selected.includes(moduleCode) }))
+      .sort((a, b) => a.moduleCode.localeCompare(b.moduleCode));
+  });
+
+  isFeatureSelected(code: string) { return this.form().featureCodes.includes(code); }
+
+  toggleFeature(code: string, checked: boolean) {
+    this.form.update(f => ({
+      ...f,
+      featureCodes: checked ? [...f.featureCodes, code] : f.featureCodes.filter(c => c !== code)
+    }));
+  }
 
   load() {
     this.loading.set(true);
@@ -62,7 +91,8 @@ export default class PlansComponent implements OnInit {
   openNew() { this.form.set(this.empty()); this.editing.set(false); this.dialogVisible.set(true); }
   openEdit(p: Plan) {
     this.form.set({ id: p.id, name: p.name, code: p.code, price: p.price, isActive: p.isActive,
-      moduleCodes: [...p.moduleCodes], maxUsers: p.maxUsers, maxWarehouses: p.maxWarehouses,
+      moduleCodes: [...p.moduleCodes], featureCodes: [...(p.featureCodes ?? [])],
+      maxUsers: p.maxUsers, maxWarehouses: p.maxWarehouses,
       maxTransfersPerMonth: p.maxTransfersPerMonth, trialDays: p.trialDays, isDefault: p.isDefault });
     this.editing.set(true); this.dialogVisible.set(true);
   }
@@ -73,7 +103,8 @@ export default class PlansComponent implements OnInit {
     if (!f.name.trim() || !f.code.trim()) { this.notify.warn('Name and code are required'); return; }
     this.saving.set(true);
     const dto = { name: f.name.trim(), code: f.code.trim(), price: f.price, isActive: f.isActive,
-      moduleCodes: f.moduleCodes, maxUsers: f.maxUsers, maxWarehouses: f.maxWarehouses,
+      moduleCodes: f.moduleCodes, featureCodes: f.featureCodes,
+      maxUsers: f.maxUsers, maxWarehouses: f.maxWarehouses,
       maxTransfersPerMonth: f.maxTransfersPerMonth, trialDays: f.trialDays, isDefault: f.isDefault };
     const obs = this.editing() ? this.service.updatePlan(f.id!, dto) : this.service.createPlan(dto);
     obs.subscribe({

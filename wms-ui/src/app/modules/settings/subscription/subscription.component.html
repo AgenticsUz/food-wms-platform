@@ -133,6 +133,31 @@
       </div>
     </div>
 
+    <!-- Features -->
+    @if (featureGroups().length > 0) {
+      <div class="wms-card section-card">
+        <button type="button" class="feature-toggle" (click)="featuresOpen.set(!featuresOpen())">
+          <h3 class="section-title">{{ t('subscription.features') }}</h3>
+          <span class="feature-count">{{ s.enabledFeatures.length }}</span>
+          <i class="pi" [class.pi-chevron-down]="!featuresOpen()" [class.pi-chevron-up]="featuresOpen()"></i>
+        </button>
+        @if (featuresOpen()) {
+          <div class="feature-groups">
+            @for (group of featureGroups(); track group.group) {
+              <div class="feature-group">
+                <div class="feature-group-name">{{ group.group }}</div>
+                <div class="module-chips">
+                  @for (code of group.codes; track code) {
+                    <span class="chip">{{ code }}</span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
     <!-- Available plans -->
     @if (plans().length > 0) {
       <div class="wms-card table-wrapper">

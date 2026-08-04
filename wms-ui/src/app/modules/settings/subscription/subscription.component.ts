@@ -39,6 +39,20 @@ export default class SubscriptionComponent implements OnInit {
     return Math.max(0, i.paymentGraceDays + d);
   });
 
+  /** Feature'lar 25+ ta bo'lishi mumkin — modul bo'yicha guruhlab, yig'iladigan panelga qo'yamiz. */
+  featuresOpen = signal(false);
+  featureGroups = computed(() => {
+    const groups = new Map<string, string[]>();
+    for (const code of this.info()?.enabledFeatures ?? []) {
+      const group = code.includes('.') ? code.split('.')[0] : 'other';
+      const list = groups.get(group);
+      if (list) list.push(code); else groups.set(group, [code]);
+    }
+    return [...groups.entries()]
+      .map(([group, codes]) => ({ group, codes: codes.sort() }))
+      .sort((a, b) => a.group.localeCompare(b.group));
+  });
+
   supportPhone = computed(() => this.info()?.supportPhone || environment.supportPhone);
   supportEmail = computed(() => this.info()?.supportEmail || environment.supportEmail);
 

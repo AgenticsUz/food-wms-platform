@@ -63,6 +63,7 @@
               <p-button icon="pi pi-ban" [text]="true" size="small" severity="warn" title="Suspend" (onClick)="openSuspend(row)" />
             }
             <p-button icon="pi pi-th-large" [text]="true" size="small" title="Modules" (onClick)="openModules(row)" />
+            <p-button icon="pi pi-sliders-h" [text]="true" size="small" title="Features" (onClick)="openFeatures(row)" />
             <p-button icon="pi pi-pencil" [text]="true" size="small" (onClick)="openEdit(row)" />
             <p-button icon="pi pi-trash" [text]="true" size="small" severity="danger" (onClick)="remove(row)" />
           </td>
@@ -231,6 +232,65 @@
       <p-button label="Cancel" [text]="true" (onClick)="suspendVisible.set(false)" />
       <p-button label="Suspend" icon="pi pi-ban" severity="danger" [loading]="saving()" [disabled]="!canSuspend()" (onClick)="confirmSuspend()" />
     </ng-template>
+  </p-dialog>
+
+  <!-- Features -->
+  <p-dialog [visible]="featuresVisible()" (visibleChange)="featuresVisible.set($event)"
+    [header]="(featuresTenant()?.name ?? '') + ' — Features'" [modal]="true" [style]="{ width: '620px' }" [draggable]="false">
+    <div class="feature-head">
+      <input pInputText [ngModel]="featureSearch()" (ngModelChange)="featureSearch.set($event)"
+        placeholder="Search features" class="feature-search" />
+      <p-button label="Reset all to plan" icon="pi pi-undo" size="small" [outlined]="true" (onClick)="resetAllFeatures()" />
+    </div>
+
+    @if (loadingFeatures()) {
+      <div class="empty-state"><i class="pi pi-spin pi-spinner"></i><p>Loading…</p></div>
+    } @else {
+      <div class="feature-groups">
+        @for (group of featureGroups(); track group.moduleCode) {
+          <div class="feature-group" [class.module-off]="!group.moduleEnabled">
+            <button type="button" class="group-head" (click)="toggleGroup(group.moduleCode)">
+              <i class="pi" [class.pi-chevron-right]="!isGroupOpen(group.moduleCode)" [class.pi-chevron-down]="isGroupOpen(group.moduleCode)"></i>
+              <span class="group-name">{{ group.moduleCode }}</span>
+              <span class="group-count">{{ group.items.length }}</span>
+            </button>
+
+            @if (!group.moduleEnabled) {
+              <div class="module-off-note"><i class="pi pi-info-circle"></i> Module disabled — features have no effect</div>
+            }
+
+            @if (isGroupOpen(group.moduleCode)) {
+              <div class="feature-list">
+                @for (f of group.items; track f.code) {
+                  <div class="feature-row">
+                    <div class="feature-info">
+                      <span class="feature-name">
+                        {{ f.name }}
+                        @if (isFeatureOutsidePlan(f)) {
+                          <span class="pill pill-warning outside-plan" title="Set manually — differs from the plan">override</span>
+                        }
+                      </span>
+                      <span class="feature-code">{{ f.code }}</span>
+                      @if (f.note) { <span class="feature-note">{{ f.note }}</span> }
+                    </div>
+                    <div class="state-buttons">
+                      <button type="button" class="state-btn" [class.active]="featureState(f) === 'plan'"
+                        title="Follow the plan" (click)="setFeatureState(f, 'plan')">Plan</button>
+                      <button type="button" class="state-btn state-on" [class.active]="featureState(f) === 'on'"
+                        title="Force on" (click)="setFeatureState(f, 'on')">On</button>
+                      <button type="button" class="state-btn state-off" [class.active]="featureState(f) === 'off'"
+                        title="Force off" (click)="setFeatureState(f, 'off')">Off</button>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        } @empty {
+          <div class="empty-state"><i class="pi pi-sliders-h"></i><p>No features match</p></div>
+        }
+      </div>
+    }
   </p-dialog>
 
   <!-- Modules -->

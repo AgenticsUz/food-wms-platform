@@ -5,6 +5,7 @@ export interface Plan {
   price: number;
   isActive: boolean;
   moduleCodes: string[];
+  featureCodes: string[];
   maxUsers: number;
   maxWarehouses: number;
   maxTransfersPerMonth: number;
@@ -21,6 +22,7 @@ export interface CreatePlanDto {
   price: number;
   isActive: boolean;
   moduleCodes: string[];
+  featureCodes: string[];
   maxUsers: number;
   maxWarehouses: number;
   maxTransfersPerMonth: number;
