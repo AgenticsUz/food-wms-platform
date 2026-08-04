@@ -45,4 +45,29 @@ public static class PlanModules
         }
         await db.SaveChangesAsync();
     }
+
+    /// <summary>
+    /// Plandan chiqarilgan (plansiz) tenant uchun: barcha modullar yoqiladi.
+    /// Kelishuv: PLANI BOR tenant → modullar plandan; PLANI YO'Q tenant (tizim tenanti,
+    /// eski yozuvlar, maxsus shartnoma) → cheklovsiz. Aks holda plan olib tashlanganda
+    /// eski planning to'plami "muzlab" qolardi.
+    /// </summary>
+    public static async Task ApplyAllModulesAsync(WmsDbContext db, int tenantId)
+    {
+        var modules = await db.Modules.ToListAsync();
+        var tenantModules = await db.TenantModules
+            .Where(tm => tm.TenantId == tenantId)
+            .ToListAsync();
+
+        foreach (var module in modules)
+        {
+            var tm = tenantModules.FirstOrDefault(x => x.ModuleId == module.Id);
+            if (tm != null)
+                tm.IsEnabled = true;
+            else
+                db.TenantModules.Add(new TenantModule
+                    { TenantId = tenantId, ModuleId = module.Id, IsEnabled = true });
+        }
+        await db.SaveChangesAsync();
+    }
 }

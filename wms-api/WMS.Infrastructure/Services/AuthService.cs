@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using WMS.Application.Common;
 using WMS.Application.DTOs.Auth;
@@ -16,17 +17,21 @@ public class AuthService : IAuthService
 {
     private readonly WmsDbContext _db;
     private readonly IConfiguration _config;
+    private readonly SubscriptionOptions _subscription;
 
-    public AuthService(WmsDbContext db, IConfiguration config)
+    public AuthService(WmsDbContext db, IConfiguration config, IOptions<SubscriptionOptions> subscription)
     {
         _db = db;
         _config = config;
+        _subscription = subscription.Value;
     }
 
     public async Task<AuthResponseDto> LoginAsync(LoginDto dto)
     {
-        var tenant = await _db.Tenants.FirstOrDefaultAsync(t => t.Slug == dto.TenantSlug && t.IsActive)
-            ?? throw new NotFoundException("Tenant not found or inactive");
+        // IsActive filtri so'rovda emas — obuna holati SubscriptionPolicy'da tekshiriladi,
+        // shunda mijoz "topilmadi" o'rniga aniq sababni ko'radi.
+        var tenant = await _db.Tenants.FirstOrDefaultAsync(t => t.Slug == dto.TenantSlug)
+            ?? throw new NotFoundException("Tenant not found");
 
         var normalizedPhone = PhoneHelper.Normalize(dto.Phone);
         var user = await _db.Users
@@ -37,13 +42,21 @@ public class AuthService : IAuthService
         if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
             throw new AppException("Invalid credentials");
 
-        // Subscription enforcement — super admins bypass. Block suspended tenants and
-        // trials whose TrialEndsAt has passed.
-        if (!user.IsSuperAdmin &&
-            (tenant.SubscriptionStatus == SubscriptionStatus.Suspended ||
-             (tenant.SubscriptionStatus == SubscriptionStatus.Trial &&
-              tenant.TrialEndsAt != null && tenant.TrialEndsAt < DateTime.UtcNow)))
-            throw new AppException("This account is suspended or the trial has expired. Please contact support.");
+        // Subscription enforcement — super admins bypass. Exactly the same rule the
+        // per-request middleware applies (SubscriptionPolicy), so login and API access
+        // can never disagree.
+        if (!user.IsSuperAdmin)
+        {
+            var state = new TenantState
+            {
+                Id = tenant.Id, Name = tenant.Name, Slug = tenant.Slug,
+                IsActive = tenant.IsActive, Status = tenant.SubscriptionStatus,
+                TrialEndsAt = tenant.TrialEndsAt, PlanId = tenant.PlanId
+            };
+            var verdict = SubscriptionPolicy.Evaluate(state, _subscription, DateTime.UtcNow);
+            if (!verdict.Allowed)
+                throw new PaymentRequiredException(verdict.Code!, verdict.Message!);
+        }
 
         var modules = await _db.TenantModules
             .Include(tm => tm.Module)
@@ -102,14 +115,25 @@ public class AuthService : IAuthService
 
     public async Task<AuthResponseDto> RegisterAsync(RegisterDto dto)
     {
-        // Yangi tenantni to'liq provizatsiya qilamiz (tenant + modullar + Admin rol + admin user).
-        // Slug/parol validatsiyasi va noyoblik tekshiruvi provisioner ichida.
+        // Yangi tenantni to'liq provizatsiya qilamiz (tenant + default plan modullari +
+        // Admin rol + admin user). Slug/parol validatsiyasi provisioner ichida.
         var (tenant, user) = await TenantProvisioner.ProvisionAsync(
-            _db, dto.TenantName, dto.Slug, dto.FullName, dto.Phone, dto.Password);
+            _db, dto.TenantName, dto.Slug, dto.FullName, dto.Phone, dto.Password, _subscription);
 
-        // Admin darhol tizimga kiradi — login javobini qaytaramiz.
-        var modules = await _db.Modules.Select(m => m.Code).ToListAsync();
-        var permissions = await _db.Permissions.Select(p => p.Code).ToListAsync();
+        // Javob tenantning HAQIQIY huquqlaridan quriladi — global Modules/Permissions
+        // jadvalidan emas. Aks holda registratsiya qilgan har kim to'liq mahsulotni ko'radi.
+        var modules = await _db.TenantModules
+            .Where(tm => tm.TenantId == tenant.Id && tm.IsEnabled)
+            .Select(tm => tm.Module.Code)
+            .ToListAsync();
+
+        var roleIds = await _db.UserRoles.Where(ur => ur.UserId == user.Id)
+            .Select(ur => ur.RoleId).ToListAsync();
+        var permissions = await _db.RolePermissions
+            .Where(rp => roleIds.Contains(rp.RoleId))
+            .Select(rp => rp.Permission.Code)
+            .Distinct()
+            .ToListAsync();
 
         var claims = new List<Claim>
         {

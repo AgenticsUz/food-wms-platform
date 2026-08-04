@@ -21,10 +21,18 @@ public static class TenantProvisioner
         "billing", "payment", "webhook", "health", "status"
     };
 
+    /// <param name="planId">
+    /// Plan chosen by the SuperAdmin. When null the platform's default (trial) plan is used —
+    /// self-service registration always lands here. Only when NO plan exists at all does the
+    /// tenant fall back to "everything enabled" (fresh dev database before plans are seeded).
+    /// </param>
     public static async Task<(Tenant tenant, User admin)> ProvisionAsync(
         WmsDbContext db, string tenantName, string slug,
-        string adminFullName, string adminPhone, string adminPassword)
+        string adminFullName, string adminPhone, string adminPassword,
+        SubscriptionOptions? subscription = null, int? planId = null)
     {
+        subscription ??= new SubscriptionOptions();
+
         slug = slug.Trim().ToLowerInvariant();
         if (string.IsNullOrWhiteSpace(tenantName)) throw new AppException("Tenant name is required");
         if (string.IsNullOrWhiteSpace(slug)) throw new AppException("Slug is required");
@@ -41,24 +49,45 @@ public static class TenantProvisioner
         var normalizedPhone = PhoneHelper.Normalize(adminPhone)
             ?? throw new AppException("Phone is required");
 
-        // 1. Tenant (trial obuna bilan boshlaydi)
+        // 1. Plan — aniq berilgan yoki platformaning default (trial) plani
+        var plan = planId.HasValue
+            ? await db.Plans.FirstOrDefaultAsync(p => p.Id == planId.Value)
+                ?? throw new NotFoundException("Plan not found")
+            : await db.Plans.Where(p => p.IsActive && p.IsDefault).FirstOrDefaultAsync()
+                ?? await db.Plans.Where(p => p.IsActive && p.Code == "trial").FirstOrDefaultAsync();
+
+        // 2. Tenant. Trial muddati ALBATTA qo'yiladi — aks holda "muddati o'tgan trial"
+        //    tekshiruvi hech qachon ishga tushmaydi va obuna cheksiz bepul bo'lib qoladi.
+        var trialDays = plan is { TrialDays: > 0 } ? plan.TrialDays : subscription.TrialDays;
+        var isTrial = plan == null || plan.TrialDays > 0 || plan.Price <= 0;
+
         var tenant = new Tenant
         {
             Name = tenantName.Trim(),
             Slug = slug,
             IsActive = true,
-            PlanType = "trial",
-            SubscriptionStatus = SubscriptionStatus.Trial
+            PlanId = plan?.Id,
+            PlanType = plan?.Code ?? "trial",
+            SubscriptionStatus = isTrial ? SubscriptionStatus.Trial : SubscriptionStatus.Active,
+            TrialEndsAt = isTrial ? DateTime.UtcNow.AddDays(trialDays) : null
         };
         db.Tenants.Add(tenant);
         await db.SaveChangesAsync();
 
-        // 2. Barcha modullarni yoqamiz
-        var moduleIds = await db.Modules.Select(m => m.Id).ToListAsync();
-        foreach (var moduleId in moduleIds)
-            db.TenantModules.Add(new TenantModule { TenantId = tenant.Id, ModuleId = moduleId, IsEnabled = true });
+        // 3. Modullar — plandan. Plan umuman bo'lmasa (planlar hali seed qilinmagan baza)
+        //    hammasi yoqiladi, aks holda yangi o'rnatish umuman ishlamay qoladi.
+        if (plan != null)
+        {
+            await PlanModules.ApplyPlanModulesAsync(db, tenant.Id, plan);
+        }
+        else
+        {
+            var moduleIds = await db.Modules.Select(m => m.Id).ToListAsync();
+            foreach (var moduleId in moduleIds)
+                db.TenantModules.Add(new TenantModule { TenantId = tenant.Id, ModuleId = moduleId, IsEnabled = true });
+        }
 
-        // 3. Admin rol + barcha ruxsatlar
+        // 4. Admin rol + barcha ruxsatlar
         var role = new Role { TenantId = tenant.Id, Name = "Admin", Description = "Tenant administrator" };
         db.Roles.Add(role);
         await db.SaveChangesAsync();
@@ -67,7 +96,7 @@ public static class TenantProvisioner
         foreach (var permissionId in permissionIds)
             db.RolePermissions.Add(new RolePermission { RoleId = role.Id, PermissionId = permissionId });
 
-        // 4. Admin foydalanuvchi
+        // 5. Admin foydalanuvchi
         var user = new User
         {
             TenantId = tenant.Id,
