@@ -14,14 +14,43 @@ export class AuthService {
   private http = inject(HttpClient);
   private router = inject(Router);
 
-  token = signal<string | null>(localStorage.getItem(TOKEN_KEY));
+  token = signal<string | null>(this.loadToken());
   currentUser = signal<AdminUser | null>(this.loadUser());
-  isAuthenticated = computed(() => !!this.token() && !!this.currentUser()?.isSuperAdmin);
+  isAuthenticated = computed(() =>
+    !!this.token() && !!this.currentUser()?.isSuperAdmin && !this.isTokenExpired(this.token()!)
+  );
 
   private loadUser(): AdminUser | null {
     const s = localStorage.getItem(USER_KEY);
     if (s) { try { return JSON.parse(s); } catch { return null; } }
     return null;
+  }
+
+  /**
+   * Muddati o'tgan token bilan UI ochilmasin — birinchi 401 ni kutmasdan
+   * startupda tozalanadi.
+   */
+  private loadToken(): string | null {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (token && this.isTokenExpired(token)) {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+      return null;
+    }
+    return token;
+  }
+
+  /** JWT `exp` (soniyalarda). Payload o'qilmasa — tokenni yaroqsiz deb hisoblaymiz. */
+  private isTokenExpired(token: string): boolean {
+    const parts = token.split('.');
+    if (parts.length !== 3) return true;
+    try {
+      const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+      if (typeof payload.exp !== 'number') return false;
+      return payload.exp * 1000 <= Date.now();
+    } catch {
+      return true;
+    }
   }
 
   /** Faqat SuperAdmin kira oladi. Oddiy tenant admini rad etiladi. */
