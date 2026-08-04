@@ -33,7 +33,7 @@
         <div class="login-blocked">
           <i class="pi pi-ban"></i>
           <div>
-            <div class="blocked-title">{{ t(key) }}</div>
+            <div class="blocked-title">{{ blockedText() || t(key) }}</div>
             <div class="blocked-contact">
               {{ t('subscription.contactUs') }} —
               <a [href]="'tel:' + supportPhone">{{ supportPhone }}</a>,

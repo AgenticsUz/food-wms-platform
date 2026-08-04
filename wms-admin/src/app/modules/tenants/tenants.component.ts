@@ -16,7 +16,8 @@ import { PlatformService } from '../../core/services/platform.service';
 import { NotificationService } from '../../core/services/notification.service';
 import {
   Tenant, TenantModuleInfo, SubscriptionStatus,
-  PaymentRecord, PaymentMethod, PAYMENT_METHODS
+  PaymentRecord, PaymentMethod, PAYMENT_METHODS,
+  SuspendReason, SUSPEND_REASONS
 } from '../../core/models/tenant.model';
 import { Plan } from '../../core/models/plan.model';
 import { utcDateOnly, daysUntil } from '../../core/utils/date.util';
@@ -32,7 +33,15 @@ interface PaymentForm {
   amount: number; currency: string; method: PaymentMethod; note: string;
 }
 
-type TenantFilter = 'all' | 'expiring' | 'expired' | 'nolimit';
+interface SuspendForm {
+  reason: SuspendReason | null;
+  note: string;
+  publicMessage: string;
+  temporary: boolean;
+  until: Date | null;
+}
+
+type TenantFilter = 'all' | 'expiring' | 'expired' | 'nolimit' | 'suspended';
 
 @Component({
   selector: 'app-tenants',
@@ -54,16 +63,25 @@ export default class TenantsComponent implements OnInit {
   saving = signal(false);
 
   filter = signal<TenantFilter>('all');
+  reasonFilter = signal<SuspendReason | null>(null);
   filterOptions = [
     { label: 'All tenants', value: 'all' as TenantFilter },
     { label: 'Expiring soon (7d)', value: 'expiring' as TenantFilter },
     { label: 'Expired', value: 'expired' as TenantFilter },
-    { label: 'No limit', value: 'nolimit' as TenantFilter }
+    { label: 'No limit', value: 'nolimit' as TenantFilter },
+    { label: 'Suspended', value: 'suspended' as TenantFilter }
   ];
+  readonly reasonOptions = SUSPEND_REASONS;
 
   visibleTenants = computed(() => {
     const f = this.filter();
     if (f === 'all') return this.tenants();
+    if (f === 'suspended') {
+      const reason = this.reasonFilter();
+      return this.tenants().filter(t =>
+        t.subscriptionStatus === SubscriptionStatus.Suspended &&
+        (!reason || t.suspendReason === reason));
+    }
     return this.tenants().filter(t => {
       const days = this.paidDaysLeft(t);
       if (f === 'nolimit') return days === null;
@@ -157,8 +175,58 @@ export default class TenantsComponent implements OnInit {
   }
   private afterSave() { this.saving.set(false); this.dialogVisible.set(false); this.notify.success('Saved'); this.load(); }
 
-  suspend(t: Tenant) { this.service.suspendTenant(t.id).subscribe(() => { this.notify.success('Suspended'); this.load(); }); }
+  // ---- Suspend ------------------------------------------------------------
+
+  suspendVisible = signal(false);
+  suspendTenantRef = signal<Tenant | null>(null);
+  suspendForm = signal<SuspendForm>(this.emptySuspend());
+
+  private emptySuspend(): SuspendForm {
+    return { reason: null, note: '', publicMessage: '', temporary: false, until: null };
+  }
+
+  openSuspend(t: Tenant) {
+    this.suspendTenantRef.set(t);
+    this.suspendForm.set(this.emptySuspend());
+    this.suspendVisible.set(true);
+  }
+
+  updateSuspend(field: keyof SuspendForm, value: unknown) {
+    this.suspendForm.update(f => ({ ...f, [field]: value }));
+  }
+
+  /** Sabab tanlanmaguncha yuborib bo'lmaydi. */
+  canSuspend = computed(() => {
+    const f = this.suspendForm();
+    return !!f.reason && (!f.temporary || !!f.until);
+  });
+
+  confirmSuspend() {
+    const t = this.suspendTenantRef(); const f = this.suspendForm();
+    if (!t || !f.reason) return;
+    this.saving.set(true);
+    this.service.suspendTenant(t.id, {
+      reason: f.reason,
+      note: f.note.trim() || null,
+      publicMessage: f.publicMessage.trim() || null,
+      until: f.temporary && f.until ? utcDateOnly(f.until) : null
+    }).subscribe({
+      next: () => {
+        this.saving.set(false); this.suspendVisible.set(false);
+        this.notify.success(f.temporary && f.until
+          ? `Suspended until ${f.until.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`
+          : 'Suspended');
+        this.load();
+      },
+      error: () => this.saving.set(false)
+    });
+  }
+
   activate(t: Tenant) { this.service.activateTenant(t.id).subscribe(() => { this.notify.success('Activated'); this.load(); }); }
+
+  reasonLabel(reason: SuspendReason | null): string {
+    return SUSPEND_REASONS.find(r => r.value === reason)?.label ?? '';
+  }
 
   remove(t: Tenant) {
     this.notify.confirmDelete(`Delete "${t.name}"?`, () => {

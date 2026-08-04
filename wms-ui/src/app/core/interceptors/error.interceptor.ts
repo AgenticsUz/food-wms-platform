@@ -4,22 +4,9 @@ import { Router } from '@angular/router';
 import { TranslocoService } from '@jsverse/transloco';
 import { catchError, throwError } from 'rxjs';
 import { NotificationService } from '../../shared/services/notification.service';
+import { blockedReasonKey, isBlockingCode, LIMIT_KEYS } from '../models/subscription.model';
 
 const SUBSCRIPTION_PAGE = '/settings/subscription';
-
-/** Obuna bloki (402) — sabab bo'yicha tarjima kaliti. */
-const BLOCK_KEYS: Record<string, string> = {
-  subscription_suspended: 'errors.subscriptionSuspended',
-  trial_expired: 'errors.trialExpired',
-  tenant_inactive: 'errors.tenantInactive'
-};
-
-/** Plan limiti (402) — sabab bo'yicha tarjima kaliti. */
-const LIMIT_KEYS: Record<string, string> = {
-  limit_users: 'errors.limitUsers',
-  limit_warehouses: 'errors.limitWarehouses',
-  limit_transfers: 'errors.limitTransfers'
-};
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const notify = inject(NotificationService);
@@ -44,11 +31,10 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
           notify.error(message);
           break;
         case 402: {
-          const blockKey = BLOCK_KEYS[code];
-          if (blockKey) {
-            // Obuna to'xtatilgan / muddati o'tgan — sababni Obuna sahifasida ko'rsatamiz.
-            // Bu sahifaning o'zi enforcement'dan ozod, ya'ni ochiladi.
-            notify.error(transloco.translate(blockKey));
+          if (isBlockingCode(code)) {
+            // Backend o'z matnini yuborgan bo'lsa — o'sha ustun turadi
+            notify.error(err.error?.blockedMessage || transloco.translate(blockedReasonKey(code)));
+            // Obuna sahifasi enforcement'dan ozod, ya'ni sabab ko'rinadigan joy
             if (!router.url.startsWith(SUBSCRIPTION_PAGE)) {
               router.navigate([SUBSCRIPTION_PAGE]);
             }
@@ -56,9 +42,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
           }
           const limitKey = LIMIT_KEYS[code];
           // Limit oshgan — foydalanuvchi shu sahifada qoladi, faqat sababni ko'radi
-          notify.error(limitKey
-            ? `${transloco.translate(limitKey)} — ${message}`
-            : message);
+          notify.error(limitKey ? `${transloco.translate(limitKey)} — ${message}` : message);
           break;
         }
         case 403:

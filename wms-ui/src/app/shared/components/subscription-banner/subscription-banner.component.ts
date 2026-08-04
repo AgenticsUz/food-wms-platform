@@ -2,6 +2,7 @@ import { Component, inject, signal, computed, ChangeDetectionStrategy } from '@a
 import { RouterLink } from '@angular/router';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { SubscriptionService } from '../../../core/services/subscription.service';
+import { blockedReasonKey } from '../../../core/models/subscription.model';
 
 const DISMISS_KEY = 'subscriptionBannerDismissed';
 
@@ -44,14 +45,7 @@ export class SubscriptionBannerComponent {
 
   blockedText = computed(() => this.info()?.blockedMessage ?? null);
 
-  blockedKey = computed(() => {
-    switch (this.info()?.blockedReason) {
-      case 'payment_expired': return 'subscription.blockedPaymentExpired';
-      case 'trial_expired': return 'subscription.blockedTrialExpired';
-      case 'tenant_inactive': return 'subscription.blockedInactive';
-      default: return 'subscription.blockedSuspended';
-    }
-  });
+  blockedKey = computed(() => blockedReasonKey(this.info()?.blockedReason));
 
   dismiss() {
     const day = this.today();

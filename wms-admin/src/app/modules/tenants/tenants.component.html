@@ -4,6 +4,10 @@
     <div class="head-actions">
       <p-select [options]="filterOptions" [ngModel]="filter()" (ngModelChange)="filter.set($event)"
         optionLabel="label" optionValue="value" styleClass="filter-select" />
+      @if (filter() === 'suspended') {
+        <p-select [options]="reasonOptions" [ngModel]="reasonFilter()" (ngModelChange)="reasonFilter.set($event)"
+          optionLabel="label" optionValue="value" [showClear]="true" placeholder="Any reason" styleClass="filter-select" />
+      }
       <p-button icon="pi pi-plus" label="New tenant" (onClick)="openNew()" />
     </div>
   </header>
@@ -21,7 +25,14 @@
           <td><span class="item-name">{{ row.name }}</span></td>
           <td><code>{{ row.slug }}</code></td>
           <td>{{ planName(row.planId) }}</td>
-          <td><span [class]="statusClass(row.subscriptionStatus)">{{ statusLabel(row.subscriptionStatus) }}</span></td>
+          <td>
+            <span [class]="statusClass(row.subscriptionStatus)">
+              {{ statusLabel(row.subscriptionStatus) }}@if (row.subscriptionStatus === S.Suspended && row.suspendReason) {<span> · {{ reasonLabel(row.suspendReason) }}</span>}
+            </span>
+            @if (row.subscriptionStatus === S.Suspended && row.suspendedUntil) {
+              <div class="until-note">until {{ row.suspendedUntil | date:'MMM d' }}</div>
+            }
+          </td>
           <td>
             @if (row.paidUntil) {
               <div class="trial-cell">
@@ -49,7 +60,7 @@
             @if (row.subscriptionStatus === S.Suspended) {
               <p-button icon="pi pi-play" [text]="true" size="small" severity="success" title="Activate" (onClick)="activate(row)" />
             } @else {
-              <p-button icon="pi pi-ban" [text]="true" size="small" severity="warn" title="Suspend" (onClick)="suspend(row)" />
+              <p-button icon="pi pi-ban" [text]="true" size="small" severity="warn" title="Suspend" (onClick)="openSuspend(row)" />
             }
             <p-button icon="pi pi-th-large" [text]="true" size="small" title="Modules" (onClick)="openModules(row)" />
             <p-button icon="pi pi-pencil" [text]="true" size="small" (onClick)="openEdit(row)" />
@@ -180,6 +191,46 @@
         <tr><td colspan="7"><div class="empty-state"><i class="pi pi-wallet"></i><p>No payments recorded</p></div></td></tr>
       </ng-template>
     </p-table>
+  </p-dialog>
+
+  <!-- Suspend -->
+  <p-dialog [visible]="suspendVisible()" (visibleChange)="suspendVisible.set($event)"
+    [header]="'Suspend — ' + (suspendTenantRef()?.name ?? '')" [modal]="true" [style]="{ width: '520px' }" [draggable]="false">
+    <div class="dialog-form">
+      <div class="ff"><label>Reason *</label>
+        <p-select [options]="reasonOptions" [ngModel]="suspendForm().reason" (ngModelChange)="updateSuspend('reason', $event)"
+          optionLabel="label" optionValue="value" placeholder="Select a reason" styleClass="w-full" />
+      </div>
+
+      <div class="ff"><label>Internal note</label>
+        <textarea pTextarea [ngModel]="suspendForm().note" (ngModelChange)="updateSuspend('note', $event)" rows="2" class="w-full"></textarea>
+        <small class="field-hint internal-hint"><i class="pi pi-lock"></i> Internal — not shown to the client</small>
+      </div>
+
+      <div class="ff"><label>Message to the client</label>
+        <textarea pTextarea [ngModel]="suspendForm().publicMessage" (ngModelChange)="updateSuspend('publicMessage', $event)" rows="2" class="w-full"></textarea>
+        <div class="client-preview">
+          <span class="preview-label">The client sees:</span>
+          <span class="preview-text">{{ suspendForm().publicMessage.trim() || 'The default message for the selected reason.' }}</span>
+        </div>
+      </div>
+
+      <div class="ff-inline">
+        <label>Temporary suspension</label>
+        <p-toggleswitch [ngModel]="suspendForm().temporary" (ngModelChange)="updateSuspend('temporary', $event)" />
+      </div>
+      @if (suspendForm().temporary) {
+        <div class="ff"><label>Auto-reactivate on *</label>
+          <p-datepicker [ngModel]="suspendForm().until" (ngModelChange)="updateSuspend('until', $event)"
+            dateFormat="yy-mm-dd" [showIcon]="true" styleClass="w-full" />
+          <small class="field-hint">Tenant will be reactivated automatically on this date.</small>
+        </div>
+      }
+    </div>
+    <ng-template #footer>
+      <p-button label="Cancel" [text]="true" (onClick)="suspendVisible.set(false)" />
+      <p-button label="Suspend" icon="pi pi-ban" severity="danger" [loading]="saving()" [disabled]="!canSuspend()" (onClick)="confirmSuspend()" />
+    </ng-template>
   </p-dialog>
 
   <!-- Modules -->

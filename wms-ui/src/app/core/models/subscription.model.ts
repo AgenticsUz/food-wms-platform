@@ -9,6 +9,34 @@ export type BlockedReason =
   | 'suspended_other'
   | 'tenant_inactive';
 
+/** Blok sababi → tarjima kaliti. Interceptor, login va Obuna sahifasi shu bitta xaritaga tayanadi. */
+const BLOCKED_KEYS: Record<string, string> = {
+  trial_expired: 'errors.trialExpired',
+  payment_expired: 'errors.paymentExpired',
+  suspended_nonpayment: 'errors.suspendedNonpayment',
+  suspended_request: 'errors.suspendedRequest',
+  suspended_technical: 'errors.suspendedTechnical',
+  suspended_violation: 'errors.suspendedViolation',
+  suspended_other: 'errors.suspendedOther',
+  tenant_inactive: 'errors.tenantInactive'
+};
+
+/** Noma'lum kod ham blok sifatida ko'rsatiladi — mijoz sababsiz qolmasin. */
+export function blockedReasonKey(code: string | null | undefined): string {
+  return (code && BLOCKED_KEYS[code]) || 'errors.subscriptionSuspended';
+}
+
+export function isBlockingCode(code: string | null | undefined): boolean {
+  return !!code && code in BLOCKED_KEYS;
+}
+
+/** Plan limiti kodlari — bular blok emas, faqat xabar. */
+export const LIMIT_KEYS: Record<string, string> = {
+  limit_users: 'errors.limitUsers',
+  limit_warehouses: 'errors.limitWarehouses',
+  limit_transfers: 'errors.limitTransfers'
+};
+
 /** Muddat tugashiga necha kun qolganda ogohlantiramiz (backend `Subscription:WarnBeforeDays`). */
 export const WARN_BEFORE_DAYS = 7;
 

@@ -6,7 +6,7 @@ import { ProgressBar } from 'primeng/progressbar';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { SubscriptionService } from '../../../core/services/subscription.service';
 import {
-  SubscriptionInfo, SubscriptionPlan, LimitRow, toLimitRows
+  SubscriptionInfo, SubscriptionPlan, LimitRow, toLimitRows, blockedReasonKey
 } from '../../../core/models/subscription.model';
 import { environment } from '../../../../environments/environment';
 
@@ -69,12 +69,7 @@ export default class SubscriptionComponent implements OnInit {
   }
 
   blockedKey(info: SubscriptionInfo): string {
-    switch (info.blockedReason) {
-      case 'payment_expired': return 'subscription.blockedPaymentExpired';
-      case 'trial_expired': return 'subscription.blockedTrialExpired';
-      case 'tenant_inactive': return 'subscription.blockedInactive';
-      default: return 'subscription.blockedSuspended';
-    }
+    return blockedReasonKey(info.blockedReason);
   }
 
   limitKey(limit: LimitRow): string {
