@@ -8,6 +8,7 @@ namespace WMS.API.Controllers;
 
 [Route("api/agents")]
 [RequirePermission("agents.view")]
+[RequireModule(ModuleCodes.Agents)]
 public class AgentsController : BaseController
 {
     private readonly IAgentService _agents;

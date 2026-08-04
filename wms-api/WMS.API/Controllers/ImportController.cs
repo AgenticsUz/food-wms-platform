@@ -26,6 +26,7 @@ public class ImportController : BaseController
 
     [HttpPost("counterparties")]
     [RequirePermission("partners.manage")]
+    [RequireModule(ModuleCodes.Suppliers, ModuleCodes.Clients)]
     public async Task<IActionResult> ImportCounterparties(IFormFile file)
     {
         if (file == null || file.Length == 0)

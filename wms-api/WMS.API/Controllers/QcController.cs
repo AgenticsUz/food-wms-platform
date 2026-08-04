@@ -10,6 +10,7 @@ namespace WMS.API.Controllers;
 [Route("api/qc")]
 [Microsoft.AspNetCore.Authorization.Authorize]
 [RequirePermission("quality.view")]
+[RequireModule(ModuleCodes.Quality)]
 public class QcController : BaseController
 {
     private readonly IQcService _qc;

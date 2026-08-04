@@ -11,6 +11,7 @@ namespace WMS.API.Controllers;
 [Route("api/finance")]
 [Microsoft.AspNetCore.Authorization.Authorize]
 [RequirePermission("finance.view")]
+[RequireModule(ModuleCodes.Finance)]
 public class FinanceController : BaseController
 {
     private readonly IFinanceService _finance;

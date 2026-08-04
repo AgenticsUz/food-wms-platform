@@ -11,6 +11,7 @@ namespace WMS.API.Controllers;
 [Route("api/production")]
 [Microsoft.AspNetCore.Authorization.Authorize]
 [RequirePermission("production.view")]
+[RequireModule(ModuleCodes.Production)]
 public class ProductionController : BaseController
 {
     private readonly IProductionService _production;

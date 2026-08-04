@@ -10,6 +10,7 @@ namespace WMS.API.Controllers;
 [Route("api/shifts")]
 [Microsoft.AspNetCore.Authorization.Authorize]
 [RequirePermission("kpi.view")]
+[RequireModule(ModuleCodes.Kpi)]
 public class ShiftsController : BaseController
 {
     private readonly IKpiService _kpi;
@@ -39,6 +40,7 @@ public class ShiftsController : BaseController
 [Route("api/kpi")]
 [Microsoft.AspNetCore.Authorization.Authorize]
 [RequirePermission("kpi.view")]
+[RequireModule(ModuleCodes.Kpi)]
 public class KpiController : BaseController
 {
     private readonly IKpiService _kpi;
@@ -75,6 +77,7 @@ public class KpiController : BaseController
 [Route("api/attendance")]
 [Microsoft.AspNetCore.Authorization.Authorize]
 [RequirePermission("kpi.view")]
+[RequireModule(ModuleCodes.Kpi)]
 public class AttendanceController : BaseController
 {
     private readonly IKpiService _kpi;

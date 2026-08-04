@@ -8,6 +8,7 @@ using WMS.Domain.Enums;
 namespace WMS.API.Controllers;
 
 [RequirePermission("transfers.view")]
+[RequireModule(ModuleCodes.Transfers)]
 public class TransfersController : BaseController
 {
     private readonly ITransferService _transfers;

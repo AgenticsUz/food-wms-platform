@@ -9,6 +9,7 @@ namespace WMS.API.Controllers;
 
 [Route("api/delivery")]
 [RequirePermission("delivery.view")]
+[RequireModule(ModuleCodes.Delivery)]
 public class DeliveryController : BaseController
 {
     private readonly IDeliveryService _delivery;

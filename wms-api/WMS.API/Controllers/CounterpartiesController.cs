@@ -9,6 +9,7 @@ using WMS.Domain.Enums;
 namespace WMS.API.Controllers;
 
 [RequirePermission("partners.view")]
+[RequireModule(ModuleCodes.Suppliers, ModuleCodes.Clients)]
 public class CounterpartiesController : BaseController
 {
     private readonly ICounterpartyService _counterparties;

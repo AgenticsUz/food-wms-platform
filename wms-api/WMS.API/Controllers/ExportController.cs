@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using WMS.API.Middleware;
+using WMS.Application.Common;
 using WMS.Application.Interfaces;
 using WMS.Domain.Enums;
 
@@ -19,6 +20,7 @@ public class ExportController : BaseController
 
     [HttpGet("transfers")]
     [RequirePermission("transfers.view")]
+    [RequireModule(ModuleCodes.Transfers)]
     public async Task<IActionResult> ExportTransfers([FromQuery] DateTime? fromDate, [FromQuery] DateTime? toDate)
     {
         var bytes = await _export.ExportTransfersAsync(TenantId, fromDate, toDate);
@@ -27,6 +29,7 @@ public class ExportController : BaseController
 
     [HttpGet("stock")]
     [RequirePermission("warehouse.view")]
+    [RequireModule(ModuleCodes.WarehouseRaw, ModuleCodes.WarehouseFinished)]
     public async Task<IActionResult> ExportStock([FromQuery] int? warehouseId)
     {
         var bytes = await _export.ExportStockAsync(TenantId, warehouseId);
@@ -35,6 +38,7 @@ public class ExportController : BaseController
 
     [HttpGet("transactions")]
     [RequirePermission("finance.view")]
+    [RequireModule(ModuleCodes.Finance)]
     public async Task<IActionResult> ExportTransactions([FromQuery] DateTime? fromDate, [FromQuery] DateTime? toDate)
     {
         var bytes = await _export.ExportTransactionsAsync(TenantId, fromDate, toDate);
@@ -51,6 +55,7 @@ public class ExportController : BaseController
 
     [HttpGet("counterparties")]
     [RequirePermission("partners.view")]
+    [RequireModule(ModuleCodes.Suppliers, ModuleCodes.Clients)]
     public async Task<IActionResult> ExportCounterparties([FromQuery] CounterpartyType? type)
     {
         var bytes = await _export.ExportCounterpartiesAsync(TenantId, type);
@@ -59,6 +64,7 @@ public class ExportController : BaseController
 
     [HttpGet("transfers/{id}/pdf")]
     [RequirePermission("transfers.view")]
+    [RequireModule(ModuleCodes.Transfers)]
     public async Task<IActionResult> ExportTransferPdf(int id)
     {
         try

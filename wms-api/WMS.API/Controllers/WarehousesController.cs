@@ -7,6 +7,7 @@ using WMS.Application.Interfaces;
 namespace WMS.API.Controllers;
 
 [RequirePermission("warehouse.view")]
+[RequireModule(ModuleCodes.WarehouseRaw, ModuleCodes.WarehouseFinished)]
 public class WarehousesController : BaseController
 {
     private readonly IWarehouseService _warehouses;
