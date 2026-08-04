@@ -5,6 +5,7 @@ const routes: Routes = [
   { path: 'users', loadComponent: () => import('./users/users.component') },
   { path: 'roles', loadComponent: () => import('./roles/roles.component') },
   { path: 'modules', loadComponent: () => import('./modules/modules.component') },
+  { path: 'subscription', loadComponent: () => import('./subscription/subscription.component') },
   { path: 'qc-parameters', loadComponent: () => import('./qc-parameters/qc-parameters.component') },
   { path: 'audit', loadComponent: () => import('./audit-log/audit-log.component') },
   { path: 'profile', loadComponent: () => import('./profile/profile.component') }

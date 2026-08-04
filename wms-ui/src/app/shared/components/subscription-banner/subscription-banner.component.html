@@ -1,0 +1,16 @@
+@if (blocked()) {
+  <div class="sub-banner sub-banner-danger" *transloco="let t">
+    <i class="pi pi-ban"></i>
+    <span class="banner-text">{{ t(blockedKey()) }}</span>
+    <a class="banner-link" routerLink="/settings/subscription">{{ t('subscription.details') }}</a>
+  </div>
+} @else if (showWarning()) {
+  <div class="sub-banner sub-banner-warning" *transloco="let t">
+    <i class="pi pi-clock"></i>
+    <span class="banner-text">{{ t('subscription.expiringSoon', { days: daysLeft() }) }}</span>
+    <a class="banner-link" routerLink="/settings/subscription">{{ t('subscription.details') }}</a>
+    <button class="banner-close" type="button" (click)="dismiss()" [attr.aria-label]="t('common.close')">
+      <i class="pi pi-times"></i>
+    </button>
+  </div>
+}

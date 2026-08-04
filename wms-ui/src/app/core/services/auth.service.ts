@@ -8,6 +8,7 @@ import { LoginDto, AuthResponse, User, RegisterDto } from '../models/auth.model'
 import { ApiResponse } from '../models/api-response.model';
 import { PermissionService } from './permission.service';
 import { NotificationBellService } from './notification-bell.service';
+import { SubscriptionService } from './subscription.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -15,6 +16,7 @@ export class AuthService {
   private router = inject(Router);
   private permissionService = inject(PermissionService);
   private bellService = inject(NotificationBellService);
+  private subscriptionService = inject(SubscriptionService);
 
   token = signal<string | null>(localStorage.getItem('token'));
   currentUser = signal<User | null>(this.loadUserFromStorage());
@@ -86,6 +88,8 @@ export class AuthService {
     this.token.set(null);
     this.currentUser.set(null);
     this.permissionService.clearPermissions();
+    // Obuna holati ham tozalanadi — boshqa tenant kirsa eski banner ko'rinmasin
+    this.subscriptionService.clear();
     localStorage.removeItem('token');
     localStorage.removeItem('currentUser');
     // Modul ro'yxatini ham tozalaymiz — boshqa tenant/user kirsa eski sidebar ko'rinmasin
