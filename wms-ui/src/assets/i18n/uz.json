@@ -582,6 +582,19 @@
     "markDelivered": "Yetkazildi",
     "markFailed": "Yetkazilmadi"
   },
+  "errors": {
+    "accessDenied": "Ruxsat yo'q",
+    "notFound": "Ma'lumot topilmadi",
+    "server": "Server xatosi. Birozdan so'ng qayta urinib ko'ring.",
+    "offline": "Serverga ulanib bo'lmadi",
+    "moduleDisabled": "Bu modul obuna planingizga kirmaydi",
+    "subscriptionSuspended": "Obunangiz to'xtatilgan. Davom etish uchun biz bilan bog'laning.",
+    "trialExpired": "Sinov muddati tugadi. Davom etish uchun plan tanlang.",
+    "tenantInactive": "Hisobingiz faol emas. Qo'llab-quvvatlash xizmatiga murojaat qiling.",
+    "limitUsers": "Plan bo'yicha foydalanuvchilar limiti to'ldi",
+    "limitWarehouses": "Plan bo'yicha omborlar limiti to'ldi",
+    "limitTransfers": "Oylik transfer limiti tugadi"
+  },
   "subscription": {
     "title": "Obuna",
     "subtitle": "Planingiz, muddati va cheklovlari",

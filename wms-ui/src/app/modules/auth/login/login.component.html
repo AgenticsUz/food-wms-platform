@@ -29,6 +29,20 @@
         <p class="login-subtitle">{{ t('auth.loginSubtitle') }}</p>
       </div>
 
+      @if (blockedKey(); as key) {
+        <div class="login-blocked">
+          <i class="pi pi-ban"></i>
+          <div>
+            <div class="blocked-title">{{ t(key) }}</div>
+            <div class="blocked-contact">
+              {{ t('subscription.contactUs') }} —
+              <a [href]="'tel:' + supportPhone">{{ supportPhone }}</a>,
+              <a [href]="'mailto:' + supportEmail">{{ supportEmail }}</a>
+            </div>
+          </div>
+        </div>
+      }
+
       <form class="login-form" (ngSubmit)="login()">
         <div class="field">
           <label for="phone">{{ t('auth.phone') }}</label>

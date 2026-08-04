@@ -33,6 +33,19 @@ export default class LoginComponent {
   phone = signal('');
   password = signal('');
   loading = signal(false);
+  /** 402 — obuna to'xtatilgan yoki muddati o'tgan. Toast emas, ko'rinarli panel. */
+  blockedKey = signal<string | null>(null);
+
+  readonly supportPhone = environment.supportPhone;
+  readonly supportEmail = environment.supportEmail;
+
+  private blockedKeyFor(code: string): string {
+    switch (code) {
+      case 'trial_expired': return 'errors.trialExpired';
+      case 'tenant_inactive': return 'errors.tenantInactive';
+      default: return 'errors.subscriptionSuspended';
+    }
+  }
 
   onPhoneInput(value: string) {
     this.phone.set(value.replace(/\D/g, ''));
@@ -49,6 +62,7 @@ export default class LoginComponent {
       return;
     }
 
+    this.blockedKey.set(null);
     this.loading.set(true);
     this.loadingService.show();
     this.authService.login({
@@ -65,6 +79,11 @@ export default class LoginComponent {
       error: (err) => {
         this.loading.set(false);
         this.loadingService.hide();
+        if (err.status === 402) {
+          // Obuna bloki — sabab panelda qoladi, toast bilan yo'qolib ketmaydi
+          this.blockedKey.set(this.blockedKeyFor(err.error?.code ?? ''));
+          return;
+        }
         this.notify.error(err.error?.message ?? this.transloco.translate('auth.loginFailed'));
       }
     });

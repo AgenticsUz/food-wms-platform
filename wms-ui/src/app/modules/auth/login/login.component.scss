@@ -346,3 +346,33 @@
 
   .divider { color: var(--text-muted); }
 }
+
+/* 402 — obuna bloklangan holati (toast emas, ko'rinarli panel) */
+.login-blocked {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+  border-radius: var(--radius-md);
+  background: var(--color-berry-50);
+  border: 1px solid var(--color-berry-100);
+  color: var(--color-berry-700);
+
+  > i { font-size: 16px; margin-top: 2px; }
+}
+
+.blocked-title { font-weight: 600; font-size: 14px; }
+
+.blocked-contact {
+  font-size: 12px;
+  margin-top: 4px;
+
+  a { color: inherit; text-decoration: underline; }
+}
+
+:host-context(.dark-mode) .login-blocked {
+  background: rgba(217, 76, 102, 0.18);
+  border-color: rgba(217, 76, 102, 0.35);
+  color: #f0a3b1;
+}
