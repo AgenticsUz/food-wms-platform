@@ -14,6 +14,9 @@ namespace WMS.Infrastructure.Persistence;
 /// </summary>
 public static class PlanLimits
 {
+    /// Xom hisoblar — cheklovlar ham, ko'rsatish ham shundan quriladi.
+    public record LimitUsageSnapshot(int Users, int Warehouses, int TransfersThisMonth);
+
     public const string Users = "users";
     public const string Warehouses = "warehouses";
     public const string TransfersThisMonth = "transfersThisMonth";
@@ -74,28 +77,30 @@ public static class PlanLimits
     }
 
     /// Joriy foydalanish — /api/subscription/me uchun.
-    public static async Task<List<LimitUsageDto>> GetUsageAsync(WmsDbContext db, int tenantId, Plan? plan,
+    public static async Task<LimitUsageSnapshot> GetUsageAsync(WmsDbContext db, int tenantId, Plan? plan,
         CancellationToken ct = default)
     {
         var monthStart = MonthStart(DateTime.UtcNow);
-        return
-        [
-            new LimitUsageDto
-            {
-                Key = Users, Limit = plan?.MaxUsers ?? 0,
-                Used = await db.Users.CountAsync(u => u.TenantId == tenantId, ct)
-            },
-            new LimitUsageDto
-            {
-                Key = Warehouses, Limit = plan?.MaxWarehouses ?? 0,
-                Used = await db.Warehouses.CountAsync(w => w.TenantId == tenantId, ct)
-            },
-            new LimitUsageDto
-            {
-                Key = TransfersThisMonth, Limit = plan?.MaxTransfersPerMonth ?? 0,
-                Used = await db.Transfers.CountAsync(t => t.TenantId == tenantId && t.CreatedAt >= monthStart, ct)
-            }
-        ];
+        return new LimitUsageSnapshot(
+            await db.Users.CountAsync(u => u.TenantId == tenantId, ct),
+            await db.Warehouses.CountAsync(w => w.TenantId == tenantId, ct),
+            await db.Transfers.CountAsync(t => t.TenantId == tenantId && t.CreatedAt >= monthStart, ct));
+    }
+
+    /// Limit + foydalanish juftliklari (mijozga ko'rsatiladigan shakl).
+    public static async Task<SubscriptionLimitsDto> GetLimitsAsync(WmsDbContext db, int tenantId, Plan? plan,
+        CancellationToken ct = default)
+    {
+        var usage = await GetUsageAsync(db, tenantId, plan, ct);
+        return new SubscriptionLimitsDto
+        {
+            MaxUsers = plan?.MaxUsers ?? 0,
+            CurrentUsers = usage.Users,
+            MaxWarehouses = plan?.MaxWarehouses ?? 0,
+            CurrentWarehouses = usage.Warehouses,
+            MaxTransfersPerMonth = plan?.MaxTransfersPerMonth ?? 0,
+            CurrentTransfersThisMonth = usage.TransfersThisMonth
+        };
     }
 
     private static DateTime MonthStart(DateTime utcNow)

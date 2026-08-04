@@ -36,6 +36,14 @@ public class TransfersController : BaseController
             var result = await _transfers.CreateAsync(TenantId, UserId, dto);
             return Ok(ApiResponse<TransferDto>.Ok(result));
         }
+        catch (AppException ex) when (ex is PaymentRequiredException
+                                      or ModuleDisabledException
+                                      or FeatureDisabledException)
+        {
+            // Entitlement and subscription refusals carry their own status and code —
+            // let the exception middleware map them instead of flattening to 400.
+            throw;
+        }
         catch (Exception ex)
         {
             return BadRequest(ApiResponse<object>.Fail(ex.Message));
@@ -50,6 +58,14 @@ public class TransfersController : BaseController
         {
             var result = await _transfers.ConfirmAsync(TenantId, id);
             return Ok(ApiResponse<TransferDto>.Ok(result));
+        }
+        catch (AppException ex) when (ex is PaymentRequiredException
+                                      or ModuleDisabledException
+                                      or FeatureDisabledException)
+        {
+            // Entitlement and subscription refusals carry their own status and code —
+            // let the exception middleware map them instead of flattening to 400.
+            throw;
         }
         catch (Exception ex)
         {

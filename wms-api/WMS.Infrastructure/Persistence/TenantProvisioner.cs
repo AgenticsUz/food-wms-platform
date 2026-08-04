@@ -29,7 +29,7 @@ public static class TenantProvisioner
     public static async Task<(Tenant tenant, User admin)> ProvisionAsync(
         WmsDbContext db, string tenantName, string slug,
         string adminFullName, string adminPhone, string adminPassword,
-        SubscriptionOptions? subscription = null, int? planId = null)
+        SubscriptionOptions? subscription = null, int? planId = null, string? inn = null)
     {
         subscription ??= new SubscriptionOptions();
 
@@ -61,8 +61,12 @@ public static class TenantProvisioner
         var trialDays = plan is { TrialDays: > 0 } ? plan.TrialDays : subscription.TrialDays;
         var isTrial = plan == null || plan.TrialDays > 0 || plan.Price <= 0;
 
+        // Platforma darajasidagi kompaniya identifikatori (S6) — STIR berilgan bo'lsa.
+        var organization = await OrganizationMatcher.ResolveAsync(db, inn, tenantName, adminPhone);
+
         var tenant = new Tenant
         {
+            OrganizationId = organization?.Id,
             Name = tenantName.Trim(),
             Slug = slug,
             IsActive = true,

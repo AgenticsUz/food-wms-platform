@@ -1,44 +1,59 @@
-using WMS.Domain.Enums;
-
 namespace WMS.Application.DTOs.Subscription;
 
-/// One plan limit and how much of it the tenant currently uses.
-/// Limit = 0 means unlimited (tenant without a plan).
-public class LimitUsageDto
+/// Plan limits and how much of each the tenant currently uses.
+/// A limit of 0 means unlimited (tenant without a plan).
+public class SubscriptionLimitsDto
 {
-    public string Key { get; set; } = null!;   // "users" | "warehouses" | "transfersThisMonth"
-    public int Limit { get; set; }
-    public int Used { get; set; }
-    public bool IsUnlimited => Limit <= 0;
-    public int Percent => Limit <= 0 ? 0 : (int)Math.Round(Used * 100.0 / Limit);
-    public bool IsExceeded => Limit > 0 && Used >= Limit;
+    public int MaxUsers { get; set; }
+    public int CurrentUsers { get; set; }
+    public int MaxWarehouses { get; set; }
+    public int CurrentWarehouses { get; set; }
+    public int MaxTransfersPerMonth { get; set; }
+    public int CurrentTransfersThisMonth { get; set; }
 }
 
-/// Everything the tenant app needs to show its own subscription state:
-/// which plan, what status, how many trial days remain, and current limit usage.
+/// <summary>
+/// Everything the tenant app needs to explain its own subscription: which plan, what state,
+/// how long is left, what it may use, and — when access is refused — exactly why.
+/// Returned with HTTP 200 even while the tenant is blocked; that is the whole point.
+/// </summary>
 public class SubscriptionInfoDto
 {
     public int TenantId { get; set; }
     public string TenantName { get; set; } = null!;
-    public string Slug { get; set; } = null!;
 
-    public int? PlanId { get; set; }
     public string? PlanName { get; set; }
     public string? PlanCode { get; set; }
     public decimal PlanPrice { get; set; }
 
-    public SubscriptionStatus Status { get; set; }
-    public bool IsActive { get; set; }
+    /// "Trial" | "Active" | "Suspended" — the enum name, not its number.
+    public string Status { get; set; } = null!;
+
     public DateTime? TrialEndsAt { get; set; }
-    public int? TrialDaysLeft { get; set; }
-    public int GraceDays { get; set; }
-    /// True when the trial ends within SubscriptionOptions.WarnBeforeDays — show the banner.
-    public bool IsExpiringSoon { get; set; }
-    /// True when access is currently blocked (suspended / trial past grace).
+    public int? DaysUntilTrialEnd { get; set; }
+
+    public DateTime? PaidUntil { get; set; }
+    public int? DaysUntilPaidEnd { get; set; }
+    public int PaymentGraceDays { get; set; }
+
     public bool IsBlocked { get; set; }
+    /// Machine-readable reason, same vocabulary as the ApiResponse.code on a 402.
     public string? BlockedReason { get; set; }
+    /// Message to show the user: the operator's own wording when they wrote one,
+    /// otherwise the standard text for this reason.
+    public string? BlockedMessage { get; set; }
+    public DateTime? SuspendedUntil { get; set; }
+
+    /// True when the trial or the paid period ends within WarnBeforeDays — show the banner.
+    public bool IsExpiringSoon { get; set; }
+    public int WarnBeforeDays { get; set; }
+    public int LimitWarnPercent { get; set; }
+
+    public SubscriptionLimitsDto Limits { get; set; } = new();
 
     public List<string> EnabledModules { get; set; } = new();
-    public List<LimitUsageDto> Limits { get; set; } = new();
-    public int LimitWarnPercent { get; set; }
+    public List<string> EnabledFeatures { get; set; } = new();
+
+    public string? SupportPhone { get; set; }
+    public string? SupportEmail { get; set; }
 }

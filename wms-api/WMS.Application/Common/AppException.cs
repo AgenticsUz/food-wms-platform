@@ -35,3 +35,16 @@ public class ModuleDisabledException : AppException
         : base($"This module is not enabled for your subscription plan ({moduleCode})")
         => ModuleCode = moduleCode;
 }
+
+/// Entitlement refusal one level finer: the module is on, but this particular capability
+/// is not granted to the tenant. Mapped to HTTP 403 with "feature_disabled:CODE".
+/// Thrown from services where the check depends on the payload (e.g. the transfer type)
+/// and therefore cannot live in an attribute.
+public class FeatureDisabledException : AppException
+{
+    public string FeatureCode { get; }
+
+    public FeatureDisabledException(string featureCode)
+        : base($"This feature is not enabled for your subscription ({featureCode})")
+        => FeatureCode = featureCode;
+}

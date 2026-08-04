@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using WMS.Application.Common;
 using WMS.Application.DTOs.Plans;
@@ -13,11 +14,13 @@ public class SubscriptionService : ISubscriptionService
 {
     private readonly WmsDbContext _db;
     private readonly SubscriptionOptions _options;
+    private readonly IConfiguration _config;
 
-    public SubscriptionService(WmsDbContext db, IOptions<SubscriptionOptions> options)
+    public SubscriptionService(WmsDbContext db, IOptions<SubscriptionOptions> options, IConfiguration config)
     {
         _db = db;
         _options = options.Value;
+        _config = config;
     }
 
     public async Task<SubscriptionInfoDto> GetForTenantAsync(int tenantId, CancellationToken ct = default)
@@ -33,6 +36,9 @@ public class SubscriptionService : ISubscriptionService
             .Where(tm => tm.TenantId == tenantId && tm.IsEnabled)
             .Select(tm => tm.Module.Code)
             .ToListAsync(ct);
+        var moduleSet = new HashSet<string>(modules, StringComparer.OrdinalIgnoreCase);
+
+        var features = await FeatureResolver.ResolveAsync(_db, tenantId, moduleSet, ct);
 
         var now = DateTime.UtcNow;
         var state = new TenantState
@@ -40,31 +46,52 @@ public class SubscriptionService : ISubscriptionService
             Id = tenant.Id, Name = tenant.Name, Slug = tenant.Slug,
             IsActive = tenant.IsActive, Status = tenant.SubscriptionStatus,
             TrialEndsAt = tenant.TrialEndsAt, PlanId = tenant.PlanId,
-            EnabledModules = new HashSet<string>(modules, StringComparer.OrdinalIgnoreCase)
+            PaidUntil = tenant.PaidUntil,
+            SuspendReason = tenant.SuspendReason,
+            SuspendPublicMessage = tenant.SuspendPublicMessage,
+            SuspendedUntil = tenant.SuspendedUntil,
+            EnabledModules = moduleSet
         };
         var verdict = SubscriptionPolicy.Evaluate(state, _options, now);
-        var daysLeft = SubscriptionPolicy.TrialDaysLeft(state, now);
+
+        var trialDaysLeft = SubscriptionPolicy.TrialDaysLeft(state, now);
+        var paidDaysLeft = SubscriptionPolicy.PaidDaysLeft(tenant.PaidUntil, now);
+        var soon = (trialDaysLeft is { } t && t <= _options.WarnBeforeDays)
+                   || (paidDaysLeft is { } p && p <= _options.WarnBeforeDays);
 
         return new SubscriptionInfoDto
         {
             TenantId = tenant.Id,
             TenantName = tenant.Name,
-            Slug = tenant.Slug,
-            PlanId = plan?.Id,
             PlanName = plan?.Name,
             PlanCode = plan?.Code,
             PlanPrice = plan?.Price ?? 0,
-            Status = tenant.SubscriptionStatus,
-            IsActive = tenant.IsActive,
+            Status = tenant.SubscriptionStatus.ToString(),
+
             TrialEndsAt = tenant.TrialEndsAt,
-            TrialDaysLeft = daysLeft,
-            GraceDays = _options.GraceDays,
-            IsExpiringSoon = daysLeft is { } d && d <= _options.WarnBeforeDays,
+            DaysUntilTrialEnd = trialDaysLeft,
+
+            PaidUntil = tenant.PaidUntil,
+            DaysUntilPaidEnd = paidDaysLeft,
+            PaymentGraceDays = _options.PaidGraceDays,
+
             IsBlocked = !verdict.Allowed,
             BlockedReason = verdict.Code,
+            // The operator's own wording wins over the generic text — that is why they wrote it.
+            BlockedMessage = verdict.Allowed ? null : (verdict.PublicMessage ?? verdict.Message),
+            SuspendedUntil = tenant.SuspendedUntil,
+
+            IsExpiringSoon = soon,
+            WarnBeforeDays = _options.WarnBeforeDays,
+            LimitWarnPercent = _options.LimitWarnPercent,
+
+            Limits = await PlanLimits.GetLimitsAsync(_db, tenantId, plan, ct),
+
             EnabledModules = modules,
-            Limits = await PlanLimits.GetUsageAsync(_db, tenantId, plan, ct),
-            LimitWarnPercent = _options.LimitWarnPercent
+            EnabledFeatures = features.Where(f => f.IsEnabled).Select(f => f.Code).ToList(),
+
+            SupportPhone = _config["Support:Phone"],
+            SupportEmail = _config["Support:Email"]
         };
     }
 
@@ -79,8 +106,10 @@ public class SubscriptionService : ISubscriptionService
         {
             Id = p.Id, Name = p.Name, Code = p.Code, Price = p.Price, IsActive = p.IsActive,
             ModuleCodes = PlanModules.Split(p.ModuleCodes),
+            FeatureCodes = PlanModules.Split(p.FeatureCodes),
             MaxUsers = p.MaxUsers, MaxWarehouses = p.MaxWarehouses,
-            MaxTransfersPerMonth = p.MaxTransfersPerMonth
+            MaxTransfersPerMonth = p.MaxTransfersPerMonth,
+            TrialDays = p.TrialDays, IsDefault = p.IsDefault
         }).ToList();
     }
 }

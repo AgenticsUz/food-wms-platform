@@ -30,6 +30,7 @@ public class ExceptionHandlingMiddleware
                 NotFoundException => (StatusCodes.Status404NotFound, ex.Message, null),
                 PaymentRequiredException pre => (StatusCodes.Status402PaymentRequired, ex.Message, pre.Code),
                 ModuleDisabledException mde => (StatusCodes.Status403Forbidden, ex.Message, "module_disabled:" + mde.ModuleCode),
+                FeatureDisabledException fde => (StatusCodes.Status403Forbidden, ex.Message, "feature_disabled:" + fde.FeatureCode),
                 AppException => (StatusCodes.Status400BadRequest, ex.Message, null),
                 _ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred", (string?)null)
             };

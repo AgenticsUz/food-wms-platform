@@ -2,8 +2,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WMS.Application.Common;
 using WMS.Application.DTOs.Plans;
+using WMS.Application.DTOs.Platform;
 using WMS.Application.DTOs.Tenants;
 using WMS.Application.Interfaces;
+using WMS.Domain.Enums;
 
 namespace WMS.API.Controllers;
 
@@ -16,11 +18,20 @@ public class AdminController : BaseController
 {
     private readonly ITenantService _tenants;
     private readonly IPlanService _plans;
+    private readonly IBillingService _billing;
+    private readonly ILeadService _leads;
+    private readonly IFeatureService _features;
+    private readonly IOrganizationService _organizations;
 
-    public AdminController(ITenantService tenants, IPlanService plans)
+    public AdminController(ITenantService tenants, IPlanService plans, IBillingService billing,
+        ILeadService leads, IFeatureService features, IOrganizationService organizations)
     {
         _tenants = tenants;
         _plans = plans;
+        _billing = billing;
+        _leads = leads;
+        _features = features;
+        _organizations = organizations;
     }
 
     // ── Tenants ──────────────────────────────────────────────────────────
@@ -41,9 +52,11 @@ public class AdminController : BaseController
     public async Task<IActionResult> DeleteTenant(int id)
     { await _tenants.DeleteAsync(id); return Ok(ApiResponse<object>.Ok(null!, "Deleted")); }
 
+    /// Body is optional: an empty request still suspends (reason "Other"), which keeps the
+    /// old one-click behaviour working while the console catches up.
     [HttpPut("tenants/{id}/suspend")]
-    public async Task<IActionResult> SuspendTenant(int id)
-        => Ok(ApiResponse<TenantDto>.Ok(await _tenants.SuspendAsync(id)));
+    public async Task<IActionResult> SuspendTenant(int id, [FromBody] SuspendTenantDto? dto = null)
+        => Ok(ApiResponse<TenantDto>.Ok(await _tenants.SuspendAsync(id, dto, UserId)));
 
     [HttpPut("tenants/{id}/activate")]
     public async Task<IActionResult> ActivateTenant(int id)
@@ -84,6 +97,83 @@ public class AdminController : BaseController
     [HttpDelete("plans/{id}")]
     public async Task<IActionResult> DeletePlan(int id)
     { await _plans.DeletePlanAsync(id); return Ok(ApiResponse<object>.Ok(null!, "Deleted")); }
+
+    // ── Manual billing (S1) ──────────────────────────────────────────────
+
+    [HttpPost("tenants/{id}/payments")]
+    public async Task<IActionResult> RecordPayment(int id, [FromBody] RecordPaymentDto dto)
+        => Ok(ApiResponse<PaymentRecordDto>.Ok(await _billing.RecordPaymentAsync(id, dto, UserId),
+            "Payment recorded"));
+
+    [HttpGet("tenants/{id}/payments")]
+    public async Task<IActionResult> GetPayments(int id, [FromQuery] int page = 1, [FromQuery] int pageSize = 50)
+        => Ok(ApiResponse<List<PaymentRecordDto>>.Ok(await _billing.GetPaymentsAsync(id, page, pageSize)));
+
+    [HttpDelete("payments/{paymentId}")]
+    public async Task<IActionResult> DeletePayment(int paymentId)
+    {
+        var tenantId = await _billing.DeletePaymentAsync(paymentId);
+        // The audit row belongs to the tenant whose payment was cancelled, not to the
+        // platform tenant — the route only carries a payment id, so we pass it explicitly.
+        HttpContext.Items["AuditTargetTenantId"] = tenantId;
+        return Ok(ApiResponse<object>.Ok(null!, "Payment cancelled"));
+    }
+
+    /// Subscriptions running out within N days — the platform dashboard's "call these people" list.
+    [HttpGet("tenants/expiring")]
+    public async Task<IActionResult> GetExpiring([FromQuery] int days = 7)
+        => Ok(ApiResponse<List<ExpiringTenantDto>>.Ok(await _billing.GetExpiringAsync(days)));
+
+    // ── Leads (S3) ───────────────────────────────────────────────────────
+
+    [HttpGet("leads")]
+    public async Task<IActionResult> GetLeads([FromQuery] LeadStatus? status, [FromQuery] LeadSource? source,
+        [FromQuery] string? search, [FromQuery] int page = 1, [FromQuery] int pageSize = 50)
+        => Ok(ApiResponse<List<LeadDto>>.Ok(await _leads.GetAllAsync(status, source, search, page, pageSize)));
+
+    [HttpGet("leads/{id}")]
+    public async Task<IActionResult> GetLead(int id)
+        => Ok(ApiResponse<LeadDto>.Ok(await _leads.GetByIdAsync(id)));
+
+    [HttpPut("leads/{id}")]
+    public async Task<IActionResult> UpdateLead(int id, [FromBody] UpdateLeadDto dto)
+        => Ok(ApiResponse<LeadDto>.Ok(await _leads.UpdateAsync(id, dto)));
+
+    [HttpPost("leads/{id}/convert")]
+    public async Task<IActionResult> ConvertLead(int id, [FromBody] ConvertLeadDto dto)
+        => Ok(ApiResponse<TenantDto>.Ok(await _leads.ConvertAsync(id, dto), "Tenant created"));
+
+    // ── Features (S4, S5) ────────────────────────────────────────────────
+
+    [HttpGet("features")]
+    public async Task<IActionResult> GetFeatures([FromQuery] bool? isCustom = null)
+        => Ok(ApiResponse<List<FeatureDto>>.Ok(await _features.GetCatalogAsync(isCustom)));
+
+    [HttpPost("features")]
+    public async Task<IActionResult> CreateFeature([FromBody] CreateFeatureDto dto)
+        => Ok(ApiResponse<FeatureDto>.Ok(await _features.CreateAsync(dto)));
+
+    [HttpGet("tenants/{id}/features")]
+    public async Task<IActionResult> GetTenantFeatures(int id)
+        => Ok(ApiResponse<List<TenantFeatureDto>>.Ok(await _features.GetTenantFeaturesAsync(id)));
+
+    [HttpPut("tenants/{id}/features")]
+    public async Task<IActionResult> SetTenantFeatures(int id, [FromBody] SetTenantFeaturesDto dto)
+    {
+        await _features.SetTenantFeaturesAsync(id, dto, UserId);
+        return Ok(ApiResponse<object>.Ok(null!, "Updated"));
+    }
+
+    // ── Organizations (S6) ───────────────────────────────────────────────
+
+    [HttpGet("organizations")]
+    public async Task<IActionResult> GetOrganizations([FromQuery] string? search,
+        [FromQuery] int page = 1, [FromQuery] int pageSize = 50)
+        => Ok(ApiResponse<List<OrganizationDto>>.Ok(await _organizations.SearchAsync(search, page, pageSize)));
+
+    [HttpGet("organizations/{id}")]
+    public async Task<IActionResult> GetOrganization(int id)
+        => Ok(ApiResponse<OrganizationDetailDto>.Ok(await _organizations.GetByIdAsync(id)));
 
     // ── Modules & stats ──────────────────────────────────────────────────
 

@@ -167,6 +167,7 @@ public class ImportService : IImportService
             var phone = ws.Cell(row, 3).GetString().Trim();
             var address = ws.Cell(row, 4).GetString().Trim();
             var note = ws.Cell(row, 5).GetString().Trim();
+            var inn = ws.Cell(row, 6).GetString().Trim();   // optional STIR column
 
             if (errors.Count > 0)
             {
@@ -177,6 +178,12 @@ public class ImportService : IImportService
 
             try
             {
+                // Same matcher as manual entry, so an imported company lands on the very
+                // same platform-level Organization as one typed in by hand.
+                var organization = await OrganizationMatcher.ResolveAsync(
+                    _db, inn, name, string.IsNullOrEmpty(phone) ? null : phone,
+                    string.IsNullOrEmpty(address) ? null : address);
+
                 _db.Counterparties.Add(new Counterparty
                 {
                     TenantId = tenantId,
@@ -184,7 +191,9 @@ public class ImportService : IImportService
                     Type = cpType,
                     Phone = string.IsNullOrEmpty(phone) ? null : phone,
                     Address = string.IsNullOrEmpty(address) ? null : address,
-                    Note = string.IsNullOrEmpty(note) ? null : note
+                    Note = string.IsNullOrEmpty(note) ? null : note,
+                    Inn = organization?.Inn,
+                    OrganizationId = organization?.Id
                 });
                 result.SuccessCount++;
             }
@@ -347,21 +356,22 @@ public class ImportService : IImportService
         var ws = workbook.Worksheets.Add("Counterparties");
 
         // Title row
-        ws.Range("A1:E1").Merge();
+        ws.Range("A1:F1").Merge();
         var titleCell = ws.Cell("A1");
         titleCell.Value = "Counterparties Import Template";
-        StyleTitle(titleCell, 5);
+        StyleTitle(titleCell, 6);
 
-        // Headers
-        var headers = new[] { "Name*", "Type*", "Phone", "Address", "Note" };
+        // Headers. INN (STIR) is optional but recommended: it is what links this company
+        // to the same firm in other parts of the platform.
+        var headers = new[] { "Name*", "Type*", "Phone", "Address", "Note", "INN" };
         for (int i = 0; i < headers.Length; i++)
             StyleHeader(ws.Cell(2, i + 1), headers[i]);
 
         // Example data
         var examples = new[]
         {
-            new[] { "Nemat Agro", "Supplier", "998901111111", "Toshkent", "" },
-            new[] { "Korzinka", "Client", "998902222222", "Toshkent", "Katta mijoz" }
+            new[] { "Nemat Agro", "Supplier", "998901111111", "Toshkent", "", "123456789" },
+            new[] { "Korzinka", "Client", "998902222222", "Toshkent", "Katta mijoz", "" }
         };
         for (int r = 0; r < examples.Length; r++)
             for (int c = 0; c < examples[r].Length; c++)

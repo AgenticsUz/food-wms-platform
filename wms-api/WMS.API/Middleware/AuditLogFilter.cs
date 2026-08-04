@@ -62,6 +62,12 @@ public class AuditLogFilter : IAsyncActionFilter
                 && entityId is > 0)
                 tenantId = entityId.Value;
 
+            // Amallar bo'lib, maqsad tenant marshrutda ko'rinmasa (masalan to'lov yozuvini
+            // bekor qilish — id to'lovniki), controller uni shu yerda aniq beradi.
+            if (http.Items.TryGetValue("AuditTargetTenantId", out var target)
+                && target is int targetTenantId && targetTenantId > 0)
+                tenantId = targetTenantId;
+
             var db = http.RequestServices.GetRequiredService<WmsDbContext>();
             db.AuditLogs.Add(new AuditLog
             {
