@@ -1,0 +1,363 @@
+# WMS — Backend arxitekturasi (`wms-api`)
+
+> **Oxirgi yangilanish:** 2026-08-04 · **Branch:** `saas-admin`
+> **Holat:** SaaS majburlash bosqichi tugagan (build 0 xato, 0 ogohlantirish).
+> Umumiy loyiha qoidalari va qolgan ishlar: **`CLAUDE.md`** · Frontend: **`FRONTEND.md`**
+
+---
+
+## 1. Texnologiya va joylashuv
+
+| Qatlam | Texnologiya |
+|---|---|
+| Runtime | .NET 8 LTS (`global.json` bilan qulflangan) |
+| Web | ASP.NET Core Web API — port **7040** |
+| ORM | Entity Framework Core 8 |
+| DB | SQLite (MVP), PostgreSQL-ready (faqat connection string o'zgaradi) |
+| Auth | JWT Bearer (7 kunlik token) |
+| Log | Serilog (structured) |
+| Doc | Swagger / OpenAPI |
+
+Bitta backend **uchta** frontendga xizmat qiladi: `wms-ui` (tenant, `/api/*`),
+`wms-admin` (SuperAdmin, `/api/admin/*`), portallar (`/api/portal/*`, `/api/agent-portal/*`).
+
+---
+
+## 2. Solution tuzilmasi (Clean Architecture)
+
+```
+wms-api/
+├── WMS.sln · global.json          # .NET 8 SDK qulfi — o'chirmang
+├── WMS.Domain/                    # Entity + Enum. Hech narsaga bog'liq emas
+│   ├── Common/BaseEntity.cs
+│   ├── Entities/                  # 41 fayl
+│   └── Enums/                     # 18 fayl
+├── WMS.Application/               # Shartnomalar — Domain'ga bog'liq
+│   ├── Common/                    # ApiResponse, AppException, ModuleCodes,
+│   │                              # SubscriptionOptions, SubscriptionPolicy, PhoneHelper
+│   ├── Interfaces/                # 27 servis interfeysi
+│   └── DTOs/                      # 21 papka (Auth, Subscription, Plans, ...)
+├── WMS.Infrastructure/            # Implementatsiya — Application'ga bog'liq
+│   ├── Persistence/               # WmsDbContext, DataInitializer, TenantProvisioner,
+│   │                              # PlanModules, PlanLimits
+│   ├── Migrations/                # 15 migration
+│   └── Services/                  # 29 servis (3 tasi BackgroundService)
+└── WMS.API/                       # Kirish nuqtasi
+    ├── Controllers/               # 24 controller
+    ├── Middleware/                # 5 fayl (quyida)
+    └── Program.cs                 # DI, JWT, policy, CORS, rate limit, pipeline
+```
+
+**Bog'liqlik yo'nalishi:** `API → Infrastructure → Application → Domain`. Teskarisi yo'q.
+
+---
+
+## 3. Ma'lumotlar modeli
+
+### 3.1 Asos
+
+```csharp
+public abstract class BaseEntity
+{
+    public int Id { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public bool IsDeleted { get; set; } = false;   // soft delete
+}
+```
+
+- **Global soft-delete filtri** — `OnModelCreating` da barcha `BaseEntity` uchun
+  `HasQueryFilter(e => !e.IsDeleted)`. **Hech qachon hard delete qilinmaydi.**
+- **Multi-tenancy** — deyarli har entity'da `TenantId`. Controller uni **faqat JWT'dan**
+  oladi (`BaseController.TenantId`), so'rov tanasidan **hech qachon** emas.
+- **SQLite decimal** — barcha `decimal` xossalar `HasConversion<double>()` orqali `double`
+  sifatida saqlanadi. Pul agregatlari uchun client-side yig'indini afzal ko'ring.
+
+### 3.2 42 DbSet — mavzular bo'yicha
+
+| Bo'lim | Entity'lar |
+|---|---|
+| **Tenant & auth** | `Tenant`, `User`, `Role`, `UserRole`, `Permission`, `RolePermission`, `Module`, `TenantModule`, **`Plan`** |
+| **Mahsulot** | `Category` (daraxt), `Unit`, `Product` |
+| **Kontragent** | `Counterparty` (Supplier/Client/Both + portal kirish) |
+| **Agent** | `Agent`, `CommissionRecord` |
+| **Ombor** | `Warehouse`, `Location`, `Batch`, `WarehouseStock`, `Transfer`, `TransferItem` |
+| **Delivery** | `Vehicle`, `Driver`, `Delivery`, `DeliveryStop` |
+| **Ishlab chiqarish** | `ProductionStage`, `ProductionRecipe`, `RecipeStage`, `RecipeStageItem`, `ProductionOrder`, `StageExecution` |
+| **Sifat** | `QcParameter`, `QcCheck` |
+| **Moliya** | `Transaction`, `Debt`, `PaymentHistory` |
+| **KPI** | `Shift`, `ShiftPlan`, `ShiftActual`, `AttendanceLog` |
+| **Tizim** | `Notification`, `AuditLog` |
+
+### 3.3 Enum'lar (18)
+
+`ProductType`, `CounterpartyType`, `WarehouseType`, `TransferType`, `TransferStatus`,
+`ReturnReason`, `ProductionOrderStatus`, `StageExecutionStatus`, `QcParameterType`,
+`TransactionType`, `PaymentMethod`, `PaymentDirection`, `AttendanceMethod`,
+`NotificationType`, `CommissionStatus`, `DeliveryStatus`, `DeliveryStopStatus`,
+**`SubscriptionStatus`** (`Trial=1, Active=2, Suspended=3`).
+
+### 3.4 Indekslar
+
+13 ta performance indeksi + **2 ta unique (qisman)**:
+`Tenant.Slug` va `Plan.Code` — `WHERE IsDeleted = 0` sharti bilan.
+
+---
+
+## 4. SaaS control plane
+
+### 4.1 Modul tizimi
+
+11 ta modul (`Module` jadvali, `ModuleCodes` konstantalari):
+
+```
+WAREHOUSE_RAW(1) PRODUCTION(2) WAREHOUSE_FINISHED(3) TRANSFERS(4) FINANCE(5)
+KPI(6) SUPPLIERS(7) CLIENTS(8) QUALITY(9) AGENTS(10) DELIVERY(11)
+```
+
+`TenantModule` — tenant bo'yicha yoqilgan/o'chirilgan holat.
+**Faqat SuperAdmin o'zgartira oladi** (`PUT /api/tenants/{id}/modules` → SuperAdmin policy).
+
+### 4.2 Plan
+
+Platforma-global entity (**`TenantId` yo'q — hech qachon qo'shmang**):
+
+| Maydon | Ma'nosi |
+|---|---|
+| `Name`, `Code`, `Price`, `IsActive` | Asosiy |
+| `ModuleCodes` | CSV — planga kiruvchi modullar |
+| `MaxUsers`, `MaxWarehouses`, `MaxTransfersPerMonth` | Limitlar |
+| `TrialDays` | Sinov uzunligi (0 = pullik plan) |
+| `IsDefault` | Self-service registratsiya shu planga bog'lanadi (bittagina) |
+
+Seed (`DataInitializer.SeedPlansAsync` — mavjudini **hech qachon qayta yozmaydi**):
+
+| Plan | Kod | Narx | Modul | Users / Ombor / Transfer(oy) | Trial |
+|---|---|---|---|---|---|
+| Trial | `trial` | 0 | 11 | 3 / 2 / 200 | 14 kun, **default** |
+| Basic | `basic` | 1 200 000 | 5 | 5 / 3 / 1 000 | — |
+| Pro | `pro` | 2 900 000 | 8 | 25 / 10 / 10 000 | — |
+| Enterprise | `enterprise` | 5 900 000 | 11 | 200 / 50 / 100 000 | — |
+
+**Tenant** qo'shimcha maydonlari: `PlanId` (FK, plan o'chsa `SetNull`), `PlanType`
+(plan kodining nusxasi), `SubscriptionStatus`, `TrialEndsAt`.
+
+> ⚠️ **Asosiy kelishuv:** plani **bor** tenant → plan modullari va limitlari;
+> plani **yo'q** tenant → **cheksiz**. Bu ongli qaror — mavjud mijozlarning ishi
+> to'satdan to'xtamasligi uchun.
+
+### 4.3 Majburlash mexanizmlari
+
+| Mexanizm | Fayl | Nima qiladi |
+|---|---|---|
+| `RequireModuleAttribute` | `WMS.API/Middleware/` | Modul yoqilmagan bo'lsa **403** + `code: module_disabled:CODE`. Bir nechta kod berilsa "biror biri" semantikasi (Counterparties → SUPPLIERS **yoki** CLIENTS) |
+| `SubscriptionEnforcementMiddleware` | `WMS.API/Middleware/` | Har autentifikatsiyalangan so'rovda tenant holatini tekshiradi → **402** |
+| `SubscriptionPolicy` | `WMS.Application/Common/` | Yagona qaror nuqtasi — login ham, middleware ham shuni chaqiradi |
+| `ITenantStateService` | `Infrastructure/Services/` | Tenant holatini **60 s** cache qiladi; suspend/activate/plan/modul yozuvida cache **darhol** tozalanadi |
+| `PlanLimits` | `Infrastructure/Persistence/` | `UserService`/`WarehouseService`/`TransferService` yaratishda limitni tekshiradi → **402** |
+| `RequirePermissionAttribute` | `WMS.API/Middleware/` | RBAC — permission kodi bo'yicha |
+| `AuditLogFilter` | `WMS.API/Middleware/` | Yozuvchi amallarni `AuditLog` ga yozadi |
+
+**Enforcement'dan ozod:** `/api/auth`, `/api/subscription`, `/api/admin`, `/health`,
+`/swagger` va **SuperAdmin**. `/api/subscription` ataylab ozod — bloklangan mijoz
+sababni ko'ra olishi shart.
+
+**Gate'dan ataylab ochiq qoldirilgan:** `analytics/summary`, `analytics/dashboard-summary`,
+`analytics/monthly-comparison`, `analytics/products/distribution`, `export/products`,
+`import/products`, `import/users` — bular tenantning yig'ma/asosiy ma'lumoti, modul sahifasi emas.
+
+### 4.4 Xato kodlari (`ApiResponse.Code`)
+
+| HTTP | `code` | Sabab |
+|---|---|---|
+| 403 | `module_disabled:PRODUCTION` | Modul planga kirmagan |
+| 402 | `subscription_suspended` | Tenant suspend qilingan |
+| 402 | `trial_expired` | Sinov muddati + grace tugagan |
+| 402 | `tenant_inactive` | Tenant o'chirilgan / faolsiz |
+| 402 | `limit_users` / `limit_warehouses` / `limit_transfers` | Plan limiti to'lgan |
+
+`POST /api/auth/login` bloklangan holatda **402** qaytaradi (avval 400 edi).
+
+### 4.5 Provizatsiya va trial oqimi
+
+`TenantProvisioner.ProvisionAsync` — tenant yaratishning **yagona yo'li**
+(self-service register ham, SuperAdmin create ham):
+tenant → default plan modullari → barcha ruxsatli Admin roli → admin user.
+Slug formati va **24 ta zaxira slug** qora ro'yxati tekshiriladi.
+`TrialEndsAt = UtcNow + TrialDays` albatta qo'yiladi.
+
+`SubscriptionExpiryBackgroundService` — kuniga bir marta muddati (+grace) o'tgan
+trial'larni `Suspended` ga o'tkazadi. **Ma'lumot hech qachon o'chirilmaydi.**
+
+---
+
+## 5. Autentifikatsiya va avtorizatsiya
+
+### 5.1 Policy'lar (`Program.cs`)
+
+| Policy | Talab qilinadigan claim | Kim ishlatadi |
+|---|---|---|
+| `MainApi` | `userId` | `BaseController` — barcha tenant endpointlari |
+| `PortalOnly` | `counterpartyId` | Kontragent portali |
+| `AgentPortalOnly` | `agentId` | Agent portali |
+| `SuperAdmin` | `isSuperAdmin=true` | `AdminController`, cross-tenant amallar |
+
+To'rt oqim bitta imzo kalitidan foydalanadi — token turi **claim shakli** bilan ajratiladi,
+ya'ni portal tokeni asosiy API'ga o'ta olmaydi.
+
+### 5.2 BaseController
+
+```csharp
+[ApiController]
+[Route("api/[controller]")]
+[Authorize(Policy = "MainApi")]
+public abstract class BaseController : ControllerBase
+{
+    protected int TenantId => int.Parse(User.FindFirst("tenantId")?.Value ?? "0");
+    protected int UserId   => int.Parse(User.FindFirst("userId")?.Value ?? "0");
+    protected bool IsSuperAdmin => User.FindFirst("isSuperAdmin")?.Value == "true";
+}
+```
+
+### 5.3 RBAC
+
+`Permission` (seed qilingan kodlar) → `RolePermission` → `Role` → `UserRole` → `User`.
+Endpoint darajasida `[RequirePermission("transfers.confirm")]`.
+Delivery moduli 26/27-permissionlarni qo'shgan.
+
+**Tizim tenanti:** id **1** (`WMS Admin`, slug `admin`).
+Seed admin: telefon `+998901234567`, parol `Admin123456` (`Seed:AdminPassword` bilan almashtiriladi).
+
+---
+
+## 6. Controller xaritasi (24)
+
+| Controller | Prefiks | Modul gate |
+|---|---|---|
+| `AuthController` | `/api/auth` | — (login, register, me, my-permissions) |
+| `SubscriptionController` | `/api/subscription` | — (`me`, `plans`) |
+| `AdminController` | `/api/admin` | SuperAdmin: tenants, plans, modules, stats |
+| `TenantsController` | `/api/tenants` | `PUT modules` → SuperAdmin |
+| `UsersController` | `/api/users` | limit: `MaxUsers` |
+| `ProductsController` | `/api/products`, `/categories`, `/units` | — |
+| `CounterpartiesController` | `/api/counterparties` | SUPPLIERS **yoki** CLIENTS |
+| `AgentsController` | `/api/agents` | AGENTS |
+| `WarehousesController` | `/api/warehouses`, `/locations`, `/batches` | WAREHOUSE_RAW · limit: `MaxWarehouses` |
+| `TransfersController` | `/api/transfers` | TRANSFERS · limit: `MaxTransfersPerMonth` |
+| `ProductionController` | `/api/production` | PRODUCTION |
+| `DeliveryController` | `/api/delivery` | DELIVERY |
+| `FinanceController` | `/api/finance` | FINANCE |
+| `KpiController` | `/api/kpi`, `/shifts`, `/attendance` | KPI |
+| `QcController` | `/api/qc` | QUALITY |
+| `AnalyticsController` | `/api/analytics` | qisman (§4.3) |
+| `ExportController` | `/api/export` | qisman |
+| `ImportController` | `/api/import` | qisman |
+| `NotificationsController` | `/api/notifications` | — |
+| `AuditController` | `/api/audit` | — |
+| `CurrencyController` | `/api/currency` | — |
+| `PortalController` | `/api/portal` | `PortalOnly` |
+| `AgentPortalController` | `/api/agent-portal` | `AgentPortalOnly` |
+
+Batafsil endpoint ro'yxati — **Swagger** (`/swagger`), u yagona ishonchli manba.
+
+---
+
+## 7. Fon xizmatlari
+
+| Servis | Nima qiladi |
+|---|---|
+| `DbBackupBackgroundService` | Kunlik SQLite `VACUUM INTO` snapshot |
+| `BatchExpiryBackgroundService` | Muddati yaqinlashgan partiyalar bo'yicha bildirishnoma |
+| `SubscriptionExpiryBackgroundService` | Muddati o'tgan trial'larni Suspended ga o'tkazish |
+
+Qo'shimcha: `TelegramService` (config-gated), `TransferPdfService` / `DeliveryPdfService`
+(yuk xati), `ExportService` / `ImportService` (Excel), `IAiAdvisorService` — **bo'sh stub**
+(kelajakdagi AI Advisor uchun joy belgilangan).
+
+---
+
+## 8. Biznes qoidalari
+
+**Transfer → zaxira** (tasdiqlanganda):
+- `Incoming` — `WarehouseStock` ga qo'shiladi (Batch bo'lmasa yaratiladi)
+- `Outgoing` — ayiriladi, `Batch.RemainingQuantity` yangilanadi
+- `Internal` — manbadan ayirib, maqsadga qo'shiladi
+- **FEFO** — olishda har doim muddati eng erta tugaydigan partiya
+
+**Ishlab chiqarish → zaxira:** bosqich bajarilganda kirishlar ayiriladi;
+`AllowWarehouseOutput = true` bo'lsa chiqish belgilangan omborga; oxirgi bosqichda
+tayyor mahsulot omboriga + yangi `Batch` + `ProductionOutput` turidagi `Transfer`.
+
+**Moliya → qarz:** chiquvchi transfer tasdiqlansa mijoz qarzi oshadi; kiruvchi tasdiqlansa
+bizning qarzimiz; to'lov qayd etilsa muvofiq kamayadi.
+
+**KPI:** `Samaradorlik % = Actual / Planned × 100` · `Brak % = Waste / Actual × 100`
+
+---
+
+## 9. Konfiguratsiya
+
+```json
+{
+  "ConnectionStrings": { "Default": "Data Source=wms.db" },
+  "Jwt":  { "Key": "<32+ belgi — prod'da env orqali>" },
+  "Seed": { "AdminPassword": "<prod'da env orqali>" },
+  "Subscription": {
+    "TrialDays": 14,          // default trial uzunligi (plan o'zi belgilamasa)
+    "GraceDays": 3,           // muddat tugagach necha kun ishlashda davom etadi
+    "StateCacheSeconds": 60,  // suspend maksimal necha soniyada kuchga kiradi
+    "WarnBeforeDays": 7,      // frontend banneri uchun
+    "LimitWarnPercent": 80
+  }
+}
+```
+
+Env ko'rinishi: `Subscription__TrialDays=14`, `Jwt__Key=...`.
+CORS: `localhost:7050`, `localhost:7060` + prod domenlar.
+Rate limit: `auth` policy — IP bo'yicha **10 so'rov/daqiqa** (registratsiya himoyasi).
+
+---
+
+## 10. Konventsiyalar (qat'iy)
+
+- Javob **har doim** `ApiResponse<T>` — `Ok(data)` / `Fail(message)` / `code`.
+- `TenantId` **faqat JWT'dan**. So'rov tanasidagi tenantId'ga hech qachon ishonilmaydi.
+- Soft delete — `IsDeleted = true`. Hard delete yo'q.
+- Pul — **`decimal`**, hech qachon `float`/`double` (DB darajasidagi konversiya alohida masala).
+- Sana — backendda **har doim UTC**.
+- Xatolar — `AppException` (400) / `NotFoundException` (404) / `PaymentRequiredException` (402) /
+  `ModuleDisabledException` (403). Xom `Exception` tashlanmaydi.
+- Pagination — barcha ro'yxat endpointlari `?page=1&pageSize=20`.
+- Hisoblanadigan xossalarga `[NotMapped]` (`TotalPrice`, `EfficiencyPercent`, `WastePercent`).
+- Modul seed id'lari 1–11 — **qayta seed qilinmaydi**.
+- **Plan hech qachon `TenantId` olmaydi.**
+- Yangi plan/limit imkoniyati qo'shsangiz — **server tomonidagi majburlashini ham** qo'shing.
+  Hozirgi holat aynan shu qadam tashlab ketilgani uchun yuzaga kelgan edi.
+
+---
+
+## 11. Build va ishga tushirish
+
+```bash
+# Dev
+cd wms-api
+dotnet run --project WMS.API              # http://localhost:7040 · /swagger
+
+# Build — API jarayoni ishlab tursa bin/ qulflanadi (MSB3027)
+dotnet build WMS.sln -p:OutDir="<temp>\" -v q
+
+# Smoke test (alohida port va baza bilan)
+ASPNETCORE_URLS=http://localhost:7041 \
+ConnectionStrings__Default="Data Source=<temp>.db" \
+Jwt__Key="<32+ belgi>" ASPNETCORE_ENVIRONMENT=Production \
+dotnet <temp>/WMS.API.dll
+
+# Prod
+dotnet publish WMS.API -c Release -o /var/www/wms-api
+```
+
+Migratsiyalar startupda avtomat qo'llanadi (`db.Database.Migrate()`).
+`/health` — health check, Serilog — structured log.
+
+> ⚠️ **Deploydan oldin bazani zaxiralang.** Oxirgi migration (`AddSaasEnforcement`)
+> unique indeks qo'yadi va dublikat sluglarni `-dup<Id>` bilan qayta nomlaydi.
