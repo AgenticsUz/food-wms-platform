@@ -8,7 +8,7 @@
     <p-table [value]="tenants()" [loading]="loading()" [paginator]="true" [rows]="20" styleClass="p-datatable-sm p-datatable-striped">
       <ng-template #header>
         <tr>
-          <th>Name</th><th>Slug</th><th>Plan</th><th>Status</th>
+          <th>Name</th><th>Slug</th><th>Plan</th><th>Status</th><th>Trial ends</th>
           <th class="text-right">Users</th><th>Created</th><th></th>
         </tr>
       </ng-template>
@@ -18,6 +18,16 @@
           <td><code>{{ row.slug }}</code></td>
           <td>{{ planName(row.planId) }}</td>
           <td><span [class]="statusClass(row.subscriptionStatus)">{{ statusLabel(row.subscriptionStatus) }}</span></td>
+          <td>
+            @if (row.trialEndsAt) {
+              <div class="trial-cell">
+                <span class="trial-date">{{ row.trialEndsAt | date:'MMM d, y' }}</span>
+                <span [class]="trialClass(row)">{{ trialLabel(row) }}</span>
+              </div>
+            } @else {
+              <span class="text-muted">—</span>
+            }
+          </td>
           <td class="text-right"><span class="num">{{ row.userCount }}</span></td>
           <td>{{ row.createdAt | date:'MMM d, y' }}</td>
           <td class="actions-cell">
@@ -33,7 +43,7 @@
         </tr>
       </ng-template>
       <ng-template #emptymessage>
-        <tr><td colspan="7"><div class="empty-state"><i class="pi pi-building"></i><p>No tenants yet</p></div></td></tr>
+        <tr><td colspan="8"><div class="empty-state"><i class="pi pi-building"></i><p>No tenants yet</p></div></td></tr>
       </ng-template>
     </p-table>
   </div>
@@ -47,6 +57,11 @@
       <div class="ff"><label>Plan</label>
         <p-select [options]="planOptions()" [ngModel]="form().planId" (ngModelChange)="updateForm('planId', $event)"
           optionLabel="label" optionValue="value" [showClear]="true" placeholder="No plan" styleClass="w-full" />
+        @if (!editing()) {
+          <small class="field-hint">If no plan is selected, the default (trial) plan is applied.</small>
+        } @else {
+          <small class="field-hint">Removing the plan leaves the tenant unrestricted.</small>
+        }
       </div>
 
       @if (!editing()) {
@@ -60,6 +75,7 @@
         </div>
         <div class="ff"><label>Trial ends</label>
           <p-datepicker [ngModel]="form().trialEndsAt" (ngModelChange)="updateForm('trialEndsAt', $event)" dateFormat="yy-mm-dd" [showIcon]="true" [showClear]="true" styleClass="w-full" />
+          <small class="field-hint">Leave empty to keep the current date.</small>
         </div>
         <div class="ff-inline"><label>Active</label><p-toggleswitch [ngModel]="form().isActive" (ngModelChange)="updateForm('isActive', $event)" /></div>
       }
@@ -75,7 +91,15 @@
     [header]="(modulesTenant()?.name ?? '') + ' — Modules'" [modal]="true" [style]="{ width: '420px' }" [draggable]="false">
     <div class="module-list">
       @for (m of modules(); track m.moduleId) {
-        <div class="module-row"><span>{{ m.moduleName }}</span><p-toggleswitch [ngModel]="m.isEnabled" (ngModelChange)="toggleModule(m, $event)" /></div>
+        <div class="module-row">
+          <span class="module-label">
+            {{ m.moduleName }}
+            @if (isOutsidePlan(m)) {
+              <span class="pill pill-warning outside-plan" title="Enabled manually — not part of the tenant's plan">outside plan</span>
+            }
+          </span>
+          <p-toggleswitch [ngModel]="m.isEnabled" (ngModelChange)="toggleModule(m, $event)" />
+        </div>
       }
     </div>
   </p-dialog>

@@ -123,6 +123,38 @@ export default class TenantsComponent implements OnInit {
     });
   }
 
+  /** Trial tugashiga qolgan kun. null — trial sanasi yo'q. */
+  trialDaysLeft(t: Tenant): number | null {
+    if (!t.trialEndsAt) return null;
+    const ends = new Date(t.trialEndsAt).getTime();
+    return Math.ceil((ends - Date.now()) / 86_400_000);
+  }
+
+  trialClass(t: Tenant): string {
+    const days = this.trialDaysLeft(t);
+    if (days === null) return '';
+    if (days < 3) return 'pill pill-danger';
+    if (days < 7) return 'pill pill-warning';
+    return 'pill pill-neutral';
+  }
+
+  trialLabel(t: Tenant): string {
+    const days = this.trialDaysLeft(t);
+    if (days === null) return '';
+    if (days < 0) return `${-days}d overdue`;
+    return `${days}d left`;
+  }
+
+  /** Modul yoqilgan, lekin tenant planining to'plamiga kirmaydi — qo'lda yoqilgan. */
+  isOutsidePlan(m: TenantModuleInfo): boolean {
+    if (!m.isEnabled) return false;
+    const planId = this.modulesTenant()?.planId;
+    if (!planId) return false;
+    const plan = this.plans().find(p => p.id === planId);
+    if (!plan) return false;
+    return !plan.moduleCodes.includes(m.moduleCode);
+  }
+
   readonly S = SubscriptionStatus;
   statusLabel(s: SubscriptionStatus) { return SubscriptionStatus[s] ?? '—'; }
   statusClass(s: SubscriptionStatus) {
