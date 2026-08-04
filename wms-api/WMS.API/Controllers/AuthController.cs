@@ -25,6 +25,12 @@ public class AuthController : BaseController
             var result = await _auth.LoginAsync(dto);
             return Ok(ApiResponse<AuthResponseDto>.Ok(result));
         }
+        catch (PaymentRequiredException)
+        {
+            // Obuna rad javobi 402 + kod bilan chiqsin (middleware xaritalaydi) — mijoz
+            // "parol xato" bilan "obuna to'xtatilgan"ni ajrata olishi kerak.
+            throw;
+        }
         catch (Exception ex)
         {
             return BadRequest(ApiResponse<object>.Fail(ex.Message));
