@@ -1,7 +1,8 @@
 # WMS — Backend arxitekturasi (`wms-api`)
 
 > **Oxirgi yangilanish:** 2026-08-04 · **Branch:** `saas-admin`
-> **Holat:** SaaS majburlash bosqichi tugagan (build 0 xato, 0 ogohlantirish).
+> **Holat:** SaaS majburlash (T1–T13) va soddalashtirilgan model (S1–S7) bajarilgan —
+> build 0 xato / 0 ogohlantirish, 54/54 uchma-uch sinov.
 > Umumiy loyiha qoidalari va qolgan ishlar: **`CLAUDE.md`** · Frontend: **`FRONTEND.md`**
 
 ---
@@ -126,6 +127,7 @@ Platforma-global entity (**`TenantId` yo'q — hech qachon qo'shmang**):
 |---|---|
 | `Name`, `Code`, `Price`, `IsActive` | Asosiy |
 | `ModuleCodes` | CSV — planga kiruvchi modullar |
+| `FeatureCodes` | CSV — planga kiruvchi feature'lar (modul ichidagi sahifalar) |
 | `MaxUsers`, `MaxWarehouses`, `MaxTransfersPerMonth` | Limitlar |
 | `TrialDays` | Sinov uzunligi (0 = pullik plan) |
 | `IsDefault` | Self-service registratsiya shu planga bog'lanadi (bittagina) |
@@ -140,7 +142,9 @@ Seed (`DataInitializer.SeedPlansAsync` — mavjudini **hech qachon qayta yozmayd
 | Enterprise | `enterprise` | 5 900 000 | 11 | 200 / 50 / 100 000 | — |
 
 **Tenant** qo'shimcha maydonlari: `PlanId` (FK, plan o'chsa `SetNull`), `PlanType`
-(plan kodining nusxasi), `SubscriptionStatus`, `TrialEndsAt`.
+(plan kodining nusxasi), `SubscriptionStatus`, `TrialEndsAt`, **`PaidUntil`** (manual billing),
+**`SuspendReason` / `SuspendNote` / `SuspendPublicMessage` / `SuspendedUntil` / `SuspendedAt` /
+`SuspendedByUserId`**, **`OrganizationId`**.
 
 > ⚠️ **Asosiy kelishuv:** plani **bor** tenant → plan modullari va limitlari;
 > plani **yo'q** tenant → **cheksiz**. Bu ongli qaror — mavjud mijozlarning ishi
@@ -154,7 +158,9 @@ Seed (`DataInitializer.SeedPlansAsync` — mavjudini **hech qachon qayta yozmayd
 | `SubscriptionEnforcementMiddleware` | `WMS.API/Middleware/` | Har autentifikatsiyalangan so'rovda tenant holatini tekshiradi → **402** |
 | `SubscriptionPolicy` | `WMS.Application/Common/` | Yagona qaror nuqtasi — login ham, middleware ham shuni chaqiradi |
 | `ITenantStateService` | `Infrastructure/Services/` | Tenant holatini **60 s** cache qiladi; suspend/activate/plan/modul yozuvida cache **darhol** tozalanadi |
-| `PlanLimits` | `Infrastructure/Persistence/` | `UserService`/`WarehouseService`/`TransferService` yaratishda limitni tekshiradi → **402** |
+| `RequireFeatureAttribute` | `WMS.API/Middleware/` | Feature yoqilmagan bo'lsa **403** + `code: feature_disabled:CODE` (moduldan bir pog'ona mayda) |
+| `FeatureResolver` | `Infrastructure/Persistence/` | Feature holatini yechadi: tenant override → plan → katalog default, modul veto bilan |
+| `PlanLimits` | `Infrastructure/Persistence/` | `UserService`/`WarehouseService`/`TransferService`/`ImportService` yaratishda limitni tekshiradi → **402** |
 | `RequirePermissionAttribute` | `WMS.API/Middleware/` | RBAC — permission kodi bo'yicha |
 | `AuditLogFilter` | `WMS.API/Middleware/` | Yozuvchi amallarni `AuditLog` ga yozadi |
 
@@ -166,19 +172,31 @@ sababni ko'ra olishi shart.
 `analytics/monthly-comparison`, `analytics/products/distribution`, `export/products`,
 `import/products`, `import/users` — bular tenantning yig'ma/asosiy ma'lumoti, modul sahifasi emas.
 
-### 4.4 Xato kodlari (`ApiResponse.Code`)
+### 4.4 Enum'lar simda qanday yuradi
+
+| Guruh | Shakl | Nega |
+|---|---|---|
+| **Platforma** — `SuspendReason`, `PlatformPaymentMethod`, `LeadStatus`, `LeadSource` | **Nom** (`"ClientRequest"`, `"BankTransfer"`, `"Won"`) | Shartnomada shunday kelishilgan; `wms-admin` aynan nom yuboradi va nom kutadi |
+| **Tenant** — `SubscriptionStatus`, `TransferStatus`, `CounterpartyType`, va h.k. | **Raqam** (1/2/3) | Mavjud barcha ekranlar shunga qurilgan — o'zgartirilsa hammasi buziladi |
+
+Nom shakli DTO xossasiga `[JsonConverter(typeof(JsonStringEnumConverter))]` qo'yish orqali
+beriladi (global emas — global qilinsa tenant tomoni sinadi).
+
+### 4.5 Xato kodlari (`ApiResponse.Code`)
 
 | HTTP | `code` | Sabab |
 |---|---|---|
 | 403 | `module_disabled:PRODUCTION` | Modul planga kirmagan |
-| 402 | `subscription_suspended` | Tenant suspend qilingan |
+| 403 | `feature_disabled:production.recipes` | Feature yoqilmagan (S4) |
 | 402 | `trial_expired` | Sinov muddati + grace tugagan |
+| 402 | `payment_expired` | To'lov muddati (`PaidUntil` + grace) tugagan (S1) |
+| 402 | `suspended_nonpayment` / `suspended_request` / `suspended_technical` / `suspended_violation` / `suspended_other` | To'xtatilgan — sababi bo'yicha (S2) |
 | 402 | `tenant_inactive` | Tenant o'chirilgan / faolsiz |
 | 402 | `limit_users` / `limit_warehouses` / `limit_transfers` | Plan limiti to'lgan |
 
 `POST /api/auth/login` bloklangan holatda **402** qaytaradi (avval 400 edi).
 
-### 4.5 Provizatsiya va trial oqimi
+### 4.6 Provizatsiya va trial oqimi
 
 `TenantProvisioner.ProvisionAsync` — tenant yaratishning **yagona yo'li**
 (self-service register ham, SuperAdmin create ham):
@@ -186,8 +204,79 @@ tenant → default plan modullari → barcha ruxsatli Admin roli → admin user.
 Slug formati va **24 ta zaxira slug** qora ro'yxati tekshiriladi.
 `TrialEndsAt = UtcNow + TrialDays` albatta qo'yiladi.
 
-`SubscriptionExpiryBackgroundService` — kuniga bir marta muddati (+grace) o'tgan
-trial'larni `Suspended` ga o'tkazadi. **Ma'lumot hech qachon o'chirilmaydi.**
+`SubscriptionExpiryBackgroundService` — kuniga bir marta uchta ishni bajaradi:
+muddati (+grace) o'tgan trial'lar → `Suspended`; `PaidUntil` (+grace) o'tgan pullik
+tenantlar → `Suspended` (`NonPayment`); `SuspendedUntil` sanasi kelganlar → avtomatik
+`Active` (to'lovi ham o'tgan bo'lsa yoqilmaydi). **Ma'lumot hech qachon o'chirilmaydi.**
+
+### 4.7 Manual billing (S1)
+
+Avtomat to'lov (CLICK/Payme) yo'q — pul qo'lda qabul qilinadi va SuperAdmin qayd etadi.
+
+- **`PaymentRecord`** (platforma darajasi): `TenantId`, davr (`PeriodStart`/`PeriodEnd`),
+  summa, valyuta, usul (`Cash`/`BankTransfer`/`Card`/`Other`), izoh, kim qayd etgani.
+- To'lov qayd etilsa `Tenant.PaidUntil` **oldinga suriladi** (orqaga hech qachon emas),
+  `NonPayment` sababli suspend bo'lgan tenant **avtomat tiklanadi**, trial esa `Active` ga o'tadi.
+- Yozuvni bekor qilish (soft delete) `PaidUntil` ni qolgan yozuvlar bo'yicha qayta hisoblaydi.
+- `PaidUntil = null` → **to'lov hech qachon bloklamaydi** (eski mijozlar va tizim tenanti).
+
+```
+POST   /api/admin/tenants/{id}/payments      to'lovni qayd etish
+GET    /api/admin/tenants/{id}/payments      tarix
+DELETE /api/admin/payments/{paymentId}       xato yozuvni bekor qilish
+GET    /api/admin/tenants/expiring?days=7    muddati tugayotganlar
+```
+
+### 4.8 Feature qatlami (S4/S5)
+
+Uch qatlam: **Plan** (nima sotildi) → **Feature** (bu tenantda bormi) → **Permission**
+(tenant ichida kim ishlatadi).
+
+- **`Feature`** — platforma katalogi (29 ta seed): `Code`, `Name`, `ModuleCode?`,
+  `DefaultEnabled`, `SortOrder`, `IsCustom`, `OwnerTenantId?`, `Reason?`.
+  `ModuleCode = null` — modulga tegishli bo'lmagan (export, import, analytics).
+- **`TenantFeature`** — tenant bo'yicha override.
+- **Yechim tartibi:** override → plan `FeatureCodes` → katalog `DefaultEnabled`;
+  va har doim: **moduli o'chiq feature ham o'chiq** (`source: "module"`).
+- Holat `ITenantStateService` cache'ida modullar bilan **birga** saqlanadi.
+
+```
+GET  /api/admin/features?isCustom=          katalog
+POST /api/admin/features                     yangi (custom qoidalari validatsiyada)
+GET  /api/admin/tenants/{id}/features        yechilgan holat + manbasi
+PUT  /api/admin/tenants/{id}/features        override (isEnabled: null → override o'chadi)
+```
+
+**Custom feature qoidalari** (kod darajasida majburlanadi): kodi `custom.` bilan boshlanadi,
+`IsCustom = true` → `DefaultEnabled = false`, `OwnerTenantId` majburiy, planga qo'shib
+bo'lmaydi. Skelet: `WMS.Application/Features/Custom/`, `WMS.API/Controllers/Custom/`.
+Reestr: `docs/CUSTOM_FEATURES.md`.
+
+### 4.9 Lead oqimi (S3/S7)
+
+Self-service registratsiya **yopiq**: `Registration:SelfServiceEnabled = false` (default) da
+`POST /api/auth/register` → **404**. Kod o'chirilmagan — lead konversiyasi aynan shu
+provizatsiya yo'lidan foydalanadi.
+
+- **`Lead`** (platforma darajasi): kompaniya, aloqa, telefon, manba (`Website`/`Portal`/
+  `Manual`/`Referral`), `ReferrerTenantId?`, holat (`New`→`Contacted`→`DemoGiven`→`Won`/`Lost`),
+  `ConvertedTenantId?`.
+- `POST /api/leads` — anonim, rate limit **5/soat/IP** (`leads` policy). Bir xil telefon
+  24 soat ichida takrorlansa yangi yozuv yaratilmaydi (200 qaytadi).
+- Portal foydalanuvchilari (`POST /api/portal/upgrade-interest`,
+  `POST /api/agent-portal/upgrade-interest`) — 30 kunlik dublikat oynasi,
+  `ReferrerTenantId` to'ldiriladi. Bu endpointlar obuna enforcement'idan **ozod emas**.
+- `POST /api/admin/leads/{id}/convert` — tenant yaratadi, lead `Won` bo'ladi.
+
+### 4.10 Organization (S6)
+
+`Counterparty` — bitta tenantning **ichki yozuvi**; `Organization` — platforma darajasidagi
+**haqiqiy kompaniya**. Bog'lash **faqat INN (STIR, 9 raqam)** bo'yicha:
+`OrganizationMatcher.ResolveAsync` (counterparty CRUD, Excel import, tenant provizatsiyasi).
+
+> ⚠️ **Maxfiylik:** tenantlar uchun `organizations` endpointi **yo'q va bo'lmaydi** —
+> aks holda mijozlar bir-birining mijozlar bazasini yig'ib olardi. Faqat SuperAdmin:
+> `GET /api/admin/organizations`, `GET /api/admin/organizations/{id}`.
 
 ---
 
@@ -302,9 +391,12 @@ bizning qarzimiz; to'lov qayd etilsa muvofiq kamayadi.
   "ConnectionStrings": { "Default": "Data Source=wms.db" },
   "Jwt":  { "Key": "<32+ belgi — prod'da env orqali>" },
   "Seed": { "AdminPassword": "<prod'da env orqali>" },
+  "Registration": { "SelfServiceEnabled": false },   // public register yopiq
+  "Support": { "Phone": "+998 ...", "Email": "..." }, // bloklangan mijozga ko'rsatiladi
   "Subscription": {
     "TrialDays": 14,          // default trial uzunligi (plan o'zi belgilamasa)
-    "GraceDays": 3,           // muddat tugagach necha kun ishlashda davom etadi
+    "GraceDays": 3,           // trial tugagach necha kun ishlashda davom etadi
+    "PaidGraceDays": 3,       // to'lov muddati tugagach shuncha kun
     "StateCacheSeconds": 60,  // suspend maksimal necha soniyada kuchga kiradi
     "WarnBeforeDays": 7,      // frontend banneri uchun
     "LimitWarnPercent": 80
@@ -314,7 +406,7 @@ bizning qarzimiz; to'lov qayd etilsa muvofiq kamayadi.
 
 Env ko'rinishi: `Subscription__TrialDays=14`, `Jwt__Key=...`.
 CORS: `localhost:7050`, `localhost:7060` + prod domenlar.
-Rate limit: `auth` policy — IP bo'yicha **10 so'rov/daqiqa** (registratsiya himoyasi).
+Rate limit: `auth` — IP bo'yicha **10/daqiqa**; `leads` — IP bo'yicha **5/soat**.
 
 ---
 
@@ -326,10 +418,15 @@ Rate limit: `auth` policy — IP bo'yicha **10 so'rov/daqiqa** (registratsiya hi
 - Pul — **`decimal`**, hech qachon `float`/`double` (DB darajasidagi konversiya alohida masala).
 - Sana — backendda **har doim UTC**.
 - Xatolar — `AppException` (400) / `NotFoundException` (404) / `PaymentRequiredException` (402) /
-  `ModuleDisabledException` (403). Xom `Exception` tashlanmaydi.
+  `ModuleDisabledException` (403) / `FeatureDisabledException` (403). Xom `Exception` tashlanmaydi.
+- Controllerdagi `catch (Exception)` bloki obuna/huquq rad javoblarini **yutmasligi** kerak —
+  ular oldin `throw` qilinadi, aks holda 402/403 jimgina 400 ga aylanadi (bu xato bir marta yuz bergan).
 - Pagination — barcha ro'yxat endpointlari `?page=1&pageSize=20`.
 - Hisoblanadigan xossalarga `[NotMapped]` (`TotalPrice`, `EfficiencyPercent`, `WastePercent`).
-- Modul seed id'lari 1–11 — **qayta seed qilinmaydi**.
+- Modul seed id'lari 1–11 — **qayta seed qilinmaydi**. Feature'lar kod bo'yicha
+  idempotent qo'shiladi (mavjudi hech qachon qayta yozilmaydi).
+- `SuspendNote` — **ichki**; mijozga ko'rinadigan javoblarga hech qachon chiqmaydi
+  (mijozga faqat `SuspendPublicMessage`).
 - **Plan hech qachon `TenantId` olmaydi.**
 - Yangi plan/limit imkoniyati qo'shsangiz — **server tomonidagi majburlashini ham** qo'shing.
   Hozirgi holat aynan shu qadam tashlab ketilgani uchun yuzaga kelgan edi.

@@ -58,12 +58,32 @@ wms/
 Modul gating backendda, obuna har so'rovda tekshiriladi, trial haqiqiy muddat bilan
 ishlaydi, plan limitlari amalda; mijoz o'z obunasini va bloklanish sababini ko'radi.
 
+**Biznes modeli (2026-08-04 da o'zgardi):** mijoz bilan gaplashamiz → demo → to'laydi →
+**biz** admin paneldan tenant yaratamiz. Public self-service registratsiya **yopiq**;
+uning o'rnida demo so'rovi (lead) oqimi. To'lov qo'lda qabul qilinadi va qayd etiladi;
+muddati tugasa tizim o'zi to'xtatadi.
+
 | Tomon | Build | Bajarilgan |
 |---|---|---|
-| `wms-api` | 0 xato, 0 ogohlantirish · 29/29 sinov | SaaS majburlash: modul gate, obuna middleware, trial+grace, limitlar, unique indeks, planlar seed, platforma audit izi |
+| `wms-api` | 0 xato, 0 ogohlantirish · 54/54 sinov | SaaS majburlash (modul gate, obuna middleware, trial+grace, limitlar, unique indeks, planlar seed, audit izi) **+ manual billing, muddatli suspend, lead oqimi, feature qatlami, Organization** |
 | `wms-ui` | prod 785 kB, 0 xato | Obuna sahifasi + banner, modullar faqat-ko'rish, 402/403 kod bo'yicha xato boshqaruvi, yangi modul guardlari |
 | `wms-admin` | prod 677 kB, 0 xato | Trial ustuni, "outside plan" badge, plan `trialDays`/`isDefault`, texnik qarz tozalandi |
 | i18n | 4 til × 574 kalit, farq yo'q | — |
+
+**Backend S1–S7 (yangi bosqich, 2026-08-04):**
+
+| # | Ish | Natija |
+|---|---|---|
+| S1 | To'langan muddat | `Tenant.PaidUntil` + `PaymentRecord`; muddati o'tsa **402 `payment_expired`**; to'lov qayd etilsa tenant o'ziga keladi; `GET /api/admin/tenants/expiring` |
+| S2 | Muddatli to'xtatish | Sabab (`NonPayment`/`ClientRequest`/`Technical`/`Violation`/`Other`), ichki izoh, **mijozga ko'rinadigan matn**, `SuspendedUntil` → belgilangan sanada avtomat yoqilish |
+| S3 | Registratsiya yopildi | `Registration:SelfServiceEnabled=false` → register **404**; `POST /api/leads` (5/soat/IP, 24 soat dublikat oynasi); admin lead CRUD + `convert` |
+| S4 | Feature qatlami | 27 ta feature katalogi, `Plan.FeatureCodes`, `TenantFeature` override, `RequireFeature` → **403 `feature_disabled:CODE`**; yechim: override → plan → default, modul veto bilan |
+| S5 | Custom konvensiyasi | `custom.` prefiksi, `IsCustom` → `DefaultEnabled=false`, egasi majburiy, planga qo'shib bo'lmaydi; skelet + `CUSTOM_FEATURES.md` |
+| S6 | Organization | INN (9 raqam) bo'yicha platforma darajasidagi kompaniya; counterparty/tenant/import bitta matcher orqali; tenantlar uchun endpoint **yo'q** |
+| S7 | Portal → lead | `POST /api/portal/upgrade-interest` va agent portali; `ReferrerTenantId` bilan |
+
+> Muhim: S4 seed'i xatti-harakatni **o'zgartirmaydi** — barcha feature'lar `DefaultEnabled=true`
+> va planlarga o'z modullariga qarab to'ldirildi (haqiqiy bazada tekshirilgan: tizim tenanti 27/27).
 
 **Asosiy kelishuv:** plani **bor** tenant → plan modullari va limitlari;
 plani **yo'q** tenant → **cheksiz** (mavjud mijozlar ishi to'satdan to'xtamasin).
@@ -97,8 +117,11 @@ Self-service registratsiya · Kunlik DB backup · `/health` + Serilog · CI/CD �
 | R5 | Frontend | `isPlatformAction` hech qaysi ilovada ko'rsatilmaydi (`wms-ui` audit sahifasida badge, `wms-admin` da audit sahifasi umuman yo'q) |
 | R6 | Backend | Trial tugashi haqida xabar yuborish (Telegram / in-app) — hozir fon xizmati faqat suspend qiladi, banner esa mijoz kirsagina ko'rinadi |
 | R7 | Ikkalasi | Limit 80 % ga yetganda ogohlantirish (hozir faqat progress-bar rangi, yaratish paytida ogohlantirish yo'q) |
-| R8 | Backend | Telefon tasdiqlash (SMS) / CAPTCHA — tashqi provayder (Eskiz / Play Mobile) kerak. **Public marketingdan oldin.** Rate limiting va slug qora ro'yxati allaqachon bor |
+| R8 | ~~Backend~~ | ~~Telefon tasdiqlash (SMS) / CAPTCHA~~ — **rejadan chiqdi**: self-service registratsiya yopilgani uchun (S3) tashqi SMS provayder kerak emas. Public lead formasi rate limit (5/soat/IP) bilan himoyalangan |
 | R9 | Frontend | Plan o'zgartirish so'rovi UI (hozir faqat "biz bilan bog'laning") |
+| R16 | Frontend | **S1–S7 uchun `wms-admin` UI:** to'lovlar, muddati tugayotganlar ro'yxati, sabab bilan suspend formasi, lead ro'yxati + convert, feature toggle matritsasi, organization ko'rinishi (`docs/news/TASKS_FRONTEND_S.md`) |
+| R17 | Frontend | **`wms-ui` yangi shartnomaga o'tsin:** `/api/subscription/me` javobi o'zgardi (`status` matn, `limits` obyekt, `daysUntilPaidEnd`, `blockedMessage`, `enabledFeatures`) va `feature_disabled:*` kodi qo'shildi |
+| R18 | Frontend | Public demo so'rovi formasi (`POST /api/leads`) va portal "menga ham kerak" tugmasi (`upgrade-interest`) |
 | R10 | Frontend | Ba'zi CRUD toast matnlari hali qattiq yozilgan (i18n qamroviga kirmagan) |
 
 ### 🟡 Keyingi bosqich — ataylab kechiktirilgan
