@@ -9,6 +9,7 @@ export class NotificationService {
   success(detail: string) { this.msg.add({ severity: 'success', summary: 'Success', detail }); }
   error(detail: string) { this.msg.add({ severity: 'error', summary: 'Error', detail }); }
   warn(detail: string) { this.msg.add({ severity: 'warn', summary: 'Warning', detail }); }
+  info(detail: string) { this.msg.add({ severity: 'info', summary: 'Info', detail }); }
 
   confirmDelete(message: string, onAccept: () => void) {
     this.confirm.confirm({

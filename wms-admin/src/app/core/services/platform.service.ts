@@ -1,6 +1,9 @@
 import { Injectable, inject } from '@angular/core';
 import { ApiService } from './api.service';
-import { Tenant, CreateTenantDto, UpdateTenantDto, TenantModuleInfo } from '../models/tenant.model';
+import {
+  Tenant, CreateTenantDto, UpdateTenantDto, TenantModuleInfo,
+  PaymentRecord, CreatePaymentDto
+} from '../models/tenant.model';
 import { Plan, CreatePlanDto, PlatformStats, ModuleInfo } from '../models/plan.model';
 
 @Injectable({ providedIn: 'root' })
@@ -19,6 +22,13 @@ export class PlatformService {
   toggleModule(id: number, moduleId: number, isEnabled: boolean) {
     return this.api.put<void>(`admin/tenants/${id}/modules`, { moduleId, isEnabled });
   }
+
+  // Payments (manual billing)
+  getPayments(tenantId: number) { return this.api.get<PaymentRecord[]>(`admin/tenants/${tenantId}/payments`); }
+  createPayment(tenantId: number, dto: CreatePaymentDto) {
+    return this.api.post<PaymentRecord>(`admin/tenants/${tenantId}/payments`, dto);
+  }
+  deletePayment(paymentId: number) { return this.api.delete<void>(`admin/payments/${paymentId}`); }
 
   // Plans
   getPlans() { return this.api.get<Plan[]>('admin/plans'); }

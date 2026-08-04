@@ -1,15 +1,19 @@
 <div class="page">
   <header class="page-head">
     <div><h1>Tenants</h1><p>Manage all factories on the platform</p></div>
-    <p-button icon="pi pi-plus" label="New tenant" (onClick)="openNew()" />
+    <div class="head-actions">
+      <p-select [options]="filterOptions" [ngModel]="filter()" (ngModelChange)="filter.set($event)"
+        optionLabel="label" optionValue="value" styleClass="filter-select" />
+      <p-button icon="pi pi-plus" label="New tenant" (onClick)="openNew()" />
+    </div>
   </header>
 
   <div class="wms-card table-wrapper">
-    <p-table [value]="tenants()" [loading]="loading()" [paginator]="true" [rows]="20" styleClass="p-datatable-sm p-datatable-striped">
+    <p-table [value]="visibleTenants()" [loading]="loading()" [paginator]="true" [rows]="20" styleClass="p-datatable-sm p-datatable-striped">
       <ng-template #header>
         <tr>
-          <th>Name</th><th>Slug</th><th>Plan</th><th>Status</th><th>Trial ends</th>
-          <th class="text-right">Users</th><th>Created</th><th></th>
+          <th>Name</th><th>Slug</th><th>Plan</th><th>Status</th><th>Paid until</th><th>Trial ends</th>
+          <th class="text-right">Users</th><th></th>
         </tr>
       </ng-template>
       <ng-template #body let-row>
@@ -18,6 +22,16 @@
           <td><code>{{ row.slug }}</code></td>
           <td>{{ planName(row.planId) }}</td>
           <td><span [class]="statusClass(row.subscriptionStatus)">{{ statusLabel(row.subscriptionStatus) }}</span></td>
+          <td>
+            @if (row.paidUntil) {
+              <div class="trial-cell">
+                <span class="trial-date">{{ row.paidUntil | date:'MMM d, y' }}</span>
+                <span [class]="paidClass(row)">{{ paidLabel(row) }}</span>
+              </div>
+            } @else {
+              <span class="text-muted" title="No payment deadline — this tenant is never blocked for non-payment">—</span>
+            }
+          </td>
           <td>
             @if (row.trialEndsAt) {
               <div class="trial-cell">
@@ -29,8 +43,9 @@
             }
           </td>
           <td class="text-right"><span class="num">{{ row.userCount }}</span></td>
-          <td>{{ row.createdAt | date:'MMM d, y' }}</td>
           <td class="actions-cell">
+            <p-button icon="pi pi-wallet" [text]="true" size="small" severity="success" title="Record payment" (onClick)="openPayment(row)" />
+            <p-button icon="pi pi-history" [text]="true" size="small" title="Payment history" (onClick)="openHistory(row)" />
             @if (row.subscriptionStatus === S.Suspended) {
               <p-button icon="pi pi-play" [text]="true" size="small" severity="success" title="Activate" (onClick)="activate(row)" />
             } @else {
@@ -43,7 +58,7 @@
         </tr>
       </ng-template>
       <ng-template #emptymessage>
-        <tr><td colspan="8"><div class="empty-state"><i class="pi pi-building"></i><p>No tenants yet</p></div></td></tr>
+        <tr><td colspan="8"><div class="empty-state"><i class="pi pi-building"></i><p>No tenants match this filter</p></div></td></tr>
       </ng-template>
     </p-table>
   </div>
@@ -75,7 +90,7 @@
         </div>
         <div class="ff"><label>Trial ends</label>
           <p-datepicker [ngModel]="form().trialEndsAt" (ngModelChange)="updateForm('trialEndsAt', $event)" dateFormat="yy-mm-dd" [showIcon]="true" [showClear]="true" styleClass="w-full" />
-          <small class="field-hint">Leave empty to keep the current date.</small>
+          <small class="field-hint">Leave empty to keep the current date. Paid until is set by recording a payment.</small>
         </div>
         <div class="ff-inline"><label>Active</label><p-toggleswitch [ngModel]="form().isActive" (ngModelChange)="updateForm('isActive', $event)" /></div>
       }
@@ -84,6 +99,87 @@
       <p-button label="Cancel" [text]="true" (onClick)="dialogVisible.set(false)" />
       <p-button label="Save" icon="pi pi-check" [loading]="saving()" (onClick)="save()" />
     </ng-template>
+  </p-dialog>
+
+  <!-- Record payment -->
+  <p-dialog [visible]="paymentVisible()" (visibleChange)="paymentVisible.set($event)"
+    [header]="'Record payment — ' + (paymentTenant()?.name ?? '')" [modal]="true" [style]="{ width: '480px' }" [draggable]="false">
+    <div class="dialog-form">
+      @if (paymentTenant()?.paidUntil; as until) {
+        <div class="current-paid">Currently paid until <strong>{{ until | date:'MMM d, y' }}</strong></div>
+      } @else {
+        <div class="current-paid">No payment deadline set yet</div>
+      }
+
+      <div class="quick-row">
+        <span class="quick-label">Quick period</span>
+        <p-button label="+1 month" size="small" [outlined]="true" (onClick)="addPeriod(1)" />
+        <p-button label="+3 months" size="small" [outlined]="true" (onClick)="addPeriod(3)" />
+        <p-button label="+6 months" size="small" [outlined]="true" (onClick)="addPeriod(6)" />
+        <p-button label="+1 year" size="small" [outlined]="true" (onClick)="addPeriod(12)" />
+      </div>
+
+      <div class="limits-grid two">
+        <div class="ff"><label>Period start *</label>
+          <p-datepicker [ngModel]="paymentForm().periodStart" (ngModelChange)="updatePayment('periodStart', $event)"
+            dateFormat="yy-mm-dd" [showIcon]="true" styleClass="w-full" />
+        </div>
+        <div class="ff"><label>Period end *</label>
+          <p-datepicker [ngModel]="paymentForm().periodEnd" (ngModelChange)="updatePayment('periodEnd', $event)"
+            dateFormat="yy-mm-dd" [showIcon]="true" styleClass="w-full" />
+        </div>
+      </div>
+
+      <div class="limits-grid two">
+        <div class="ff"><label>Amount *</label>
+          <p-inputNumber [ngModel]="paymentForm().amount" (ngModelChange)="updatePayment('amount', $event ?? 0)"
+            [min]="0" [useGrouping]="true" [maxFractionDigits]="2" styleClass="w-full" inputStyleClass="w-full" />
+        </div>
+        <div class="ff"><label>Currency</label>
+          <input pInputText [ngModel]="paymentForm().currency" (ngModelChange)="updatePayment('currency', $event)" class="w-full" />
+        </div>
+      </div>
+
+      <div class="ff"><label>Method</label>
+        <p-select [options]="methodOptions" [ngModel]="paymentForm().method" (ngModelChange)="updatePayment('method', $event)"
+          optionLabel="label" optionValue="value" styleClass="w-full" />
+      </div>
+      <div class="ff"><label>Note</label>
+        <textarea pTextarea [ngModel]="paymentForm().note" (ngModelChange)="updatePayment('note', $event)" rows="2" class="w-full"></textarea>
+      </div>
+    </div>
+    <ng-template #footer>
+      <p-button label="Cancel" [text]="true" (onClick)="paymentVisible.set(false)" />
+      <p-button label="Record payment" icon="pi pi-check" [loading]="saving()" (onClick)="savePayment()" />
+    </ng-template>
+  </p-dialog>
+
+  <!-- Payment history -->
+  <p-dialog [visible]="historyVisible()" (visibleChange)="historyVisible.set($event)"
+    [header]="'Payment history — ' + (paymentTenant()?.name ?? '')" [modal]="true" [style]="{ width: '760px' }" [draggable]="false">
+    <p-table [value]="payments()" [loading]="loadingPayments()" styleClass="p-datatable-sm">
+      <ng-template #header>
+        <tr>
+          <th>Recorded</th><th>Period</th><th class="text-right">Amount</th><th>Method</th><th>Note</th><th>By</th><th></th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-row>
+        <tr>
+          <td>{{ row.recordedAt | date:'MMM d, y' }}</td>
+          <td>{{ row.periodStart | date:'MMM d' }} — {{ row.periodEnd | date:'MMM d, y' }}</td>
+          <td class="text-right"><span class="num">{{ row.amount | number:'1.0-2' }}</span> {{ row.currency }}</td>
+          <td>{{ row.method }}</td>
+          <td class="note-cell">{{ row.note || '—' }}</td>
+          <td>{{ row.recordedByName || '—' }}</td>
+          <td class="actions-cell">
+            <p-button icon="pi pi-times" [text]="true" size="small" severity="danger" title="Cancel record" (onClick)="cancelPayment(row)" />
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr><td colspan="7"><div class="empty-state"><i class="pi pi-wallet"></i><p>No payments recorded</p></div></td></tr>
+      </ng-template>
+    </p-table>
   </p-dialog>
 
   <!-- Modules -->

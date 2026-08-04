@@ -6,7 +6,7 @@ import { ProgressBar } from 'primeng/progressbar';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { SubscriptionService } from '../../../core/services/subscription.service';
 import {
-  SubscriptionInfo, SubscriptionPlan, LimitUsage, SubscriptionStatusCode
+  SubscriptionInfo, SubscriptionPlan, LimitRow, toLimitRows
 } from '../../../core/models/subscription.model';
 import { environment } from '../../../../environments/environment';
 
@@ -25,21 +25,22 @@ export default class SubscriptionComponent implements OnInit {
   plans = signal<SubscriptionPlan[]>([]);
   loading = signal(true);
 
-  readonly Status = SubscriptionStatusCode;
-  readonly supportPhone = environment.supportPhone;
-  readonly supportEmail = environment.supportEmail;
+  limits = computed<LimitRow[]>(() => toLimitRows(this.info()?.limits ?? null));
 
-  /** Trial tugagan, lekin grace davri hali davom etmoqda. */
-  inGrace = computed(() => {
-    const i = this.info();
-    return !!i && i.trialDaysLeft !== null && i.trialDaysLeft < 0 && !i.isBlocked;
-  });
+  /** To'lov muddati trialdan ustun — mijoz to'lagan bo'lsa demo sanasi ahamiyatsiz. */
+  usePaidPeriod = computed(() => !!this.info()?.paidUntil);
+  daysLeft = this.service.daysLeft;
+  inGrace = this.service.inGrace;
+  isExpiringSoon = this.service.isExpiringSoon;
 
   graceDaysLeft = computed(() => {
-    const i = this.info();
-    if (!i || i.trialDaysLeft === null) return 0;
-    return Math.max(0, i.graceDays + i.trialDaysLeft);
+    const i = this.info(); const d = this.daysLeft();
+    if (!i || d === null) return 0;
+    return Math.max(0, i.paymentGraceDays + d);
   });
+
+  supportPhone = computed(() => this.info()?.supportPhone || environment.supportPhone);
+  supportEmail = computed(() => this.info()?.supportEmail || environment.supportEmail);
 
   ngOnInit() {
     this.service.fetch().subscribe({
@@ -51,32 +52,32 @@ export default class SubscriptionComponent implements OnInit {
     });
   }
 
-  statusKey(status: SubscriptionStatusCode): string {
+  statusKey(status: string): string {
     switch (status) {
-      case SubscriptionStatusCode.Trial: return 'subscription.statusTrial';
-      case SubscriptionStatusCode.Active: return 'subscription.statusActive';
-      default: return 'subscription.statusSuspended';
+      case 'Trial': return 'subscription.statusTrial';
+      case 'Suspended': return 'subscription.statusSuspended';
+      default: return 'subscription.statusActive';
     }
   }
 
-  statusClass(status: SubscriptionStatusCode): string {
+  statusClass(status: string): string {
     switch (status) {
-      case SubscriptionStatusCode.Active: return 'pill pill-success';
-      case SubscriptionStatusCode.Trial: return 'pill pill-warning';
-      default: return 'pill pill-danger';
+      case 'Trial': return 'pill pill-warning';
+      case 'Suspended': return 'pill pill-danger';
+      default: return 'pill pill-success';
     }
   }
 
   blockedKey(info: SubscriptionInfo): string {
     switch (info.blockedReason) {
-      case 'subscription_suspended': return 'subscription.blockedSuspended';
+      case 'payment_expired': return 'subscription.blockedPaymentExpired';
       case 'trial_expired': return 'subscription.blockedTrialExpired';
       case 'tenant_inactive': return 'subscription.blockedInactive';
       default: return 'subscription.blockedSuspended';
     }
   }
 
-  limitKey(limit: LimitUsage): string {
+  limitKey(limit: LimitRow): string {
     switch (limit.key) {
       case 'users': return 'subscription.limitUsers';
       case 'warehouses': return 'subscription.limitWarehouses';
@@ -84,14 +85,13 @@ export default class SubscriptionComponent implements OnInit {
     }
   }
 
-  /** Progress bar rangi: to'lgan → qizil, ogohlantirish chegarasidan oshgan → sariq. */
-  limitClass(limit: LimitUsage, warnPercent: number): string {
+  limitClass(limit: LimitRow): string {
     if (limit.isExceeded) return 'limit-danger';
-    if (limit.percent >= warnPercent) return 'limit-warn';
+    if (limit.isNearLimit) return 'limit-warn';
     return 'limit-ok';
   }
 
   isCurrentPlan(plan: SubscriptionPlan): boolean {
-    return this.info()?.planId === plan.id;
+    return this.info()?.planCode === plan.code;
   }
 }

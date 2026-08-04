@@ -1,14 +1,17 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { TableModule } from 'primeng/table';
 import { PlatformService } from '../../core/services/platform.service';
 import { PlatformStats } from '../../core/models/plan.model';
+import { Tenant } from '../../core/models/tenant.model';
+import { daysUntil } from '../../core/utils/date.util';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [DatePipe, DecimalPipe, NgApexchartsModule, TableModule],
+  imports: [DatePipe, DecimalPipe, RouterLink, NgApexchartsModule, TableModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
@@ -19,6 +22,19 @@ export default class DashboardComponent implements OnInit {
   stats = signal<PlatformStats | null>(null);
   loading = signal(true);
   chart = signal<Record<string, unknown> | null>(null);
+  private tenants = signal<Tenant[]>([]);
+
+  /** 7 kun ichida to'lov muddati tugaydiganlar. */
+  expiringSoon = computed(() => this.tenants().filter(t => {
+    const d = daysUntil(t.paidUntil);
+    return d !== null && d >= 0 && d <= 7;
+  }).length);
+
+  /** Muddati allaqachon o'tganlar. */
+  expired = computed(() => this.tenants().filter(t => {
+    const d = daysUntil(t.paidUntil);
+    return d !== null && d < 0;
+  }).length);
 
   ngOnInit() {
     this.service.getStats().subscribe({
@@ -30,6 +46,11 @@ export default class DashboardComponent implements OnInit {
         this.loading.set(false);
       },
       error: () => this.loading.set(false)
+    });
+    // To'lov muddati kartalari tenant ro'yxatidan hisoblanadi — platforma
+    // miqyosida ro'yxat kichik, alohida endpoint kerak emas.
+    this.service.getTenants().subscribe(res => {
+      if (res.success && res.data) this.tenants.set(res.data);
     });
   }
 

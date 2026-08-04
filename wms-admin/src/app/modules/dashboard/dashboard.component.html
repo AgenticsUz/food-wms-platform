@@ -30,6 +30,14 @@
         <div class="stat-icon" style="background: var(--color-pistachio-50); color: var(--color-pistachio-700)"><i class="pi pi-arrow-up-right"></i></div>
         <div><div class="stat-value">{{ s.newTenantsThisMonth | number }}</div><div class="stat-label">New this month</div></div>
       </div>
+      <a class="stat-card stat-link" routerLink="/tenants" [queryParams]="{ filter: 'expiring' }">
+        <div class="stat-icon" style="background: var(--color-caramel-50); color: var(--color-caramel-600)"><i class="pi pi-calendar-clock"></i></div>
+        <div><div class="stat-value">{{ expiringSoon() | number }}</div><div class="stat-label">Expiring soon (7d)</div></div>
+      </a>
+      <a class="stat-card stat-link" routerLink="/tenants" [queryParams]="{ filter: 'expired' }">
+        <div class="stat-icon" style="background: var(--color-berry-50); color: var(--color-berry-700)"><i class="pi pi-exclamation-triangle"></i></div>
+        <div><div class="stat-value">{{ expired() | number }}</div><div class="stat-label">Payment expired</div></div>
+      </a>
     </div>
 
     <div class="wms-card chart-card">

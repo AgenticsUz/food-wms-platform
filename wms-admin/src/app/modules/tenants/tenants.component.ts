@@ -1,18 +1,25 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { TableModule } from 'primeng/table';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { InputText } from 'primeng/inputtext';
+import { InputNumber } from 'primeng/inputnumber';
+import { Textarea } from 'primeng/textarea';
 import { Password } from 'primeng/password';
 import { Select } from 'primeng/select';
 import { DatePicker } from 'primeng/datepicker';
 import { ToggleSwitch } from 'primeng/toggleswitch';
 import { PlatformService } from '../../core/services/platform.service';
 import { NotificationService } from '../../core/services/notification.service';
-import { Tenant, TenantModuleInfo, SubscriptionStatus } from '../../core/models/tenant.model';
+import {
+  Tenant, TenantModuleInfo, SubscriptionStatus,
+  PaymentRecord, PaymentMethod, PAYMENT_METHODS
+} from '../../core/models/tenant.model';
 import { Plan } from '../../core/models/plan.model';
+import { utcDateOnly, daysUntil } from '../../core/utils/date.util';
 
 interface TenantForm {
   id?: number; name: string; slug: string;
@@ -20,10 +27,18 @@ interface TenantForm {
   isActive: boolean; planId: number | null; subscriptionStatus: SubscriptionStatus; trialEndsAt: Date | null;
 }
 
+interface PaymentForm {
+  periodStart: Date | null; periodEnd: Date | null;
+  amount: number; currency: string; method: PaymentMethod; note: string;
+}
+
+type TenantFilter = 'all' | 'expiring' | 'expired' | 'nolimit';
+
 @Component({
   selector: 'app-tenants',
   standalone: true,
-  imports: [DatePipe, FormsModule, TableModule, Button, Dialog, InputText, Password, Select, DatePicker, ToggleSwitch],
+  imports: [DatePipe, DecimalPipe, FormsModule, TableModule, Button, Dialog, InputText,
+    InputNumber, Textarea, Password, Select, DatePicker, ToggleSwitch],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './tenants.component.html',
   styleUrl: './tenants.component.scss'
@@ -31,11 +46,32 @@ interface TenantForm {
 export default class TenantsComponent implements OnInit {
   private service = inject(PlatformService);
   private notify = inject(NotificationService);
+  private route = inject(ActivatedRoute);
 
   tenants = signal<Tenant[]>([]);
   plans = signal<Plan[]>([]);
   loading = signal(true);
   saving = signal(false);
+
+  filter = signal<TenantFilter>('all');
+  filterOptions = [
+    { label: 'All tenants', value: 'all' as TenantFilter },
+    { label: 'Expiring soon (7d)', value: 'expiring' as TenantFilter },
+    { label: 'Expired', value: 'expired' as TenantFilter },
+    { label: 'No limit', value: 'nolimit' as TenantFilter }
+  ];
+
+  visibleTenants = computed(() => {
+    const f = this.filter();
+    if (f === 'all') return this.tenants();
+    return this.tenants().filter(t => {
+      const days = this.paidDaysLeft(t);
+      if (f === 'nolimit') return days === null;
+      if (days === null) return false;
+      if (f === 'expired') return days < 0;
+      return days >= 0 && days <= 7;
+    });
+  });
 
   dialogVisible = signal(false);
   editing = signal(false);
@@ -44,6 +80,15 @@ export default class TenantsComponent implements OnInit {
   modulesVisible = signal(false);
   modulesTenant = signal<Tenant | null>(null);
   modules = signal<TenantModuleInfo[]>([]);
+
+  // Payments
+  paymentVisible = signal(false);
+  paymentTenant = signal<Tenant | null>(null);
+  paymentForm = signal<PaymentForm>(this.emptyPayment());
+  historyVisible = signal(false);
+  payments = signal<PaymentRecord[]>([]);
+  loadingPayments = signal(false);
+  readonly methodOptions = PAYMENT_METHODS;
 
   statusOptions = [
     { label: 'Trial', value: SubscriptionStatus.Trial },
@@ -56,7 +101,17 @@ export default class TenantsComponent implements OnInit {
       isActive: true, planId: null, subscriptionStatus: SubscriptionStatus.Trial, trialEndsAt: null };
   }
 
-  ngOnInit() { this.load(); this.service.getPlans().subscribe(r => { if (r.success && r.data) this.plans.set(r.data); }); }
+  private emptyPayment(): PaymentForm {
+    return { periodStart: null, periodEnd: null, amount: 0, currency: 'UZS', method: 'BankTransfer', note: '' };
+  }
+
+  ngOnInit() {
+    this.load();
+    this.service.getPlans().subscribe(r => { if (r.success && r.data) this.plans.set(r.data); });
+    // Dashboard kartalari shu filtr bilan havola qiladi
+    const f = this.route.snapshot.queryParamMap.get('filter') as TenantFilter | null;
+    if (f && this.filterOptions.some(o => o.value === f)) this.filter.set(f);
+  }
 
   load() {
     this.loading.set(true);
@@ -88,7 +143,7 @@ export default class TenantsComponent implements OnInit {
       this.service.updateTenant(f.id!, {
         name: f.name.trim(), slug: f.slug.trim(), isActive: f.isActive, planId: f.planId,
         subscriptionStatus: f.subscriptionStatus,
-        trialEndsAt: f.trialEndsAt ? this.dateStr(f.trialEndsAt) : null
+        trialEndsAt: f.trialEndsAt ? utcDateOnly(f.trialEndsAt) : null
       }).subscribe({ next: () => this.afterSave(), error: () => this.saving.set(false) });
     } else {
       if (!f.adminFullName.trim() || !f.adminPhone.trim() || f.adminPassword.length < 6) {
@@ -101,7 +156,6 @@ export default class TenantsComponent implements OnInit {
     }
   }
   private afterSave() { this.saving.set(false); this.dialogVisible.set(false); this.notify.success('Saved'); this.load(); }
-  private dateStr(d: Date) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
 
   suspend(t: Tenant) { this.service.suspendTenant(t.id).subscribe(() => { this.notify.success('Suspended'); this.load(); }); }
   activate(t: Tenant) { this.service.activateTenant(t.id).subscribe(() => { this.notify.success('Activated'); this.load(); }); }
@@ -123,12 +177,79 @@ export default class TenantsComponent implements OnInit {
     });
   }
 
-  /** Trial tugashiga qolgan kun. null — trial sanasi yo'q. */
-  trialDaysLeft(t: Tenant): number | null {
-    if (!t.trialEndsAt) return null;
-    const ends = new Date(t.trialEndsAt).getTime();
-    return Math.ceil((ends - Date.now()) / 86_400_000);
+  // ---- Payments -----------------------------------------------------------
+
+  openPayment(t: Tenant) {
+    const start = t.paidUntil ? new Date(t.paidUntil) : new Date();
+    this.paymentTenant.set(t);
+    this.paymentForm.set({ ...this.emptyPayment(), periodStart: start });
+    this.paymentVisible.set(true);
   }
+
+  updatePayment(field: keyof PaymentForm, value: unknown) {
+    this.paymentForm.update(f => ({ ...f, [field]: value }));
+  }
+
+  /** Tez tugmalar — davr oxirini boshidan hisoblaydi. */
+  addPeriod(months: number) {
+    this.paymentForm.update(f => {
+      const start = f.periodStart ?? new Date();
+      const end = new Date(start);
+      end.setMonth(end.getMonth() + months);
+      return { ...f, periodStart: start, periodEnd: end };
+    });
+  }
+
+  savePayment() {
+    const t = this.paymentTenant(); const f = this.paymentForm();
+    if (!t) return;
+    if (!f.periodStart || !f.periodEnd) { this.notify.warn('Period start and end are required'); return; }
+    if (f.periodEnd <= f.periodStart) { this.notify.warn('Period end must be after the start'); return; }
+    if (f.amount <= 0) { this.notify.warn('Amount must be greater than zero'); return; }
+
+    const wasSuspendedForNonPayment =
+      t.subscriptionStatus === SubscriptionStatus.Suspended && t.suspendReason === 'NonPayment';
+
+    this.saving.set(true);
+    this.service.createPayment(t.id, {
+      periodStart: utcDateOnly(f.periodStart), periodEnd: utcDateOnly(f.periodEnd),
+      amount: f.amount, currency: f.currency, method: f.method, note: f.note.trim() || null
+    }).subscribe({
+      next: () => {
+        this.saving.set(false); this.paymentVisible.set(false);
+        this.notify.success(`Paid until ${f.periodEnd!.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`);
+        if (wasSuspendedForNonPayment) this.notify.info('Tenant reactivated');
+        this.load();
+      },
+      error: () => this.saving.set(false)
+    });
+  }
+
+  openHistory(t: Tenant) {
+    this.paymentTenant.set(t); this.payments.set([]); this.historyVisible.set(true);
+    this.loadingPayments.set(true);
+    this.service.getPayments(t.id).subscribe({
+      next: (r) => { this.payments.set(r.success && r.data ? r.data : []); this.loadingPayments.set(false); },
+      error: () => this.loadingPayments.set(false)
+    });
+  }
+
+  cancelPayment(p: PaymentRecord) {
+    this.notify.confirmDelete(
+      'Cancel this payment record? Paid until will be recalculated from the remaining records.',
+      () => {
+        this.service.deletePayment(p.id).subscribe(() => {
+          this.notify.success('Payment record cancelled');
+          this.payments.update(list => list.filter(x => x.id !== p.id));
+          this.load();
+        });
+      }
+    );
+  }
+
+  // ---- Trial / paid columns ----------------------------------------------
+
+  trialDaysLeft(t: Tenant): number | null { return daysUntil(t.trialEndsAt); }
 
   trialClass(t: Tenant): string {
     const days = this.trialDaysLeft(t);
@@ -141,7 +262,23 @@ export default class TenantsComponent implements OnInit {
   trialLabel(t: Tenant): string {
     const days = this.trialDaysLeft(t);
     if (days === null) return '';
-    if (days < 0) return `${-days}d overdue`;
+    return days < 0 ? `${-days}d overdue` : `${days}d left`;
+  }
+
+  paidDaysLeft(t: Tenant): number | null { return daysUntil(t.paidUntil); }
+
+  paidClass(t: Tenant): string {
+    const days = this.paidDaysLeft(t);
+    if (days === null) return '';
+    if (days < 3) return 'pill pill-danger';
+    if (days < 7) return 'pill pill-warning';
+    return 'pill pill-neutral';
+  }
+
+  paidLabel(t: Tenant): string {
+    const days = this.paidDaysLeft(t);
+    if (days === null) return '';
+    if (days < 0) return 'expired';
     return `${days}d left`;
   }
 

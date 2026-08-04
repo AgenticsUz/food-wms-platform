@@ -23,7 +23,24 @@ code { font-family: var(--font-mono, monospace); font-size: 12px; }
 .divider { margin-top: 6px; padding-top: 12px; border-top: 1px solid var(--border-subtle); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); }
 
 .limits-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-@media (max-width: 520px) { .limits-grid { grid-template-columns: 1fr; } }
+.limits-grid.two { grid-template-columns: repeat(2, 1fr); }
+@media (max-width: 520px) { .limits-grid, .limits-grid.two { grid-template-columns: 1fr; } }
+
+.head-actions { display: flex; align-items: center; gap: 12px; }
+:host ::ng-deep .filter-select { min-width: 180px; }
+
+.current-paid {
+  font-size: 13px; color: var(--text-secondary);
+  padding: 10px 12px; border-radius: var(--radius-sm); background: var(--bg-inset);
+  strong { color: var(--text-primary); }
+}
+
+.quick-row {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  .quick-label { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-right: 4px; }
+}
+
+.note-cell { max-width: 220px; white-space: normal; word-break: break-word; }
 
 .module-list { display: flex; flex-direction: column; gap: 4px; padding-top: 8px; }
 .module-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 4px; border-bottom: 1px solid var(--border-subtle); &:last-child { border-bottom: none; } }

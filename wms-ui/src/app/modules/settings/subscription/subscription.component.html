@@ -14,16 +14,19 @@
   } @else {
     @let s = info()!;
 
-    <!-- Blocked -->
+    <!-- Blocked / grace / expiring -->
     @if (s.isBlocked) {
       <div class="alert alert-danger">
         <i class="pi pi-ban"></i>
         <div>
-          <div class="alert-title">{{ t(blockedKey(s)) }}</div>
+          <div class="alert-title">{{ s.blockedMessage || t(blockedKey(s)) }}</div>
+          @if (s.suspendedUntil) {
+            <div class="alert-text">{{ t('subscription.autoReactivate', { date: (s.suspendedUntil | date:'dd.MM.yyyy') }) }}</div>
+          }
           <div class="alert-text">
             {{ t('subscription.contactUs') }} —
-            <a [href]="'tel:' + supportPhone">{{ supportPhone }}</a>,
-            <a [href]="'mailto:' + supportEmail">{{ supportEmail }}</a>
+            <a [href]="'tel:' + supportPhone()">{{ supportPhone() }}</a>,
+            <a [href]="'mailto:' + supportEmail()">{{ supportEmail() }}</a>
           </div>
         </div>
       </div>
@@ -31,15 +34,21 @@
       <div class="alert alert-warning">
         <i class="pi pi-exclamation-triangle"></i>
         <div>
-          <div class="alert-title">{{ t('subscription.graceTitle') }}</div>
+          <div class="alert-title">
+            {{ usePaidPeriod() ? t('subscription.gracePaidTitle') : t('subscription.graceTitle') }}
+          </div>
           <div class="alert-text">{{ t('subscription.graceText', { days: graceDaysLeft() }) }}</div>
         </div>
       </div>
-    } @else if (s.isExpiringSoon && s.trialDaysLeft !== null) {
+    } @else if (isExpiringSoon()) {
       <div class="alert alert-warning">
         <i class="pi pi-clock"></i>
         <div>
-          <div class="alert-title">{{ t('subscription.expiringSoon', { days: s.trialDaysLeft }) }}</div>
+          <div class="alert-title">
+            {{ usePaidPeriod()
+                ? t('subscription.paymentExpiringSoon', { days: daysLeft() })
+                : t('subscription.expiringSoon', { days: daysLeft() }) }}
+          </div>
           <div class="alert-text">{{ t('subscription.contactUs') }}</div>
         </div>
       </div>
@@ -57,9 +66,6 @@
         </div>
         <div class="plan-meta">
           <span [class]="statusClass(s.status)">{{ t(statusKey(s.status)) }}</span>
-          @if (s.planName) {
-            <div class="plan-price amount">{{ s.planPrice | number:'1.0-0' }} {{ t('subscription.currency') }}</div>
-          }
         </div>
       </div>
 
@@ -67,43 +73,52 @@
         <p class="plan-hint">{{ t('subscription.noPlanHint') }}</p>
       }
 
-      @if (s.trialEndsAt) {
+      <!-- To'langan muddat trialdan ustun ko'rsatiladi -->
+      @if (s.paidUntil) {
+        <div class="plan-trial">
+          <span class="trial-label">{{ t('subscription.paidUntil') }}</span>
+          <span class="trial-value">{{ s.paidUntil | date:'dd.MM.yyyy' }}</span>
+          @if (daysLeft() !== null && daysLeft()! >= 0) {
+            <span class="trial-days">{{ t('subscription.daysLeft', { days: daysLeft() }) }}</span>
+          }
+        </div>
+        <p class="plan-hint">{{ t('subscription.graceHint', { days: s.paymentGraceDays }) }}</p>
+      } @else if (s.trialEndsAt) {
         <div class="plan-trial">
           <span class="trial-label">{{ t('subscription.trialEnds') }}</span>
           <span class="trial-value">{{ s.trialEndsAt | date:'dd.MM.yyyy' }}</span>
-          @if (s.trialDaysLeft !== null && s.trialDaysLeft >= 0) {
-            <span class="trial-days">{{ t('subscription.daysLeft', { days: s.trialDaysLeft }) }}</span>
+          @if (daysLeft() !== null && daysLeft()! >= 0) {
+            <span class="trial-days">{{ t('subscription.daysLeft', { days: daysLeft() }) }}</span>
           }
         </div>
+        <p class="plan-hint">{{ t('subscription.graceHint', { days: s.paymentGraceDays }) }}</p>
       }
     </div>
 
     <!-- Limits -->
     <div class="wms-card section-card">
       <h3 class="section-title">{{ t('subscription.limits') }}</h3>
-      @if (s.limits.length === 0) {
-        <p class="plan-hint">{{ t('subscription.unlimited') }}</p>
-      } @else {
-        <div class="limit-list">
-          @for (limit of s.limits; track limit.key) {
-            <div class="limit-row" [class]="limitClass(limit, s.limitWarnPercent)">
-              <div class="limit-head">
-                <span class="limit-name">{{ t(limitKey(limit)) }}</span>
-                <span class="limit-value amount">
-                  @if (limit.isUnlimited) {
-                    {{ limit.used | number }} / {{ t('subscription.unlimited') }}
-                  } @else {
-                    {{ limit.used | number }} / {{ limit.limit | number }}
-                  }
-                </span>
-              </div>
-              @if (!limit.isUnlimited) {
-                <p-progressbar [value]="limit.percent" [showValue]="false" [style]="{ height: '8px' }" />
-              }
+      <div class="limit-list">
+        @for (limit of limits(); track limit.key) {
+          <div class="limit-row" [class]="limitClass(limit)">
+            <div class="limit-head">
+              <span class="limit-name">{{ t(limitKey(limit)) }}</span>
+              <span class="limit-value amount">
+                @if (limit.isUnlimited) {
+                  {{ limit.used | number }} / {{ t('subscription.unlimited') }}
+                } @else {
+                  {{ limit.used | number }} / {{ limit.limit | number }}
+                }
+              </span>
             </div>
-          }
-        </div>
-      }
+            @if (!limit.isUnlimited) {
+              <p-progressbar [value]="limit.percent" [showValue]="false" [style]="{ height: '8px' }" />
+            }
+          </div>
+        } @empty {
+          <p class="plan-hint">{{ t('subscription.unlimited') }}</p>
+        }
+      </div>
     </div>
 
     <!-- Modules -->
@@ -149,7 +164,7 @@
             </tr>
           </ng-template>
         </p-table>
-        <p class="plan-hint contact-hint">{{ t('subscription.contactUs') }} — {{ supportPhone }}</p>
+        <p class="plan-hint contact-hint">{{ t('subscription.contactUs') }} — {{ supportPhone() }}</p>
       </div>
     }
   }
