@@ -13,6 +13,14 @@ public class Plan : BaseEntity
     public decimal Price { get; set; }
     public bool IsActive { get; set; } = true;
     public string ModuleCodes { get; set; } = "";          // CSV of module codes, e.g. "WAREHOUSE_RAW,TRANSFERS"
+
+    /// The plan self-service registration attaches to a brand-new tenant (the trial plan).
+    /// Exactly one plan should carry this flag — PlanService clears it from the others.
+    public bool IsDefault { get; set; }
+
+    /// Length of the trial for tenants that start on this plan. 0 = not a trial plan.
+    public int TrialDays { get; set; }
+
     public int MaxUsers { get; set; } = 10;
     public int MaxWarehouses { get; set; } = 3;
     public int MaxTransfersPerMonth { get; set; } = 1000;

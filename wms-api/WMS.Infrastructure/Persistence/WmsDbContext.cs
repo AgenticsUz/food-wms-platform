@@ -203,6 +203,16 @@ public class WmsDbContext : DbContext
         modelBuilder.Entity<Notification>().HasIndex(n => new { n.TenantId, n.UserId, n.IsRead });
         modelBuilder.Entity<CommissionRecord>().HasIndex(c => new { c.TenantId, c.AgentId });
 
+        // ── Noyoblik kafolatlari (DB darajasida) ──
+        // Slug login uchun kalit: ikkita tirik tenant bir xil slug bilan bo'lsa, mijoz
+        // noto'g'ri tenantga kiradi. Servis darajasidagi AnyAsync tekshiruvi parallel
+        // so'rovlarda yetarli emas — shuning uchun qisman (soft-delete'ni hisobga oluvchi)
+        // unique indeks qo'yiladi.
+        modelBuilder.Entity<Tenant>()
+            .HasIndex(t => t.Slug).IsUnique().HasFilter("\"IsDeleted\" = 0");
+        modelBuilder.Entity<Plan>()
+            .HasIndex(p => p.Code).IsUnique().HasFilter("\"IsDeleted\" = 0");
+
         // Seed Modules (static dates required by EF Core to avoid PendingModelChangesWarning)
         var seedDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         modelBuilder.Entity<Module>().HasData(
@@ -214,7 +224,12 @@ public class WmsDbContext : DbContext
             new Module { Id = 6, Name = "KPI & Shifts", Code = "KPI", OrderNumber = 6, CreatedAt = seedDate, UpdatedAt = seedDate },
             new Module { Id = 7, Name = "Suppliers", Code = "SUPPLIERS", OrderNumber = 7, CreatedAt = seedDate, UpdatedAt = seedDate },
             new Module { Id = 8, Name = "Clients", Code = "CLIENTS", OrderNumber = 8, CreatedAt = seedDate, UpdatedAt = seedDate },
-            new Module { Id = 9, Name = "Quality Control", Code = "QUALITY", OrderNumber = 9, CreatedAt = seedDate, UpdatedAt = seedDate }
+            new Module { Id = 9, Name = "Quality Control", Code = "QUALITY", OrderNumber = 9, CreatedAt = seedDate, UpdatedAt = seedDate },
+            // Agents/Delivery had permissions but no Module row, so their endpoints could
+            // not be gated by plan. Existing tenants are backfilled as enabled by
+            // DataInitializer.BackfillMissingTenantModulesAsync (no behaviour change for them).
+            new Module { Id = 10, Name = "Agents", Code = "AGENTS", OrderNumber = 10, CreatedAt = seedDate, UpdatedAt = seedDate },
+            new Module { Id = 11, Name = "Delivery", Code = "DELIVERY", OrderNumber = 11, CreatedAt = seedDate, UpdatedAt = seedDate }
         );
 
         // Seed Permissions

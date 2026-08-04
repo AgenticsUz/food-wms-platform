@@ -16,5 +16,10 @@ public class AuditLog
     public int? EntityId { get; set; }            // route'dagi id (bo'lsa)
     public string Path { get; set; } = null!;      // so'rov yo'li
     public int StatusCode { get; set; }
+
+    /// Platforma amali (`/api/admin/*`) — SuperAdmin bajargan. Bunda TenantId maqsad
+    /// tenant, ActorTenantId esa amalni bajargan (platforma) tenant bo'ladi.
+    public bool IsPlatformAction { get; set; }
+    public int? ActorTenantId { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
