@@ -52,10 +52,22 @@ public class AuditLogFilter : IAsyncActionFilter
                 && int.TryParse(idVal?.ToString(), out var parsedId))
                 entityId = parsedId;
 
+            // Platforma amallari (`/api/admin/*`) MAQSAD tenantga yoziladi, superadminning
+            // o'z tenantiga emas — aks holda mijoz kim uni suspend qilganini ko'ra olmaydi.
+            var path = http.Request.Path.Value ?? "";
+            var isPlatformAction = path.StartsWith("/api/admin", StringComparison.OrdinalIgnoreCase);
+            var actorTenantId = tenantId;
+            if (isPlatformAction
+                && path.StartsWith("/api/admin/tenants", StringComparison.OrdinalIgnoreCase)
+                && entityId is > 0)
+                tenantId = entityId.Value;
+
             var db = http.RequestServices.GetRequiredService<WmsDbContext>();
             db.AuditLogs.Add(new AuditLog
             {
                 TenantId = tenantId,
+                IsPlatformAction = isPlatformAction,
+                ActorTenantId = isPlatformAction ? actorTenantId : null,
                 UserId = userId > 0 ? userId : null,
                 UserName = userName,
                 Action = method.ToUpperInvariant(),

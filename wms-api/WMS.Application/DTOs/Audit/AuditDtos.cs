@@ -12,4 +12,7 @@ public class AuditLogDto
     public string Path { get; set; } = null!;
     public int StatusCode { get; set; }
     public DateTime CreatedAt { get; set; }
+    /// Platforma (SuperAdmin) amali — masalan tenantni suspend qilish.
+    /// Mijoz o'z izida kim nima qilganini ko'rishi uchun ajratiladi.
+    public bool IsPlatformAction { get; set; }
 }

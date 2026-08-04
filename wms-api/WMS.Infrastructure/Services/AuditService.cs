@@ -25,7 +25,8 @@ public class AuditService : IAuditService
             {
                 Id = a.Id, UserId = a.UserId, UserName = a.UserName,
                 Action = a.Action, EntityType = a.EntityType, EntityAction = a.EntityAction,
-                EntityId = a.EntityId, Path = a.Path, StatusCode = a.StatusCode, CreatedAt = a.CreatedAt
+                EntityId = a.EntityId, Path = a.Path, StatusCode = a.StatusCode, CreatedAt = a.CreatedAt,
+                IsPlatformAction = a.IsPlatformAction
             })
             .ToListAsync();
     }
