@@ -1,12 +1,16 @@
-/** Feature qiymati qayerdan kelgani — UI shuni ko'rsatadi. */
-export type FeatureSource = 'tenant' | 'plan' | 'default';
+/**
+ * Feature qiymati qayerdan kelgani — UI shuni ko'rsatadi.
+ * `module` — moduli o'chirilgani uchun majburan o'chiq (feature moduldan o'ta olmaydi).
+ */
+export type FeatureSource = 'tenant' | 'plan' | 'default' | 'module';
 
 /** Platforma katalogi. */
 export interface FeatureInfo {
   code: string;
   name: string;
   description?: string | null;
-  moduleCode: string;
+  /** null — modulga tegishli emas (export, import, analitika). */
+  moduleCode: string | null;
   defaultEnabled: boolean;
   isCustom: boolean;
   sortOrder: number;
@@ -21,7 +25,8 @@ export interface FeatureInfo {
 export interface TenantFeature {
   code: string;
   name: string;
-  moduleCode: string;
+  /** null — modulga tegishli emas; UI'da "GENERAL" guruhida ko'rinadi. */
+  moduleCode: string | null;
   isEnabled: boolean;
   source: FeatureSource;
   note: string | null;

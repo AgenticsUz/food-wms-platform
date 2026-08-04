@@ -44,6 +44,9 @@ interface SuspendForm {
 
 type TenantFilter = 'all' | 'expiring' | 'expired' | 'nolimit' | 'suspended';
 
+/** Modulga bog'lanmagan feature'lar guruhi (backend `moduleCode: null` yuboradi). */
+const GENERAL_GROUP = 'GENERAL';
+
 @Component({
   selector: 'app-tenants',
   standalone: true,
@@ -347,14 +350,17 @@ export default class TenantsComponent implements OnInit {
     for (const f of this.features()) {
       if (onlyCustom && !this.isCustomFeature(f)) continue;
       if (q && !f.code.toLowerCase().includes(q) && !f.name.toLowerCase().includes(q)) continue;
-      const list = groups.get(f.moduleCode);
-      if (list) list.push(f); else groups.set(f.moduleCode, [f]);
+      // Modulga tegishli bo'lmagan feature'lar (export, import, analitika) alohida
+      // guruhda — ular hech qanday modul bilan o'chirilmaydi.
+      const key = f.moduleCode ?? GENERAL_GROUP;
+      const list = groups.get(key);
+      if (list) list.push(f); else groups.set(key, [f]);
     }
     return [...groups.entries()]
       .map(([moduleCode, items]) => ({
         moduleCode,
         items,
-        moduleEnabled: this.enabledModuleCodes().includes(moduleCode)
+        moduleEnabled: moduleCode === GENERAL_GROUP || this.enabledModuleCodes().includes(moduleCode)
       }))
       .sort((a, b) => a.moduleCode.localeCompare(b.moduleCode));
   });

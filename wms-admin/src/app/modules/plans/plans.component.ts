@@ -21,6 +21,9 @@ interface PlanForm {
   trialDays: number; isDefault: boolean;
 }
 
+/** Modulga bog'lanmagan feature'lar guruhi (backend `moduleCode: null` yuboradi). */
+const GENERAL_GROUP = 'GENERAL';
+
 @Component({
   selector: 'app-plans',
   standalone: true,
@@ -63,11 +66,18 @@ export default class PlansComponent implements OnInit {
     const selected = this.form().moduleCodes;
     const groups = new Map<string, FeatureInfo[]>();
     for (const f of this.features()) {
-      const list = groups.get(f.moduleCode);
-      if (list) list.push(f); else groups.set(f.moduleCode, [f]);
+      // Modulga bog'lanmagan feature'lar (export, import, analitika) alohida guruhda va
+      // har doim tanlanadigan — ular hech qanday modulga tobe emas.
+      const key = f.moduleCode ?? GENERAL_GROUP;
+      const list = groups.get(key);
+      if (list) list.push(f); else groups.set(key, [f]);
     }
     return [...groups.entries()]
-      .map(([moduleCode, items]) => ({ moduleCode, items, moduleSelected: selected.includes(moduleCode) }))
+      .map(([moduleCode, items]) => ({
+        moduleCode,
+        items,
+        moduleSelected: moduleCode === GENERAL_GROUP || selected.includes(moduleCode)
+      }))
       .sort((a, b) => a.moduleCode.localeCompare(b.moduleCode));
   });
 
