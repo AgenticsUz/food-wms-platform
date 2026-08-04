@@ -10,6 +10,8 @@ public interface ITenantService
     Task<TenantDto> UpdateAsync(int id, UpdateTenantDto dto);
     Task DeleteAsync(int id);
     Task<List<TenantModuleDto>> GetModulesAsync(int tenantId);
+    /// Platform-wide module catalog (no tenant scope, no IsEnabled).
+    Task<List<ModuleInfoDto>> GetModuleCatalogAsync();
     Task ToggleModulesAsync(int tenantId, List<ToggleModuleDto> modules);
     Task ToggleModuleAsync(int tenantId, ToggleModuleDto dto);
 

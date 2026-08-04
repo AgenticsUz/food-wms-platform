@@ -89,14 +89,7 @@ public class AdminController : BaseController
 
     [HttpGet("modules")]
     public async Task<IActionResult> GetModules()
-    {
-        var modules = await _tenants.GetModulesAsync(TenantId); // module catalog is global
-        var infos = modules.Select(m => new ModuleInfoDto
-        {
-            ModuleId = m.ModuleId, ModuleName = m.ModuleName, ModuleCode = m.ModuleCode
-        }).ToList();
-        return Ok(ApiResponse<List<ModuleInfoDto>>.Ok(infos));
-    }
+        => Ok(ApiResponse<List<ModuleInfoDto>>.Ok(await _tenants.GetModuleCatalogAsync()));
 
     [HttpGet("stats")]
     public async Task<IActionResult> GetStats()

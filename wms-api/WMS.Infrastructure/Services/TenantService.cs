@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using WMS.Application.Common;
 using WMS.Application.DTOs.Plans;
 using WMS.Application.DTOs.Tenants;
@@ -12,7 +13,16 @@ namespace WMS.Infrastructure.Services;
 public class TenantService : ITenantService
 {
     private readonly WmsDbContext _db;
-    public TenantService(WmsDbContext db) => _db = db;
+    private readonly ITenantStateService _tenantState;
+    private readonly SubscriptionOptions _subscription;
+
+    public TenantService(WmsDbContext db, ITenantStateService tenantState,
+        IOptions<SubscriptionOptions> subscription)
+    {
+        _db = db;
+        _tenantState = tenantState;
+        _subscription = subscription.Value;
+    }
 
     public async Task<List<TenantDto>> GetAllAsync()
     {
@@ -31,21 +41,15 @@ public class TenantService : ITenantService
 
     public async Task<TenantDto> CreateAsync(CreateTenantDto dto)
     {
-        // To'liq provizatsiya: tenant + modullar + Admin rol + admin foydalanuvchi
+        // To'liq provizatsiya: tenant + plan modullari + trial muddati + Admin rol + admin
+        // foydalanuvchi. Plan berilmasa platformaning default (trial) plani qo'llanadi.
         var (tenant, _) = await TenantProvisioner.ProvisionAsync(
-            _db, dto.Name, dto.Slug, dto.AdminFullName, dto.AdminPhone, dto.AdminPassword);
+            _db, dto.Name, dto.Slug, dto.AdminFullName, dto.AdminPhone, dto.AdminPassword,
+            _subscription, dto.PlanId);
 
-        string? planName = null;
-        if (dto.PlanId.HasValue)
-        {
-            var plan = await _db.Plans.FindAsync(dto.PlanId.Value)
-                ?? throw new NotFoundException("Plan not found");
-            tenant.PlanId = plan.Id;
-            tenant.PlanType = plan.Code;
-            await _db.SaveChangesAsync();
-            await PlanModules.ApplyPlanModulesAsync(_db, tenant.Id, plan);
-            planName = plan.Name;
-        }
+        var planName = tenant.PlanId != null
+            ? (await _db.Plans.FindAsync(tenant.PlanId.Value))?.Name
+            : null;
 
         return MapToDto(tenant, 1, planName);
     }
@@ -63,7 +67,9 @@ public class TenantService : ITenantService
         tenant.IsActive = dto.IsActive;
         if (dto.PlanType != null) tenant.PlanType = dto.PlanType;
         if (dto.SubscriptionStatus.HasValue) tenant.SubscriptionStatus = dto.SubscriptionStatus.Value;
-        tenant.TrialEndsAt = dto.TrialEndsAt;
+        // Faqat kelgan bo'lsa yoziladi — aks holda formada bu maydon bo'lmasa mavjud
+        // trial sanasi jimgina o'chib ketardi.
+        if (dto.TrialEndsAt.HasValue) tenant.TrialEndsAt = dto.TrialEndsAt;
 
         Plan? plan = null;
         var planChanged = dto.PlanId != tenant.PlanId;
@@ -77,17 +83,53 @@ public class TenantService : ITenantService
         else
         {
             tenant.PlanId = null;
+            if (planChanged) tenant.PlanType = null;
         }
+
+        ApplyStatusRules(tenant, plan, dto.SubscriptionStatus);
         await _db.SaveChangesAsync();
 
-        if (planChanged && plan != null)
-            await PlanModules.ApplyPlanModulesAsync(_db, tenant.Id, plan);
+        // Modul to'plami plan bilan birga o'zgaradi. Plan olib tashlanganda eski planning
+        // to'plami qolib ketmasin — plansiz tenant "cheklovsiz" deb qaraladi.
+        if (planChanged)
+        {
+            if (plan != null) await PlanModules.ApplyPlanModulesAsync(_db, tenant.Id, plan);
+            else await PlanModules.ApplyAllModulesAsync(_db, tenant.Id);
+        }
+
+        _tenantState.Invalidate(tenant.Id);
 
         var userCount = await _db.Users.CountAsync(u => u.TenantId == id);
         var planName = tenant.PlanId != null
             ? (plan?.Name ?? (await _db.Plans.FindAsync(tenant.PlanId.Value))?.Name)
             : null;
         return MapToDto(tenant, userCount, planName);
+    }
+
+    /// <summary>
+    /// Holat mashinasi (avval aniqlanmagan edi — plan biriktirilsa ham status Trial bo'lib
+    /// qolishi mumkin edi):
+    /// • SuperAdmin statusni aniq yuborgan bo'lsa — o'sha kuch bilan qoladi.
+    /// • Pullik plan (Price &gt; 0) biriktirilsa → Active, trial sanasi tozalanadi.
+    /// • Trial plan (TrialDays &gt; 0) biriktirilsa va sana yo'q bo'lsa → Trial + sana qo'yiladi.
+    /// </summary>
+    private void ApplyStatusRules(Tenant tenant, Plan? plan, SubscriptionStatus? explicitStatus)
+    {
+        if (plan == null || explicitStatus.HasValue) return;
+
+        if (plan.Price > 0)
+        {
+            if (tenant.SubscriptionStatus == SubscriptionStatus.Trial)
+            {
+                tenant.SubscriptionStatus = SubscriptionStatus.Active;
+                tenant.TrialEndsAt = null;
+            }
+        }
+        else if (plan.TrialDays > 0 && tenant.TrialEndsAt == null)
+        {
+            tenant.SubscriptionStatus = SubscriptionStatus.Trial;
+            tenant.TrialEndsAt = DateTime.UtcNow.AddDays(plan.TrialDays);
+        }
     }
 
     private static TenantDto MapToDto(Tenant t, int userCount, string? planName) => new()
@@ -103,7 +145,19 @@ public class TenantService : ITenantService
         var tenant = await _db.Tenants.FindAsync(id) ?? throw new NotFoundException("Tenant not found");
         tenant.IsDeleted = true;
         await _db.SaveChangesAsync();
+        _tenantState.Invalidate(id);
     }
+
+    /// Modul katalogi (platforma darajasida). Avval superadminning O'Z tenanti bo'yicha
+    /// olinardi, shuning uchun IsEnabled maydoni ma'nosiz chiqardi.
+    public async Task<List<ModuleInfoDto>> GetModuleCatalogAsync()
+        => await _db.Modules
+            .OrderBy(m => m.OrderNumber)
+            .Select(m => new ModuleInfoDto
+            {
+                ModuleId = m.Id, ModuleName = m.Name, ModuleCode = m.Code
+            })
+            .ToListAsync();
 
     public async Task<List<TenantModuleDto>> GetModulesAsync(int tenantId)
     {
@@ -145,6 +199,7 @@ public class TenantService : ITenantService
                 { TenantId = tenantId, ModuleId = dto.ModuleId, IsEnabled = true });
         }
         await _db.SaveChangesAsync();
+        _tenantState.Invalidate(tenantId);
     }
 
     // ── Control plane (platform admin) ──────────────────────────────────────
@@ -198,6 +253,8 @@ public class TenantService : ITenantService
         var tenant = await _db.Tenants.FindAsync(id) ?? throw new NotFoundException("Tenant not found");
         tenant.SubscriptionStatus = SubscriptionStatus.Suspended;
         await _db.SaveChangesAsync();
+        // Cache tozalanadi — suspend keyingi so'rovdayoq kuchga kiradi (kutish yo'q).
+        _tenantState.Invalidate(id);
         return await MapWithCountsAsync(tenant);
     }
 
@@ -205,7 +262,9 @@ public class TenantService : ITenantService
     {
         var tenant = await _db.Tenants.FindAsync(id) ?? throw new NotFoundException("Tenant not found");
         tenant.SubscriptionStatus = SubscriptionStatus.Active;
+        tenant.IsActive = true;
         await _db.SaveChangesAsync();
+        _tenantState.Invalidate(id);
         return await MapWithCountsAsync(tenant);
     }
 
@@ -216,8 +275,10 @@ public class TenantService : ITenantService
 
         tenant.PlanId = plan.Id;
         tenant.PlanType = plan.Code;
+        ApplyStatusRules(tenant, plan, null);
         await _db.SaveChangesAsync();
         await PlanModules.ApplyPlanModulesAsync(_db, tenant.Id, plan);
+        _tenantState.Invalidate(id);
 
         var userCount = await _db.Users.CountAsync(u => u.TenantId == id);
         return MapToDto(tenant, userCount, plan.Name);
