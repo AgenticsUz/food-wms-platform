@@ -10,13 +10,14 @@ import { provideTransloco } from '@jsverse/transloco';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { errorInterceptor } from './core/interceptors/error.interceptor';
+import { languageInterceptor } from './core/interceptors/language.interceptor';
 import { TranslocoHttpLoader } from './core/services/transloco-loader';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
-    provideHttpClient(withInterceptors([authInterceptor, errorInterceptor])),
+    provideHttpClient(withInterceptors([authInterceptor, languageInterceptor, errorInterceptor])),
     provideAnimationsAsync(),
     providePrimeNG({
       theme: {
