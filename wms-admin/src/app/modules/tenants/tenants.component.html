@@ -19,7 +19,7 @@
     <p-table [value]="visibleTenants()" [loading]="loading()" [paginator]="true" [rows]="20" styleClass="p-datatable-sm p-datatable-striped">
       <ng-template #header>
         <tr>
-          <th>{{ t('common.name') }}</th><th>{{ t('tenants.form.slug') }}</th><th>{{ t('tenants.plan') }}</th><th>{{ t('common.status') }}</th><th>{{ t('tenants.paidUntil') }}</th><th>{{ t('tenants.trialEnds') }}</th>
+          <th>{{ t('common.name') }}</th><th>{{ t('tenants.slugColumn') }}</th><th>{{ t('tenants.plan') }}</th><th>{{ t('common.status') }}</th><th>{{ t('tenants.paidUntil') }}</th><th>{{ t('tenants.trialEnds') }}</th>
           <th class="text-right">{{ t('tenants.users') }}</th><th></th>
         </tr>
       </ng-template>
@@ -83,7 +83,10 @@
     [header]="editing() ? t('tenants.editTenant') : t('tenants.newTenant')" [modal]="true" [style]="{ width: '460px' }" [draggable]="false">
     <div class="dialog-form">
       <div class="ff"><label>{{ t('common.name') }} *</label><input pInputText [ngModel]="form().name" (ngModelChange)="updateForm('name', $event)" class="w-full" /></div>
-      <div class="ff"><label>{{ t('tenants.form.slug') }} *</label><input pInputText [ngModel]="form().slug" (ngModelChange)="updateForm('slug', $event)" autocomplete="off" class="w-full" /></div>
+      <div class="ff"><label>{{ t('tenants.form.slug') }} *</label>
+        <input pInputText [ngModel]="form().slug" (ngModelChange)="updateForm('slug', $event)" autocomplete="off" class="w-full" />
+        <small class="field-hint">{{ t('tenants.form.slugHint') }}</small>
+      </div>
       <div class="ff"><label>{{ t('tenants.form.tin') }}</label>
         <input pInputText [ngModel]="form().inn" (ngModelChange)="updateForm('inn', $event)"
           maxlength="9" inputmode="numeric" autocomplete="off" class="w-full" />

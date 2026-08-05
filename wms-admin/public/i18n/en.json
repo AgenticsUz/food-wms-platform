@@ -96,7 +96,7 @@
     "deleteConfirm": "Delete \"{{name}}\"?",
     "activated": "Activated",
     "form": {
-      "slug": "Slug",
+      "slug": "System address (slug)",
       "tin": "TIN (STIR)",
       "tinHint": "Links this tenant to the platform-wide company record.",
       "planHintNew": "If no plan is selected, the default (trial) plan is applied.",
@@ -105,7 +105,8 @@
       "fullName": "Full name",
       "password": "Password",
       "trialEndsHint": "Leave empty to keep the current date. Paid until is set by recording a payment.",
-      "activeLabel": "Active"
+      "activeLabel": "Active",
+      "slugHint": "The client enters this address when signing in. Unique across the platform."
     },
     "payment": {
       "record": "Record payment",
@@ -189,7 +190,8 @@
       "customConfirm": "\"{{name}}\" was built for {{owner}}. Enable anyway?",
       "customConfirmHeader": "Custom feature",
       "loading": "Loading…"
-    }
+    },
+    "slugColumn": "Slug"
   },
   "leads": {
     "title": "Leads",
@@ -217,7 +219,6 @@
     "convertTitle": "Convert lead to tenant",
     "createTenant": "Create tenant",
     "createdToast": "Tenant \"{{name}}\" created — lead marked as won",
-    "slugHint": "Must be unique across the platform.",
     "paidUntilHint": "Leave empty if the customer has not paid yet.",
     "nameRequired": "Name and slug are required",
     "adminRequired": "Admin name, phone and a 6+ char password are required",

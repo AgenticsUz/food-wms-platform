@@ -96,7 +96,7 @@
     "deleteConfirm": "\"{{name}}\" o'chirilsinmi?",
     "activated": "Faollashtirildi",
     "form": {
-      "slug": "Manzil (slug)",
+      "slug": "Tizim manzili (slug)",
       "tin": "STIR",
       "tinHint": "Bu mijozni platforma darajasidagi kompaniya yozuviga bog'laydi.",
       "planHintNew": "Tarif tanlanmasa, standart (sinov) tarifi qo'llanadi.",
@@ -105,7 +105,8 @@
       "fullName": "To'liq ism",
       "password": "Parol",
       "trialEndsHint": "Bo'sh qoldirilsa joriy sana saqlanadi. To'lov muddati to'lov qayd etilganda qo'yiladi.",
-      "activeLabel": "Faol"
+      "activeLabel": "Faol",
+      "slugHint": "Mijoz tizimga kirishda shu manzilni ko'rsatadi. Platforma bo'ylab noyob."
     },
     "payment": {
       "record": "To'lov qayd etish",
@@ -189,7 +190,8 @@
       "customConfirm": "\"{{name}}\" {{owner}} uchun yozilgan. Baribir yoqilsinmi?",
       "customConfirmHeader": "Maxsus imkoniyat",
       "loading": "Yuklanmoqda…"
-    }
+    },
+    "slugColumn": "Slug"
   },
   "leads": {
     "title": "So'rovlar",
@@ -217,7 +219,6 @@
     "convertTitle": "So'rovni mijozga aylantirish",
     "createTenant": "Mijoz yaratish",
     "createdToast": "\"{{name}}\" mijozi yaratildi — so'rov yutuq deb belgilandi",
-    "slugHint": "Platforma bo'ylab noyob bo'lishi kerak.",
     "paidUntilHint": "Mijoz hali to'lamagan bo'lsa, bo'sh qoldiring.",
     "nameRequired": "Nom va manzil (slug) majburiy",
     "adminRequired": "Admin ismi, telefoni va 6+ belgili parol majburiy",

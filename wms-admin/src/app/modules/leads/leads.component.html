@@ -119,7 +119,7 @@
       <div class="ff"><label>{{ t('common.name') }} *</label><input pInputText [ngModel]="convertForm().name" (ngModelChange)="updateConvert('name', $event)" class="w-full" /></div>
       <div class="ff"><label>{{ t('tenants.form.slug') }} *</label>
         <input pInputText [ngModel]="convertForm().slug" (ngModelChange)="updateConvert('slug', $event)" autocomplete="off" class="w-full" />
-        <small class="field-hint">{{ t('leads.slugHint') }}</small>
+        <small class="field-hint">{{ t('tenants.form.slugHint') }}</small>
       </div>
       <div class="ff"><label>{{ t('tenants.plan') }}</label>
         <p-select [options]="planOptions()" [ngModel]="convertForm().planId" (ngModelChange)="updateConvert('planId', $event)"
