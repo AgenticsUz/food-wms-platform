@@ -98,7 +98,14 @@ public class SubscriptionService : ISubscriptionService
             EnabledFeatures = features.Where(f => f.IsEnabled).Select(f => f.Code).ToList(),
 
             SupportPhone = _config["Support:Phone"],
-            SupportEmail = _config["Support:Email"]
+            SupportEmail = _config["Support:Email"],
+
+            Branding = new WMS.Application.DTOs.Branding.BrandingDto
+            {
+                LogoUrl = tenant.LogoUrl,
+                LogoSquareUrl = tenant.LogoSquareUrl,
+                BrandColor = tenant.BrandColor
+            }
         };
     }
 

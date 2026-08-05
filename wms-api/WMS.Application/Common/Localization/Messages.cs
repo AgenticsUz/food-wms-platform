@@ -36,6 +36,15 @@ public static class Messages
         "Your plan ({0}) allows {1} transfers per month. Upgrade the plan to continue.";
     public const string LimitUsersImport = "Plan limit reached — upgrade the plan to add more users";
 
+    // ── Branding (B1) ──
+    public const string InvalidBrandColor = "Brand colour must be a hex value like #2E7D32";
+    public const string LogoEmpty = "The uploaded file is empty";
+    public const string LogoTooLarge = "The logo must be {0} KB or smaller";
+    public const string LogoFormat = "The logo must be an SVG, PNG or WebP image";
+    public const string LogoUnsafeSvg =
+        "This SVG contains scripts or external references and cannot be used as a logo";
+    public const string LogoTooBig = "The logo may be at most {0}×{1} px (this one is {2}×{3})";
+
     // ── Custom features (S5) ──
     public const string CustomFeaturePrefix = "A custom feature code must start with '{0}'";
     public const string CustomFeatureInPlan =

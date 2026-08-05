@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using WMS.Application.Common;
 using WMS.Application.DTOs.Auth;
+using WMS.Application.DTOs.Branding;
 using WMS.Application.Interfaces;
 using WMS.Domain.Enums;
 using WMS.Infrastructure.Persistence;
@@ -93,6 +94,7 @@ public class AuthService : IAuthService
         return new AuthResponseDto
         {
             Token = GenerateToken(claims),
+            Branding = Branding(tenant),
             User = new UserInfoDto
             {
                 Id = user.Id,
@@ -108,6 +110,13 @@ public class AuthService : IAuthService
             }
         };
     }
+
+    private static BrandingDto Branding(Domain.Entities.Tenant tenant) => new()
+    {
+        LogoUrl = tenant.LogoUrl,
+        LogoSquareUrl = tenant.LogoSquareUrl,
+        BrandColor = tenant.BrandColor
+    };
 
     /// Feature layer for the login/me responses. The frontend hides menu items by these
     /// codes; the server still enforces them with RequireFeature.
@@ -169,6 +178,7 @@ public class AuthService : IAuthService
         return new AuthResponseDto
         {
             Token = GenerateToken(claims),
+            Branding = Branding(tenant),
             User = new UserInfoDto
             {
                 Id = user.Id,

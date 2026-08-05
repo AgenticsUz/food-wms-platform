@@ -1,9 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using WMS.Application.Interfaces;
 using WMS.Domain.Entities;
+using WMS.Application.Interfaces;
 using WMS.Infrastructure.Persistence;
 
 using WMS.Application.Common;
@@ -13,7 +14,9 @@ namespace WMS.Infrastructure.Services;
 public class TransferPdfService : ITransferPdfService
 {
     private readonly WmsDbContext _db;
-    public TransferPdfService(WmsDbContext db) => _db = db;
+    private readonly IBrandingFileStore _files;
+    public TransferPdfService(WmsDbContext db, IBrandingFileStore files)
+    { _db = db; _files = files; }
 
     private static readonly string Indigo = "#6366f1";
     private static readonly string IndigoLight = "#e0e7ff";
@@ -30,6 +33,10 @@ public class TransferPdfService : ITransferPdfService
             .FirstOrDefaultAsync(t => t.Id == transferId && t.TenantId == tenantId)
             ?? throw new NotFoundException("Transfer not found");
 
+        // The customer prints this and hands it to a director. Their own logo belongs at
+        // the top; without branding it simply falls back to the platform name.
+        var brand = await ReportBranding.LoadAsync(_db, _files, tenantId);
+
         var doc = Document.Create(container =>
         {
             container.Page(page =>
@@ -39,7 +46,7 @@ public class TransferPdfService : ITransferPdfService
                 page.MarginVertical(30);
                 page.DefaultTextStyle(x => x.FontSize(10));
 
-                page.Header().Element(c => ComposeHeader(c, transfer));
+                page.Header().Element(c => ComposeHeader(c, transfer, brand));
                 page.Content().Element(c => ComposeContent(c, transfer));
                 page.Footer().Element(ComposeFooter);
             });
@@ -48,15 +55,18 @@ public class TransferPdfService : ITransferPdfService
         return doc.GeneratePdf();
     }
 
-    private static void ComposeHeader(IContainer container, Transfer transfer)
+    private static void ComposeHeader(IContainer container, Transfer transfer, ReportBranding brand)
     {
         container.Column(col =>
         {
             col.Item().Row(row =>
             {
+                if (brand.LogoBytes != null)
+                    row.ConstantItem(110).PaddingRight(12).AlignMiddle().Image(brand.LogoBytes);
+
                 row.RelativeItem().Column(left =>
                 {
-                    left.Item().Text("WMS Platform").Bold().FontSize(18).FontColor(Indigo);
+                    left.Item().Text(brand.Name).Bold().FontSize(18).FontColor(brand.Color ?? Indigo);
                     left.Item().Text("Transfer Document").FontSize(12).FontColor(TextMuted);
                 });
 

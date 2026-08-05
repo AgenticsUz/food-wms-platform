@@ -34,6 +34,14 @@ public class Tenant : BaseEntity
     public DateTime? SuspendedAt { get; set; }
     public int? SuspendedByUserId { get; set; }
 
+    // ── Branding (B1). Data, never code: one build serves every customer. ──
+    /// Wide logo — expanded sidebar, login page, report headers.
+    public string? LogoUrl { get; set; }
+    /// Square logo — collapsed sidebar, favicon.
+    public string? LogoSquareUrl { get; set; }
+    /// Single primary colour (#RRGGBB); the client derives the palette from it.
+    public string? BrandColor { get; set; }
+
     /// The real company behind this tenant (platform-level identity, see Organization).
     public int? OrganizationId { get; set; }
     public Organization? Organization { get; set; }

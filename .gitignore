@@ -39,3 +39,7 @@ desktop.ini
 *.log
 **/logs/
 **/backups/
+
+# Tenant logos are uploaded at runtime, not part of the source tree
+wms-api/WMS.API/wwwroot/uploads/*
+!wms-api/WMS.API/wwwroot/uploads/.gitkeep

@@ -5,6 +5,7 @@ using QuestPDF.Infrastructure;
 using WMS.Application.Common;
 using WMS.Application.Interfaces;
 using WMS.Domain.Entities;
+using WMS.Application.Interfaces;
 using WMS.Infrastructure.Persistence;
 
 namespace WMS.Infrastructure.Services;
@@ -12,7 +13,9 @@ namespace WMS.Infrastructure.Services;
 public class DeliveryPdfService : IDeliveryPdfService
 {
     private readonly WmsDbContext _db;
-    public DeliveryPdfService(WmsDbContext db) => _db = db;
+    private readonly IBrandingFileStore _files;
+    public DeliveryPdfService(WmsDbContext db, IBrandingFileStore files)
+    { _db = db; _files = files; }
 
     private static readonly string Indigo = "#6366f1";
     private static readonly string TextMuted = "#64748b";
@@ -26,6 +29,8 @@ public class DeliveryPdfService : IDeliveryPdfService
             .FirstOrDefaultAsync(d => d.Id == deliveryId && d.TenantId == tenantId)
             ?? throw new NotFoundException("Delivery not found");
 
+        var brand = await ReportBranding.LoadAsync(_db, _files, tenantId);
+
         var doc = Document.Create(container =>
         {
             container.Page(page =>
@@ -35,7 +40,7 @@ public class DeliveryPdfService : IDeliveryPdfService
                 page.MarginVertical(30);
                 page.DefaultTextStyle(x => x.FontSize(10));
 
-                page.Header().Element(c => ComposeHeader(c, delivery));
+                page.Header().Element(c => ComposeHeader(c, delivery, brand));
                 page.Content().Element(c => ComposeContent(c, delivery));
                 page.Footer().Element(ComposeFooter);
             });
@@ -44,15 +49,18 @@ public class DeliveryPdfService : IDeliveryPdfService
         return doc.GeneratePdf();
     }
 
-    private static void ComposeHeader(IContainer container, Delivery delivery)
+    private static void ComposeHeader(IContainer container, Delivery delivery, ReportBranding brand)
     {
         container.Column(col =>
         {
             col.Item().Row(row =>
             {
+                if (brand.LogoBytes != null)
+                    row.ConstantItem(110).PaddingRight(12).AlignMiddle().Image(brand.LogoBytes);
+
                 row.RelativeItem().Column(left =>
                 {
-                    left.Item().Text("WMS Platform").Bold().FontSize(18).FontColor(Indigo);
+                    left.Item().Text(brand.Name).Bold().FontSize(18).FontColor(brand.Color ?? Indigo);
                     left.Item().Text("Delivery Waybill").FontSize(12).FontColor(TextMuted);
                 });
 

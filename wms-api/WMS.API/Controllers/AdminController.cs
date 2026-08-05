@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WMS.Application.Common;
 using WMS.Application.DTOs.Plans;
+using WMS.Application.Common.Localization;
+using WMS.Application.DTOs.Branding;
 using WMS.Application.DTOs.Platform;
 using WMS.Application.DTOs.Tenants;
 using WMS.Application.Interfaces;
@@ -22,9 +24,11 @@ public class AdminController : BaseController
     private readonly ILeadService _leads;
     private readonly IFeatureService _features;
     private readonly IOrganizationService _organizations;
+    private readonly IBrandingService _branding;
 
     public AdminController(ITenantService tenants, IPlanService plans, IBillingService billing,
-        ILeadService leads, IFeatureService features, IOrganizationService organizations)
+        ILeadService leads, IFeatureService features, IOrganizationService organizations,
+        IBrandingService branding)
     {
         _tenants = tenants;
         _plans = plans;
@@ -32,6 +36,7 @@ public class AdminController : BaseController
         _leads = leads;
         _features = features;
         _organizations = organizations;
+        _branding = branding;
     }
 
     // ── Tenants ──────────────────────────────────────────────────────────
@@ -163,6 +168,41 @@ public class AdminController : BaseController
         await _features.SetTenantFeaturesAsync(id, dto, UserId);
         return Ok(ApiResponse<object>.Ok(null!, "Updated"));
     }
+
+    // ── Branding (B1) ────────────────────────────────────────────────────
+    // Only SuperAdmin uploads a logo. Letting a tenant admin rebrand its own installation
+    // is a separate decision with its own moderation problem.
+
+    [HttpPost("tenants/{id}/logo")]
+    [RequestSizeLimit(1_048_576)]   // 1 MB at the pipe; the service enforces the real 512 KB
+    public async Task<IActionResult> UploadLogo(int id, [FromQuery] string type, IFormFile? file,
+        CancellationToken ct)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest(ApiResponse<object>.Fail(Messages.LogoEmpty));
+
+        var kind = ParseLogoKind(type);
+        await using var stream = file.OpenReadStream();
+        var upload = new LogoUpload(stream, file.FileName, file.ContentType, file.Length);
+
+        var branding = await _branding.UploadLogoAsync(id, kind, upload, ct);
+        return Ok(ApiResponse<BrandingDto>.Ok(branding, "Updated"));
+    }
+
+    [HttpDelete("tenants/{id}/logo")]
+    public async Task<IActionResult> DeleteLogo(int id, [FromQuery] string type, CancellationToken ct)
+        => Ok(ApiResponse<BrandingDto>.Ok(
+            await _branding.RemoveLogoAsync(id, ParseLogoKind(type), ct), "Deleted"));
+
+    [HttpGet("tenants/{id}/branding")]
+    public async Task<IActionResult> GetBranding(int id, CancellationToken ct)
+        => Ok(ApiResponse<BrandingDto>.Ok(await _branding.GetAsync(id, ct)));
+
+    private static LogoKind ParseLogoKind(string? type) => (type ?? "").ToLowerInvariant() switch
+    {
+        "square" => LogoKind.Square,
+        _ => LogoKind.Wide
+    };
 
     // ── Organizations (S6) ───────────────────────────────────────────────
 

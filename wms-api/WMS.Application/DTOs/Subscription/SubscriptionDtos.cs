@@ -56,4 +56,8 @@ public class SubscriptionInfoDto
 
     public string? SupportPhone { get; set; }
     public string? SupportEmail { get; set; }
+
+    /// Same shape as the login response and the public endpoint, so the client has one
+    /// mapping for all three (B1).
+    public DTOs.Branding.BrandingDto Branding { get; set; } = new();
 }

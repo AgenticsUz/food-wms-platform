@@ -11,8 +11,14 @@ public class AuthResponseDto
 {
     public string Token { get; set; } = null!;
     public UserInfoDto User { get; set; } = null!;
+
+    /// Tenant branding, same object as /api/subscription/me and /api/public/branding —
+    /// one mapping on the client, applied the moment the user is in (B1).
+    public DTOs.Branding.BrandingDto Branding { get; set; } = new();
 }
 
+/// Tenant branding travels with the login response so the theme is applied the moment
+/// the user is in, without a second round-trip.
 public class UserInfoDto
 {
     public int Id { get; set; }

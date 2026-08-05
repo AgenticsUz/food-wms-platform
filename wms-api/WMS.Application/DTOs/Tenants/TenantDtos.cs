@@ -31,6 +31,12 @@ public class TenantDto
     /// Taxpayer id of the linked Organization (S6) — shown and edited in the console.
     public string? Inn { get; set; }
     public int? OrganizationId { get; set; }
+
+    /// Visual identity (B1). Logos are uploaded through their own endpoint; the colour
+    /// travels with the ordinary tenant update.
+    public string? LogoUrl { get; set; }
+    public string? LogoSquareUrl { get; set; }
+    public string? BrandColor { get; set; }
 }
 
 // SuperAdmin tenant yaratadi: to'liq provizatsiya (admin user + modullar + rol)
@@ -61,6 +67,8 @@ public class UpdateTenantDto
     /// Sending an INN links (or re-links) the tenant to its Organization; sending an empty
     /// string unlinks it. Omitting the field leaves the link untouched.
     public string? Inn { get; set; }
+    /// #RRGGBB, or an empty string to fall back to the default theme. Omitted = unchanged.
+    public string? BrandColor { get; set; }
 }
 
 public class TenantModuleDto

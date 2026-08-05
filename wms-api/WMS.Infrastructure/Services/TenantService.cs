@@ -85,6 +85,13 @@ public class TenantService : ITenantService
         if (dto.TrialEndsAt.HasValue) tenant.TrialEndsAt = dto.TrialEndsAt;
         if (dto.PaidUntil.HasValue) tenant.PaidUntil = dto.PaidUntil;
 
+        // Brand colour: a value sets it, an empty string clears it back to the default
+        // theme, an omitted field changes nothing.
+        if (dto.BrandColor != null)
+            tenant.BrandColor = string.IsNullOrWhiteSpace(dto.BrandColor)
+                ? null
+                : BrandingService.NormalizeColor(dto.BrandColor);
+
         // INN: a value (re-)links the tenant to its Organization, an empty string unlinks it,
         // null (field omitted) leaves the existing link alone.
         if (dto.Inn != null)
@@ -175,7 +182,8 @@ public class TenantService : ITenantService
         PaidUntil = t.PaidUntil, SuspendReason = t.SuspendReason, SuspendNote = t.SuspendNote,
         SuspendPublicMessage = t.SuspendPublicMessage, SuspendedUntil = t.SuspendedUntil,
         SuspendedAt = t.SuspendedAt,
-        Inn = inn, OrganizationId = t.OrganizationId
+        Inn = inn, OrganizationId = t.OrganizationId,
+        LogoUrl = t.LogoUrl, LogoSquareUrl = t.LogoSquareUrl, BrandColor = t.BrandColor
     };
 
     public async Task DeleteAsync(int id)

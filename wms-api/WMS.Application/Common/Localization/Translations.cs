@@ -64,6 +64,24 @@ public static class Translations
             "Tarif limiti to'ldi — ko'proq foydalanuvchi qo'shish uchun tarifni oshiring",
             "Достигнут лимит тарифа — повысьте тариф, чтобы добавить больше пользователей"],
 
+        // ── Branding ──
+        [Messages.InvalidBrandColor] = [
+            "Brend rangi #2E7D32 kabi hex qiymat bo'lishi kerak",
+            "Цвет бренда должен быть hex-значением, например #2E7D32"],
+        [Messages.LogoEmpty] = ["Yuklangan fayl bo'sh", "Загруженный файл пуст"],
+        [Messages.LogoTooLarge] = [
+            "Logo hajmi {0} KB dan oshmasligi kerak",
+            "Размер логотипа не должен превышать {0} КБ"],
+        [Messages.LogoFormat] = [
+            "Logo SVG, PNG yoki WebP rasm bo'lishi kerak",
+            "Логотип должен быть изображением SVG, PNG или WebP"],
+        [Messages.LogoUnsafeSvg] = [
+            "Bu SVG ichida skript yoki tashqi havola bor — logo sifatida ishlatib bo'lmaydi",
+            "В этом SVG есть скрипты или внешние ссылки — его нельзя использовать как логотип"],
+        [Messages.LogoTooBig] = [
+            "Logo o'lchami ko'pi bilan {0}×{1} px bo'lsin (bu {2}×{3})",
+            "Размер логотипа не более {0}×{1} px (у этого {2}×{3})"],
+
         // ── Custom features ──
         [Messages.CustomFeaturePrefix] = [
             "Maxsus imkoniyat kodi '{0}' bilan boshlanishi kerak",

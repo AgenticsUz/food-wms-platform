@@ -2,6 +2,7 @@ using ClosedXML.Excel;
 using Microsoft.EntityFrameworkCore;
 using WMS.Application.Interfaces;
 using WMS.Domain.Enums;
+using WMS.Application.Interfaces;
 using WMS.Infrastructure.Persistence;
 
 namespace WMS.Infrastructure.Services;
@@ -9,7 +10,31 @@ namespace WMS.Infrastructure.Services;
 public class ExportService : IExportService
 {
     private readonly WmsDbContext _db;
-    public ExportService(WmsDbContext db) => _db = db;
+    private readonly IBrandingFileStore _files;
+    public ExportService(WmsDbContext db, IBrandingFileStore files)
+    { _db = db; _files = files; }
+
+    /// <summary>
+    /// Puts the customer's own name (and logo, when it is a raster) on the sheet. A report
+    /// that arrives with someone else's branding is the first thing a customer complains
+    /// about; a report that fails to generate is worse, so every step here is best-effort.
+    /// </summary>
+    private async Task BrandAsync(IXLWorksheet ws, int tenantId, string title, int colCount)
+    {
+        var brand = await ReportBranding.LoadAsync(_db, _files, tenantId);
+        WriteTitle(ws, brand.Name == "WMS Platform" ? title : $"{brand.Name} — {title}", colCount);
+
+        if (brand.LogoBytes == null) return;
+        try
+        {
+            using var stream = new MemoryStream(brand.LogoBytes);
+            ws.AddPicture(stream).MoveTo(ws.Cell(1, colCount)).WithSize(90, 30);
+        }
+        catch
+        {
+            // ClosedXML does not accept every format (WebP, for one). The name is enough.
+        }
+    }
 
     public async Task<byte[]> ExportTransfersAsync(int tenantId, DateTime? fromDate, DateTime? toDate)
     {
@@ -33,7 +58,7 @@ public class ExportService : IExportService
         using var wb = new XLWorkbook();
         var ws = wb.Worksheets.Add("Transfers");
 
-        WriteTitle(ws, "Transfers Export", 9);
+        await BrandAsync(ws, tenantId, "Transfers Export", 9);
         WriteSubtitle(ws, filters, 9);
 
         var headers = new[] { "ID", "Type", "Counterparty", "From Warehouse", "To Warehouse",
@@ -95,7 +120,7 @@ public class ExportService : IExportService
         using var wb = new XLWorkbook();
         var ws = wb.Worksheets.Add("Stock");
 
-        WriteTitle(ws, "Stock Export", 12);
+        await BrandAsync(ws, tenantId, "Stock Export", 12);
         WriteSubtitle(ws, string.Join(" | ", filterParts), 12);
 
         var headers = new[] { "Product", "Category", "Type", "Warehouse", "Location",
@@ -170,7 +195,7 @@ public class ExportService : IExportService
         using var wb = new XLWorkbook();
         var ws = wb.Worksheets.Add("Transactions");
 
-        WriteTitle(ws, "Transactions Export", 7);
+        await BrandAsync(ws, tenantId, "Transactions Export", 7);
         WriteSubtitle(ws, BuildFilterText(fromDate, toDate), 7);
 
         var headers = new[] { "ID", "Type", "Counterparty", "Amount", "Description", "Date", "Recorded By" };
@@ -217,7 +242,7 @@ public class ExportService : IExportService
         using var wb = new XLWorkbook();
         var ws = wb.Worksheets.Add("Products");
 
-        WriteTitle(ws, "Products Export", 9);
+        await BrandAsync(ws, tenantId, "Products Export", 9);
         WriteSubtitle(ws, $"Exported: {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC | Total: {data.Count} products", 9);
 
         var headers = new[] { "ID", "Name", "Category", "Type", "Unit", "Min Stock",
@@ -264,7 +289,7 @@ public class ExportService : IExportService
         using var wb = new XLWorkbook();
         var ws = wb.Worksheets.Add("Counterparties");
 
-        WriteTitle(ws, "Counterparties Export", 7);
+        await BrandAsync(ws, tenantId, "Counterparties Export", 7);
         WriteSubtitle(ws, string.Join(" | ", filterParts), 7);
 
         var headers = new[] { "ID", "Name", "Type", "Phone", "Address", "Balance", "Portal Status" };

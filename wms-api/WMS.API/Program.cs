@@ -12,6 +12,11 @@ using WMS.Infrastructure.Services;
 
 QuestPDF.Settings.License = LicenseType.Community;
 
+// wwwroot BUILDER'DAN OLDIN yaratiladi: ASP.NET static file'larni faqat papka ishga tushish
+// paytida mavjud bo'lsa yoqadi. Yangi deploy'da papka birinchi logo yuklangunicha yo'q —
+// natijada logolar keyingi restartgacha 404 bo'lardi.
+Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "tenants"));
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Structured logging — konsol + kunlik aylanuvchi fayl (14 kun saqlanadi)
@@ -73,6 +78,8 @@ builder.Services.AddScoped<IBillingService, BillingService>();
 builder.Services.AddScoped<ILeadService, LeadService>();
 builder.Services.AddScoped<IFeatureService, FeatureService>();
 builder.Services.AddScoped<IOrganizationService, OrganizationService>();
+builder.Services.AddScoped<IBrandingService, BrandingService>();
+builder.Services.AddScoped<IBrandingFileStore, WMS.API.Services.BrandingFileStore>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICounterpartyService, CounterpartyService>();
@@ -108,6 +115,17 @@ builder.Services.AddRateLimiter(options =>
             factory: _ => new FixedWindowRateLimiterOptions
             {
                 PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
+
+    // Login sahifasi brendlashni autentifikatsiyasiz so'raydi — arzon, lekin cheksiz emas.
+    options.AddPolicy("public", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 30,
                 Window = TimeSpan.FromMinutes(1),
                 QueueLimit = 0
             }));
@@ -188,6 +206,9 @@ using (var scope = app.Services.CreateScope())
 
 app.UseMiddleware<WMS.API.Middleware.ExceptionHandlingMiddleware>();
 app.UseSerilogRequestLogging();
+// Tenant logolari wwwroot'dan autentifikatsiyasiz beriladi — logo maxfiy emas va u
+// login sahifasida, ya'ni token paydo bo'lishidan oldin kerak bo'ladi.
+app.UseStaticFiles();
 app.UseCors("AllowFrontend");
 app.UseRateLimiter();
 app.UseAuthentication();
