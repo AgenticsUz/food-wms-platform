@@ -82,6 +82,17 @@ public static class Translations
             "Logo o'lchami ko'pi bilan {0}×{1} px bo'lsin (bu {2}×{3})",
             "Размер логотипа не более {0}×{1} px (у этого {2}×{3})"],
 
+        // ── Limit warnings ──
+        [Messages.LimitWarnUsers] = [
+            "Tarif limitiga yaqinlashdingiz: {1} tadan {0} ta foydalanuvchi",
+            "Вы приближаетесь к лимиту тарифа: {0} из {1} пользователей"],
+        [Messages.LimitWarnWarehouses] = [
+            "Tarif limitiga yaqinlashdingiz: {1} tadan {0} ta ombor",
+            "Вы приближаетесь к лимиту тарифа: {0} из {1} складов"],
+        [Messages.LimitWarnTransfers] = [
+            "Tarif limitiga yaqinlashdingiz: bu oyda {1} tadan {0} ta harakat",
+            "Вы приближаетесь к лимиту тарифа: {0} из {1} перемещений в этом месяце"],
+
         // ── Custom features ──
         [Messages.CustomFeaturePrefix] = [
             "Maxsus imkoniyat kodi '{0}' bilan boshlanishi kerak",

@@ -92,7 +92,7 @@ public class SubscriptionService : ISubscriptionService
             WarnBeforeDays = _options.WarnBeforeDays,
             LimitWarnPercent = _options.LimitWarnPercent,
 
-            Limits = await PlanLimits.GetLimitsAsync(_db, tenantId, plan, ct),
+            Limits = await PlanLimits.GetLimitsAsync(_db, tenantId, plan, _options.LimitWarnPercent, ct),
 
             EnabledModules = modules,
             EnabledFeatures = features.Where(f => f.IsEnabled).Select(f => f.Code).ToList(),

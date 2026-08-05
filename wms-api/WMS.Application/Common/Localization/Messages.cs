@@ -45,6 +45,11 @@ public static class Messages
         "This SVG contains scripts or external references and cannot be used as a logo";
     public const string LogoTooBig = "The logo may be at most {0}×{1} px (this one is {2}×{3})";
 
+    // ── Limit warnings (B2) — not errors, the operation succeeded ──
+    public const string LimitWarnUsers = "You are close to your plan limit: {0} of {1} users";
+    public const string LimitWarnWarehouses = "You are close to your plan limit: {0} of {1} warehouses";
+    public const string LimitWarnTransfers = "You are close to your plan limit: {0} of {1} transfers this month";
+
     // ── Custom features (S5) ──
     public const string CustomFeaturePrefix = "A custom feature code must start with '{0}'";
     public const string CustomFeatureInPlan =

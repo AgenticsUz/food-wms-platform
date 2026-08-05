@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using WMS.Application.Common;
 using WMS.Application.Common.Localization;
+using WMS.Application.Interfaces;
 using WMS.Application.DTOs.Subscription;
 using WMS.Domain.Entities;
 
@@ -76,6 +77,37 @@ public static class PlanLimits
                 Messages.LimitTransfers, plan.Name, plan.MaxTransfersPerMonth);
     }
 
+    /// <summary>
+    /// Yaratishdan KEYIN chaqiriladi: foydalanish ogohlantirish chegarasini (default 80 %)
+    /// kesib o'tgan bo'lsa, javobga ogohlantirish qo'shiladi. Bu xato emas — mijoz limitga
+    /// urilib qo'ng'iroq qilishidan oldin bilib tursin.
+    /// </summary>
+    public static async Task ReportUsageAsync(WmsDbContext db, IRequestWarnings warnings, int tenantId,
+        string kind, int warnPercent, CancellationToken ct = default)
+    {
+        var plan = await GetPlanAsync(db, tenantId, ct);
+        if (plan == null) return;   // plansiz tenant — cheklov ham, ogohlantirish ham yo'q
+
+        var (used, max, code, template) = kind switch
+        {
+            Users => (await db.Users.CountAsync(u => u.TenantId == tenantId, ct), plan.MaxUsers,
+                "limit_warn_users", Messages.LimitWarnUsers),
+            Warehouses => (await db.Warehouses.CountAsync(w => w.TenantId == tenantId, ct), plan.MaxWarehouses,
+                "limit_warn_warehouses", Messages.LimitWarnWarehouses),
+            _ => (await db.Transfers.CountAsync(t => t.TenantId == tenantId && t.CreatedAt >= MonthStart(DateTime.UtcNow), ct),
+                plan.MaxTransfersPerMonth, "limit_warn_transfers", Messages.LimitWarnTransfers)
+        };
+
+        if (max <= 0) return;
+        if (Percent(used, max) < warnPercent) return;
+
+        warnings.Add(code, template, used, max);
+    }
+
+    /// Foizni bitta joyda hisoblaymiz — frontend o'zi hisoblasa, vaqt o'tib ikkovi ajraladi.
+    public static decimal Percent(int used, int max)
+        => max <= 0 ? 0 : Math.Round(used * 100m / max, 1);
+
     /// Joriy foydalanish — /api/subscription/me uchun.
     public static async Task<LimitUsageSnapshot> GetUsageAsync(WmsDbContext db, int tenantId, Plan? plan,
         CancellationToken ct = default)
@@ -89,9 +121,10 @@ public static class PlanLimits
 
     /// Limit + foydalanish juftliklari (mijozga ko'rsatiladigan shakl).
     public static async Task<SubscriptionLimitsDto> GetLimitsAsync(WmsDbContext db, int tenantId, Plan? plan,
-        CancellationToken ct = default)
+        int warnPercent, CancellationToken ct = default)
     {
         var usage = await GetUsageAsync(db, tenantId, plan, ct);
+
         return new SubscriptionLimitsDto
         {
             MaxUsers = plan?.MaxUsers ?? 0,
@@ -99,7 +132,25 @@ public static class PlanLimits
             MaxWarehouses = plan?.MaxWarehouses ?? 0,
             CurrentWarehouses = usage.Warehouses,
             MaxTransfersPerMonth = plan?.MaxTransfersPerMonth ?? 0,
-            CurrentTransfersThisMonth = usage.TransfersThisMonth
+            CurrentTransfersThisMonth = usage.TransfersThisMonth,
+
+            Users = Detail(usage.Users, plan?.MaxUsers ?? 0, warnPercent),
+            Warehouses = Detail(usage.Warehouses, plan?.MaxWarehouses ?? 0, warnPercent),
+            Transfers = Detail(usage.TransfersThisMonth, plan?.MaxTransfersPerMonth ?? 0, warnPercent)
+        };
+    }
+
+    /// Limitsiz (plansiz) tenantda foiz ham, ogohlantirish ham ma'nosiz → null.
+    private static LimitUsageDto Detail(int used, int max, int warnPercent)
+    {
+        if (max <= 0) return new LimitUsageDto { Max = 0, Current = used };
+
+        var percent = Percent(used, max);
+        return new LimitUsageDto
+        {
+            Max = max, Current = used,
+            UsagePercent = percent,
+            IsNearLimit = percent >= warnPercent
         };
     }
 

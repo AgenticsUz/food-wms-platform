@@ -10,7 +10,16 @@ namespace WMS.Infrastructure.Services;
 public class WarehouseService : IWarehouseService
 {
     private readonly WmsDbContext _db;
-    public WarehouseService(WmsDbContext db) => _db = db;
+    private readonly IRequestWarnings _warnings;
+    private readonly SubscriptionOptions _subscription;
+
+    public WarehouseService(WmsDbContext db, IRequestWarnings warnings,
+        Microsoft.Extensions.Options.IOptions<SubscriptionOptions> subscription)
+    {
+        _db = db;
+        _warnings = warnings;
+        _subscription = subscription.Value;
+    }
 
     public async Task<List<WarehouseDto>> GetAllAsync(int tenantId)
     {
@@ -31,6 +40,10 @@ public class WarehouseService : IWarehouseService
         };
         _db.Warehouses.Add(w);
         await _db.SaveChangesAsync();
+
+        await PlanLimits.ReportUsageAsync(_db, _warnings, tenantId, PlanLimits.Warehouses,
+            _subscription.LimitWarnPercent);
+
         return new WarehouseDto { Id = w.Id, Name = w.Name, Type = w.Type, Description = w.Description };
     }
 

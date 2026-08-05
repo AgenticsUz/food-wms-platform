@@ -14,9 +14,16 @@ public class TransferService : ITransferService
     private readonly WmsDbContext _db;
     private readonly INotificationService _notifications;
     private readonly ITenantStateService _tenantState;
+    private readonly IRequestWarnings _warnings;
+    private readonly SubscriptionOptions _subscription;
+
     public TransferService(WmsDbContext db, INotificationService notifications,
-        ITenantStateService tenantState)
-    { _db = db; _notifications = notifications; _tenantState = tenantState; }
+        ITenantStateService tenantState, IRequestWarnings warnings,
+        Microsoft.Extensions.Options.IOptions<SubscriptionOptions> subscription)
+    {
+        _db = db; _notifications = notifications; _tenantState = tenantState;
+        _warnings = warnings; _subscription = subscription.Value;
+    }
 
     public async Task<List<TransferDto>> GetAllAsync(int tenantId, TransferType? type,
         TransferStatus? status, DateTime? from, DateTime? to, int? counterpartyId, int page, int pageSize)
@@ -73,6 +80,9 @@ public class TransferService : ITransferService
 
         _db.Transfers.Add(transfer);
         await _db.SaveChangesAsync();
+
+        await PlanLimits.ReportUsageAsync(_db, _warnings, tenantId, PlanLimits.TransfersThisMonth,
+            _subscription.LimitWarnPercent);
 
         return await GetByIdAsync(tenantId, transfer.Id);
     }

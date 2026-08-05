@@ -80,6 +80,8 @@ builder.Services.AddScoped<IFeatureService, FeatureService>();
 builder.Services.AddScoped<IOrganizationService, OrganizationService>();
 builder.Services.AddScoped<IBrandingService, BrandingService>();
 builder.Services.AddScoped<IBrandingFileStore, WMS.API.Services.BrandingFileStore>();
+// So'rov davomida yig'iladigan ogohlantirishlar (limit 80 % va h.k.) — javob filtri o'qiydi.
+builder.Services.AddScoped<IRequestWarnings, RequestWarnings>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICounterpartyService, CounterpartyService>();

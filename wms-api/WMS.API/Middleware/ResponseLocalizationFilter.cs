@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using WMS.Application.Common;
 using WMS.Application.Common.Localization;
+using WMS.Application.Interfaces;
 
 namespace WMS.API.Middleware;
 
@@ -16,12 +17,25 @@ namespace WMS.API.Middleware;
 /// </summary>
 public class ResponseLocalizationFilter : IResultFilter
 {
+    private readonly IRequestWarnings _warnings;
+    public ResponseLocalizationFilter(IRequestWarnings warnings) => _warnings = warnings;
+
     public void OnResultExecuting(ResultExecutingContext context)
     {
         if (context.Result is not ObjectResult { Value: IApiResponse response }) return;
-        if (string.IsNullOrEmpty(response.Message)) return;
 
-        response.Message = Translations.Format(response.Message, RequestLanguage.Resolve(context.HttpContext));
+        var language = RequestLanguage.Resolve(context.HttpContext);
+
+        if (!string.IsNullOrEmpty(response.Message))
+            response.Message = Translations.Format(response.Message, language);
+
+        // A limit warning rides along with the successful response it belongs to.
+        if (_warnings.First is { } warning)
+            response.Warning = new ApiWarning
+            {
+                Code = warning.Code,
+                Message = Translations.Format(warning.Template, language, warning.Args)
+            };
     }
 
     public void OnResultExecuted(ResultExecutedContext context) { }

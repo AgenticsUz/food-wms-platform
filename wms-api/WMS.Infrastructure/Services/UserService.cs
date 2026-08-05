@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using WMS.Application.Common;
 using WMS.Application.DTOs.Users;
 using WMS.Application.Interfaces;
@@ -10,7 +10,16 @@ namespace WMS.Infrastructure.Services;
 public class UserService : IUserService
 {
     private readonly WmsDbContext _db;
-    public UserService(WmsDbContext db) => _db = db;
+    private readonly IRequestWarnings _warnings;
+    private readonly SubscriptionOptions _subscription;
+
+    public UserService(WmsDbContext db, IRequestWarnings warnings,
+        Microsoft.Extensions.Options.IOptions<SubscriptionOptions> subscription)
+    {
+        _db = db;
+        _warnings = warnings;
+        _subscription = subscription.Value;
+    }
 
     public async Task<List<UserDto>> GetAllAsync(int tenantId)
     {
@@ -40,6 +49,10 @@ public class UserService : IUserService
         };
         _db.Users.Add(user);
         await _db.SaveChangesAsync();
+
+        await PlanLimits.ReportUsageAsync(_db, _warnings, tenantId, PlanLimits.Users,
+            _subscription.LimitWarnPercent);
+
         return new UserDto { Id = user.Id, FullName = user.FullName, Phone = user.Phone, IsActive = user.IsActive };
     }
 

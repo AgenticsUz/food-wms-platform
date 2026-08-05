@@ -1,7 +1,23 @@
 namespace WMS.Application.DTOs.Subscription;
 
+/// One limit: the ceiling, what is used, and how close that is.
+/// UsagePercent and IsNearLimit are null when there is no ceiling (tenant without a plan).
+public class LimitUsageDto
+{
+    public int Max { get; set; }
+    public int Current { get; set; }
+    public decimal? UsagePercent { get; set; }
+    public bool? IsNearLimit { get; set; }
+}
+
+/// <summary>
 /// Plan limits and how much of each the tenant currently uses.
 /// A limit of 0 means unlimited (tenant without a plan).
+///
+/// The flat fields stay for the screens already built on them; the three detail objects add
+/// the percentage so the client stops computing it — two implementations of the same rule
+/// drift apart eventually.
+/// </summary>
 public class SubscriptionLimitsDto
 {
     public int MaxUsers { get; set; }
@@ -10,6 +26,10 @@ public class SubscriptionLimitsDto
     public int CurrentWarehouses { get; set; }
     public int MaxTransfersPerMonth { get; set; }
     public int CurrentTransfersThisMonth { get; set; }
+
+    public LimitUsageDto Users { get; set; } = new();
+    public LimitUsageDto Warehouses { get; set; } = new();
+    public LimitUsageDto Transfers { get; set; } = new();
 }
 
 /// <summary>
