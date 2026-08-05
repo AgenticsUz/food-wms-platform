@@ -1,3 +1,4 @@
+using WMS.Application.Common.Localization;
 using WMS.Domain.Enums;
 
 namespace WMS.Application.Common;
@@ -26,7 +27,7 @@ public class TenantState
     public HashSet<string> EnabledFeatures { get; init; } = new(StringComparer.OrdinalIgnoreCase);
 }
 
-/// <param name="Message">Generic reason text.</param>
+/// <param name="Message">Generic reason — an English template, translated at the edge.</param>
 /// <param name="PublicMessage">Operator-written message for this tenant, when set — the
 /// client shows it instead of <paramref name="Message"/>.</param>
 public record SubscriptionVerdict(bool Allowed, string? Code, string? Message, string? PublicMessage = null)
@@ -56,26 +57,20 @@ public static class SubscriptionPolicy
 
     private static string SuspendedMessage(SuspendReason? reason) => reason switch
     {
-        Domain.Enums.SuspendReason.NonPayment =>
-            "Your subscription is suspended because payment is overdue. Please contact us to restore access.",
-        Domain.Enums.SuspendReason.ClientRequest =>
-            "Your account is paused at your own request. Contact us when you want it back on.",
-        Domain.Enums.SuspendReason.Technical =>
-            "The system is temporarily unavailable for maintenance. Please try again later.",
-        Domain.Enums.SuspendReason.Violation =>
-            "Your account is suspended. Please contact support.",
-        _ => "Your subscription is suspended. Please contact support to restore access."
+        Domain.Enums.SuspendReason.NonPayment => Messages.SuspendedNonPayment,
+        Domain.Enums.SuspendReason.ClientRequest => Messages.SuspendedClientRequest,
+        Domain.Enums.SuspendReason.Technical => Messages.SuspendedTechnical,
+        Domain.Enums.SuspendReason.Violation => Messages.SuspendedViolation,
+        _ => Messages.SuspendedOther
     };
 
     public static SubscriptionVerdict Evaluate(TenantState? tenant, SubscriptionOptions options, DateTime utcNow)
     {
         if (tenant == null)
-            return new SubscriptionVerdict(false, TenantMissing,
-                "This account no longer exists. Please contact support.");
+            return new SubscriptionVerdict(false, TenantMissing, Messages.TenantMissing);
 
         if (!tenant.IsActive)
-            return new SubscriptionVerdict(false, TenantInactive,
-                "This account is deactivated. Please contact support.");
+            return new SubscriptionVerdict(false, TenantInactive, Messages.TenantInactive);
 
         if (tenant.Status == SubscriptionStatus.Suspended)
             return new SubscriptionVerdict(false, SuspendedCode(tenant.SuspendReason),
@@ -83,16 +78,14 @@ public static class SubscriptionPolicy
 
         if (tenant.Status == SubscriptionStatus.Trial && tenant.TrialEndsAt is { } ends
             && utcNow > ends.AddDays(options.GraceDays))
-            return new SubscriptionVerdict(false, TrialExpired,
-                "Your trial period has ended. Please choose a plan to continue.");
+            return new SubscriptionVerdict(false, TrialExpired, Messages.TrialExpired);
 
         // Manual billing. Only bites when the tenant is actually on a plan and a paid-through
         // date exists — a tenant without either is deliberately never blocked for payment.
         if (tenant.Status == SubscriptionStatus.Active && tenant.PlanId != null
             && tenant.PaidUntil is { } paidUntil
             && utcNow > paidUntil.AddDays(options.PaidGraceDays))
-            return new SubscriptionVerdict(false, PaymentExpired,
-                "Your subscription period has ended. Please contact us to renew.");
+            return new SubscriptionVerdict(false, PaymentExpired, Messages.PaymentExpired);
 
         return SubscriptionVerdict.Ok;
     }

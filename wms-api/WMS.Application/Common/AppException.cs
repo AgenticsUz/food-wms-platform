@@ -1,15 +1,44 @@
 namespace WMS.Application.Common;
 
+/// <summary>
 /// Business-rule violation — mapped to HTTP 400 by the exception middleware.
+///
+/// The message is written in English at the throw site and doubles as the translation key
+/// (see <c>Translations</c>), so the middleware can render it in the caller's language.
+/// A message with arguments must pass the template and the values separately — formatting
+/// it here would destroy the key.
+/// </summary>
 public class AppException : Exception
 {
-    public AppException(string message) : base(message) { }
+    /// English template, e.g. "Your plan ({0}) allows {1} users."
+    public string MessageTemplate { get; }
+    public object?[] MessageArgs { get; }
+
+    public AppException(string message) : base(message)
+    {
+        MessageTemplate = message;
+        MessageArgs = [];
+    }
+
+    public AppException(string template, params object?[] args)
+        : base(Safe(template, args))
+    {
+        MessageTemplate = template;
+        MessageArgs = args ?? [];
+    }
+
+    private static string Safe(string template, object?[] args)
+    {
+        try { return args is { Length: > 0 } ? string.Format(template, args) : template; }
+        catch (FormatException) { return template; }
+    }
 }
 
 /// Requested entity does not exist (in the caller's tenant) — mapped to HTTP 404.
 public class NotFoundException : AppException
 {
     public NotFoundException(string message) : base(message) { }
+    public NotFoundException(string template, params object?[] args) : base(template, args) { }
 }
 
 /// Subscription-level refusal (suspended tenant, expired trial, plan limit reached) —
@@ -23,6 +52,9 @@ public class PaymentRequiredException : AppException
     public string Code { get; }
 
     public PaymentRequiredException(string code, string message) : base(message) => Code = code;
+
+    public PaymentRequiredException(string code, string template, params object?[] args)
+        : base(template, args) => Code = code;
 }
 
 /// Entitlement refusal — the tenant's plan does not include this module.
@@ -32,7 +64,7 @@ public class ModuleDisabledException : AppException
     public string ModuleCode { get; }
 
     public ModuleDisabledException(string moduleCode)
-        : base($"This module is not enabled for your subscription plan ({moduleCode})")
+        : base(Localization.Messages.ModuleDisabled, moduleCode)
         => ModuleCode = moduleCode;
 }
 
@@ -45,6 +77,6 @@ public class FeatureDisabledException : AppException
     public string FeatureCode { get; }
 
     public FeatureDisabledException(string featureCode)
-        : base($"This feature is not enabled for your subscription ({featureCode})")
+        : base(Localization.Messages.FeatureDisabled, featureCode)
         => FeatureCode = featureCode;
 }

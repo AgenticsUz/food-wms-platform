@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using WMS.Application.Common;
+using WMS.Application.Common.Localization;
 using WMS.Application.DTOs.Auth;
 using WMS.Application.Interfaces;
 
@@ -33,7 +34,9 @@ public class AuthController : BaseController
         }
         catch (Exception ex)
         {
-            return BadRequest(ApiResponse<object>.Fail(ex.Message));
+            var template = ex is AppException app ? app.MessageTemplate : ex.Message;
+            return BadRequest(ApiResponse<object>.Fail(
+                Translations.Format(template, WMS.API.Middleware.RequestLanguage.Resolve(HttpContext))));
         }
     }
 

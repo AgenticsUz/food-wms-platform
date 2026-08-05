@@ -1,6 +1,12 @@
 namespace WMS.Application.Common;
 
-public class ApiResponse<T>
+/// Lets a result filter reach Message on any ApiResponse&lt;T&gt; without reflection.
+public interface IApiResponse
+{
+    string? Message { get; set; }
+}
+
+public class ApiResponse<T> : IApiResponse
 {
     public bool Success { get; set; }
     public T? Data { get; set; }

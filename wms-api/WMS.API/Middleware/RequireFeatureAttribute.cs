@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using WMS.Application.Common;
+using WMS.Application.Common.Localization;
 using WMS.Application.Interfaces;
 
 namespace WMS.API.Middleware;
@@ -41,9 +42,10 @@ public class RequireFeatureAttribute : Attribute, IAsyncAuthorizationFilter
         if (state != null && _featureCodes.Any(code => state.EnabledFeatures.Contains(code))) return;
 
         var reported = _featureCodes.FirstOrDefault() ?? "unknown";
-        context.Result = new ObjectResult(ApiResponse<object>.Fail(
-            $"This feature is not enabled for your subscription ({string.Join(" / ", _featureCodes)})",
-            "feature_disabled:" + reported))
+        var message = Translations.Format(Messages.FeatureDisabled,
+            RequestLanguage.Resolve(context.HttpContext), string.Join(" / ", _featureCodes));
+
+        context.Result = new ObjectResult(ApiResponse<object>.Fail(message, "feature_disabled:" + reported))
         {
             StatusCode = StatusCodes.Status403Forbidden
         };

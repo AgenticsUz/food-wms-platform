@@ -5,6 +5,7 @@ using WMS.Application.DTOs.Import;
 using WMS.Application.Interfaces;
 using WMS.Domain.Entities;
 using WMS.Domain.Enums;
+using WMS.Application.Common.Localization;
 using WMS.Infrastructure.Persistence;
 
 namespace WMS.Infrastructure.Services;
@@ -270,7 +271,7 @@ public class ImportService : IImportService
                 result.Errors.Add(new ImportErrorDto
                 {
                     Row = row, Field = "-",
-                    Message = "Plan limit reached — upgrade the plan to add more users"
+                    Message = Messages.LimitUsersImport
                 });
                 result.ErrorCount++;
                 continue;

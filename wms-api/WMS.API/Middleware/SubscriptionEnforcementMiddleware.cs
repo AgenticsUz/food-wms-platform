@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Microsoft.Extensions.Options;
 using WMS.Application.Common;
+using WMS.Application.Common.Localization;
 using WMS.Application.Interfaces;
 
 namespace WMS.API.Middleware;
@@ -54,10 +55,12 @@ public class SubscriptionEnforcementMiddleware
             return;
         }
 
+        var message = Translations.Format(verdict.Message, RequestLanguage.Resolve(context));
+
         context.Response.StatusCode = StatusCodes.Status402PaymentRequired;
         context.Response.ContentType = "application/json";
         await context.Response.WriteAsync(JsonSerializer.Serialize(
-            ApiResponse<object>.Fail(verdict.Message!, verdict.Code!),
+            ApiResponse<object>.Fail(message, verdict.Code!),
             new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
     }
 

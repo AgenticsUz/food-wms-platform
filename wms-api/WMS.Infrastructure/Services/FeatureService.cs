@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using WMS.Application.Common;
+using WMS.Application.Common.Localization;
 using WMS.Application.DTOs.Platform;
 using WMS.Application.Interfaces;
 using WMS.Domain.Entities;
@@ -55,7 +56,7 @@ public class FeatureService : IFeatureService
             if (dto.OwnerTenantId == null)
                 throw new AppException("A custom feature must name the tenant it was written for (OwnerTenantId)");
             if (!code.StartsWith(FeatureCodes.CustomPrefix, StringComparison.OrdinalIgnoreCase))
-                throw new AppException($"A custom feature code must start with '{FeatureCodes.CustomPrefix}'");
+                throw new AppException(Messages.CustomFeaturePrefix, FeatureCodes.CustomPrefix);
         }
 
         var feature = new Feature
@@ -113,7 +114,7 @@ public class FeatureService : IFeatureService
             if (code.Length == 0) continue;
 
             var feature = await _db.Features.FirstOrDefaultAsync(f => f.Code == code)
-                ?? throw new NotFoundException($"Feature '{code}' not found");
+                ?? throw new NotFoundException(Messages.FeatureNotFound, code);
 
             var existing = await _db.TenantFeatures
                 .FirstOrDefaultAsync(tf => tf.TenantId == tenantId && tf.FeatureCode == feature.Code);

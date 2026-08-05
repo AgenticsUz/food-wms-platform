@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using WMS.Application.Common;
+using WMS.Application.Common.Localization;
 using WMS.Application.DTOs.Plans;
 using WMS.Application.DTOs.Subscription;
 using WMS.Application.Interfaces;
@@ -15,12 +16,15 @@ public class SubscriptionService : ISubscriptionService
     private readonly WmsDbContext _db;
     private readonly SubscriptionOptions _options;
     private readonly IConfiguration _config;
+    private readonly IRequestLanguage _language;
 
-    public SubscriptionService(WmsDbContext db, IOptions<SubscriptionOptions> options, IConfiguration config)
+    public SubscriptionService(WmsDbContext db, IOptions<SubscriptionOptions> options,
+        IConfiguration config, IRequestLanguage language)
     {
         _db = db;
         _options = options.Value;
         _config = config;
+        _language = language;
     }
 
     public async Task<SubscriptionInfoDto> GetForTenantAsync(int tenantId, CancellationToken ct = default)
@@ -78,7 +82,10 @@ public class SubscriptionService : ISubscriptionService
             IsBlocked = !verdict.Allowed,
             BlockedReason = verdict.Code,
             // The operator's own wording wins over the generic text — that is why they wrote it.
-            BlockedMessage = verdict.Allowed ? null : (verdict.PublicMessage ?? verdict.Message),
+            // Only the generic text is translated; a message typed by a human is left alone.
+            BlockedMessage = verdict.Allowed
+                ? null
+                : (verdict.PublicMessage ?? Translations.Format(verdict.Message, _language.Current)),
             SuspendedUntil = tenant.SuspendedUntil,
 
             IsExpiringSoon = soon,

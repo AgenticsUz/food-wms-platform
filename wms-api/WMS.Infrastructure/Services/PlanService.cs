@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using WMS.Application.Common;
+using WMS.Application.Common.Localization;
 using WMS.Application.DTOs.Plans;
 using WMS.Application.Interfaces;
 using WMS.Domain.Entities;
@@ -131,9 +132,9 @@ public class PlanService : IPlanService
         foreach (var code in requested.Select(c => c?.Trim()).Where(c => !string.IsNullOrEmpty(c)))
         {
             if (!known.TryGetValue(code!, out var feature))
-                throw new AppException($"Unknown feature code '{code}'");
+                throw new AppException(Messages.UnknownFeatureCode, code!);
             if (feature.IsCustom)
-                throw new AppException($"'{code}' is a custom feature and cannot be part of a plan — grant it to the tenant instead");
+                throw new AppException(Messages.CustomFeatureInPlan, code!);
             result.Add(feature.Code);
         }
         return result;

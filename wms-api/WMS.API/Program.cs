@@ -59,6 +59,10 @@ builder.Services.Configure<WMS.Application.Common.SubscriptionOptions>(
     builder.Configuration.GetSection(WMS.Application.Common.SubscriptionOptions.SectionName));
 builder.Services.AddMemoryCache();
 
+// Til: har so'rovda Accept-Language bo'yicha aniqlanadi (uz / ru / en).
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IRequestLanguage, WMS.API.Middleware.RequestLanguage>();
+
 // Services (DI)
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITenantService, TenantService>();
@@ -141,6 +145,8 @@ builder.Services.AddCors(options =>
 builder.Services.AddControllers(options =>
 {
     options.Filters.Add<WMS.API.Middleware.AuditLogFilter>();
+    // Muvaffaqiyat xabarlarini so'ralgan tilga o'giradi ("Deleted" → "O'chirildi").
+    options.Filters.Add<WMS.API.Middleware.ResponseLocalizationFilter>();
 });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using WMS.Application.Common;
+using WMS.Application.Common.Localization;
 using WMS.Application.Interfaces;
 
 namespace WMS.API.Middleware;
@@ -46,9 +47,10 @@ public class RequireModuleAttribute : Attribute, IAsyncAuthorizationFilter
         if (enabled) return;
 
         var reported = _moduleCodes.FirstOrDefault() ?? "UNKNOWN";
-        context.Result = new ObjectResult(ApiResponse<object>.Fail(
-            $"This module is not enabled for your subscription plan ({string.Join(" / ", _moduleCodes)})",
-            "module_disabled:" + reported))
+        var message = Translations.Format(Messages.ModuleDisabled,
+            RequestLanguage.Resolve(context.HttpContext), string.Join(" / ", _moduleCodes));
+
+        context.Result = new ObjectResult(ApiResponse<object>.Fail(message, "module_disabled:" + reported))
         {
             StatusCode = StatusCodes.Status403Forbidden
         };

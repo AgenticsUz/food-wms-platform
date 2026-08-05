@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
 using WMS.Application.Common;
+using WMS.Application.Common.Localization;
 using WMS.Infrastructure.Persistence;
 
 namespace WMS.API.Middleware;
@@ -24,7 +25,8 @@ public class RequirePermissionAttribute : Attribute, IAsyncAuthorizationFilter
 
         if (!int.TryParse(context.HttpContext.User.FindFirst("userId")?.Value, out var userId) || userId <= 0)
         {
-            context.Result = new UnauthorizedObjectResult(ApiResponse<object>.Fail("Unauthorized"));
+            context.Result = new UnauthorizedObjectResult(ApiResponse<object>.Fail(
+                Translations.Format("Unauthorized", RequestLanguage.Resolve(context.HttpContext))));
             return;
         }
 
@@ -36,7 +38,8 @@ public class RequirePermissionAttribute : Attribute, IAsyncAuthorizationFilter
 
         if (!hasPermission)
         {
-            context.Result = new ObjectResult(ApiResponse<object>.Fail("Permission denied"))
+            context.Result = new ObjectResult(ApiResponse<object>.Fail(
+                Translations.Format("Permission denied", RequestLanguage.Resolve(context.HttpContext))))
             {
                 StatusCode = StatusCodes.Status403Forbidden
             };

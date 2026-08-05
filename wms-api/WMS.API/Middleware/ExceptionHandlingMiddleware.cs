@@ -1,5 +1,6 @@
 using System.Text.Json;
 using WMS.Application.Common;
+using WMS.Application.Common.Localization;
 
 namespace WMS.API.Middleware;
 
@@ -25,14 +26,21 @@ public class ExceptionHandlingMiddleware
         }
         catch (Exception ex)
         {
+            // The thrown text is the English template; it is translated here, at the only
+            // point where the caller's language is known.
+            var language = RequestLanguage.Resolve(context);
+            var text = ex is AppException app
+                ? Translations.Format(app.MessageTemplate, language, app.MessageArgs)
+                : Translations.Format("An unexpected error occurred", language);
+
             var (statusCode, message, code) = ex switch
             {
-                NotFoundException => (StatusCodes.Status404NotFound, ex.Message, null),
-                PaymentRequiredException pre => (StatusCodes.Status402PaymentRequired, ex.Message, pre.Code),
-                ModuleDisabledException mde => (StatusCodes.Status403Forbidden, ex.Message, "module_disabled:" + mde.ModuleCode),
-                FeatureDisabledException fde => (StatusCodes.Status403Forbidden, ex.Message, "feature_disabled:" + fde.FeatureCode),
-                AppException => (StatusCodes.Status400BadRequest, ex.Message, null),
-                _ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred", (string?)null)
+                NotFoundException => (StatusCodes.Status404NotFound, text, null),
+                PaymentRequiredException pre => (StatusCodes.Status402PaymentRequired, text, pre.Code),
+                ModuleDisabledException mde => (StatusCodes.Status403Forbidden, text, "module_disabled:" + mde.ModuleCode),
+                FeatureDisabledException fde => (StatusCodes.Status403Forbidden, text, "feature_disabled:" + fde.FeatureCode),
+                AppException => (StatusCodes.Status400BadRequest, text, null),
+                _ => (StatusCodes.Status500InternalServerError, text, (string?)null)
             };
 
             if (statusCode == StatusCodes.Status500InternalServerError)

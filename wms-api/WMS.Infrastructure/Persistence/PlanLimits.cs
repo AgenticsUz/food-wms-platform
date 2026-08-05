@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using WMS.Application.Common;
+using WMS.Application.Common.Localization;
 using WMS.Application.DTOs.Subscription;
 using WMS.Domain.Entities;
 
@@ -38,7 +39,7 @@ public static class PlanLimits
         var used = await db.Users.CountAsync(u => u.TenantId == tenantId, ct);
         if (used >= plan.MaxUsers)
             throw new PaymentRequiredException("limit_users",
-                $"Your plan ({plan.Name}) allows {plan.MaxUsers} users. Upgrade the plan to add more.");
+                Messages.LimitUsers, plan.Name, plan.MaxUsers);
     }
 
     /// Nechta foydalanuvchi qo'shish mumkin. <c>null</c> = cheksiz (plansiz tenant).
@@ -60,7 +61,7 @@ public static class PlanLimits
         var used = await db.Warehouses.CountAsync(w => w.TenantId == tenantId, ct);
         if (used >= plan.MaxWarehouses)
             throw new PaymentRequiredException("limit_warehouses",
-                $"Your plan ({plan.Name}) allows {plan.MaxWarehouses} warehouses. Upgrade the plan to add more.");
+                Messages.LimitWarehouses, plan.Name, plan.MaxWarehouses);
     }
 
     public static async Task EnsureCanCreateTransferAsync(WmsDbContext db, int tenantId, CancellationToken ct = default)
@@ -72,8 +73,7 @@ public static class PlanLimits
         var used = await db.Transfers.CountAsync(t => t.TenantId == tenantId && t.CreatedAt >= monthStart, ct);
         if (used >= plan.MaxTransfersPerMonth)
             throw new PaymentRequiredException("limit_transfers",
-                $"Your plan ({plan.Name}) allows {plan.MaxTransfersPerMonth} transfers per month. " +
-                "Upgrade the plan to continue.");
+                Messages.LimitTransfers, plan.Name, plan.MaxTransfersPerMonth);
     }
 
     /// Joriy foydalanish — /api/subscription/me uchun.
