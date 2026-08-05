@@ -378,6 +378,70 @@ tilini `Accept-Language` sifatida qo'shadi.
 
 ---
 
+## 4c. Parolni tiklash va sessiyani bekor qilish
+
+Loyihada "parolni unutdim" oqimi yo'q (SMS/email provayder kerak — keyingi bosqich).
+Yakka foydalanuvchili tenant parolni unutsa, tizimga hech kim kira olmasdi. Endi ikki yo'l bor:
+
+```
+GET  /api/admin/tenants/{id}/users              SuperAdmin — kim kira oladi
+POST /api/admin/tenants/{id}/reset-user-password SuperAdmin — { userId?, newPassword? }
+POST /api/users/{id}/reset-password              tenant admin (settings.users) — { newPassword? }
+```
+
+- **`userId` ixtiyoriy** (faqat admin endpointida): berilmasa tenantning admini topiladi —
+  `settings.users` ruxsatiga ega eng eski faol foydalanuvchi, u ham bo'lmasa eng eski faol
+  foydalanuvchi. Aynan shu holat amalda uchraydi: kira oladigan yagona odam kira olmay qolgan.
+- **`newPassword` ixtiyoriy**: berilmasa 12 belgili parol generatsiya qilinadi —
+  alfavitdan `0/O`, `1/l/I`, `5/S`, `2/Z` chiqarib tashlangan (telefonda aytiladigan parol
+  noto'g'ri yozilmasin). Qo'lda berilsa minimal **8** belgi.
+- Parol **javobda faqat bir marta** qaytadi. Hech qayerda ochiq saqlanmaydi, auditga tushmaydi,
+  boshqa endpoint uni qayta ko'rsatmaydi. Yo'qotilsa — qaytadan tiklanadi.
+- Hash mexanizmi o'zgarmadi (BCrypt, mavjud usul).
+
+**Kim kimga:**
+
+| Kim | Kimga | Natija |
+|---|---|---|
+| SuperAdmin | istalgan tenant foydalanuvchisiga | ✓ |
+| Tenant admin | o'z tenanti xodimiga | ✓ |
+| Tenant admin | boshqa tenant foydalanuvchisiga | **404** (id mavjudligi ham oshkor qilinmaydi) |
+| Tenant admin | platforma hisobiga (`IsSuperAdmin`) | **403** |
+| Tenant admin | o'ziga | **403** — o'z paroli uchun "parolni o'zgartirish" (u joriy parolni so'raydi) |
+
+### Sessiyani bekor qilish — qanday ishlaydi
+
+JWT stateless bo'lib qoldi; bekor qilish uchun **`User.SecurityStamp`** qo'shildi:
+
+1. Parol o'zgarganda (tiklash, admin tomonidan tahrirlash, foydalanuvchining o'zi o'zgartirishi)
+   stamp yangi `Guid` ga almashtiriladi.
+2. Login tokenga stamp nusxasini **`sstamp`** claim sifatida qo'yadi.
+3. `JwtBearerEvents.OnTokenValidated` har so'rovda stamp'ni tekshiradi; mos kelmasa
+   `context.Fail()` → **401**.
+4. Stamp `IUserSecurityService` da **60 soniya** cache qilinadi (`ITenantStateService` bilan bir xil
+   uslub), lekin parol o'zgarganda cache **darhol** tozalanadi — eski token keyingi so'rovdayoq
+   401 oladi, cache oynasini kutmaydi.
+
+**Nega hech kim tizimdan chiqib ketmaydi:** stamp'i `NULL` bo'lgan foydalanuvchi — paroli
+hech qachon tiklanmagan; unda tekshiruv o'tkazib yuboriladi. Ya'ni bu o'zgarish deploy paytida
+mavjud sessiyalarni buzmaydi, lekin birinchi tiklashdan keyin eski tokenlar darhol o'ladi.
+
+> **Bir instansiya taxmini:** cache jarayon ichida. Bir nechta API instansiyasi ortida bekor
+> qilingan token qolgan instansiyalarda cache oynasi (60 s) davomida ishlashi mumkin — u holda
+> umumiy cache yoki `StateCacheSeconds = 0` kerak bo'ladi.
+
+### Audit
+
+Platforma tiklashi `/api/admin/tenants/{id}/*` marshrutida bo'lgani uchun mavjud
+`AuditLogFilter` mantiqi ishlaydi: yozuv **maqsad tenantga** tushadi, `IsPlatformAction = true`,
+aktyor `ActorTenantId` da. Audit **tanani yozmaydi**, shuning uchun parol hech qachon jurnalga
+tushmaydi — faqat "kim, qachon, qaysi tenantda parol tikladi" fakti qoladi.
+
+`User.LastLoginAt` ham qo'shildi (login paytida yoziladi) — SuperAdmin ro'yxatida "kim
+oxirgi marta kirgan" ko'rinadi, tiklashdan oldin kimni tanlashni bilish uchun.
+
+---
+
 ## 5. Autentifikatsiya va avtorizatsiya
 
 ### 5.1 Policy'lar (`Program.cs`)
