@@ -47,12 +47,12 @@ wms/
 | Backend | .NET 8 LTS, ASP.NET Core Web API, EF Core 8, SQLite, JWT, Serilog |
 | Frontend | Angular 21 (standalone, signals, **zoneless**), PrimeNG 21.1.5 (Aura), Tailwind v4 |
 | Grafik | ApexCharts + ng-apexcharts |
-| i18n | Transloco — `uz`, `uz-cyrl`, `ru`, `en` (faqat `wms-ui`) |
+| i18n | Transloco — `wms-ui`: `uz`, `uz-cyrl`, `ru`, `en` (613 kalit) · `wms-admin`: `uz`, `ru`, `en` (266 kalit, `public/i18n/`) · backend: `uz`, `ru`, `en` |
 | IDE | Rider (backend), WebStorm (frontend) |
 
 ---
 
-## 3. Hozirgi holat (2026-08-04)
+## 3. Hozirgi holat (2026-08-05)
 
 **Cheklovlar API darajasida majburlanadi va mijozga tushunarli ko'rsatiladi.**
 Modul gating backendda, obuna har so'rovda tekshiriladi, trial haqiqiy muddat bilan
@@ -65,10 +65,10 @@ muddati tugasa tizim o'zi to'xtatadi.
 
 | Tomon | Build | Bajarilgan |
 |---|---|---|
-| `wms-api` | 0 xato, 0 ogohlantirish · 54/54 sinov | SaaS majburlash (modul gate, obuna middleware, trial+grace, limitlar, unique indeks, planlar seed, audit izi) **+ manual billing, muddatli suspend, lead oqimi, feature qatlami, Organization** |
-| `wms-ui` | prod 785 kB, 0 xato | Obuna sahifasi + banner, modullar faqat-ko'rish, 402/403 kod bo'yicha xato boshqaruvi, yangi modul guardlari |
-| `wms-admin` | prod 677 kB, 0 xato | Trial ustuni, "outside plan" badge, plan `trialDays`/`isDefault`, texnik qarz tozalandi |
-| i18n (frontend) | 4 til × 574 kalit, farq yo'q | — |
+| `wms-api` | 0 xato, 0 ogohlantirish · 54/54 + 31/31 sinov | SaaS majburlash (modul gate, obuna middleware, trial+grace, limitlar, unique indeks, planlar seed, audit izi) **+ manual billing, muddatli suspend, lead oqimi, feature qatlami, Organization, brendlash, limit ogohlantirishi** |
+| `wms-ui` | prod build 0 xato | F1–F8 bajarilgan: obuna sahifasi + banner, modullar faqat-ko'rish, 402/403 kod bo'yicha xato boshqaruvi, feature guardlari, demo so'rovi formasi, portal banneri |
+| `wms-admin` | prod build 0 xato | F1–F8 bajarilgan: to'lovlar, sabab bilan suspend, lead ro'yxati + convert, feature matritsasi, organizations, uch tilli interfeys |
+| i18n (frontend) | `wms-ui` 4 fayl × 613 kalit · `wms-admin` 3 fayl × 266 kalit, farq yo'q | — |
 | i18n (backend) | uz / ru / en · 150+ xabar | Xato va tasdiq matnlari `Accept-Language` bo'yicha qaytadi; `code` tarjima qilinmaydi |
 
 **Backend S1–S7 (yangi bosqich, 2026-08-04):**
@@ -84,7 +84,15 @@ muddati tugasa tizim o'zi to'xtatadi.
 | S7 | Portal → lead | `POST /api/portal/upgrade-interest` va agent portali; `ReferrerTenantId` bilan |
 
 > Muhim: S4 seed'i xatti-harakatni **o'zgartirmaydi** — barcha feature'lar `DefaultEnabled=true`
-> va planlarga o'z modullariga qarab to'ldirildi (haqiqiy bazada tekshirilgan: tizim tenanti 27/27).
+> va planlarga o'z modullariga qarab to'ldirildi (haqiqiy bazada tekshirilgan: tizim tenanti 29/29).
+
+**Backend B1–B3 (2026-08-05):**
+
+| # | Ish | Natija |
+|---|---|---|
+| B1 | Brendlash | `Tenant.LogoUrl` / `LogoSquareUrl` / `BrandColor`; `POST/DELETE /api/admin/tenants/{id}/logo?type=wide\|square` (512 KB, SVG/PNG/WebP, o'lcham chegarasi, SVG skript tekshiruvi, fayl nomida hash → cache buzilmaydi); bir xil `branding` obyekti login javobida, `/api/subscription/me` da va `GET /api/public/branding?slug=` da; PDF va Excel sarlavhalarida logo + nom |
+| B2 | Limit ogohlantirishi | `ApiResponse.warning` (`{ code, message }`) — **xato emas**, 200 qoladi; `limit_warn_users` / `limit_warn_warehouses` / `limit_warn_transfers`; `/subscription/me` limitlarida `usagePercent` + `isNearLimit` (hisob endi faqat backendda) |
+| B3 | Hujjatlar | Shu bo'lim va `BACKEND.md` kod bilan solishtirib yangilandi |
 
 **Asosiy kelishuv:** plani **bor** tenant → plan modullari va limitlari;
 plani **yo'q** tenant → **cheksiz** (mavjud mijozlar ishi to'satdan to'xtamasin).
@@ -116,13 +124,13 @@ Self-service registratsiya · Kunlik DB backup · `/health` + Serilog · CI/CD �
 | # | Kim | Ish |
 |---|---|---|
 | R5 | Frontend | `isPlatformAction` hech qaysi ilovada ko'rsatilmaydi (`wms-ui` audit sahifasida badge, `wms-admin` da audit sahifasi umuman yo'q) |
+| R19 | Frontend | **Brendlash UI (B1 ning davomi):** `wms-admin` da logo yuklash va rang tanlash, `wms-ui` da logo/rangni qo'llash (`--brand-primary`, favicon, sidebar) |
+| R20 | Ikkalasi | **Subdomen** — qaror qabul qilingan, birinchi 1–2 mijozdan keyin. `GET /api/public/branding?slug=` allaqachon tayyor va shu paytda ishga tushadi |
+| R21 | Ikkalasi | **S8/S9 hamkorlik** (tenantlar o'rtasida hujjat almashinuvi) — birinchi real juftlik paydo bo'lganda. Poydevor: `Organization` (S6) |
 | R6 | Backend | Trial tugashi haqida xabar yuborish (Telegram / in-app) — hozir fon xizmati faqat suspend qiladi, banner esa mijoz kirsagina ko'rinadi |
-| R7 | Ikkalasi | Limit 80 % ga yetganda ogohlantirish (hozir faqat progress-bar rangi, yaratish paytida ogohlantirish yo'q) |
+| R7 | Frontend | Limit 80 % ogohlantirishi — **backend qismi bajarildi (B2)**: `ApiResponse.warning` va `usagePercent`/`isNearLimit` keladi. Qolgani: toast va yaratish formalaridagi panel |
 | R8 | ~~Backend~~ | ~~Telefon tasdiqlash (SMS) / CAPTCHA~~ — **rejadan chiqdi**: self-service registratsiya yopilgani uchun (S3) tashqi SMS provayder kerak emas. Public lead formasi rate limit (5/soat/IP) bilan himoyalangan |
 | R9 | Frontend | Plan o'zgartirish so'rovi UI (hozir faqat "biz bilan bog'laning") |
-| R16 | Frontend | **S1–S7 uchun `wms-admin` UI:** to'lovlar, muddati tugayotganlar ro'yxati, sabab bilan suspend formasi, lead ro'yxati + convert, feature toggle matritsasi, organization ko'rinishi (`docs/news/TASKS_FRONTEND_S.md`) |
-| R17 | Frontend | **`wms-ui` yangi shartnomaga o'tsin:** `/api/subscription/me` javobi o'zgardi (`status` matn, `limits` obyekt, `daysUntilPaidEnd`, `blockedMessage`, `enabledFeatures`) va `feature_disabled:*` kodi qo'shildi |
-| R18 | Frontend | Public demo so'rovi formasi (`POST /api/leads`) va portal "menga ham kerak" tugmasi (`upgrade-interest`) |
 | R10 | Frontend | Ba'zi CRUD toast matnlari hali qattiq yozilgan (i18n qamroviga kirmagan) |
 
 ### 🟡 Keyingi bosqich — ataylab kechiktirilgan

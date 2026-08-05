@@ -1,8 +1,9 @@
 # WMS — Backend arxitekturasi (`wms-api`)
 
 > **Oxirgi yangilanish:** 2026-08-04 · **Branch:** `saas-admin`
-> **Holat:** SaaS majburlash (T1–T13) va soddalashtirilgan model (S1–S7) bajarilgan —
-> build 0 xato / 0 ogohlantirish, 54/54 uchma-uch sinov.
+> **Holat:** SaaS majburlash (T1–T13), soddalashtirilgan model (S1–S7) va brendlash +
+> limit ogohlantirishi (B1–B2) bajarilgan — build 0 xato / 0 ogohlantirish,
+> 54/54 va 31/31 uchma-uch sinov.
 > Umumiy loyiha qoidalari va qolgan ishlar: **`CLAUDE.md`** · Frontend: **`FRONTEND.md`**
 
 ---
@@ -268,7 +269,62 @@ provizatsiya yo'lidan foydalanadi.
   `ReferrerTenantId` to'ldiriladi. Bu endpointlar obuna enforcement'idan **ozod emas**.
 - `POST /api/admin/leads/{id}/convert` — tenant yaratadi, lead `Won` bo'ladi.
 
-### 4.10 Organization (S6)
+### 4.10 Brendlash (B1)
+
+Har mijoz o'z logosi va rangini ko'radi, **yagona build** saqlanadi: brendlash — ma'lumot,
+kod emas. Chegara qat'iy: **keng logo + kvadrat logo + bitta rang**. "Sidebar joylashuvi",
+"menyu tartibi" kabi so'rovlar brendlash emas.
+
+| Maydon | Izoh |
+|---|---|
+| `Tenant.LogoUrl` | Keng logo — sidebar ochiq, login sahifasi, hisobot sarlavhasi |
+| `Tenant.LogoSquareUrl` | Kvadrat — sidebar yig'ilgan, favicon |
+| `Tenant.BrandColor` | `#RRGGBB`; palitrani frontend hosil qiladi |
+
+```
+POST   /api/admin/tenants/{id}/logo?type=wide|square    multipart/form-data (SuperAdmin)
+DELETE /api/admin/tenants/{id}/logo?type=wide|square
+GET    /api/admin/tenants/{id}/branding
+GET    /api/public/branding?slug=                        anonim, 30/daqiqa/IP
+```
+
+**Validatsiya:** SVG / PNG / WebP · ≤ **512 KB** · keng ≤ 600×200 px, kvadrat ≤ 512×512 px ·
+SVG ichida `<script>`, `on*=`, `javascript:` yoki tashqi havola bo'lsa **rad etiladi**
+(tozalash emas — yarim ishlaydigan SVG'dan aniq xato yaxshiroq).
+O'lcham `ImageInspector` bilan fayl sarlavhasidan o'qiladi (kutubxonasiz).
+
+**Saqlash:** `wwwroot/uploads/tenants/{id}/logo-wide-<hash>.<ext>` — fayl nomidagi hash
+brauzer cache'ini buzadi, eski fayl almashtirilgach o'chiriladi. Papka **ishga tushishdan
+oldin** yaratiladi, aks holda yangi deploy'da static file middleware o'chib qoladi.
+Yo'l autentifikatsiyasiz ochiq: logo maxfiy emas va login sahifasida kerak.
+
+**Bir xil `branding` obyekti uch joyda:** login javobida (`data.branding`),
+`GET /api/subscription/me` da va public endpointda — mijozda bitta mapping.
+
+**Hisobotlar:** `ReportBranding` PDF (QuestPDF) va Excel (ClosedXML) sarlavhasiga logo va
+nomni qo'yadi. Har qadam best-effort: logo yo'q bo'lsa faqat nom, o'qib bo'lmasa faqat nom —
+bezak tufayli hisobot yiqilmaydi. SVG PDF'ga qo'yilmaydi (raster kerak).
+
+`BrandColor` oddiy `PUT /api/admin/tenants/{id}` orqali; bo'sh satr — standart temaga qaytaradi.
+
+### 4.11 Limit ogohlantirishi (B2)
+
+Mijoz limitga **urilgunicha** bilsin. `Subscription:LimitWarnPercent` (default 80) endi
+ishlatiladi:
+
+- `ApiResponse` ga ixtiyoriy **`warning`** (`{ code, message }`) qo'shildi. Bu **xato emas**:
+  HTTP 200/201 va `success: true` o'zgarmaydi, eski mijoz kodi buzilmaydi.
+- Kodlar: `limit_warn_users` · `limit_warn_warehouses` · `limit_warn_transfers`.
+  Kod tarjima qilinmaydi, xabar `Accept-Language` bo'yicha tarjima qilinadi.
+- Mexanizm: servis yaratishdan keyin `PlanLimits.ReportUsageAsync` chaqiradi →
+  scoped `IRequestWarnings` ga yozadi → `ResponseLocalizationFilter` javobga qo'shadi.
+- `/api/subscription/me` limitlariga `users` / `warehouses` / `transfers` obyektlari qo'shildi:
+  `max`, `current`, `usagePercent`, `isNearLimit`. Plansiz tenantda oxirgi ikkitasi **null**.
+  Foiz endi **faqat backendda** hisoblanadi (ikki joyda hisob vaqt o'tib ajraladi).
+
+> Limitga yetganda xatti-harakat o'zgarmadi: avvalgidek **402 `limit_*`**.
+
+### 4.12 Organization (S6)
 
 `Counterparty` — bitta tenantning **ichki yozuvi**; `Organization` — platforma darajasidagi
 **haqiqiy kompaniya**. Bog'lash **faqat INN (STIR, 9 raqam)** bo'yicha:
