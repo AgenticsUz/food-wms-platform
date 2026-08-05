@@ -4,7 +4,6 @@ using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using WMS.Application.Interfaces;
 using WMS.Domain.Entities;
-using WMS.Application.Interfaces;
 using WMS.Infrastructure.Persistence;
 
 using WMS.Application.Common;

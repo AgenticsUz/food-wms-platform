@@ -5,7 +5,6 @@ using QuestPDF.Infrastructure;
 using WMS.Application.Common;
 using WMS.Application.Interfaces;
 using WMS.Domain.Entities;
-using WMS.Application.Interfaces;
 using WMS.Infrastructure.Persistence;
 
 namespace WMS.Infrastructure.Services;

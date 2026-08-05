@@ -2,7 +2,6 @@ using ClosedXML.Excel;
 using Microsoft.EntityFrameworkCore;
 using WMS.Application.Interfaces;
 using WMS.Domain.Enums;
-using WMS.Application.Interfaces;
 using WMS.Infrastructure.Persistence;
 
 namespace WMS.Infrastructure.Services;
