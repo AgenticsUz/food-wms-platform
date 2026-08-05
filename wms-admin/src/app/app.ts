@@ -3,6 +3,7 @@ import { RouterOutlet } from '@angular/router';
 import { TranslocoService } from '@jsverse/transloco';
 import { Toast } from 'primeng/toast';
 import { ConfirmDialog } from 'primeng/confirmdialog';
+import { ThemeService } from './core/services/theme.service';
 
 @Component({
   selector: 'app-root',
@@ -16,10 +17,10 @@ import { ConfirmDialog } from 'primeng/confirmdialog';
 })
 export class App implements OnInit {
   private transloco = inject(TranslocoService);
+  private theme = inject(ThemeService);
 
   ngOnInit() {
-    // Admin konsol doim yorug' rejimda (oddiy, tashqi holat kerak emas)
-    document.documentElement.classList.remove('dark-mode');
+    this.theme.init();
 
     const saved = localStorage.getItem('adminLang');
     if (saved && ['uz', 'ru', 'en'].includes(saved)) this.transloco.setActiveLang(saved);

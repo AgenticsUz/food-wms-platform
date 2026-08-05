@@ -1,16 +1,19 @@
 <div class="page" *transloco="let t">
-  <header class="page-head">
-    <div><h1>{{ t('tenants.title') }}</h1><p>{{ t('tenants.subtitle') }}</p></div>
-    <div class="head-actions">
+  <p class="page-lead">{{ t('tenants.subtitle') }}</p>
+
+  <div class="page-toolbar">
+    <div class="toolbar-filters">
       <p-select [options]="filterOptions()" [ngModel]="filter()" (ngModelChange)="filter.set($event)"
         optionLabel="label" optionValue="value" styleClass="filter-select" />
       @if (filter() === 'suspended') {
         <p-select [options]="reasonOptions()" [ngModel]="reasonFilter()" (ngModelChange)="reasonFilter.set($event)"
           optionLabel="label" optionValue="value" [showClear]="true" [placeholder]="t('tenants.anyReason')" styleClass="filter-select" />
       }
+    </div>
+    <div class="toolbar-actions">
       <p-button icon="pi pi-plus" [label]="t('tenants.newTenant')" (onClick)="openNew()" />
     </div>
-  </header>
+  </div>
 
   <div class="wms-card table-wrapper">
     <p-table [value]="visibleTenants()" [loading]="loading()" [paginator]="true" [rows]="20" styleClass="p-datatable-sm p-datatable-striped">

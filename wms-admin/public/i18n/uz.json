@@ -36,7 +36,8 @@
     "signOut": "Chiqish",
     "signOutConfirm": "Admin konsolidan chiqasizmi?",
     "signOutHeader": "Chiqish",
-    "language": "Til"
+    "language": "Til",
+    "theme": "Mavzu"
   },
   "login": {
     "title": "Platforma boshqaruvi",

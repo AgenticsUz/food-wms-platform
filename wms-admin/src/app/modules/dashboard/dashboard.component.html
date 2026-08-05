@@ -1,8 +1,5 @@
 <div class="page" *transloco="let t">
-  <header class="page-head">
-    <h1>{{ t('dashboard.title') }}</h1>
-    <p>{{ t('dashboard.subtitle') }}</p>
-  </header>
+  <p class="page-lead">{{ t('dashboard.subtitle') }}</p>
 
   @if (stats(); as s) {
     <div class="stat-grid">

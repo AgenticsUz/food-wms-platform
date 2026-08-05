@@ -36,7 +36,8 @@
     "signOut": "Sign out",
     "signOutConfirm": "Sign out of the admin console?",
     "signOutHeader": "Sign out",
-    "language": "Language"
+    "language": "Language",
+    "theme": "Theme"
   },
   "login": {
     "title": "Platform control",

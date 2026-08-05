@@ -1,5 +1,10 @@
 <div class="admin-shell" *transloco="let t">
-  <aside class="sidebar">
+  <!-- Sidebar: faqat navigatsiya -->
+  @if (mobileNavOpen()) {
+    <div class="nav-overlay" (click)="closeMobileNav()"></div>
+  }
+
+  <aside class="sidebar" [class.open]="mobileNavOpen()">
     <div class="brand">
       <div class="brand-logo"><i class="pi pi-server"></i></div>
       <div class="brand-text">
@@ -10,33 +15,49 @@
 
     <nav class="nav">
       @for (item of nav; track item.route) {
-        <a [routerLink]="item.route" routerLinkActive="active" class="nav-item">
+        <a [routerLink]="item.route" routerLinkActive="active" class="nav-item" (click)="closeMobileNav()">
           <i [class]="item.icon"></i>
           <span>{{ t(item.key) }}</span>
         </a>
       }
     </nav>
-
-    <div class="sidebar-footer">
-      <div class="lang-switch" [attr.aria-label]="t('nav.language')">
-        @for (lang of langs; track lang.code) {
-          <button type="button" class="lang-btn" [class.active]="activeLang() === lang.code"
-                  (click)="switchLang(lang.code)">{{ lang.label }}</button>
-        }
-      </div>
-
-      <div class="user">
-        <div class="user-avatar">{{ (user()?.fullName || 'A').charAt(0) }}</div>
-        <div class="user-info">
-          <span class="user-name">{{ user()?.fullName }}</span>
-          <span class="user-role">{{ t('nav.superAdmin') }}</span>
-        </div>
-      </div>
-      <button class="logout-btn" (click)="logout()"><i class="pi pi-sign-out"></i> {{ t('nav.signOut') }}</button>
-    </div>
   </aside>
 
-  <main class="content">
-    <router-outlet />
-  </main>
+  <div class="main">
+    <!-- Header: sahifa nomi + til, mavzu, foydalanuvchi -->
+    <header class="topbar">
+      <button type="button" class="icon-btn menu-btn" (click)="toggleMobileNav()" [attr.aria-label]="t('nav.dashboard')">
+        <i class="pi pi-bars"></i>
+      </button>
+
+      <h1 class="page-title">{{ t(pageTitleKey()) }}</h1>
+
+      <div class="topbar-actions">
+        <div class="lang-switch" [attr.aria-label]="t('nav.language')">
+          @for (lang of langs; track lang.code) {
+            <button type="button" class="lang-btn" [class.active]="activeLang() === lang.code"
+                    (click)="switchLang(lang.code)">{{ lang.label }}</button>
+          }
+        </div>
+
+        <button type="button" class="icon-btn" (click)="theme.toggle()" [attr.aria-label]="t('nav.theme')">
+          <i class="pi" [class.pi-moon]="!theme.isDark()" [class.pi-sun]="theme.isDark()"></i>
+        </button>
+
+        <button type="button" class="user-btn" (click)="menu.toggle($event)">
+          <span class="user-avatar">{{ userInitial() }}</span>
+          <span class="user-meta">
+            <span class="user-name">{{ user()?.fullName }}</span>
+            <span class="user-role">{{ t('nav.superAdmin') }}</span>
+          </span>
+          <i class="pi pi-chevron-down"></i>
+        </button>
+        <p-menu #menu [model]="userMenu()" [popup]="true" appendTo="body" />
+      </div>
+    </header>
+
+    <main class="content">
+      <router-outlet />
+    </main>
+  </div>
 </div>

@@ -36,7 +36,8 @@
     "signOut": "Выйти",
     "signOutConfirm": "Выйти из админ-консоли?",
     "signOutHeader": "Выход",
-    "language": "Язык"
+    "language": "Язык",
+    "theme": "Тема"
   },
   "login": {
     "title": "Управление платформой",

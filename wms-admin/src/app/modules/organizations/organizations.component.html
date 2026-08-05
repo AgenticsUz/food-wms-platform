@@ -1,14 +1,11 @@
 <div class="page" *transloco="let t">
-  <header class="page-head">
-    <div>
-      <h1>{{ t('organizations.title') }}</h1>
-      <p>{{ t('organizations.subtitle') }}</p>
-    </div>
-  </header>
+  <p class="page-lead">{{ t('organizations.subtitle') }}</p>
 
-  <div class="wms-card filters-bar">
-    <input pInputText [ngModel]="search()" (ngModelChange)="search.set($event)"
-      [placeholder]="t('organizations.search')" class="filter-search" />
+  <div class="page-toolbar">
+    <div class="toolbar-filters">
+      <input pInputText [ngModel]="search()" (ngModelChange)="search.set($event)"
+        [placeholder]="t('organizations.search')" class="filter-search" />
+    </div>
   </div>
 
   <div class="wms-card table-wrapper">

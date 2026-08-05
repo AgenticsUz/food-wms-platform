@@ -1,8 +1,11 @@
 <div class="page" *transloco="let t">
-  <header class="page-head">
-    <div><h1>{{ t('plans.title') }}</h1><p>{{ t('plans.subtitle') }}</p></div>
-    <p-button icon="pi pi-plus" [label]="t('plans.newPlan')" (onClick)="openNew()" />
-  </header>
+  <p class="page-lead">{{ t('plans.subtitle') }}</p>
+
+  <div class="page-toolbar">
+    <div class="toolbar-actions">
+      <p-button icon="pi pi-plus" [label]="t('plans.newPlan')" (onClick)="openNew()" />
+    </div>
+  </div>
 
   <div class="wms-card table-wrapper">
     <p-table [value]="plans()" [loading]="loading()" [paginator]="true" [rows]="20" styleClass="p-datatable-sm p-datatable-striped">
