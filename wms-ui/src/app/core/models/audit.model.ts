@@ -9,4 +9,6 @@ export interface AuditLog {
   path: string;
   statusCode: number;
   createdAt: string;
+  /** Platforma (SuperAdmin) amali — masalan tenantni suspend qilish. */
+  isPlatformAction: boolean;
 }

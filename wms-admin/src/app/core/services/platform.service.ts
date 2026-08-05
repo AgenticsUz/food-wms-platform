@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { ApiService } from './api.service';
 import {
   Tenant, CreateTenantDto, UpdateTenantDto, TenantModuleInfo,
-  PaymentRecord, CreatePaymentDto, SuspendTenantDto
+  PaymentRecord, CreatePaymentDto, SuspendTenantDto, ExpiringTenant
 } from '../models/tenant.model';
 import { Plan, CreatePlanDto, PlatformStats, ModuleInfo } from '../models/plan.model';
 import { Lead, UpdateLeadDto, ConvertLeadDto } from '../models/lead.model';
@@ -32,6 +32,8 @@ export class PlatformService {
     return this.api.post<PaymentRecord>(`admin/tenants/${tenantId}/payments`, dto);
   }
   deletePayment(paymentId: number) { return this.api.delete<void>(`admin/payments/${paymentId}`); }
+  /** Muddati `days` ichida tugaydiganlar — allaqachon o'tganlar ham shu javobda (manfiy `daysLeft`). */
+  getExpiring(days = 7) { return this.api.get<ExpiringTenant[]>('admin/tenants/expiring', { days }); }
 
   // Leads (demo so'rovlari)
   getLeads() { return this.api.get<Lead[] | { items: Lead[] }>('admin/leads', { page: 1, pageSize: 200 }); }

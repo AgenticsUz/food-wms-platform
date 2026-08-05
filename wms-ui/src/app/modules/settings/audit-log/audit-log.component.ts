@@ -1,9 +1,10 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { TableModule } from 'primeng/table';
 import { Select } from 'primeng/select';
+import { ToggleSwitch } from 'primeng/toggleswitch';
 import { DatePicker } from 'primeng/datepicker';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
@@ -14,7 +15,7 @@ import { toLocalDateString, parseUtc } from '../../../shared/utils/date.util';
 @Component({
   selector: 'app-audit-log',
   standalone: true,
-  imports: [DatePipe, FormsModule, TranslocoDirective, TableModule, Select, DatePicker, PageHeaderComponent, StatusBadgeComponent],
+  imports: [DatePipe, FormsModule, TranslocoDirective, TableModule, Select, ToggleSwitch, DatePicker, PageHeaderComponent, StatusBadgeComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './audit-log.component.html',
   styleUrl: './audit-log.component.scss'
@@ -28,6 +29,12 @@ export default class AuditLogComponent implements OnInit {
   entityFilter = signal<string | null>(null);
   dateFrom = signal<Date | null>(null);
   dateTo = signal<Date | null>(null);
+  /** Faqat platforma administratori bajargan amallar. Server filtri emas —
+   *  yozuvlar bir sahifada keladi, qo'shimcha so'rov ortiqcha. */
+  platformOnly = signal(false);
+
+  visibleLogs = computed(() =>
+    this.platformOnly() ? this.logs().filter(l => l.isPlatformAction) : this.logs());
 
   ngOnInit() {
     this.loadEntityTypes();

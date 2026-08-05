@@ -518,6 +518,9 @@
     "success": "records imported successfully."
   },
   "audit": {
+    "platformAction": "Platform action",
+    "platformActionHint": "Performed by a platform administrator",
+    "platformOnly": "Platform actions only",
     "title": "Audit Log",
     "subtitle": "Who changed what and when",
     "entityType": "Module",

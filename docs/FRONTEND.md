@@ -1,7 +1,7 @@
 # WMS — Frontend arxitekturasi (`wms-ui` + `wms-admin`)
 
-> **Oxirgi yangilanish:** 2026-08-04 · **Branch:** `saas-admin`
-> **Holat:** ikkala ilova prod build **0 xato** (`wms-ui` 785 kB, `wms-admin` 677 kB initial).
+> **Oxirgi yangilanish:** 2026-08-05 · **Branch:** `saas-admin`
+> **Holat:** ikkala ilova prod build **0 xato** (`wms-ui` 785 kB, `wms-admin` 763 kB initial).
 > Umumiy loyiha qoidalari va qolgan ishlar: **`CLAUDE.md`** · Backend: **`BACKEND.md`**
 
 ---
@@ -11,7 +11,7 @@
 | Ilova | Kim uchun | Port | API prefiksi | Til | Token kaliti |
 |---|---|---|---|---|---|
 | **`wms-ui`** | Zavod xodimlari (tenant) | 7050 | `/api/*` | 4 til (Transloco) | `token` |
-| **`wms-admin`** | Platforma egasi (SuperAdmin) | 7060 | `/api/admin/*` | faqat inglizcha | `adminToken` |
+| **`wms-admin`** | Platforma egasi (SuperAdmin) | 7060 | `/api/admin/*` | 3 til (Transloco) | `adminToken` |
 
 Ikkalasi **alohida** Angular loyihasi, alohida `package.json`, alohida deploy
 (`wms-admin` → alohida subdomen, masalan `admin.domain.uz`).
@@ -32,10 +32,10 @@ State — **faqat signals**, NgRx yo'q.
 ```
 wms-ui/src/app/
 ├── core/
-│   ├── services/        # 26 servis (quyida)
-│   ├── models/          # 17 model fayli
-│   ├── guards/          # auth · module · permission · portal · agent-portal
-│   ├── interceptors/    # auth · error
+│   ├── services/        # 28 servis (quyida)
+│   ├── models/          # 19 model fayli
+│   ├── guards/          # auth · module · feature · permission · portal · agent-portal
+│   ├── interceptors/    # auth · language · error
 │   └── config/          # apex-defaults.ts
 ├── layout/
 │   ├── shell/           # sidebar + header + banner + router-outlet
@@ -44,13 +44,13 @@ wms-ui/src/app/
 ├── shared/
 │   ├── components/      # page-header · status-badge · empty-state ·
 │   │                    # notification-bell · import-button · phone-input ·
-│   │                    # subscription-banner
+│   │                    # subscription-banner · upgrade-banner
 │   ├── directives/      # has-permission.directive.ts
 │   ├── services/        # notification.service.ts (yagona toast nuqtasi)
 │   ├── styles/          # module-common.scss
 │   └── utils/           # date.util · transfer-enums · delivery-enums
-├── modules/             # 14 funksional modul (quyida)
-└── assets/i18n/         # uz · uz-cyrl · ru · en  (574 kalit, parite majburiy)
+├── modules/             # 15 funksional modul (quyida)
+└── assets/i18n/         # uz · uz-cyrl · ru · en  (613 kalit, parite majburiy)
 ```
 
 ### 2.2 Modullar va sahifalar
@@ -68,13 +68,15 @@ wms-ui/src/app/
 | `delivery` | deliveries · create · detail · vehicles · drivers | `DELIVERY` |
 | `products` | product-list · categories · units | — |
 | `settings` | users · roles · modules · **subscription** · qc-parameters · audit-log · profile | — |
-| `auth` | login · register (self-service) | — |
+| `auth` | login · register — **demo so'rovi** (`request-demo` aliasi bilan) | — |
 | `portal` | kontragent portali: login · dashboard · transfers · finance | alohida token |
 | `agent-portal` | agent portali: login · dashboard | alohida token |
+| `custom` | maxsus (per-mijoz) fitchalar — konvensiya va namuna skelet | `custom.*` feature |
 
 ### 2.3 Core servislar (26)
 
 `api` (HTTP wrapper) · `auth` · `tenant` (enabledModules) · `permission` · **`subscription`** ·
+**`feature`** (enabledFeatures) · **`lead`** (demo so'rovi) ·
 `product` · `warehouse` · `transfer` · `production` · `counterparty` · `agent` · `delivery` ·
 `finance` · `kpi` · `analytics` · `audit` · `settings` · `portal` · `agent-portal` ·
 `notification-bell` · `export` · `import` · `currency` · `theme` · `loading` · `transloco-loader`.
@@ -84,11 +86,17 @@ wms-ui/src/app/
 ```
 authGuard          → token bormi
 moduleGuard(CODE)  → TenantService.enabledModules() ichidami
+featureGuard(CODE) → FeatureService.isEnabled(CODE) — moduldan mayda dona
 permissionGuard(c) → PermissionService.can(c)
 *hasPermission     → tugmalarni DOM'dan olib tashlaydi (yashirmaydi)
 ```
 
-Route'larda tartib: `[moduleGuard('X'), permissionGuard('x.view')]`.
+Route'larda tartib: `[moduleGuard('X'), permissionGuard('x.view')]`,
+feature darajasida `[featureGuard('finance.debts')]` — hozir **28 joyda** ishlatiladi.
+
+`featureGuard` ro'yxat bo'sh bo'lsa **o'tkazadi** (backend katalogni yubormaguncha menyu
+o'zgarmasin), lekin `custom.*` kodlari har doim **yopiq** — maxsus fitcha faqat aniq
+yoqilganda ko'rinadi.
 **Sidebar** `visibleNavItems` computed'i shu ikki shartni ham qo'llaydi —
 yopiq modul menyuda umuman ko'rinmaydi.
 
@@ -98,7 +106,7 @@ yopiq modul menyuda umuman ko'rinmaydi.
 
 | Qism | Fayl |
 |---|---|
-| Model | `core/models/subscription.model.ts` — `SubscriptionInfo`, `LimitUsage`, `SubscriptionPlan` |
+| Model | `core/models/subscription.model.ts` — `SubscriptionInfo` (`paidUntil`, `daysUntilPaidEnd`, `paymentGraceDays`, `blockedReason`, `blockedMessage`, `suspendedUntil`, `enabledModules`, `enabledFeatures`, `limits` obyekt sifatida), `LimitRow`, `SubscriptionPlan` |
 | Servis | `core/services/subscription.service.ts` — `info` signal, `load()`, `fetch()`, `plans()`, `clear()` |
 | Sahifa | `modules/settings/subscription/` — plan kartasi, trial/grace, limitlar progress-bar, modul chiplari, mavjud planlar jadvali |
 | Banner | `shared/components/subscription-banner/` — shell'da, header ostida |
@@ -122,9 +130,10 @@ va Obuna sahifasiga havola (backend tenant adminning toggle qilishini 403 bilan 
 | Status | `code` | Xatti-harakat |
 |---|---|---|
 | 401 | — | `auth.interceptor` hal qiladi (toast yo'q) |
-| 402 | `subscription_suspended` · `trial_expired` · `tenant_inactive` | Tarjima qilingan xabar + `/settings/subscription` ga yo'naltirish |
+| 402 | `trial_expired` · `payment_expired` · `suspended_nonpayment` · `suspended_request` · `suspended_technical` · `suspended_violation` · `suspended_other` · `tenant_inactive` | Tarjima qilingan xabar + `/settings/subscription` ga yo'naltirish. Backend `blockedMessage` yuborsa — **o'sha ustun** |
 | 402 | `limit_users` · `limit_warehouses` · `limit_transfers` | Faqat xabar (yo'naltirish yo'q) |
 | 403 | `module_disabled:*` | "Bu modul obuna planingizga kirmaydi" |
+| 403 | `feature_disabled:*` | "Bu imkoniyat tarifingizga kirmaydi" |
 | 403 | boshqa | "Ruxsat yo'q" |
 | 400/409/422 | — | Backend `message` |
 | 404 / 500 / 0 | — | Tarjima qilingan umumiy matn |
@@ -150,16 +159,21 @@ callback'ida **ikkinchi toast qo'shilmaydi**, faqat holat tozalanadi (`saving.se
 ```
 wms-admin/src/app/
 ├── core/
-│   ├── services/     # api · auth · platform · notification
-│   ├── models/       # api-response · auth · tenant · plan
+│   ├── services/     # api · auth · platform · notification · theme
+│   ├── models/       # api-response · auth · tenant · plan · lead · feature · organization
 │   ├── guards/       # auth.guard.ts
-│   └── interceptors/ # auth.interceptor.ts (401 → logout, boshqa xato → toast)
-├── layout/           # shell (sidebar: Dashboard · Tenants · Plans)
-└── modules/
-    ├── login/        # faqat SuperAdmin kiradi
-    ├── dashboard/    # platforma KPI + tenant o'sishi (ApexCharts) + so'nggi tenantlar
-    ├── tenants/      # CRUD · suspend/activate · plan · modullar · trial
-    └── plans/        # CRUD · modul to'plami · limitlar · trialDays · isDefault
+│   ├── interceptors/ # auth (401 → logout, boshqa xato → toast) · language (Accept-Language)
+│   ├── utils/        # date.util.ts (utcDateOnly, daysUntil)
+│   └── transloco-loader.ts
+├── layout/           # shell: sidebar (navigatsiya) + topbar (til · mavzu · foydalanuvchi)
+├── modules/
+│   ├── login/          # faqat SuperAdmin kiradi · til tanlagich shu yerda ham
+│   ├── dashboard/      # platforma KPI + o'sish grafigi + so'nggi tenantlar
+│   ├── tenants/        # CRUD · to'lov · suspend · modullar · feature'lar · trial
+│   ├── leads/          # demo so'rovlari · filtr · drawer · tenantga aylantirish
+│   ├── organizations/  # STIR bo'yicha kompaniyalar · bog'lanishlar
+│   └── plans/          # CRUD · modul + feature to'plami · limitlar · trialDays · isDefault
+└── public/i18n/      # uz · ru · en (266 kalit, parite majburiy)
 ```
 
 ### 3.2 Xususiyatlari
@@ -173,7 +187,19 @@ wms-admin/src/app/
   **"outside plan"** badge'i.
 - **Plans jadvali** — default planda **DEFAULT** badge, Trial ustuni.
   Default plan bittagina bo'ladi (backend kafolatlaydi) va o'chirilmaydi.
-- **Transloco yo'q** — ilova bir tilda; `@jsverse/transloco` dependency olib tashlangan.
+- **Uch til** — `uz` (standart), `ru`, `en`. Katalog `public/i18n/` da (`src/assets` emas —
+  `angular.json` shu papkani assets sifatida ko'chiradi). Til tanlagich topbar'da va login
+  sahifasida; tanlov `localStorage: adminLang` da saqlanadi.
+- **Topbar** — sahifa sarlavhasi marshrutdan olinadi, shuning uchun sahifalar o'z `<h1>` ini
+  takrorlamaydi. O'ng tomonda: til · mavzu · foydalanuvchi menyusi (chiqish).
+- **Dark mode** — `ThemeService` `documentElement` ga `.dark-mode` qo'yadi. Standart holatda
+  tizim sozlamasiga ergashadi, foydalanuvchi bosgach `localStorage: adminTheme` da saqlanadi.
+- **Sahifa qolipi** — sarlavha ostida bitta izoh qatori, keyin `.page-toolbar` kartasi
+  (chapda filtrlar, o'ngda asosiy amal), keyin jadval. `styles.scss` da global uslub.
+- **Brend rangi** — `definePreset` orqali Aura'ning primary palitrasi pistachio bilan
+  almashtirilgan. `:root` dagi `--p-*` override'lari preset ustidan ishlamaydi.
+- **Feature dialogi** — modul bo'yicha akkordeon, uch holatli boshqaruv (Plan / On / Off),
+  `override` badge'i, "hammasini tarifga qaytarish", maxsus fitchalar uchun alohida filtr.
 
 ---
 
@@ -244,7 +270,9 @@ Deploy: `dist/<app>/browser` → Nginx static; `/api` → backendga proxy.
 | Nima | Izoh |
 |---|---|
 | `supportPhone` / `supportEmail` — **placeholder** | `environment*.ts` da. Bloklangan mijoz aynan shuni ko'radi — deploydan oldin haqiqiysiga almashtirilsin |
-| `isPlatformAction` ko'rsatilmaydi | Backend `AuditLogDto` da bor; `wms-ui` audit sahifasida badge yo'q, `wms-admin` da audit sahifasi umuman yo'q |
 | Limit 80 % ogohlantirishi | Faqat Obuna sahifasidagi progress-bar rangi; yaratish paytida ogohlantirish yo'q |
-| Ba'zi toast matnlari qattiq yozilgan | CRUD komponentlarida bir qism success/error matnlari hali inglizcha (i18n qamroviga kirmagan) |
+| `wms-ui` da ba'zi toast matnlari qattiq yozilgan | ~166 noyob matn; ularning 79 tasi `error.interceptor` ustiga **ikkinchi toast** chiqaradi (bitta-toast qoidasi buzilgan) — tarjima emas, olib tashlash kerak |
+| Brendlash (logo, rang) | Backend `Branding` maydonlari hali yo'q — UI ham yo'q |
+| Limit 80 % ogohlantirishi | Backend `usagePercent` / `warning` yubormaydi |
+| `wms-admin` da audit sahifasi | Backendda `/api/admin/audit` yo'q; `/api/audit` faqat o'z tenanti bilan chegaralangan |
 | Plan o'zgartirish oqimi | Faqat "biz bilan bog'laning" — self-service upgrade billing bilan birga keladi |

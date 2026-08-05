@@ -6,8 +6,7 @@ import { TableModule } from 'primeng/table';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { PlatformService } from '../../core/services/platform.service';
 import { PlatformStats } from '../../core/models/plan.model';
-import { Tenant } from '../../core/models/tenant.model';
-import { daysUntil } from '../../core/utils/date.util';
+import { ExpiringTenant } from '../../core/models/tenant.model';
 
 @Component({
   selector: 'app-dashboard',
@@ -24,19 +23,19 @@ export default class DashboardComponent implements OnInit {
   stats = signal<PlatformStats | null>(null);
   loading = signal(true);
   chart = signal<Record<string, unknown> | null>(null);
-  private tenants = signal<Tenant[]>([]);
 
-  /** 7 kun ichida to'lov muddati tugaydiganlar. */
-  expiringSoon = computed(() => this.tenants().filter(t => {
-    const d = daysUntil(t.paidUntil);
-    return d !== null && d >= 0 && d <= 7;
-  }).length);
+  /**
+   * Serverdan tayyor ro'yxat: `daysLeft` manfiy bo'lsa muddat o'tgan.
+   * Faqat `paid` turi hisoblanadi — kartani bosganda ochiladigan jadval
+   * filtri ham to'lov muddati bo'yicha ishlaydi, raqamlar mos kelsin.
+   */
+  private expiringTenants = signal<ExpiringTenant[]>([]);
 
-  /** Muddati allaqachon o'tganlar. */
-  expired = computed(() => this.tenants().filter(t => {
-    const d = daysUntil(t.paidUntil);
-    return d !== null && d < 0;
-  }).length);
+  expiringSoon = computed(() =>
+    this.expiringTenants().filter(t => t.kind === 'paid' && t.daysLeft >= 0).length);
+
+  expired = computed(() =>
+    this.expiringTenants().filter(t => t.kind === 'paid' && t.daysLeft < 0).length);
 
   /** Javob berilmagan demo so'rovlari. */
   newLeads = signal(0);
@@ -52,10 +51,8 @@ export default class DashboardComponent implements OnInit {
       },
       error: () => this.loading.set(false)
     });
-    // To'lov muddati kartalari tenant ro'yxatidan hisoblanadi — platforma
-    // miqyosida ro'yxat kichik, alohida endpoint kerak emas.
-    this.service.getTenants().subscribe(res => {
-      if (res.success && res.data) this.tenants.set(res.data);
+    this.service.getExpiring(7).subscribe(res => {
+      if (res.success && res.data) this.expiringTenants.set(res.data);
     });
     this.service.getLeads().subscribe(res => {
       const data = res.success ? res.data : null;

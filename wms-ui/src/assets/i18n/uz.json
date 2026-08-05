@@ -518,6 +518,9 @@
     "refresh": "Kurslarni yangilash"
   },
   "audit": {
+    "platformAction": "Platforma amali",
+    "platformActionHint": "Bu amalni platforma administratori bajargan",
+    "platformOnly": "Faqat platforma amallari",
     "title": "Audit jurnali",
     "subtitle": "Kim, nimani va qachon oʻzgartirgan",
     "entityType": "Modul",

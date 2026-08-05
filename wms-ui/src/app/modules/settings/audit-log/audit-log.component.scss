@@ -32,3 +32,10 @@
 
   i { font-size: 32px; opacity: 0.5; }
 }
+
+/* Platforma amali — mijoz kim uni suspend qilganini ko'rsin */
+.platform-badge {
+  display: inline-block;
+  white-space: nowrap;
+  cursor: help;
+}

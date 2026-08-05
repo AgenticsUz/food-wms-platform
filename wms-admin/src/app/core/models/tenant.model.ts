@@ -104,3 +104,17 @@ export interface CreatePaymentDto {
   method: PaymentMethod;
   note: string | null;
 }
+
+/** `GET admin/tenants/expiring` — muddati yaqinlashgan yoki o'tgan tenantlar. */
+export interface ExpiringTenant {
+  tenantId: number;
+  name: string;
+  slug: string;
+  planName: string | null;
+  status: SubscriptionStatus;
+  paidUntil: string | null;
+  trialEndsAt: string | null;
+  /** Manfiy — muddat o'tgan (grace davrida). */
+  daysLeft: number;
+  kind: 'paid' | 'trial';
+}
