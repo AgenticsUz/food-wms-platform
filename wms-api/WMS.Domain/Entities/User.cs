@@ -14,5 +14,15 @@ public class User : BaseEntity
     public bool IsSuperAdmin { get; set; } = false;
     // Telegram bildirishnomalari uchun (foydalanuvchi o'zi ulaydi; ixtiyoriy)
     public string? TelegramChatId { get; set; }
+
+    /// <summary>
+    /// Tokenlarni bekor qilish uchun. Parol o'zgarganda yangilanadi; JWT ichidagi nusxa
+    /// mos kelmasa token rad etiladi. NULL — paroli hech qachon tiklanmagan foydalanuvchi
+    /// (eski tokenlari ishlashda davom etadi, ya'ni deploy hech kimni chiqarib yubormaydi).
+    /// </summary>
+    public string? SecurityStamp { get; set; }
+
+    /// Oxirgi muvaffaqiyatli kirish — SuperAdmin "kim hali kira oladi" ro'yxati uchun.
+    public DateTime? LastLoginAt { get; set; }
     public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
 }

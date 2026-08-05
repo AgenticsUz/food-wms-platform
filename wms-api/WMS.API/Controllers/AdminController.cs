@@ -5,6 +5,7 @@ using WMS.Application.DTOs.Plans;
 using WMS.Application.Common.Localization;
 using WMS.Application.DTOs.Branding;
 using WMS.Application.DTOs.Platform;
+using WMS.Application.DTOs.Users;
 using WMS.Application.DTOs.Tenants;
 using WMS.Application.Interfaces;
 using WMS.Domain.Enums;
@@ -25,11 +26,13 @@ public class AdminController : BaseController
     private readonly IFeatureService _features;
     private readonly IOrganizationService _organizations;
     private readonly IBrandingService _branding;
+    private readonly IPasswordResetService _passwords;
 
     public AdminController(ITenantService tenants, IPlanService plans, IBillingService billing,
         ILeadService leads, IFeatureService features, IOrganizationService organizations,
-        IBrandingService branding)
+        IBrandingService branding, IPasswordResetService passwords)
     {
+        _passwords = passwords;
         _tenants = tenants;
         _plans = plans;
         _billing = billing;
@@ -168,6 +171,28 @@ public class AdminController : BaseController
         await _features.SetTenantFeaturesAsync(id, dto, UserId);
         return Ok(ApiResponse<object>.Ok(null!, "Updated"));
     }
+
+    // ── Users and password recovery ───────────────────────────────────────
+    // There is no self-service "forgot my password" yet, so when a customer locks itself
+    // out the only way back in is a phone call and one of these two endpoints.
+
+    [HttpGet("tenants/{id}/users")]
+    public async Task<IActionResult> GetTenantUsers(int id, CancellationToken ct)
+        => Ok(ApiResponse<List<TenantUserDto>>.Ok(await _passwords.GetTenantUsersAsync(id, ct)));
+
+    /// <summary>
+    /// Sets a new password for one user of a tenant. Both body fields are optional: with no
+    /// userId the tenant's admin is resolved, with no password one is generated.
+    ///
+    /// The password is in the RESPONSE ONLY — it is never stored in plain text, never
+    /// written to the audit log, and no other endpoint will ever show it again.
+    /// </summary>
+    [HttpPost("tenants/{id}/reset-user-password")]
+    public async Task<IActionResult> ResetUserPassword(int id, [FromBody] ResetUserPasswordDto? dto,
+        CancellationToken ct)
+        => Ok(ApiResponse<PasswordResetResultDto>.Ok(
+            await _passwords.ResetByPlatformAsync(id, dto ?? new ResetUserPasswordDto(), UserId, ct),
+            "Password reset"));
 
     // ── Branding (B1) ────────────────────────────────────────────────────
     // Only SuperAdmin uploads a logo. Letting a tenant admin rebrand its own installation

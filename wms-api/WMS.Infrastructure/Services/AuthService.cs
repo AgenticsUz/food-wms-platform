@@ -19,12 +19,15 @@ public class AuthService : IAuthService
     private readonly WmsDbContext _db;
     private readonly IConfiguration _config;
     private readonly SubscriptionOptions _subscription;
+    private readonly IUserSecurityService _security;
 
-    public AuthService(WmsDbContext db, IConfiguration config, IOptions<SubscriptionOptions> subscription)
+    public AuthService(WmsDbContext db, IConfiguration config, IOptions<SubscriptionOptions> subscription,
+        IUserSecurityService security)
     {
         _db = db;
         _config = config;
         _subscription = subscription.Value;
+        _security = security;
     }
 
     public async Task<AuthResponseDto> LoginAsync(LoginDto dto)
@@ -90,6 +93,13 @@ public class AuthService : IAuthService
         };
         if (user.IsSuperAdmin)
             claims.Add(new Claim("isSuperAdmin", "true"));
+        // Copy of the revocation stamp: a password reset rotates it and this token stops
+        // validating. Users who never had a reset carry no stamp and are unaffected.
+        if (!string.IsNullOrEmpty(user.SecurityStamp))
+            claims.Add(new Claim("sstamp", user.SecurityStamp));
+
+        user.LastLoginAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
 
         return new AuthResponseDto
         {
@@ -262,7 +272,11 @@ public class AuthService : IAuthService
             throw new AppException("New password must be at least 6 characters");
 
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+        // Changing your own password signs out every other session — that is the point of
+        // changing it after someone else has seen it.
+        user.SecurityStamp = Guid.NewGuid().ToString("N");
         await _db.SaveChangesAsync();
+        _security.Invalidate(user.Id);
     }
 
     public async Task SetTelegramChatAsync(int userId, int tenantId, SetTelegramDto dto)

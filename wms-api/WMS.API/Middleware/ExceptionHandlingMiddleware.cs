@@ -39,6 +39,7 @@ public class ExceptionHandlingMiddleware
                 PaymentRequiredException pre => (StatusCodes.Status402PaymentRequired, text, pre.Code),
                 ModuleDisabledException mde => (StatusCodes.Status403Forbidden, text, "module_disabled:" + mde.ModuleCode),
                 FeatureDisabledException fde => (StatusCodes.Status403Forbidden, text, "feature_disabled:" + fde.FeatureCode),
+                ForbiddenException => (StatusCodes.Status403Forbidden, text, null),
                 AppException => (StatusCodes.Status400BadRequest, text, null),
                 _ => (StatusCodes.Status500InternalServerError, text, (string?)null)
             };

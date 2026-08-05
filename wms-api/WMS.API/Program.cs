@@ -46,6 +46,29 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = false,
             ClockSkew = TimeSpan.Zero
         };
+
+        // Tokenlar stateless, lekin parol tiklangach eskisi ishlamasligi kerak. Yechim:
+        // foydalanuvchida SecurityStamp, tokenda uning nusxasi ("sstamp"). Parol o'zgarsa
+        // stamp yangilanadi va eski token shu yerda rad etiladi (401).
+        // Stamp'i yo'q foydalanuvchi — hech qachon tiklanmagan: tekshiruv o'tkazib yuboriladi,
+        // shuning uchun bu o'zgarish hech kimni tizimdan chiqarib yubormaydi.
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = async context =>
+            {
+                var principal = context.Principal;
+                if (principal == null) return;
+                if (!int.TryParse(principal.FindFirst("userId")?.Value, out var userId) || userId <= 0)
+                    return;   // portal tokenlari — ularda userId yo'q
+
+                var security = context.HttpContext.RequestServices.GetRequiredService<IUserSecurityService>();
+                var current = await security.GetStampAsync(userId, context.HttpContext.RequestAborted);
+                if (string.IsNullOrEmpty(current)) return;
+
+                if (principal.FindFirst("sstamp")?.Value != current)
+                    context.Fail("Password changed — this session is no longer valid");
+            }
+        };
     });
 
 // All three login flows (main, counterparty portal, agent portal) share one signing key,
@@ -82,6 +105,8 @@ builder.Services.AddScoped<IBrandingService, BrandingService>();
 builder.Services.AddScoped<IBrandingFileStore, WMS.API.Services.BrandingFileStore>();
 // So'rov davomida yig'iladigan ogohlantirishlar (limit 80 % va h.k.) — javob filtri o'qiydi.
 builder.Services.AddScoped<IRequestWarnings, RequestWarnings>();
+builder.Services.AddScoped<IUserSecurityService, UserSecurityService>();
+builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICounterpartyService, CounterpartyService>();

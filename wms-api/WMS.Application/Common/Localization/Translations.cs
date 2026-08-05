@@ -93,6 +93,18 @@ public static class Translations
             "Tarif limitiga yaqinlashdingiz: bu oyda {1} tadan {0} ta harakat",
             "Вы приближаетесь к лимиту тарифа: {0} из {1} перемещений в этом месяце"],
 
+        // ── Password reset ──
+        [Messages.PasswordTooShort] = [
+            "Parol kamida {0} ta belgidan iborat bo'lishi kerak",
+            "Пароль должен содержать не менее {0} символов"],
+        [Messages.CannotResetPlatformUser] = [
+            "Bu platforma hisobi — uni faqat platforma administratori tiklay oladi",
+            "Это платформенная учётная запись — сбросить её может только администратор платформы"],
+        [Messages.UseChangePasswordInstead] = [
+            "O'z hisobingiz uchun \"parolni o'zgartirish\" dan foydalaning",
+            "Для своей учётной записи используйте «смену пароля»"],
+        ["Password reset"] = ["Parol tiklandi", "Пароль сброшен"],
+
         // ── Custom features ──
         [Messages.CustomFeaturePrefix] = [
             "Maxsus imkoniyat kodi '{0}' bilan boshlanishi kerak",

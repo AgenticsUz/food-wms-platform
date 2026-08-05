@@ -50,6 +50,11 @@ public static class Messages
     public const string LimitWarnWarehouses = "You are close to your plan limit: {0} of {1} warehouses";
     public const string LimitWarnTransfers = "You are close to your plan limit: {0} of {1} transfers this month";
 
+    // ── Password reset ──
+    public const string PasswordTooShort = "The password must be at least {0} characters";
+    public const string CannotResetPlatformUser = "This is a platform account — only a platform administrator can reset it";
+    public const string UseChangePasswordInstead = "Use \"change password\" for your own account";
+
     // ── Custom features (S5) ──
     public const string CustomFeaturePrefix = "A custom feature code must start with '{0}'";
     public const string CustomFeatureInPlan =

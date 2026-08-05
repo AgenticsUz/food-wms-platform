@@ -57,6 +57,15 @@ public class PaymentRequiredException : AppException
         : base(template, args) => Code = code;
 }
 
+/// The caller is authenticated and the target exists, but this action is not theirs to
+/// take (a tenant admin reaching for a platform account). 403 rather than 404, because
+/// hiding something the caller can already see in their own user list explains nothing.
+public class ForbiddenException : AppException
+{
+    public ForbiddenException(string message) : base(message) { }
+    public ForbiddenException(string template, params object?[] args) : base(template, args) { }
+}
+
 /// Entitlement refusal — the tenant's plan does not include this module.
 /// Mapped to HTTP 403 with a machine-readable module code.
 public class ModuleDisabledException : AppException

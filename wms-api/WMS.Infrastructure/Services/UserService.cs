@@ -12,13 +12,16 @@ public class UserService : IUserService
     private readonly WmsDbContext _db;
     private readonly IRequestWarnings _warnings;
     private readonly SubscriptionOptions _subscription;
+    private readonly IUserSecurityService _security;
 
     public UserService(WmsDbContext db, IRequestWarnings warnings,
-        Microsoft.Extensions.Options.IOptions<SubscriptionOptions> subscription)
+        Microsoft.Extensions.Options.IOptions<SubscriptionOptions> subscription,
+        IUserSecurityService security)
     {
         _db = db;
         _warnings = warnings;
         _subscription = subscription.Value;
+        _security = security;
     }
 
     public async Task<List<UserDto>> GetAllAsync(int tenantId)
@@ -65,7 +68,12 @@ public class UserService : IUserService
         user.Phone = PhoneHelper.Normalize(dto.Phone);
         user.IsActive = dto.IsActive;
         if (!string.IsNullOrEmpty(dto.Password))
+        {
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+            // Same rule as a reset: a new password ends the old sessions.
+            user.SecurityStamp = Guid.NewGuid().ToString("N");
+            _security.Invalidate(user.Id);
+        }
         await _db.SaveChangesAsync();
         return new UserDto
         {

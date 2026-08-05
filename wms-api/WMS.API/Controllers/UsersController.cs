@@ -10,7 +10,9 @@ namespace WMS.API.Controllers;
 public class UsersController : BaseController
 {
     private readonly IUserService _users;
-    public UsersController(IUserService users) => _users = users;
+    private readonly IPasswordResetService _passwords;
+    public UsersController(IUserService users, IPasswordResetService passwords)
+    { _users = users; _passwords = passwords; }
 
     [HttpGet]
     public async Task<IActionResult> GetAll()
@@ -27,6 +29,18 @@ public class UsersController : BaseController
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     { await _users.DeleteAsync(TenantId, id); return Ok(ApiResponse<object>.Ok(null!, "Deleted")); }
+
+    /// <summary>
+    /// A tenant admin resetting one of their own staff — the everyday case of someone
+    /// forgetting their password. Same rules as the platform reset: generated or chosen,
+    /// returned exactly once, audited. Never applies to a platform account.
+    /// </summary>
+    [HttpPost("{id}/reset-password")]
+    public async Task<IActionResult> ResetPassword(int id, [FromBody] ResetPasswordDto? dto,
+        CancellationToken ct)
+        => Ok(ApiResponse<PasswordResetResultDto>.Ok(
+            await _passwords.ResetByTenantAdminAsync(TenantId, id, dto ?? new ResetPasswordDto(), UserId, ct),
+            "Password reset"));
 
     [HttpPut("{id}/roles")]
     public async Task<IActionResult> AssignRoles(int id, [FromBody] AssignRolesDto dto)
