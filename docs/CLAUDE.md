@@ -68,7 +68,8 @@ muddati tugasa tizim o'zi to'xtatadi.
 | `wms-api` | 0 xato, 0 ogohlantirish · 54/54 sinov | SaaS majburlash (modul gate, obuna middleware, trial+grace, limitlar, unique indeks, planlar seed, audit izi) **+ manual billing, muddatli suspend, lead oqimi, feature qatlami, Organization** |
 | `wms-ui` | prod 785 kB, 0 xato | Obuna sahifasi + banner, modullar faqat-ko'rish, 402/403 kod bo'yicha xato boshqaruvi, yangi modul guardlari |
 | `wms-admin` | prod 677 kB, 0 xato | Trial ustuni, "outside plan" badge, plan `trialDays`/`isDefault`, texnik qarz tozalandi |
-| i18n | 4 til × 574 kalit, farq yo'q | — |
+| i18n (frontend) | 4 til × 574 kalit, farq yo'q | — |
+| i18n (backend) | uz / ru / en · 150+ xabar | Xato va tasdiq matnlari `Accept-Language` bo'yicha qaytadi; `code` tarjima qilinmaydi |
 
 **Backend S1–S7 (yangi bosqich, 2026-08-04):**
 

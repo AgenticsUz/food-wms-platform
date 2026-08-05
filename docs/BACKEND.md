@@ -280,6 +280,48 @@ provizatsiya yo'lidan foydalanadi.
 
 ---
 
+## 4b. Tillar — javob matnlari (uz / ru / en)
+
+Backend qaytaradigan **har bir odam o'qiydigan matn** uch tilda: xato xabarlari, obuna
+bloki sabablari, limit ogohlantirishlari va "O'chirildi" kabi tasdiqlar.
+
+**Qanday ishlaydi:**
+
+1. Kod ichida xabar **inglizcha** yoziladi — `throw new AppException("Tenant not found")`.
+2. O'sha inglizcha matn **tarjima kaliti** bo'lib xizmat qiladi:
+   `WMS.Application/Common/Localization/Translations.cs` da `[English] = { uz, ru }`.
+3. Til **`Accept-Language`** sarlavhasidan aniqlanadi (`Lang.FromHeader`, q-qiymatlar bilan).
+   `uz-cyrl` → `uz`, noma'lum til yoki sarlavhasiz so'rov → default (`uz`).
+4. Tarjima **chekkada** qilinadi: `ExceptionHandlingMiddleware`,
+   `SubscriptionEnforcementMiddleware`, `RequireModule`/`RequireFeature`/`RequirePermission`
+   atributlari va muvaffaqiyat xabarlari uchun `ResponseLocalizationFilter`.
+
+**Nega kalit sifatida inglizcha matn:** mavjud ~100 ta `throw` joyini o'zgartirmaslik uchun.
+Tarjimasi yo'q xabar inglizcha qaytadi — mijoz inglizcha o'qishi kichik muammo,
+xabarning umuman yo'qolishi katta muammo.
+
+**Argumentli xabarlar** (`Messages.LimitUsers` va h.k.) shablon + qiymat sifatida uzatiladi,
+matn tayyor holda emas — aks holda kalit buzilardi:
+
+```csharp
+throw new PaymentRequiredException("limit_users", Messages.LimitUsers, plan.Name, plan.MaxUsers);
+// uz: "Tarifingiz (Trial) 2 ta foydalanuvchiga ruxsat beradi..."
+// ru: "Ваш тариф (Trial) допускает 2 пользователей..."
+```
+
+**O'zgarmaydigan narsalar:**
+- `ApiResponse.Code` (`payment_expired`, `feature_disabled:CODE`, …) — **hech qachon
+  tarjima qilinmaydi**, u mashina uchun.
+- SuperAdmin yozgan `SuspendPublicMessage` — u odam yozgan matn, tegilmaydi.
+
+**Frontend:** `wms-ui` va `wms-admin` da `language.interceptor` har so'rovga interfeys
+tilini `Accept-Language` sifatida qo'shadi.
+
+**Yangi til qo'shish:** `Lang.Supported` ga kod, `Translations` jadvaliga ustun.
+**Yangi xabar qo'shish:** inglizcha yozing va jadvalga bitta qator qo'shing.
+
+---
+
 ## 5. Autentifikatsiya va avtorizatsiya
 
 ### 5.1 Policy'lar (`Program.cs`)
