@@ -125,13 +125,13 @@ Self-service registratsiya · Kunlik DB backup · `/health` + Serilog · CI/CD �
 |---|---|---|
 | R5 | Frontend | `isPlatformAction` hech qaysi ilovada ko'rsatilmaydi (`wms-ui` audit sahifasida badge, `wms-admin` da audit sahifasi umuman yo'q) |
 | R19 | Frontend | **Brendlash UI (B1 ning davomi):** `wms-admin` da logo yuklash va rang tanlash, `wms-ui` da logo/rangni qo'llash (`--brand-primary`, favicon, sidebar) |
-| R20 | Ikkalasi | **Subdomen** — qaror qabul qilingan, birinchi 1–2 mijozdan keyin. `GET /api/public/branding?slug=` allaqachon tayyor va shu paytda ishga tushadi |
+| R20 | Ikkalasi | **Subdomen** — qaror qabul qilingan, birinchi 1–2 mijozdan keyin. `GET /api/public/branding?slug=` allaqachon tayyor. **Frontend qismi 2026-08-06 da bajarildi:** `tenant-slug.util.ts` slug'ni subdomen → eslab qolingan → standart tartibida aniqlaydi (`FRONTEND.md` §2.8), qolgani DNS/nginx |
 | R21 | Ikkalasi | **S8/S9 hamkorlik** (tenantlar o'rtasida hujjat almashinuvi) — birinchi real juftlik paydo bo'lganda. Poydevor: `Organization` (S6) |
 | R6 | Backend | Trial tugashi haqida xabar yuborish (Telegram / in-app) — hozir fon xizmati faqat suspend qiladi, banner esa mijoz kirsagina ko'rinadi |
 | R7 | Frontend | Limit 80 % ogohlantirishi — **backend qismi bajarildi (B2)**: `ApiResponse.warning` va `usagePercent`/`isNearLimit` keladi. Qolgani: toast va yaratish formalaridagi panel |
 | R8 | ~~Backend~~ | ~~Telefon tasdiqlash (SMS) / CAPTCHA~~ — **rejadan chiqdi**: self-service registratsiya yopilgani uchun (S3) tashqi SMS provayder kerak emas. Public lead formasi rate limit (5/soat/IP) bilan himoyalangan |
 | R9 | Frontend | Plan o'zgartirish so'rovi UI (hozir faqat "biz bilan bog'laning") |
-| R10 | Frontend | Ba'zi CRUD toast matnlari hali qattiq yozilgan (i18n qamroviga kirmagan) |
+| R10 | Frontend | **Qattiq yozilgan inglizcha matnlar — o'lchangan (2026-08-06):** `notify.*` da **158**, tasdiq dialoglarida **22**, `placeholder` larda **42** (jami ~222 matn × 4 til). Bularga validatsiya ogohlantirishlari (`Recipe name is required`), enum yorliqlari (`Raw Material`, `No expiry`, `Root`) va ruxsat nomlari (`Manage Warehouse`) ham kiradi. Interceptor ustiga qo'shiladigan **ikkilangan** toastlar (12 komponent, 20 joy) allaqachon olib tashlandi |
 
 ### 🟡 Keyingi bosqich — ataylab kechiktirilgan
 

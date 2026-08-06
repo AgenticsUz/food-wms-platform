@@ -94,6 +94,16 @@ permissionGuard(c) → PermissionService.can(c)
 Route'larda tartib: `[moduleGuard('X'), permissionGuard('x.view')]`,
 feature darajasida `[featureGuard('finance.debts')]` — hozir **28 joyda** ishlatiladi.
 
+> **Har ikkalasi ham qo'yilishi shart.** 2026-08-06 gacha `production`, `warehouse`,
+> `transfers`, `counterparties`, `products` va butun `settings` bo'limida faqat modul
+> tekshirilardi (`finance`/`kpi` da esa ikkalasi ham bor edi). Backend baribir 403
+> qaytarardi, lekin foydalanuvchi manzilni qo'lda yozsa sahifaga kirib, keyin xato
+> toastiga urilardi. `settings` ning standart bo'limi ham `users` dan `profile` ga
+> ko'chirildi — uni har qanday xodim ocha oladi.
+>
+> Noma'lum manzil uchun `{ path: '**', redirectTo: 'dashboard' }` bor; ilgari wildcard
+> yo'q edi va router outlet bo'sh qolib, oq sahifa ko'rinardi.
+
 `featureGuard` ro'yxat bo'sh bo'lsa **o'tkazadi** (backend katalogni yubormaguncha menyu
 o'zgarmasin), lekin `custom.*` kodlari har doim **yopiq** — maxsus fitcha faqat aniq
 yoqilganda ko'rinadi.
@@ -149,6 +159,25 @@ callback'ida **ikkinchi toast qo'shilmaydi**, faqat holat tozalanadi (`saving.se
 `auth.interceptor.ts` tokenni **URL bo'yicha** tanlaydi:
 `/agent-portal/` → `agentPortalToken` · `/portal/` → `portalToken` · aks holda asosiy JWT.
 401 da **mos** servisning `logout()` i chaqiriladi — portal 401 asosiy sessiyani o'chirmaydi.
+
+### 2.8 Qaysi tenantga kirilyapti (`tenant-slug.util.ts`)
+
+`POST /api/auth/login` `tenantSlug` ni **majburiy** so'raydi: telefon raqam global emas,
+faqat tenant ichida noyob. Qiymat ish vaqtida shu tartibda aniqlanadi:
+
+1. **Subdomen** — `sinov.wms.uz` → `sinov`. `www`/`app`/`admin`/`api`, `localhost` va IP
+   manzillar tenant deb qaralmaydi.
+2. Oxirgi muvaffaqiyatli kirishda eslab qolingan qiymat (`localStorage: tenantSlug`).
+3. `environment.tenantSlug` — standart.
+
+Subdomen slug bersa login formasida maydon **ko'rsatilmaydi**; aks holda (localhost,
+yalang'och domen) "Tashkilot kodi" so'raladi va kirish muvaffaqiyatli bo'lgach eslab
+qolinadi.
+
+> Ilgari bu qiymat `environment.tenantSlug` da qattiq `'admin'` yozilgan edi — ya'ni
+> bitta build faqat bitta mijozga xizmat qilardi va admin panelda yaratilgan yangi
+> tenantning hisobi ishlasa ham, unga kirishning **iloji yo'q edi**. R20 (subdomen)
+> shu qatlam ustida qo'shimcha ishsiz ishlaydi.
 
 ---
 
