@@ -1,9 +1,12 @@
 # WMS — Backend arxitekturasi (`wms-api`)
 
-> **Oxirgi yangilanish:** 2026-08-04 · **Branch:** `saas-admin`
+> **Oxirgi yangilanish:** 2026-08-06 · **Branch:** `saas-admin`
 > **Holat:** SaaS majburlash (T1–T13), soddalashtirilgan model (S1–S7) va brendlash +
 > limit ogohlantirishi (B1–B2) bajarilgan — build 0 xato / 0 ogohlantirish,
 > 54/54 va 31/31 uchma-uch sinov.
+> **2026-08-06 jonli sinovda topilgan tuzatishlar:** transfer yaratishni yiqitgan
+> `ReportUsageAsync` (§4.11), yangi tenantga o'lchov birliklari (§4.6), modul
+> endpointlarida tenant tekshiruvi (§4.1), `public/branding` da aloqa ma'lumoti (§4.10).
 > Umumiy loyiha qoidalari va qolgan ishlar: **`CLAUDE.md`** · Frontend: **`FRONTEND.md`**
 
 ---
@@ -119,6 +122,10 @@ KPI(6) SUPPLIERS(7) CLIENTS(8) QUALITY(9) AGENTS(10) DELIVERY(11)
 
 `TenantModule` — tenant bo'yicha yoqilgan/o'chirilgan holat.
 **Faqat SuperAdmin o'zgartira oladi** (`PUT /api/tenants/{id}/modules` → SuperAdmin policy).
+O'qish ham, yozish ham avval **tenant borligini tekshiradi** → yo'q bo'lsa `404`. Ilgari
+tekshirilmasdi: mavjud bo'lmagan tenant uchun `GET` **200** bilan katalogning standart
+holatini qaytarardi (chaqiruvchi buni o'sha mijozning haqiqiy sozlamasi deb o'qirdi), `PUT`
+esa yetim `TenantModule` qatori yozib qo'yishi mumkin edi.
 
 ### 4.2 Plan
 
@@ -201,9 +208,15 @@ beriladi (global emas — global qilinsa tenant tomoni sinadi).
 
 `TenantProvisioner.ProvisionAsync` — tenant yaratishning **yagona yo'li**
 (self-service register ham, SuperAdmin create ham):
-tenant → default plan modullari → barcha ruxsatli Admin roli → admin user.
+tenant → default plan modullari → barcha ruxsatli Admin roli → admin user →
+**o'lchov birliklari** (kg · litr · dona · gramm · quti · paket).
 Slug formati va **24 ta zaxira slug** qora ro'yxati tekshiriladi.
 `TrialEndsAt = UtcNow + TrialDays` albatta qo'yiladi.
+
+> Birliklar 2026-08-06 da qo'shildi. Ilgari ular faqat `DataInitializer` orqali **tizim
+> tenantiga** qo'yilardi, ya'ni har bir haqiqiy mijoz birinchi mahsulotini kiritmoqchi
+> bo'lganda bo'sh "Birlik" ro'yxatiga duch kelardi. Kilogramm hamma zavodda kilogramm —
+> bu demo ma'lumot emas. **Eski tenantlarga qo'llanmaydi**, ular uchun qo'lda qo'shiladi.
 
 `SubscriptionExpiryBackgroundService` — kuniga bir marta uchta ishni bajaradi:
 muddati (+grace) o'tgan trial'lar → `Suspended`; `PaidUntil` (+grace) o'tgan pullik
@@ -288,6 +301,14 @@ GET    /api/admin/tenants/{id}/branding
 GET    /api/public/branding?slug=                        anonim, 30/daqiqa/IP
 ```
 
+`GET /api/public/branding` brendlashdan tashqari **`supportPhone` / `supportEmail`** ni ham
+qaytaradi (`Support:Phone` / `Support:Email` sozlamasidan). Sabab: login sahifasi obuna
+bloklanganini ko'rsatganda tokeni yo'q, ya'ni `/api/subscription/me` ga kira olmaydi —
+bu maydonlarsiz frontend raqamni o'zida saqlashga majbur bo'lardi va uni almashtirish uchun
+butun Angular ilovasi qayta yig'ilardi. Aloqa **noto'g'ri slug uchun ham** qaytadi: tashkilot
+kodini xato yozgan odam ham kimga qo'ng'iroq qilishini bilishi kerak.
+Noma'lum slug baribir **200** — 404 bo'lsa platformadagi kompaniyalarni sanab chiqish mumkin bo'lardi.
+
 **Validatsiya:** SVG / PNG / WebP · ≤ **512 KB** · keng ≤ 600×200 px, kvadrat ≤ 512×512 px ·
 SVG ichida `<script>`, `on*=`, `javascript:` yoki tashqi havola bo'lsa **rad etiladi**
 (tozalash emas — yarim ishlaydigan SVG'dan aniq xato yaxshiroq).
@@ -318,6 +339,13 @@ ishlatiladi:
   Kod tarjima qilinmaydi, xabar `Accept-Language` bo'yicha tarjima qilinadi.
 - Mexanizm: servis yaratishdan keyin `PlanLimits.ReportUsageAsync` chaqiradi →
   scoped `IRequestWarnings` ga yozadi → `ResponseLocalizationFilter` javobga qo'shadi.
+- **`ReportUsageAsync` hech qachon so'rovni yiqitmaydi** (butun tanasi `try/catch` da).
+  U yozuv saqlangandan **keyin** chaqiriladi, shuning uchun bu yerdagi nosozlik mijozga
+  "xato" bo'lib ko'rinadi va u qayta yuborib **dublikat** yaratadi. 2026-08-06 gacha aynan
+  shunday bo'lgan: transfer shoxobchasida oy boshi LINQ ifodasi **ichida** hisoblanardi,
+  EF uni tarjima qila olmasdi va **har bir transfer yaratish 400 bilan tugardi** — holbuki
+  transfer bazaga allaqachon yozilgan bo'lardi. Sana chegarasi endi so'rovdan tashqarida
+  hisoblanadi. Ogohlantirish — qulaylik, amaliyotning bir qismi emas.
 - `/api/subscription/me` limitlariga `users` / `warehouses` / `transfers` obyektlari qo'shildi:
   `max`, `current`, `usagePercent`, `isNearLimit`. Plansiz tenantda oxirgi ikkitasi **null**.
   Foiz endi **faqat backendda** hisoblanadi (ikki joyda hisob vaqt o'tib ajraladi).

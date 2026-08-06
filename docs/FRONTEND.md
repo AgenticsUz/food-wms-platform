@@ -1,7 +1,11 @@
 # WMS — Frontend arxitekturasi (`wms-ui` + `wms-admin`)
 
-> **Oxirgi yangilanish:** 2026-08-05 · **Branch:** `saas-admin`
-> **Holat:** ikkala ilova prod build **0 xato** (`wms-ui` 785 kB, `wms-admin` 763 kB initial).
+> **Oxirgi yangilanish:** 2026-08-06 · **Branch:** `saas-admin`
+> **Holat:** ikkala ilova prod build **0 xato**.
+> **2026-08-06 jonli sinovda topilgan tuzatishlar:** tenant slug'ini ish vaqtida aniqlash
+> (§2.8 — ilgari faqat tizim tenanti kira olardi), har marshrutga `permissionGuard` va
+> `**` wildcard (§2.4), `dark:` variantini ilova mavzu klassiga bog'lash (§5), aloqa
+> ma'lumotini serverdan olish (§2.8), 12 komponentdagi ikkilangan toastni olib tashlash (§2.6).
 > Umumiy loyiha qoidalari va qolgan ishlar: **`CLAUDE.md`** · Backend: **`BACKEND.md`**
 
 ---
@@ -32,7 +36,7 @@ State — **faqat signals**, NgRx yo'q.
 ```
 wms-ui/src/app/
 ├── core/
-│   ├── services/        # 28 servis (quyida)
+│   ├── services/        # 29 servis (quyida)
 │   ├── models/          # 19 model fayli
 │   ├── guards/          # auth · module · feature · permission · portal · agent-portal
 │   ├── interceptors/    # auth · language · error
@@ -50,7 +54,7 @@ wms-ui/src/app/
 │   ├── styles/          # module-common.scss
 │   └── utils/           # date.util · transfer-enums · delivery-enums
 ├── modules/             # 15 funksional modul (quyida)
-└── assets/i18n/         # uz · uz-cyrl · ru · en  (613 kalit, parite majburiy)
+└── assets/i18n/         # uz · uz-cyrl · ru · en  (615 kalit, parite majburiy)
 ```
 
 ### 2.2 Modullar va sahifalar
@@ -73,13 +77,14 @@ wms-ui/src/app/
 | `agent-portal` | agent portali: login · dashboard | alohida token |
 | `custom` | maxsus (per-mijoz) fitchalar — konvensiya va namuna skelet | `custom.*` feature |
 
-### 2.3 Core servislar (26)
+### 2.3 Core servislar (29)
 
 `api` (HTTP wrapper) · `auth` · `tenant` (enabledModules) · `permission` · **`subscription`** ·
 **`feature`** (enabledFeatures) · **`lead`** (demo so'rovi) ·
 `product` · `warehouse` · `transfer` · `production` · `counterparty` · `agent` · `delivery` ·
 `finance` · `kpi` · `analytics` · `audit` · `settings` · `portal` · `agent-portal` ·
-`notification-bell` · `export` · `import` · `currency` · `theme` · `loading` · `transloco-loader`.
+`notification-bell` · `export` · `import` · `currency` · `theme` · `loading` · `transloco-loader` ·
+**`public-info`** (tokensiz sahifalar uchun aloqa ma'lumoti).
 
 ### 2.4 Himoya qatlamlari
 
@@ -120,7 +125,7 @@ yopiq modul menyuda umuman ko'rinmaydi.
 | Servis | `core/services/subscription.service.ts` — `info` signal, `load()`, `fetch()`, `plans()`, `clear()` |
 | Sahifa | `modules/settings/subscription/` — plan kartasi, trial/grace, limitlar progress-bar, modul chiplari, mavjud planlar jadvali |
 | Banner | `shared/components/subscription-banner/` — shell'da, header ostida |
-| Aloqa | `environment.supportPhone` / `supportEmail` |
+| Aloqa | **Serverdan:** obuna sahifasi `/api/subscription/me` dan, login va demo sahifalari `core/services/public-info.service.ts` orqali `/api/public/branding` dan. `environment.supportPhone` / `supportEmail` — faqat zaxira |
 
 **Yuklanish:** `ShellComponent.ngOnInit` → `subscriptionService.load()`.
 Shell faqat autentifikatsiyalangan asosiy ilovada quriladi, ya'ni login'dan keyin ham,
@@ -291,6 +296,26 @@ Tayyor klasslar: `.wms-card` · `.pill` + `.pill-{success,warning,danger,info,ne
 Shrift: **DM Sans** (matn) + **JetBrains Mono** (raqam, kod — `.amount`, `.num`).
 Layout: sidebar 260px (yig'ilganda 72px), header 64px, kontent padding 24/16/12px.
 
+### Qora rejim va Tailwind `dark:`
+
+Mavzu `documentElement` dagi **`.dark-mode`** klassi bilan boshqariladi (`ThemeService`),
+PrimeNG esa `darkModeSelector` orqali shunga ulanadi.
+
+Tailwind v4 da `dark:` **standart holatda operatsion tizimning `prefers-color-scheme`
+sozlamasiga** bog'lanadi. Ikkovi bog'lanmagani uchun OS qora rejimda bo'lsa ilova yorug'
+mavzuni chizardi-yu, `dark:text-white` kabi utilitalar yonib turardi — natijada umumiy
+`page-header` komponenti sabab **har bir sahifa sarlavhasi oq fonda oq** bo'lib ko'rinmasdi.
+
+Ikkala `styles.scss` da endi:
+
+```scss
+@custom-variant dark (&:where(.dark-mode, .dark-mode *, .dark, .dark *));
+```
+
+> Yangi `dark:` utilitasi qo'shsangiz — shu qatorsiz u OS sozlamasiga ergashadi.
+> Eslatma: `wms-admin` `ThemeService` i standart holatda OS sozlamasiga ergashadi,
+> `wms-ui` esa har doim yorug'dan boshlaydi (saqlangan tanlov bo'lmasa).
+
 ---
 
 ## 6. Ishga tushirish
@@ -313,12 +338,14 @@ Deploy: `dist/<app>/browser` → Nginx static; `/api` → backendga proxy.
 
 ## 7. Ma'lum bo'lgan kamchiliklar (frontend)
 
+> Ro'yxat 2026-08-06 da jonli sinov natijasi bo'yicha qayta o'lchandi. Bajarilganlari
+> olib tashlandi; qolganlari `CLAUDE.md` §4 dagi R-raqamlari bilan bog'landi.
+
 | Nima | Izoh |
 |---|---|
-| `supportPhone` / `supportEmail` — **placeholder** | `environment*.ts` da. Bloklangan mijoz aynan shuni ko'radi — deploydan oldin haqiqiysiga almashtirilsin |
-| Limit 80 % ogohlantirishi | Faqat Obuna sahifasidagi progress-bar rangi; yaratish paytida ogohlantirish yo'q |
-| `wms-ui` da ba'zi toast matnlari qattiq yozilgan | ~166 noyob matn; ularning 79 tasi `error.interceptor` ustiga **ikkinchi toast** chiqaradi (bitta-toast qoidasi buzilgan) — tarjima emas, olib tashlash kerak |
-| Brendlash (logo, rang) | Backend `Branding` maydonlari hali yo'q — UI ham yo'q |
-| Limit 80 % ogohlantirishi | Backend `usagePercent` / `warning` yubormaydi |
-| `wms-admin` da audit sahifasi | Backendda `/api/admin/audit` yo'q; `/api/audit` faqat o'z tenanti bilan chegaralangan |
-| Plan o'zgartirish oqimi | Faqat "biz bilan bog'laning" — self-service upgrade billing bilan birga keladi |
+| **Qattiq yozilgan inglizcha matnlar** (R10) | O'lchangan: `notify.*` da **158**, tasdiq dialoglarida **22**, `placeholder` larda **42** — jami ~222 matn × 4 til. Ichida validatsiya ogohlantirishlari (`Recipe name is required`), enum yorliqlari (`Raw Material`, `No expiry`, `Root`) va ruxsat nomlari (`Manage Warehouse`) bor. **Ikkilangan** toastlar (12 komponent, 20 joy) allaqachon olib tashlandi |
+| Brendlash UI (R19) | Backend tayyor (B1), UI ikkala ilovada ham yo'q |
+| Limit 80 % ogohlantirishi (R7) | Backend `warning` va `usagePercent` yuboradi, frontend ularni **o'qimaydi**; obuna sahifasi foizni o'zi qayta hisoblaydi |
+| `wms-admin` da audit sahifasi (R5) | Sahifa yo'q. Backend endpointini avval Swagger'dan tasdiqlash kerak |
+| Plan o'zgartirish oqimi (R9) | Faqat "biz bilan bog'laning" — self-service upgrade billing bilan birga keladi |
+| `wms-ui` mavzusi OS sozlamasiga ergashmaydi | `wms-admin` ergashadi. Nomuvofiqlik, xato emas — §5 ga qarang |
