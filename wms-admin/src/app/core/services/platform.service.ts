@@ -2,7 +2,8 @@ import { Injectable, inject } from '@angular/core';
 import { ApiService } from './api.service';
 import {
   Tenant, CreateTenantDto, UpdateTenantDto, TenantModuleInfo,
-  PaymentRecord, CreatePaymentDto, SuspendTenantDto, ExpiringTenant
+  PaymentRecord, CreatePaymentDto, SuspendTenantDto, ExpiringTenant,
+  TenantUser, ResetUserPasswordDto, PasswordResetResult
 } from '../models/tenant.model';
 import { Plan, CreatePlanDto, PlatformStats, ModuleInfo } from '../models/plan.model';
 import { Lead, UpdateLeadDto, ConvertLeadDto } from '../models/lead.model';
@@ -24,6 +25,14 @@ export class PlatformService {
   getTenantModules(id: number) { return this.api.get<TenantModuleInfo[]>(`admin/tenants/${id}/modules`); }
   toggleModule(id: number, moduleId: number, isEnabled: boolean) {
     return this.api.put<void>(`admin/tenants/${id}/modules`, { moduleId, isEnabled });
+  }
+
+  // Users and password recovery
+  // Mijoz o'z tizimidan qulflanib qolganda qaytishning yagona yo'li — shu ikki endpoint.
+  getTenantUsers(tenantId: number) { return this.api.get<TenantUser[]>(`admin/tenants/${tenantId}/users`); }
+  /** Javobdagi `newPassword` bir martalik — uni loglash yoki toast'ga chiqarish mumkin emas. */
+  resetUserPassword(tenantId: number, dto: ResetUserPasswordDto) {
+    return this.api.post<PasswordResetResult>(`admin/tenants/${tenantId}/reset-user-password`, dto);
   }
 
   // Payments (manual billing)

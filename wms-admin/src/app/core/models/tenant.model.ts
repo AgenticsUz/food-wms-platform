@@ -105,6 +105,40 @@ export interface CreatePaymentDto {
   note: string | null;
 }
 
+/** `GET admin/tenants/{id}/users` — tenantga kira oladigan hisoblar. Hech qachon parol hash'i emas. */
+export interface TenantUser {
+  id: number;
+  /** Foydalanuvchi kiradigan telefon raqami. */
+  login: string;
+  fullName: string;
+  isActive: boolean;
+  isSuperAdmin: boolean;
+  roles: string[];
+  createdAt: string;
+  lastLoginAt: string | null;
+}
+
+/**
+ * `POST admin/tenants/{id}/reset-user-password` tanasi. Ikkala maydon ham ixtiyoriy:
+ * `userId` bo'lmasa backend tenant adminini o'zi topadi, `newPassword` bo'lmasa o'zi yaratadi.
+ */
+export interface ResetUserPasswordDto {
+  userId: number | null;
+  newPassword: string | null;
+}
+
+/**
+ * Yangi parol FAQAT shu javobda keladi — hech qayerda ochiq saqlanmaydi, audit jurnaliga
+ * yozilmaydi va boshqa hech qanday endpoint uni qayta ko'rsatmaydi. Yo'qotilsa — qaytadan tiklash.
+ * Shu sababli u toast'ga yoki konsolga chiqarilmaydi, faqat dialog ichida ko'rsatiladi.
+ */
+export interface PasswordResetResult {
+  userId: number;
+  login: string;
+  fullName: string;
+  newPassword: string;
+}
+
 /** `GET admin/tenants/expiring` — muddati yaqinlashgan yoki o'tgan tenantlar. */
 export interface ExpiringTenant {
   tenantId: number;

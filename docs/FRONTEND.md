@@ -169,11 +169,11 @@ wms-admin/src/app/
 ├── modules/
 │   ├── login/          # faqat SuperAdmin kiradi · til tanlagich shu yerda ham
 │   ├── dashboard/      # platforma KPI + o'sish grafigi + so'nggi tenantlar
-│   ├── tenants/        # CRUD · to'lov · suspend · modullar · feature'lar · trial
+│   ├── tenants/        # CRUD · to'lov · suspend · modullar · feature'lar · trial · parol tiklash
 │   ├── leads/          # demo so'rovlari · filtr · drawer · tenantga aylantirish
 │   ├── organizations/  # STIR bo'yicha kompaniyalar · bog'lanishlar
 │   └── plans/          # CRUD · modul + feature to'plami · limitlar · trialDays · isDefault
-└── public/i18n/      # uz · ru · en (266 kalit, parite majburiy)
+└── public/i18n/      # uz · ru · en (284 kalit, parite majburiy)
 ```
 
 ### 3.2 Xususiyatlari
@@ -200,6 +200,23 @@ wms-admin/src/app/
   almashtirilgan. `:root` dagi `--p-*` override'lari preset ustidan ishlamaydi.
 - **Feature dialogi** — modul bo'yicha akkordeon, uch holatli boshqaruv (Plan / On / Off),
   `override` badge'i, "hammasini tarifga qaytarish", maxsus fitchalar uchun alohida filtr.
+- **Parolni tiklash** (`GET/POST admin/tenants/{id}/users` · `.../reset-user-password`) —
+  mijoz o'z tizimidan qulflanib qolganda telefon orqali qaytarish yo'li. Dialog ochilganda
+  **admin rolidagi** foydalanuvchi oldindan tanlangan (backend `userId` bo'lmasa aynan shuni
+  topadi); faolsiz hisoblar ro'yxatda qoladi, lekin **Nofaol** yorlig'i bilan. Parol
+  avtomatik yaratiladi yoki qo'lda kiritiladi (**min 8 belgi** — backenddagi
+  `PasswordGenerator.MinimumManualLength` bilan bir xil).
+  > **Natija ekrani ikkinchi, alohida `p-dialog`.** Sabab — PrimeNG `closable` /
+  > `closeOnEscape` tinglovchilarini dialog **ochilganda bir marta** bog'laydi va keyin bu
+  > inputlar o'zgarsa qayta ko'rib chiqmaydi. Bitta dialogda natija kelgach bayroqlarni
+  > `false` ga o'tkazish yetarli emas edi: Esc baribir yopib, qaytarib bo'lmaydigan parolni
+  > yo'qotardi. Shuning uchun natija dialogi boshidanoq `closable=false`,
+  > `closeOnEscape=false`, `dismissableMask=false` bilan yaratiladi va faqat **Done** bilan
+  > yopiladi.
+  >
+  > Parol javobda **bir marta** keladi: u toastga ham, konsolga ham chiqarilmaydi (toastda
+  > faqat "Nusxalandi"). Nusxalash — Clipboard API, oddiy `http` orqali ochilgan konsol uchun
+  > `execCommand` zaxirasi bilan.
 
 ---
 

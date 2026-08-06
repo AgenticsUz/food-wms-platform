@@ -155,6 +155,26 @@
       "suspendedUntil": "Suspended until {{date}}",
       "activate": "Activate"
     },
+    "reset": {
+      "action": "Reset password",
+      "title": "Reset password — {{name}}",
+      "user": "User",
+      "selectUser": "Select a user",
+      "inactiveHint": "This account is deactivated — a new password will not let them in until it is enabled again.",
+      "mode": "How to set the password",
+      "modeAuto": "Generate automatically",
+      "modeManual": "Set manually",
+      "newPassword": "New password",
+      "minLength": "At least {{min}} characters.",
+      "sessionWarning": "Every active session of this user will be cancelled — they will have to sign in again with the new password.",
+      "onceWarning": "This password is shown only once. Copy it now — there is no way to see it again.",
+      "login": "Login",
+      "copy": "Copy",
+      "copied": "Copied",
+      "copyFailed": "Could not copy — select the value and copy it manually.",
+      "resultFor": "Password reset for {{name}}.",
+      "done": "Done"
+    },
     "modules": {
       "action": "Modules",
       "title": "{{name}} — Modules",

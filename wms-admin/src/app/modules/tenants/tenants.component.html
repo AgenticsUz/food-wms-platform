@@ -67,7 +67,8 @@
             }
             <p-button icon="pi pi-th-large" [text]="true" size="small" [title]="t('tenants.modules.action')" (onClick)="openModules(row)" />
             <p-button icon="pi pi-sliders-h" [text]="true" size="small" [title]="t('tenants.features.action')" (onClick)="openFeatures(row)" />
-            <p-button icon="pi pi-pencil" [text]="true" size="small" (onClick)="openEdit(row)" />
+            <p-button icon="pi pi-key" [text]="true" size="small" [title]="t('tenants.reset.action')" (onClick)="openReset(row)" />
+            <p-button icon="pi pi-pencil" [text]="true" size="small" [title]="t('common.edit')" (onClick)="openEdit(row)" />
             <p-button icon="pi pi-trash" [text]="true" size="small" severity="danger" (onClick)="remove(row)" />
           </td>
         </tr>
@@ -246,6 +247,116 @@
     <ng-template #footer>
       <p-button [label]="t('common.cancel')" [text]="true" (onClick)="suspendVisible.set(false)" />
       <p-button [label]="t('tenants.suspend.action')" icon="pi pi-ban" severity="danger" [loading]="saving()" [disabled]="!canSuspend()" (onClick)="confirmSuspend()" />
+    </ng-template>
+  </p-dialog>
+
+  <!-- Reset user password — forma -->
+  <p-dialog [visible]="resetFormVisible()" (visibleChange)="onResetFormVisibleChange($event)"
+    [header]="t('tenants.reset.title', { name: resetTenantRef()?.name ?? '' })" [modal]="true"
+    [style]="{ width: '500px' }" [draggable]="false">
+
+      <div class="dialog-form">
+        <div class="ff">
+          <label>{{ t('tenants.reset.user') }} *</label>
+          <p-select [options]="userOptions()" [ngModel]="resetForm().userId"
+            (ngModelChange)="updateReset('userId', $event)"
+            optionLabel="label" optionValue="value" [loading]="loadingUsers()"
+            [placeholder]="t('tenants.reset.selectUser')" styleClass="w-full">
+            <ng-template #item let-opt>
+              <div class="user-option">
+                <span class="user-name">{{ opt.user.fullName }}</span>
+                <span class="user-login num">{{ opt.user.login }}</span>
+                @if (!opt.user.isActive) {
+                  <span class="pill pill-danger user-flag">{{ t('common.inactive') }}</span>
+                }
+              </div>
+            </ng-template>
+          </p-select>
+          @if (selectedUser(); as u) {
+            @if (!u.isActive) {
+              <small class="field-hint field-error">{{ t('tenants.reset.inactiveHint') }}</small>
+            }
+          }
+        </div>
+
+        <div class="ff">
+          <label>{{ t('tenants.reset.mode') }}</label>
+          <div class="mode-options">
+            <label class="mode-option" for="resetModeAuto">
+              <p-radiobutton inputId="resetModeAuto" name="resetMode" value="auto"
+                [ngModel]="resetForm().mode" (ngModelChange)="updateReset('mode', $event)" />
+              <span>{{ t('tenants.reset.modeAuto') }}</span>
+            </label>
+            <label class="mode-option" for="resetModeManual">
+              <p-radiobutton inputId="resetModeManual" name="resetMode" value="manual"
+                [ngModel]="resetForm().mode" (ngModelChange)="updateReset('mode', $event)" />
+              <span>{{ t('tenants.reset.modeManual') }}</span>
+            </label>
+          </div>
+        </div>
+
+        @if (resetForm().mode === 'manual') {
+          <div class="ff">
+            <label>{{ t('tenants.reset.newPassword') }} *</label>
+            <p-password [ngModel]="resetForm().password" (ngModelChange)="updateReset('password', $event)"
+              [toggleMask]="true" [feedback]="false" styleClass="w-full" inputStyleClass="w-full" />
+            <small class="field-hint" [class.field-error]="manualPasswordTooShort()">
+              {{ t('tenants.reset.minLength', { min: minPasswordLength }) }}
+            </small>
+          </div>
+        }
+
+        <div class="session-warning">
+          <i class="pi pi-info-circle"></i>
+          <span>{{ t('tenants.reset.sessionWarning') }}</span>
+        </div>
+      </div>
+
+    <ng-template #footer>
+      <p-button [label]="t('common.cancel')" [text]="true" (onClick)="closeReset()" />
+      <p-button [label]="t('tenants.reset.action')" icon="pi pi-key" severity="danger"
+        [loading]="resetting()" [disabled]="!canReset()" (onClick)="doReset()" />
+    </ng-template>
+  </p-dialog>
+
+  <!-- Reset user password — natija. Parol shu yerda bir marta ko'rsatiladi, boshqa hech
+       qayerdan olinmaydi, shuning uchun dialog faqat "Tayyor" bilan yopiladi. -->
+  <p-dialog [visible]="!!resetResult()"
+    [header]="t('tenants.reset.title', { name: resetTenantRef()?.name ?? '' })" [modal]="true"
+    [style]="{ width: '500px' }" [draggable]="false"
+    [closable]="false" [closeOnEscape]="false" [dismissableMask]="false">
+    @if (resetResult(); as res) {
+      <div class="dialog-form">
+        <div class="once-warning">
+          <i class="pi pi-exclamation-triangle"></i>
+          <span>{{ t('tenants.reset.onceWarning') }}</span>
+        </div>
+
+        <div class="secret-row">
+          <div class="secret-info">
+            <span class="secret-label">{{ t('tenants.reset.login') }}</span>
+            <span class="secret-value num">{{ res.login }}</span>
+          </div>
+          <p-button [icon]="copiedField() === 'login' ? 'pi pi-check' : 'pi pi-copy'"
+            [text]="true" [severity]="copiedField() === 'login' ? 'success' : undefined"
+            [title]="t('tenants.reset.copy')" (onClick)="copyValue(res.login, 'login')" />
+        </div>
+
+        <div class="secret-row">
+          <div class="secret-info">
+            <span class="secret-label">{{ t('tenants.reset.newPassword') }}</span>
+            <span class="secret-value num">{{ res.newPassword }}</span>
+          </div>
+          <p-button [icon]="copiedField() === 'password' ? 'pi pi-check' : 'pi pi-copy'"
+            [text]="true" [severity]="copiedField() === 'password' ? 'success' : undefined"
+            [title]="t('tenants.reset.copy')" (onClick)="copyValue(res.newPassword, 'password')" />
+        </div>
+
+        <p class="reset-for">{{ t('tenants.reset.resultFor', { name: res.fullName }) }}</p>
+      </div>
+    }
+    <ng-template #footer>
+      <p-button [label]="t('tenants.reset.done')" icon="pi pi-check" (onClick)="closeReset()" />
     </ng-template>
   </p-dialog>
 

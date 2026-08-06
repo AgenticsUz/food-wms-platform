@@ -155,6 +155,26 @@
       "suspendedUntil": "{{date}} gacha to'xtatildi",
       "activate": "Faollashtirish"
     },
+    "reset": {
+      "action": "Parolni tiklash",
+      "title": "Parolni tiklash — {{name}}",
+      "user": "Foydalanuvchi",
+      "selectUser": "Foydalanuvchini tanlang",
+      "inactiveHint": "Bu hisob o'chirilgan — u qayta yoqilmaguncha yangi parol bilan ham kira olmaydi.",
+      "mode": "Parol qanday qo'yiladi",
+      "modeAuto": "Avtomatik yaratilsin",
+      "modeManual": "Qo'lda kiritaman",
+      "newPassword": "Yangi parol",
+      "minLength": "Kamida {{min}} ta belgi.",
+      "sessionWarning": "Bu foydalanuvchining barcha faol sessiyalari bekor qilinadi — u yangi parol bilan qaytadan kirishi kerak bo'ladi.",
+      "onceWarning": "Bu parol faqat bir marta ko'rsatiladi. Hozir nusxa oling — uni qayta olishning imkoni yo'q.",
+      "login": "Login",
+      "copy": "Nusxa olish",
+      "copied": "Nusxalandi",
+      "copyFailed": "Nusxalab bo'lmadi — qiymatni belgilab, qo'lda ko'chiring.",
+      "resultFor": "{{name}} uchun parol tiklandi.",
+      "done": "Tayyor"
+    },
     "modules": {
       "action": "Modullar",
       "title": "{{name}} — Modullar",

@@ -52,6 +52,52 @@ code { font-family: var(--font-mono, monospace); font-size: 12px; }
   .preview-text { font-size: 13px; color: var(--text-secondary); }
 }
 
+/* Parolni tiklash dialogi */
+.user-option {
+  display: flex; align-items: center; gap: 8px; min-width: 0;
+  .user-name { font-weight: 600; }
+  .user-login { font-size: 12px; color: var(--text-muted); }
+  .user-flag { margin-left: auto; font-size: 10px; }
+}
+
+.mode-options { display: flex; flex-direction: column; gap: 10px; padding-top: 2px; }
+.mode-option { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; }
+
+.session-warning,
+.once-warning {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 10px 12px; border-radius: var(--radius-sm); font-size: 12px;
+  i { font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+}
+
+.session-warning {
+  background: var(--bg-inset); color: var(--text-secondary);
+  border-left: 3px solid var(--color-blueberry-500);
+}
+
+/* Parol boshqa ko'rsatilmasligi — natija ekranidagi eng muhim jumla */
+.once-warning {
+  background: var(--color-berry-50); color: var(--color-berry-700);
+  border-left: 3px solid var(--color-berry-600); font-weight: 600;
+}
+
+.secret-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);
+  background: var(--bg-inset);
+}
+
+.secret-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
+.secret-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); }
+
+/* Telefonda o'qib beriladigan qiymat — kattaroq va bo'shliqni saqlaydigan shrift bilan */
+.secret-value {
+  font-size: 18px; font-weight: 600; color: var(--text-primary);
+  letter-spacing: 0.02em; user-select: all; word-break: break-all;
+}
+
+.reset-for { margin: 0; font-size: 12px; color: var(--text-muted); }
+
 .module-list { display: flex; flex-direction: column; gap: 4px; padding-top: 8px; }
 .module-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 4px; border-bottom: 1px solid var(--border-subtle); &:last-child { border-bottom: none; } }
 .module-label { display: inline-flex; align-items: center; gap: 8px; }

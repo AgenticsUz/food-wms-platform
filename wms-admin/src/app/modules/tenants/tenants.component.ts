@@ -12,13 +12,15 @@ import { Password } from 'primeng/password';
 import { Select } from 'primeng/select';
 import { DatePicker } from 'primeng/datepicker';
 import { ToggleSwitch } from 'primeng/toggleswitch';
+import { RadioButton } from 'primeng/radiobutton';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { PlatformService } from '../../core/services/platform.service';
 import { NotificationService } from '../../core/services/notification.service';
 import {
   Tenant, TenantModuleInfo, SubscriptionStatus,
   PaymentRecord, PaymentMethod, PAYMENT_METHODS,
-  SuspendReason, SUSPEND_REASONS
+  SuspendReason, SUSPEND_REASONS,
+  TenantUser, PasswordResetResult
 } from '../../core/models/tenant.model';
 import { Plan } from '../../core/models/plan.model';
 import { TenantFeature } from '../../core/models/feature.model';
@@ -43,6 +45,21 @@ interface SuspendForm {
   until: Date | null;
 }
 
+/** Parolni avtomatik yaratish yoki qo'lda kiritish. */
+type ResetMode = 'auto' | 'manual';
+
+interface ResetForm {
+  userId: number | null;
+  mode: ResetMode;
+  password: string;
+}
+
+/** Backenddagi `PasswordGenerator.MinimumManualLength` bilan bir xil. */
+const MIN_PASSWORD_LENGTH = 8;
+
+/** Tenant admini shu nomdagi rol bilan yaratiladi (`TenantProvisioner`). */
+const ADMIN_ROLE = 'admin';
+
 type TenantFilter = 'all' | 'expiring' | 'expired' | 'nolimit' | 'suspended';
 
 /** Modulga bog'lanmagan feature'lar guruhi (backend `moduleCode: null` yuboradi). */
@@ -52,7 +69,7 @@ const GENERAL_GROUP = 'GENERAL';
   selector: 'app-tenants',
   standalone: true,
   imports: [TranslocoDirective, DatePipe, DecimalPipe, FormsModule, TableModule, Button, Dialog, InputText,
-    InputNumber, Textarea, Password, Select, DatePicker, ToggleSwitch],
+    InputNumber, Textarea, Password, Select, DatePicker, ToggleSwitch, RadioButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './tenants.component.html',
   styleUrl: './tenants.component.scss'
@@ -271,6 +288,158 @@ export default class TenantsComponent implements OnInit {
     this.service.toggleModule(t.id, m.moduleId, enabled).subscribe(() => {
       this.modules.update(list => list.map(x => x.moduleId === m.moduleId ? { ...x, isEnabled: enabled } : x));
     });
+  }
+
+  // ---- Reset user password ------------------------------------------------
+  // Mijoz o'z tizimidan qulflanib qolganda telefon orqali qaytarishning yagona yo'li.
+  // Yangi parol javobda bir marta keladi — shuning uchun u toast'ga ham, konsolga ham
+  // chiqmaydi va natija ekrani operator "Done" bosmaguncha yopilmaydi.
+
+  resetVisible = signal(false);
+  resetTenantRef = signal<Tenant | null>(null);
+  resetUsers = signal<TenantUser[]>([]);
+  loadingUsers = signal(false);
+  resetForm = signal<ResetForm>(this.emptyReset());
+  resetResult = signal<PasswordResetResult | null>(null);
+  resetting = signal(false);
+  /** Qaysi maydon hozirgina nusxalandi — tugmadagi belgi shu bo'yicha almashadi. */
+  copiedField = signal<'login' | 'password' | null>(null);
+
+  readonly minPasswordLength = MIN_PASSWORD_LENGTH;
+
+  private emptyReset(): ResetForm {
+    return { userId: null, mode: 'auto', password: '' };
+  }
+
+  openReset(t: Tenant) {
+    this.resetTenantRef.set(t);
+    this.resetForm.set(this.emptyReset());
+    this.resetResult.set(null);
+    this.copiedField.set(null);
+    this.resetUsers.set([]);
+    this.resetVisible.set(true);
+    this.loadingUsers.set(true);
+    this.service.getTenantUsers(t.id).subscribe({
+      next: (r) => {
+        const users = r.success && r.data ? r.data : [];
+        this.resetUsers.set(users);
+        this.resetForm.update(f => ({ ...f, userId: this.defaultUserId(users) }));
+        this.loadingUsers.set(false);
+      },
+      error: () => this.loadingUsers.set(false)
+    });
+  }
+
+  updateReset(field: keyof ResetForm, value: unknown) {
+    this.resetForm.update(f => ({ ...f, [field]: value }));
+  }
+
+  /**
+   * Backend `userId` berilmasa "eng eski faol admin" ni tanlaydi — dialog ochilganda
+   * aynan shu odam tanlangan bo'lsin, operator ro'yxatni qidirmasin. Ro'yxat backenddan
+   * `Id` bo'yicha tartiblangan holda keladi, shuning uchun birinchi mos kelgan — eng eskisi.
+   */
+  private defaultUserId(users: TenantUser[]): number | null {
+    const active = users.filter(u => u.isActive);
+    const admin = active.find(u => u.roles.some(r => r.trim().toLowerCase() === ADMIN_ROLE));
+    return (admin ?? active[0] ?? users[0])?.id ?? null;
+  }
+
+  userOptions = computed(() => this.resetUsers().map(u => ({
+    label: `${u.fullName} · ${u.login}`,
+    value: u.id,
+    user: u
+  })));
+
+  selectedUser = computed(() => {
+    const id = this.resetForm().userId;
+    return id === null ? null : this.resetUsers().find(u => u.id === id) ?? null;
+  });
+
+  /** Qo'lda kiritilgan parol backend rad etadigan uzunlikda — yuborishdan oldin aytamiz. */
+  manualPasswordTooShort = computed(() => {
+    const f = this.resetForm();
+    return f.mode === 'manual' && f.password.trim().length > 0 && f.password.trim().length < MIN_PASSWORD_LENGTH;
+  });
+
+  canReset = computed(() => {
+    const f = this.resetForm();
+    if (f.userId === null || this.loadingUsers()) return false;
+    return f.mode === 'auto' || f.password.trim().length >= MIN_PASSWORD_LENGTH;
+  });
+
+  doReset() {
+    const t = this.resetTenantRef(); const f = this.resetForm();
+    if (!t || !this.canReset()) return;
+    this.resetting.set(true);
+    this.service.resetUserPassword(t.id, {
+      userId: f.userId,
+      newPassword: f.mode === 'manual' ? f.password.trim() : null
+    }).subscribe({
+      // Dialog ataylab ochiq qoladi: parol boshqa hech qayerdan olinmaydi.
+      next: (r) => {
+        this.resetting.set(false);
+        if (r.success && r.data) this.resetResult.set(r.data);
+      },
+      // Xato toastini interceptor chiqaradi — bu yerda ikkinchisini qo'shmaymiz.
+      error: () => this.resetting.set(false)
+    });
+  }
+
+  /**
+   * Forma va natija — ikki alohida `p-dialog`. Buning sababi PrimeNG'ning xatti-harakati:
+   * `closable`/`closeOnEscape` tinglovchilari dialog OCHILGANDA bir marta bog'lanadi va
+   * keyin bu inputlar o'zgarsa ham qayta ko'rib chiqilmaydi. Bitta dialogda bayroqlarni
+   * natija kelgach `false` ga o'tkazish yetarli emas edi — Esc baribir yopib, parolni
+   * qaytarib bo'lmaydigan qilib yo'qotardi. Alohida dialog esa boshidanoq yopilmaydigan
+   * bo'lib yaratiladi.
+   */
+  resetFormVisible = computed(() => this.resetVisible() && !this.resetResult());
+
+  /** Natija kelganda forma dialogi o'zi yopiladi — bu holatni tozalash deb hisoblamaymiz. */
+  onResetFormVisibleChange(visible: boolean) {
+    if (!visible && !this.resetResult()) this.closeReset();
+  }
+
+  closeReset() {
+    this.resetVisible.set(false);
+    this.resetResult.set(null);
+    this.copiedField.set(null);
+    this.resetForm.set(this.emptyReset());
+  }
+
+  async copyValue(value: string, field: 'login' | 'password') {
+    if (!await this.writeToClipboard(value)) {
+      this.notify.warn(this.transloco.translate('tenants.reset.copyFailed'));
+      return;
+    }
+    this.copiedField.set(field);
+    // Toast'da faqat "nusxalandi" — qiymatning o'zi hech qachon toastga tushmaydi.
+    this.notify.success(this.transloco.translate('tenants.reset.copied'));
+    setTimeout(() => { if (this.copiedField() === field) this.copiedField.set(null); }, 2000);
+  }
+
+  /**
+   * Clipboard API faqat xavfsiz kontekstda (https yoki localhost) ishlaydi. Konsol oddiy
+   * http orqali ochilgan bo'lsa operatorni parolni qo'lda ko'chirishga majburlamaslik uchun
+   * eski `execCommand` usuli zaxira sifatida qoladi.
+   */
+  private async writeToClipboard(value: string): Promise<boolean> {
+    try {
+      if (navigator.clipboard?.writeText) { await navigator.clipboard.writeText(value); return true; }
+    } catch { /* quyidagi zaxira usulga o'tamiz */ }
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = value;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      return ok;
+    } catch { return false; }
   }
 
   // ---- Payments -----------------------------------------------------------
