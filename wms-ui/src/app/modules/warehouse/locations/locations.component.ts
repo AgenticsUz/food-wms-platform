@@ -50,7 +50,7 @@ export default class LocationsComponent implements OnInit {
         this.locations.set(res.success && res.data ? res.data : []);
         this.loading.set(false);
       },
-      error: () => { this.loading.set(false); this.notify.error('Failed to load locations'); }
+      error: () => { this.loading.set(false); }
     });
   }
 
@@ -77,7 +77,7 @@ export default class LocationsComponent implements OnInit {
       : this.warehouseService.createLocation(dto);
     obs.subscribe({
       next: () => { this.saving.set(false); this.dialogVisible.set(false); this.notify.success(this.editing() ? 'Location updated' : 'Location created'); this.loadLocations(); },
-      error: () => { this.saving.set(false); this.notify.error('Failed to save location'); }
+      error: () => { this.saving.set(false); }
     });
   }
 

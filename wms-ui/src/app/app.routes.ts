@@ -22,19 +22,23 @@ export const routes: Routes = [
         path: 'dashboard',
         loadComponent: () => import('./modules/dashboard/dashboard.component')
       },
+      // Har marshrutda modul VA ruxsat tekshiriladi. Ilgari ba'zilarida (production,
+      // warehouse, transfers, counterparties, products) faqat modul tekshirilardi:
+      // backend baribir 403 qaytarardi, lekin foydalanuvchi to'g'ridan-to'g'ri URL bilan
+      // kirsa bo'sh sahifa va xato toastiga tushardi — Moliya/KPI esa to'g'ri qaytarardi.
       {
         path: 'warehouse',
-        canActivate: [moduleGuard('WAREHOUSE_RAW')],
+        canActivate: [moduleGuard('WAREHOUSE_RAW'), permissionGuard('warehouse.view')],
         loadChildren: () => import('./modules/warehouse/warehouse.routes')
       },
       {
         path: 'production',
-        canActivate: [moduleGuard('PRODUCTION')],
+        canActivate: [moduleGuard('PRODUCTION'), permissionGuard('production.view')],
         loadChildren: () => import('./modules/production/production.routes')
       },
       {
         path: 'transfers',
-        canActivate: [moduleGuard('TRANSFERS')],
+        canActivate: [moduleGuard('TRANSFERS'), permissionGuard('transfers.view')],
         loadChildren: () => import('./modules/transfers/transfers.routes')
       },
       {
@@ -49,6 +53,7 @@ export const routes: Routes = [
       },
       {
         path: 'counterparties',
+        canActivate: [permissionGuard('partners.view')],
         loadChildren: () => import('./modules/counterparties/counterparties.routes')
       },
       {
@@ -58,6 +63,7 @@ export const routes: Routes = [
       },
       {
         path: 'products',
+        canActivate: [permissionGuard('products.view')],
         loadChildren: () => import('./modules/products/products.routes')
       },
       {
@@ -111,5 +117,9 @@ export const routes: Routes = [
         ]
       }
     ]
-  }
+  },
+  // Noma'lum manzil hech qanday marshrutga tushmasa router outlet'ni bo'sh qoldirardi va
+  // foydalanuvchi bo'm-bo'sh oq sahifani ko'rardi. Kirgan bo'lsa — bosh sahifaga,
+  // aks holda `authGuard` uni login sahifasiga olib chiqadi.
+  { path: '**', redirectTo: 'dashboard' }
 ];

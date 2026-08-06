@@ -60,6 +60,8 @@
     "phone": "Телефон рақам",
     "password": "Парол",
     "organizationCode": "Ташкилот коди",
+    "organizationCodeHint": "Сизга берилган тизим манзили — масалан: sinov",
+    "organizationCodeRequired": "Ташкилот кодини киритинг",
     "signIn": "Кириш",
     "welcome": "Хуш келибсиз",
     "loginTitle": "WMS Платформага кириш",

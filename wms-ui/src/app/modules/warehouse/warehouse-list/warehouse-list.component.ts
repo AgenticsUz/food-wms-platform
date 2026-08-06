@@ -50,7 +50,7 @@ export default class WarehouseListComponent implements OnInit {
         this.warehouses.set(res.success && res.data ? res.data : []);
         this.loading.set(false);
       },
-      error: () => { this.loading.set(false); this.notify.error('Failed to load warehouses'); }
+      error: () => { this.loading.set(false); }
     });
   }
 
@@ -76,7 +76,7 @@ export default class WarehouseListComponent implements OnInit {
       : this.warehouseService.createWarehouse(dto);
     obs.subscribe({
       next: () => { this.saving.set(false); this.dialogVisible.set(false); this.notify.success(this.editing() ? 'Warehouse updated' : 'Warehouse created'); this.loadData(); },
-      error: () => { this.saving.set(false); this.notify.error('Failed to save warehouse'); }
+      error: () => { this.saving.set(false); }
     });
   }
 

@@ -77,7 +77,7 @@ export default class TransferListComponent implements OnInit {
         this.transfers.set(res.success && res.data ? res.data : []);
         this.loading.set(false);
       },
-      error: () => { this.loading.set(false); this.notify.error('Failed to load transfers'); }
+      error: () => { this.loading.set(false); }
     });
   }
 

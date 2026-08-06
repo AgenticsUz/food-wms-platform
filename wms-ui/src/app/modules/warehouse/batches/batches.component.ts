@@ -95,7 +95,7 @@ export default class BatchesComponent implements OnInit {
         this.applyFilter();
         this.loading.set(false);
       },
-      error: () => { this.loading.set(false); this.notify.error('Failed to load batches'); }
+      error: () => { this.loading.set(false); }
     });
   }
 

@@ -47,7 +47,7 @@ export default class StagesComponent implements OnInit {
         this.stages.set(list.sort((a, b) => a.orderNumber - b.orderNumber));
         this.loading.set(false);
       },
-      error: () => { this.loading.set(false); this.notify.error('Failed to load stages'); }
+      error: () => { this.loading.set(false); }
     });
   }
 
@@ -88,7 +88,7 @@ export default class StagesComponent implements OnInit {
         this.notify.success(this.editing() ? 'Stage updated' : 'Stage created');
         this.loadStages();
       },
-      error: () => { this.saving.set(false); this.notify.error('Failed to save stage'); }
+      error: () => { this.saving.set(false); }
     });
   }
 
@@ -125,7 +125,7 @@ export default class StagesComponent implements OnInit {
     const ids = list.map(s => s.id);
     this.productionService.reorderStages(ids).subscribe({
       next: () => this.notify.success('Order updated'),
-      error: () => { this.notify.error('Failed to reorder stages'); this.loadStages(); }
+      error: () => { this.loadStages(); }
     });
   }
 

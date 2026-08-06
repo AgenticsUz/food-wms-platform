@@ -60,6 +60,8 @@
     "phone": "Номер телефона",
     "password": "Пароль",
     "organizationCode": "Код организации",
+    "organizationCodeHint": "Выданный вам системный адрес — например: sinov",
+    "organizationCodeRequired": "Введите код организации",
     "signIn": "Войти",
     "welcome": "Добро пожаловать",
     "loginTitle": "Вход в WMS Платформу",

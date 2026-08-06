@@ -53,7 +53,7 @@ export default class CounterpartyDetailComponent implements OnInit {
         if (res.success && res.data) this.counterparty.set(res.data);
         this.loading.set(false);
       },
-      error: () => { this.loading.set(false); this.notify.error('Failed to load counterparty'); }
+      error: () => { this.loading.set(false); }
     });
   }
 

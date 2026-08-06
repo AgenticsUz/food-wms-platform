@@ -184,6 +184,11 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
+
+  .field-hint {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
 }
 
 // Inputs match global token rules: 10px radius + pistachio focus ring

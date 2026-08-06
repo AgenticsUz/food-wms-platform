@@ -85,23 +85,38 @@ public static class PlanLimits
     public static async Task ReportUsageAsync(WmsDbContext db, IRequestWarnings warnings, int tenantId,
         string kind, int warnPercent, CancellationToken ct = default)
     {
-        var plan = await GetPlanAsync(db, tenantId, ct);
-        if (plan == null) return;   // plansiz tenant — cheklov ham, ogohlantirish ham yo'q
-
-        var (used, max, code, template) = kind switch
+        // Bu metod yozuv MUVAFFAQIYATLI saqlangandan keyin chaqiriladi. Shuning uchun bu
+        // yerdagi hech qanday nosozlik so'rovni yiqitmasligi kerak: aks holda mijoz "xato"
+        // deb o'ylab qayta yuboradi va dublikat yozuv paydo bo'ladi. Ogohlantirish —
+        // qulaylik, amaliyotning o'zi emas.
+        try
         {
-            Users => (await db.Users.CountAsync(u => u.TenantId == tenantId, ct), plan.MaxUsers,
-                "limit_warn_users", Messages.LimitWarnUsers),
-            Warehouses => (await db.Warehouses.CountAsync(w => w.TenantId == tenantId, ct), plan.MaxWarehouses,
-                "limit_warn_warehouses", Messages.LimitWarnWarehouses),
-            _ => (await db.Transfers.CountAsync(t => t.TenantId == tenantId && t.CreatedAt >= MonthStart(DateTime.UtcNow), ct),
-                plan.MaxTransfersPerMonth, "limit_warn_transfers", Messages.LimitWarnTransfers)
-        };
+            var plan = await GetPlanAsync(db, tenantId, ct);
+            if (plan == null) return;   // plansiz tenant — cheklov ham, ogohlantirish ham yo'q
 
-        if (max <= 0) return;
-        if (Percent(used, max) < warnPercent) return;
+            // MonthStart'ni so'rovdan TASHQARIDA hisoblaymiz: ifoda ichida qolsa EF uni
+            // SQL'ga tarjima qila olmaydi va butun amaliyot qulaydi.
+            var monthStart = MonthStart(DateTime.UtcNow);
 
-        warnings.Add(code, template, used, max);
+            var (used, max, code, template) = kind switch
+            {
+                Users => (await db.Users.CountAsync(u => u.TenantId == tenantId, ct), plan.MaxUsers,
+                    "limit_warn_users", Messages.LimitWarnUsers),
+                Warehouses => (await db.Warehouses.CountAsync(w => w.TenantId == tenantId, ct), plan.MaxWarehouses,
+                    "limit_warn_warehouses", Messages.LimitWarnWarehouses),
+                _ => (await db.Transfers.CountAsync(t => t.TenantId == tenantId && t.CreatedAt >= monthStart, ct),
+                    plan.MaxTransfersPerMonth, "limit_warn_transfers", Messages.LimitWarnTransfers)
+            };
+
+            if (max <= 0) return;
+            if (Percent(used, max) < warnPercent) return;
+
+            warnings.Add(code, template, used, max);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"[PlanLimits] usage warning for tenant {tenantId} ({kind}) failed: {ex.Message}");
+        }
     }
 
     /// Foizni bitta joyda hisoblaymiz — frontend o'zi hisoblasa, vaqt o'tib ikkovi ajraladi.

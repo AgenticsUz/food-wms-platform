@@ -207,6 +207,10 @@ public class TenantService : ITenantService
 
     public async Task<List<TenantModuleDto>> GetModulesAsync(int tenantId)
     {
+        // Tenant yo'q bo'lsa ham javob qaytarish xavfli edi: chaqiruvchi katalogning
+        // standart holatini o'sha tenantning haqiqiy sozlamasi deb o'qiydi.
+        await EnsureTenantExistsAsync(tenantId);
+
         var allModules = await _db.Modules.OrderBy(m => m.OrderNumber).ToListAsync();
         var tenantModules = await _db.TenantModules
             .Where(tm => tm.TenantId == tenantId).ToListAsync();
@@ -222,6 +226,14 @@ public class TenantService : ITenantService
         }).ToList();
     }
 
+    /// Modul endpointlari uchun — qolgan hammasi tenantni `FindAsync` bilan oladi va shu
+    /// xatoni tashlaydi, bular esa umuman tekshirmasdi.
+    private async Task EnsureTenantExistsAsync(int tenantId)
+    {
+        if (!await _db.Tenants.AnyAsync(t => t.Id == tenantId))
+            throw new NotFoundException("Tenant not found");
+    }
+
     public async Task ToggleModulesAsync(int tenantId, List<ToggleModuleDto> modules)
     {
         foreach (var dto in modules)
@@ -230,6 +242,9 @@ public class TenantService : ITenantService
 
     public async Task ToggleModuleAsync(int tenantId, ToggleModuleDto dto)
     {
+        // Aks holda mavjud bo'lmagan tenant uchun yetim TenantModule qatori yozilardi.
+        await EnsureTenantExistsAsync(tenantId);
+
         var moduleExists = await _db.Modules.AnyAsync(m => m.Id == dto.ModuleId);
         if (!moduleExists) return;
 

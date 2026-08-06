@@ -60,6 +60,8 @@
     "phone": "Telefon raqam",
     "password": "Parol",
     "organizationCode": "Tashkilot kodi",
+    "organizationCodeHint": "Sizga berilgan tizim manzili — masalan: sinov",
+    "organizationCodeRequired": "Tashkilot kodini kiriting",
     "signIn": "Kirish",
     "welcome": "Xush kelibsiz",
     "loginTitle": "WMS Platformaga kirish",

@@ -13,6 +13,7 @@ import { NotificationService } from '../../../shared/services/notification.servi
 import { LoadingService } from '../../../core/services/loading.service';
 import { environment } from '../../../../environments/environment';
 import { blockedReasonKey } from '../../../core/models/subscription.model';
+import { isSlugFromHost, normalizeSlug, rememberTenantSlug, resolveTenantSlug } from '../../../shared/utils/tenant-slug.util';
 
 @Component({
   selector: 'app-login',
@@ -33,6 +34,12 @@ export default class LoginComponent {
 
   phone = signal('');
   password = signal('');
+  /**
+   * Qaysi tenantga kirilyapti. Subdomen berса o'shandan olinadi va maydon ko'rsatilmaydi;
+   * localhost yoki yalang'och domenda foydalanuvchi o'zi kiritadi.
+   */
+  tenantSlug = signal(resolveTenantSlug());
+  readonly askTenant = !isSlugFromHost();
   loading = signal(false);
   /** 402 — obuna to'xtatilgan yoki muddati o'tgan. Toast emas, ko'rinarli panel. */
   blockedKey = signal<string | null>(null);
@@ -57,6 +64,12 @@ export default class LoginComponent {
       return;
     }
 
+    const slug = normalizeSlug(this.tenantSlug());
+    if (!slug) {
+      this.notify.warn(this.transloco.translate('auth.organizationCodeRequired'));
+      return;
+    }
+
     this.blockedKey.set(null);
     this.blockedText.set(null);
     this.loading.set(true);
@@ -64,9 +77,10 @@ export default class LoginComponent {
     this.authService.login({
       phone: '+998' + this.phone(),
       password: this.password(),
-      tenantSlug: environment.tenantSlug
+      tenantSlug: slug
     }).subscribe({
       next: () => {
+        rememberTenantSlug(slug);
         this.loading.set(false);
         this.tenantService.loadModules();
         this.bellService.startPolling();

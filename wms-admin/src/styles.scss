@@ -6,6 +6,13 @@
 
 @use 'tailwindcss';
 
+/* Tailwind v4 da `dark:` standart holatda operatsion tizimning `prefers-color-scheme`
+   sozlamasiga bog'lanadi. Ilova esa o'z mavzusini `documentElement` dagi `.dark-mode`
+   klassi bilan boshqaradi. Ikkovi bog'lanmagani uchun OS qora rejimda bo'lsa ilova
+   yorug' mavzuni chizardi-yu, `dark:text-white` kabi utilitalar yonib turardi.
+   Endi `dark:` faqat ilovaning o'z mavzu klassiga ergashadi. */
+@custom-variant dark (&:where(.dark-mode, .dark-mode *, .dark, .dark *));
+
 /* ---- Tailwind v4 theme tokens ---- */
 @theme {
   /* Cream — fon */

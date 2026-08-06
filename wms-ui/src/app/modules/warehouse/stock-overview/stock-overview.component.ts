@@ -59,7 +59,7 @@ export default class StockOverviewComponent implements OnInit {
         }
         this.loadStock();
       },
-      error: () => { this.loading.set(false); this.notify.error('Failed to load warehouses'); }
+      error: () => { this.loading.set(false); }
     });
   }
 
@@ -77,7 +77,7 @@ export default class StockOverviewComponent implements OnInit {
           this.applyFilter();
           this.loading.set(false);
         },
-        error: () => { this.loading.set(false); this.notify.error('Failed to load stock'); }
+        error: () => { this.loading.set(false); }
       });
     } else {
       // Load stock from ALL warehouses
@@ -87,7 +87,7 @@ export default class StockOverviewComponent implements OnInit {
           this.applyFilter();
           this.loading.set(false);
         },
-        error: () => { this.loading.set(false); this.notify.error('Failed to load stock'); }
+        error: () => { this.loading.set(false); }
       });
     }
   }

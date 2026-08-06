@@ -115,6 +115,28 @@ public static class TenantProvisioner
         db.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = role.Id });
         await db.SaveChangesAsync();
 
+        // 6. O'lchov birliklari. Bular demo ma'lumot emas — kilogramm hamma zavodda
+        //    kilogramm. Ilgari faqat tizim tenantiga (DataInitializer) qo'yilardi, shuning
+        //    uchun har bir yangi mijoz mahsulot kartochkasidagi bo'sh "Birlik" ro'yxatiga
+        //    duch kelardi va birinchi mahsulotdan oldin ularni qo'lda kiritishi kerak edi.
+        db.Units.AddRange(DefaultUnits.Select(u => new Unit
+        {
+            TenantId = tenant.Id, Name = u.Name, ShortName = u.ShortName
+        }));
+        await db.SaveChangesAsync();
+
         return (tenant, user);
     }
+
+    /// Har qanday zavodda bir xil bo'lgan o'lchov birliklari — `DataInitializer` tizim
+    /// tenantiga qo'yadigan to'plam bilan bir xil.
+    private static readonly (string Name, string ShortName)[] DefaultUnits =
+    {
+        ("Kilogramm", "kg"),
+        ("Litr", "litr"),
+        ("Dona", "dona"),
+        ("Gramm", "gramm"),
+        ("Quti", "quti"),
+        ("Paket", "paket")
+    };
 }

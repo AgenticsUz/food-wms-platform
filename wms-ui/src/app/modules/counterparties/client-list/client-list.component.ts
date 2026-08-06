@@ -68,7 +68,7 @@ export default class ClientListComponent implements OnInit {
         this.applyFilter();
         this.loading.set(false);
       },
-      error: () => { this.loading.set(false); this.notify.error('Failed to load clients'); }
+      error: () => { this.loading.set(false); }
     });
   }
 
@@ -109,7 +109,7 @@ export default class ClientListComponent implements OnInit {
     const obs = this.editing() ? this.service.updateCounterparty(f.id!, dto) : this.service.createCounterparty(dto);
     obs.subscribe({
       next: () => { this.saving.set(false); this.dialogVisible.set(false); this.notify.success(this.editing() ? 'Client updated' : 'Client created'); this.loadData(); },
-      error: () => { this.saving.set(false); this.notify.error('Failed to save client'); }
+      error: () => { this.saving.set(false); }
     });
   }
 

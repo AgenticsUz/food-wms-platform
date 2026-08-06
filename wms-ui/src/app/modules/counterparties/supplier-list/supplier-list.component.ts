@@ -57,7 +57,7 @@ export default class SupplierListComponent implements OnInit {
         this.applyFilter();
         this.loading.set(false);
       },
-      error: () => { this.loading.set(false); this.notify.error('Failed to load suppliers'); }
+      error: () => { this.loading.set(false); }
     });
   }
 
@@ -98,7 +98,7 @@ export default class SupplierListComponent implements OnInit {
     const obs = this.editing() ? this.service.updateCounterparty(f.id!, dto) : this.service.createCounterparty(dto);
     obs.subscribe({
       next: () => { this.saving.set(false); this.dialogVisible.set(false); this.notify.success(this.editing() ? 'Supplier updated' : 'Supplier created'); this.loadData(); },
-      error: () => { this.saving.set(false); this.notify.error('Failed to save supplier'); }
+      error: () => { this.saving.set(false); }
     });
   }
 

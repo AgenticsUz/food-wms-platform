@@ -45,7 +45,7 @@ export default class RecipeDetailComponent implements OnInit {
         }
         this.loading.set(false);
       },
-      error: () => { this.loading.set(false); this.notify.error('Failed to load recipe'); }
+      error: () => { this.loading.set(false); }
     });
   }
 

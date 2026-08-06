@@ -43,7 +43,7 @@ export default class RecipeListComponent implements OnInit {
         this.applyFilter();
         this.loading.set(false);
       },
-      error: () => { this.loading.set(false); this.notify.error('Failed to load recipes'); }
+      error: () => { this.loading.set(false); }
     });
   }
 

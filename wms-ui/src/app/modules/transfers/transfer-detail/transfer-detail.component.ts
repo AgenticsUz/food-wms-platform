@@ -45,7 +45,7 @@ export default class TransferDetailComponent implements OnInit {
         if (res.success && res.data) this.transfer.set(res.data);
         this.loading.set(false);
       },
-      error: () => { this.loading.set(false); this.notify.error('Failed to load transfer'); }
+      error: () => { this.loading.set(false); }
     });
   }
 

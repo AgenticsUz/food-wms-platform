@@ -44,6 +44,22 @@
       }
 
       <form class="login-form" (ngSubmit)="login()">
+        @if (askTenant) {
+          <div class="field">
+            <label for="tenant">{{ t('auth.organizationCode') }}</label>
+            <input pInputText
+                   id="tenant"
+                   [ngModel]="tenantSlug()"
+                   (ngModelChange)="tenantSlug.set($event)"
+                   name="tenant"
+                   autocapitalize="none"
+                   autocomplete="organization"
+                   spellcheck="false"
+                   class="w-full" />
+            <small class="field-hint">{{ t('auth.organizationCodeHint') }}</small>
+          </div>
+        }
+
         <div class="field">
           <label for="phone">{{ t('auth.phone') }}</label>
           <p-inputgroup>
