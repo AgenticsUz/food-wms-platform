@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using WMS.Application.Common;
 using WMS.Application.Common.Localization;
 using WMS.Application.DTOs.Branding;
@@ -23,12 +24,15 @@ public class BrandingService : IBrandingService
     private readonly WmsDbContext _db;
     private readonly IBrandingFileStore _files;
     private readonly ITenantStateService _tenantState;
+    private readonly IConfiguration _config;
 
-    public BrandingService(WmsDbContext db, IBrandingFileStore files, ITenantStateService tenantState)
+    public BrandingService(WmsDbContext db, IBrandingFileStore files, ITenantStateService tenantState,
+        IConfiguration config)
     {
         _db = db;
         _files = files;
         _tenantState = tenantState;
+        _config = config;
     }
 
     /// Validates a brand colour. Contrast is the client's problem; the format is ours.
@@ -57,8 +61,13 @@ public class BrandingService : IBrandingService
 
     public async Task<PublicBrandingDto> GetPublicAsync(string? slug, CancellationToken ct = default)
     {
+        // Aloqa ma'lumoti slugdan qat'i nazar qaytadi — noto'g'ri slug yozgan mijoz ham
+        // kimga qo'ng'iroq qilishni bilishi kerak.
+        var support = (Phone: _config["Support:Phone"], Email: _config["Support:Email"]);
+
         var normalized = (slug ?? "").Trim().ToLowerInvariant();
-        if (normalized.Length == 0) return new PublicBrandingDto();
+        if (normalized.Length == 0)
+            return new PublicBrandingDto { SupportPhone = support.Phone, SupportEmail = support.Email };
 
         var tenant = await _db.Tenants.AsNoTracking()
             .Where(t => t.Slug == normalized && t.IsActive)
@@ -74,7 +83,10 @@ public class BrandingService : IBrandingService
 
         // Unknown slug → empty branding, still 200. Anything else would let anyone probe
         // which companies use the platform.
-        return tenant ?? new PublicBrandingDto();
+        tenant ??= new PublicBrandingDto();
+        tenant.SupportPhone = support.Phone;
+        tenant.SupportEmail = support.Email;
+        return tenant;
     }
 
     public async Task<BrandingDto> UploadLogoAsync(int tenantId, LogoKind kind, LogoUpload upload,

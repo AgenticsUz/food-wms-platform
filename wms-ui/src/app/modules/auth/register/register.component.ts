@@ -8,7 +8,7 @@ import { InputGroupAddon } from 'primeng/inputgroupaddon';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { LeadService } from '../../../core/services/lead.service';
 import { NotificationService } from '../../../shared/services/notification.service';
-import { environment } from '../../../../environments/environment';
+import { PublicInfoService } from '../../../core/services/public-info.service';
 
 /**
  * Avval bu sahifa tenant yaratardi. Yangi modelda hisobni faqat platforma egasi
@@ -37,7 +37,11 @@ export default class RequestDemoComponent {
   /** Yuborilgach forma o'rniga tasdiq ekrani qoladi — qayta yuborish yo'q. */
   sent = signal(false);
 
-  readonly supportPhone = environment.supportPhone;
+  // Login sahifasi bilan bir xil manba — server sozlamasi, `environment` zaxira.
+  private publicInfo = inject(PublicInfoService);
+  readonly supportPhone = this.publicInfo.supportPhone;
+
+  constructor() { this.publicInfo.load(); }
 
   onPhoneInput(value: string) {
     this.phone.set(value.replace(/\D/g, ''));

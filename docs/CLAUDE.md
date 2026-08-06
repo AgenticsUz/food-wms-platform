@@ -114,7 +114,7 @@ Self-service registratsiya · Kunlik DB backup · `/health` + Serilog · CI/CD �
 
 | # | Kim | Ish |
 |---|---|---|
-| R1 | Frontend | `environment.ts` / `environment.prod.ts` da **haqiqiy** `supportPhone` / `supportEmail` (hozir placeholder — bloklangan mijoz aynan shuni ko'radi) |
+| R1 | DevOps | **Haqiqiy aloqa ma'lumoti.** 2026-08-06 dan boshlab u faqat **serverda** turadi: `appsettings.Production.json` → `Support:Phone` / `Support:Email` (yoki `Support__Phone` env). Login sahifasi ham `GET /api/public/branding` orqali shuni oladi, ya'ni **frontendni qayta yig'ish shart emas**. `environment*.ts` dagi qiymatlar faqat server javob bermaganda ishlaydigan zaxira. Hozir ikkala joyda ham placeholder — bloklangan mijoz aynan shuni ko'radi |
 | R2 | Ikkalasi | **Jonli muhitda uchma-uch sinov** — §5 dagi 6 ssenariy |
 | R3 | DevOps | Deploydan oldin **bazani zaxiralash** (migration unique indeks qo'yadi, dublikat sluglarni `-dup<Id>` qiladi) |
 | R4 | Platforma egasi | Deploydan keyin mavjud mijozlarga plan biriktirish (plansiz = cheksiz) |

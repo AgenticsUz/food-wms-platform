@@ -36,8 +36,8 @@
             <div class="blocked-title">{{ blockedText() || t(key) }}</div>
             <div class="blocked-contact">
               {{ t('subscription.contactUs') }} —
-              <a [href]="'tel:' + supportPhone">{{ supportPhone }}</a>,
-              <a [href]="'mailto:' + supportEmail">{{ supportEmail }}</a>
+              <a [href]="'tel:' + supportPhone()">{{ supportPhone() }}</a>,
+              <a [href]="'mailto:' + supportEmail()">{{ supportEmail() }}</a>
             </div>
           </div>
         </div>

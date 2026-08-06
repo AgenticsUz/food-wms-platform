@@ -29,7 +29,7 @@
           <div class="sent-icon"><i class="pi pi-check"></i></div>
           <h1 class="login-title">{{ t('auth.demoSuccessTitle') }}</h1>
           <p class="login-subtitle">{{ t('auth.demoSuccessText') }}</p>
-          <p class="sent-contact">{{ t('auth.demoContact') }} <a [href]="'tel:' + supportPhone">{{ supportPhone }}</a></p>
+          <p class="sent-contact">{{ t('auth.demoContact') }} <a [href]="'tel:' + supportPhone()">{{ supportPhone() }}</a></p>
           <div class="login-alt-links">
             <a routerLink="/auth/login"><i class="pi pi-sign-in"></i> {{ t('auth.signIn') }}</a>
           </div>

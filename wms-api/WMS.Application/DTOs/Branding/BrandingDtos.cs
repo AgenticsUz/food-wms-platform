@@ -23,6 +23,16 @@ public class PublicBrandingDto
 {
     public string? Name { get; set; }
     public BrandingDto Branding { get; set; } = new();
+
+    /// <summary>
+    /// Qo'llab-quvvatlash aloqasi. Login sahifasi obuna bloklanganini aynan shu yerda
+    /// ko'rsatadi, lekin o'sha paytda tokeni yo'q — `/api/subscription/me` ga kira olmaydi.
+    /// Shuning uchun bu qiymatlar tokensiz javobga ham qo'shiladi: aks holda frontend
+    /// ularni o'zida saqlashga majbur bo'ladi va raqamni almashtirish uchun butun
+    /// Angular ilovasini qayta yig'ish kerak bo'lardi.
+    /// </summary>
+    public string? SupportPhone { get; set; }
+    public string? SupportEmail { get; set; }
 }
 
 /// One uploaded logo, described without any web-layer types so the Application layer

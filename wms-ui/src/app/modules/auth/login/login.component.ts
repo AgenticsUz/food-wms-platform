@@ -11,7 +11,7 @@ import { TenantService } from '../../../core/services/tenant.service';
 import { NotificationBellService } from '../../../core/services/notification-bell.service';
 import { NotificationService } from '../../../shared/services/notification.service';
 import { LoadingService } from '../../../core/services/loading.service';
-import { environment } from '../../../../environments/environment';
+import { PublicInfoService } from '../../../core/services/public-info.service';
 import { blockedReasonKey } from '../../../core/models/subscription.model';
 import { isSlugFromHost, normalizeSlug, rememberTenantSlug, resolveTenantSlug } from '../../../shared/utils/tenant-slug.util';
 
@@ -46,8 +46,13 @@ export default class LoginComponent {
   /** Backend o'z matnini yuborsa — standart tarjimadan ustun turadi. */
   blockedText = signal<string | null>(null);
 
-  readonly supportPhone = environment.supportPhone;
-  readonly supportEmail = environment.supportEmail;
+  // Server sozlamasidan keladi; `environment` faqat zaxira. Shu sababli raqamni
+  // almashtirish uchun frontendni qayta yig'ish shart emas.
+  private publicInfo = inject(PublicInfoService);
+  readonly supportPhone = this.publicInfo.supportPhone;
+  readonly supportEmail = this.publicInfo.supportEmail;
+
+  constructor() { this.publicInfo.load(); }
 
   onPhoneInput(value: string) {
     this.phone.set(value.replace(/\D/g, ''));
