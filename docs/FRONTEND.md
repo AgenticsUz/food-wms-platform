@@ -331,8 +331,18 @@ cd wms-admin && npm install && ng serve         # http://localhost:7060
 ng build --configuration production
 ```
 
-Deploy: `dist/<app>/browser` → Nginx static; `/api` → backendga proxy.
-`environment.prod.ts` da `apiUrl: '/api'` (nisbiy — HTTPS'da mixed-content bo'lmasin).
+Deploy: `dist/<app>/browser` → Nginx static; `/api` **va** `/uploads` → backendga proxy.
+To'liq nginx qolipi va domenlar: `CLAUDE.md` §6.
+
+**Ikkala ilovada ham `apiUrl: '/api'` — nisbiy.** Sabab:
+
+- so'rov o'z domeniga ketadi → **CORS ishga tushmaydi** (same-origin);
+- HTTPS'ga o'tilganda protokol avtomatik mos keladi → mixed-content yo'q va
+  frontendni qayta yig'ish shart emas.
+
+> `/uploads` ni unutmang: tenant logolari `/uploads/tenants/...` da, `/api` **ostida emas**.
+> 2026-08-08 gacha `wms-admin` absolyut `http://api.warehouse-system.u/api` ishlatardi —
+> domende `z` harfi ham tushib qolgan edi, ya'ni prod'da umuman ishlamasdi.
 
 ---
 

@@ -183,19 +183,58 @@ Qo'shimcha: registratsiyadan keyin sidebar faqat trial plan modullarini ko'rsati
 
 ## 6. Deploy
 
+### Domenlar
+
+| Domen | Nima | Qanday |
+|---|---|---|
+| `app.warehouse-system.uz` | `wms-ui` (mijoz) | statik + `/api` va `/uploads` proxy |
+| `admin.warehouse-system.uz` | `wms-admin` (platforma) | statik + `/api` va `/uploads` proxy |
+| `api.warehouse-system.uz` | to'g'ridan-to'g'ri API / Swagger | ixtiyoriy, brauzerdagi ilovalar ishlatmaydi |
+
+**Ikkala frontend ham `apiUrl: '/api'` — nisbiy.** Ya'ni so'rov o'z domeniga ketadi va
+nginx uni backendga uzatadi. Natijada:
+
+- **CORS umuman ishga tushmaydi** (same-origin). `appsettings.Production.json` dagi
+  `Cors:AllowedOrigins` faqat zaxira — kimdir `api.` subdomeniga to'g'ridan-to'g'ri
+  murojaat qiladigan bo'lsa kerak bo'ladi.
+- **HTTPS'ga o'tganda hech narsa o'zgarmaydi** — protokol avtomatik mos keladi,
+  mixed-content bloklanmaydi va frontendni qayta yig'ish shart emas.
+
+### Buyruqlar
+
 ```bash
 # Backend
-cd wms-api && dotnet publish WMS.API -c Release -o /var/www/wms-api
+cd wms-api && dotnet publish WMS.API -c Release -o /var/www/wms/api
 # systemd: ASPNETCORE_URLS=http://localhost:7040, ASPNETCORE_ENVIRONMENT=Production
 
-# Frontendlar (alohida hostlar)
-cd wms-ui    && ng build --configuration production   # → /var/www/wms-ui
-cd wms-admin && ng build --configuration production   # → /var/www/wms-admin (subdomen)
-
-# Nginx: / → dist/<app>/browser (try_files ... /index.html), /api → localhost:7040
+# Frontendlar
+cd wms-ui    && ng build --configuration production   # → /var/www/wms-ui/browser
+cd wms-admin && ng build --configuration production   # → /var/www/wms-admin/browser
 ```
 
-**Checklist**
+### Nginx (ikkala frontend uchun bir xil qolip)
+
+```nginx
+server {
+    listen 80;
+    server_name app.warehouse-system.uz;          # admin uchun: admin.warehouse-system.uz
+    root /var/www/wms-ui/browser;                 # admin uchun: /var/www/wms-admin/browser
+
+    location /api      { proxy_pass http://localhost:7040; include proxy_params; }
+
+    # Tenant logolari `/uploads/tenants/...` manzilida, `/api` OSTIDA EMAS.
+    # Bu qatorsiz brendlash logolari 404 bo'ladi.
+    location /uploads  { proxy_pass http://localhost:7040; include proxy_params; }
+
+    location /         { try_files $uri $uri/ /index.html; }
+}
+```
+
+`proxy_params` da kamida: `proxy_set_header Host $host;` ·
+`X-Real-IP` · `X-Forwarded-For` · `X-Forwarded-Proto $scheme`.
+Oxirgisi muhim — lead formasidagi rate limit (5/soat/IP) haqiqiy IP'ni ko'rishi kerak.
+
+### Checklist
 
 1. Bazani zaxiralang.
 2. Dublikatlarni oldindan ko'ring:
@@ -203,10 +242,21 @@ cd wms-admin && ng build --configuration production   # → /var/www/wms-admin (
    SELECT Slug, COUNT(*) FROM Tenants WHERE IsDeleted = 0 GROUP BY Slug HAVING COUNT(*) > 1;
    SELECT Code, COUNT(*) FROM Plans   WHERE IsDeleted = 0 GROUP BY Code HAVING COUNT(*) > 1;
    ```
-3. `environment.prod.ts` da aloqa ma'lumotini haqiqiysiga almashtiring (R1).
-4. Prod'da `Jwt__Key` va `Seed__AdminPassword` ni **env orqali** bering.
-5. Deploydan keyin `GET /api/admin/plans` → 4 ta plan, `trial` default ekanini tekshiring.
-6. Mavjud mijozlarni SuperAdmin ilovasidan plan bilan bog'lang (R4).
+3. `Support:Phone` / `Support:Email` ni **serverda** haqiqiysiga qo'ying (R1) —
+   frontendni qayta yig'ish shart emas.
+4. Prod'da `Jwt__Key` va `Seed__AdminPassword` ni **env orqali** bering
+   (`appsettings.Production.json` dagi kalit repoda turibdi — uni ishlatmang).
+5. `ASPNETCORE_ENVIRONMENT=Production` ni systemd unit'da **aniq** yozing. Usiz
+   `.NET` Production konfiguratsiyasini olmaydi va noto'g'ri baza yo'liga uriladi.
+6. Deploydan keyin `GET /api/admin/plans` → 4 ta plan, `trial` default ekanini tekshiring.
+7. Mavjud mijozlarni SuperAdmin ilovasidan plan bilan bog'lang (R4).
+8. Eski mijozlarda o'lchov birliklari yo'q (`TenantProvisioner` tuzatishi faqat
+   yangi tenantlarga taalluqli) — kerak bo'lsa qo'lda qo'shing.
+
+> **`wms-api/publish/` papkasini deploy uchun ishlatmang.** U git'da kuzatiladi, lekin
+> ichidagi build **2026-04-12** dan qolgan (SaaS qatlami umuman yo'q) va
+> `appsettings.Production.json` i ham eski — CORS'da faqat `app.` bor, baza yo'li
+> `/var/www/wms-api/wms.db`. Har doim yangi `dotnet publish` qiling.
 
 ---
 
