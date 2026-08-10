@@ -1,6 +1,6 @@
 # CLAUDE.md — WMS Platform
 
-> **Oxirgi yangilanish:** 2026-08-06 · **Branch:** `saas-admin`
+> **Oxirgi yangilanish:** 2026-08-10 · **Branch:** `saas-admin`
 > **Bu fayl — loyihaning kirish nuqtasi va yagona manbasi.**
 > Texnik tafsilotlar ikki qo'shni hujjatda:
 > **[`BACKEND.md`](BACKEND.md)** (`wms-api`) · **[`FRONTEND.md`](FRONTEND.md)** (`wms-ui` + `wms-admin`).
@@ -38,7 +38,7 @@ wms/
 ├── docs/          # CLAUDE.md · BACKEND.md · FRONTEND.md  ← faqat shu 3 ta
 ├── wms-api/       # .NET 8 · Clean Architecture (Domain/Application/Infrastructure/API)
 ├── wms-ui/        # Angular 21 · tenant ilovasi · 4 til
-└── wms-admin/     # Angular 21 · SuperAdmin konsoli · inglizcha
+└── wms-admin/     # Angular 21 · SuperAdmin konsoli · uz · ru · en
 ```
 
 ### Texnologiya
@@ -53,7 +53,7 @@ wms/
 
 ---
 
-## 3. Hozirgi holat (2026-08-06)
+## 3. Hozirgi holat (2026-08-10)
 
 **Cheklovlar API darajasida majburlanadi va mijozga tushunarli ko'rsatiladi.**
 Modul gating backendda, obuna har so'rovda tekshiriladi, trial haqiqiy muddat bilan
@@ -92,8 +92,18 @@ muddati tugasa tizim o'zi to'xtatadi.
 | # | Ish | Natija |
 |---|---|---|
 | B1 | Brendlash | `Tenant.LogoUrl` / `LogoSquareUrl` / `BrandColor`; `POST/DELETE /api/admin/tenants/{id}/logo?type=wide\|square` (512 KB, SVG/PNG/WebP, o'lcham chegarasi, SVG skript tekshiruvi, fayl nomida hash → cache buzilmaydi); bir xil `branding` obyekti login javobida, `/api/subscription/me` da va `GET /api/public/branding?slug=` da; PDF va Excel sarlavhalarida logo + nom |
-| B2 | Limit ogohlantirishi | `ApiResponse.warning` (`{ code, message }`) — **xato emas**, 200 qoladi; `limit_warn_users` / `limit_warn_warehouses` / `limit_warn_transfers`; `/subscription/me` limitlarida `usagePercent` + `isNearLimit` (hisob endi faqat backendda) |
+| B2 | Limit ogohlantirishi | `ApiResponse.warning` (`{ code, message }`) — **xato emas**, 200 qoladi; `limit_warn_users` / `limit_warn_warehouses` / `limit_warn_transfers`; `/subscription/me` limitlarida `usagePercent` + `isNearLimit`. **Backendda** hisoblanadi; frontend hali o'zi ham hisoblaydi — R7 |
 | B3 | Hujjatlar | Shu bo'lim va `BACKEND.md` kod bilan solishtirib yangilandi |
+| — | **Parol tiklash** | `GET /api/admin/tenants/{id}/users` · `POST .../reset-user-password` (platforma) va `POST /api/users/{id}/reset-password` (tenant admin). Parol javobda **bir marta**, hech qayerda ochiq saqlanmaydi va audit jurnaliga tushmaydi; 12 belgi, chalkash belgilarsiz; `SecurityStamp` aylanadi → eski tokenlar darhol o'ladi. `wms-admin` UI bajarilgan, `wms-ui` tomoni — F8 |
+
+**Backend B4–B7 (2026-08-10):**
+
+| # | Ish | Natija |
+|---|---|---|
+| B4 | Platforma audit endpointi | `GET /api/admin/audit` (SuperAdmin) — barcha tenantlar; filtrlar `tenantId`/`userId`/`entityType`/`action`/`platformOnly`/`from`/`to`; sahifalash majburiy (default 50, **max 200**, oshig'i qisqartiriladi, xato emas); javobda `tenantName` + `actorTenantName`; `AuditLog.CreatedAt` ga alohida indeks |
+| B5 | Permission katalogi | Har `PermissionDto` da **`isAvailable`** — ruxsat tarifda ishlaydimi. Ro'yxat **kesilmaydi**. `Permission.Module` ↔ `ModuleCodes` mos emas → `PermissionModules` mapping jadvali (`WAREHOUSE`→2 modul, `PARTNERS`→2 modul, `DASHBOARD`/`PRODUCTS`/`SETTINGS`→modulsiz, doim mavjud). Tarifdan tashqari ruxsat **saqlanadi** + `warning: permissions_outside_plan` |
+| B6 | `MustChangePassword` | Parolni boshqa odam qo'ygan bo'lsa `true` (ikkala tiklash yo'li, provisioner, xodim yaratish); faqat `ChangePasswordAsync` tozalaydi. Login javobida qaytadi. Backend **bloklamaydi** — majburlash frontendda (F8). Mavjud foydalanuvchilarda `false` |
+| B7 | Hujjat ziddiyatlari | Shu fayldagi 4 ta ichki qarama-qarshilik tuzatildi |
 
 **Jonli uchma-uch sinov va tuzatishlar (2026-08-06):** uchala ilova birga ishga tushirilib,
 yangi tenant mijoz yo'lidan o'tkazildi. Topilgan va tuzatilgan nuqsonlar:
@@ -122,7 +132,11 @@ moliya + qarz, KPI + smena + davomat, sifat nazorati, mahsulot/kontragent) ·
 Agent moduli (komissiya) · Delivery moduli (transport, haydovchi, marshrut, yuk xati PDF) ·
 Qaytarish (return) · Audit jurnali · Bildirishnomalar + Telegram (config-gated) ·
 Excel import/export · PDF · Barcode · Analitika (11 endpoint) · Kontragent va agent portallari ·
-Self-service registratsiya · Kunlik DB backup · `/health` + Serilog · CI/CD · Performance indekslar.
+Demo so'rovi (lead) oqimi · Kunlik DB backup · `/health` + Serilog · CI/CD · Performance indekslar.
+
+> Public self-service registratsiya **yopiq** (S3) — `Registration:SelfServiceEnabled=false`,
+> `register` 404 qaytaradi. Kod olib tashlanmadi: lead'ni tenantga aylantirish aynan
+> o'sha provizatsiya yo'lidan foydalanadi.
 
 ---
 
@@ -141,12 +155,13 @@ Self-service registratsiya · Kunlik DB backup · `/health` + Serilog · CI/CD �
 
 | # | Kim | Ish |
 |---|---|---|
-| R5 | Frontend | **`wms-admin` da audit sahifasi umuman yo'q.** Kerak: sana · tenant · foydalanuvchi · amal · obyekt ustunlari, tenant va sana bo'yicha filtr, "faqat platforma amallari" filtri, tenant detalidan havola. Endpointni **avval Swagger'dan tasdiqlang** — `/api/admin/audit` bormi yoki mavjud `/api/audit` ni SuperAdmin uchun kengaytirish kerakmi; bo'lmasa avval backendga yozdiring. (`wms-ui` tomonidagi "Platforma amali" badge'i va filtri **bajarilgan** — `ec82f81`) |
+| R5 | Frontend | **`wms-admin` da audit sahifasi (F10).** Backend tayyor — `GET /api/admin/audit` (B4), javobda `tenantName` bor, ya'ni har qator uchun alohida so'rov kerak emas. Kerak: sana · tenant · foydalanuvchi · amal · obyekt ustunlari, `isPlatformAction` badge'i, filtrlar (tenant · sana oralig'i · amal turi · faqat platforma amallari), **server tomonda sahifalash** (`p-table` lazy — barcha yozuvni yuklamang), tenant detalidan filtr qo'yilgan havola. (`wms-ui` tomoni **bajarilgan** — `ec82f81`) |
 | R19 | Frontend | **Brendlash UI (B1 ning davomi).** `wms-admin`: tenant formasida logo yuklash (keng + kvadrat, jonli ko'rinish, o'chirish) va `p-colorpicker` + hex. Rang oq matn bilan WCAG AA (< 4.5) bermasa — **bloklamang, ogohlantiring**, aks holda mijoz och sariq tanlaydi. `wms-ui`: bitta `brandColor` dan butun palitra hosil qiling (mijozdan bir nechta rang so'ramang) → `--brand-primary` + soyalar `documentElement` ga, PrimeNG Aura primary override; `null` bo'lsa standart pistachio. Logo: sidebar ochiq → `logoUrl`, yig'ilgan → `logoSquareUrl`, favicon → kvadrat. **Miltillash:** oxirgi brendlashni `localStorage` da saqlab, ochilishda darhol qo'llang, javob kelgach yangilang, **logout'da tozalang** — aks holda keyingi mijoz oldingisining rangini ko'radi |
 | R20 | Ikkalasi | **Subdomen** — qaror qabul qilingan, birinchi 1–2 mijozdan keyin. `GET /api/public/branding?slug=` allaqachon tayyor. **Frontend qismi 2026-08-06 da bajarildi:** `tenant-slug.util.ts` slug'ni subdomen → eslab qolingan → standart tartibida aniqlaydi (`FRONTEND.md` §2.8), qolgani DNS/nginx |
 | R21 | Ikkalasi | **S8/S9 hamkorlik** (tenantlar o'rtasida hujjat almashinuvi) — birinchi real juftlik paydo bo'lganda. Poydevor: `Organization` (S6) |
 | R6 | Backend | Trial tugashi haqida xabar yuborish (Telegram / in-app) — hozir fon xizmati faqat suspend qiladi, banner esa mijoz kirsagina ko'rinadi |
-| R7 | Frontend | Limit 80 % ogohlantirishi — **backend qismi bajarildi (B2)**. Qolgani: (a) obuna sahifasi foizni **o'zi hisoblamasin**, backend `usagePercent`/`isNearLimit` ni ishlatsin — hozir `subscription.model.ts` da mahalliy `LIMIT_WARN_PERCENT` bilan qayta hisoblanadi va konfig o'zgarsa UI ergashmaydi; (b) `ApiService` javobdagi `warning` ni **markazlashgan joyda** `notify.warn()` ga bersin (har komponentda emas — "bitta toast" qoidasi), kodlar `limit_warn_users`/`_warehouses`/`_transfers`; (c) yaratish formalarida `isNearLimit` bo'lsa tinch panel ("20 / 25"), bloklamaydi. Ogohlantirish xato kabi ko'rinmasin; plansiz tenantda umuman chiqmasin |
+| R7 | Frontend | Limit ogohlantirishi (F11) — **backend qismi bajarildi (B2, B5)**. Qolgani: (a) obuna sahifasi foizni **o'zi hisoblamasin**, backend `usagePercent`/`isNearLimit` ni ishlatsin — hozir `subscription.model.ts` da mahalliy `LIMIT_WARN_PERCENT` bilan qayta hisoblanadi va backenddagi konfig o'zgarsa UI ergashmaydi; (b) `ApiService` javobdagi `warning` ni **markazlashgan joyda** `notify.warn()` ga bersin (har komponentda emas — "bitta toast" qoidasi), kodlar `limit_warn_users`/`_warehouses`/`_transfers` va `permissions_outside_plan`; (c) yaratish formalarida `isNearLimit` bo'lsa tinch panel ("20 / 25"), bloklamaydi; (d) Rollar sahifasida `isAvailable: false` ruxsatlar **yashirilmasin** — kulrang + "Tarifingizga kirmaydi". Ogohlantirish xato kabi ko'rinmasin; plansiz tenantda umuman chiqmasin |
+| R22 | Frontend | **`mustChangePassword` majburlash (F8 ning bir qismi).** Backend bayroqni login javobida beradi (B6) va ataylab bloklamaydi. Frontend: bayroq `true` bo'lsa foydalanuvchi parol o'zgartirish ekraniga yo'naltirilsin va boshqa sahifalarga o'tolmasin (guard), lekin `change-password` va `logout` ishlashda qolsin |
 | R8 | ~~Backend~~ | ~~Telefon tasdiqlash (SMS) / CAPTCHA~~ — **rejadan chiqdi**: self-service registratsiya yopilgani uchun (S3) tashqi SMS provayder kerak emas. Public lead formasi rate limit (5/soat/IP) bilan himoyalangan |
 | R9 | Frontend | Plan o'zgartirish so'rovi UI (hozir faqat "biz bilan bog'laning") |
 | R10 | Frontend | **Qattiq yozilgan inglizcha matnlar — o'lchangan (2026-08-06):** `notify.*` da **158**, tasdiq dialoglarida **22**, `placeholder` larda **42** (jami ~222 matn × 4 til). Bularga validatsiya ogohlantirishlari (`Recipe name is required`), enum yorliqlari (`Raw Material`, `No expiry`, `Root`) va ruxsat nomlari (`Manage Warehouse`) ham kiradi. Interceptor ustiga qo'shiladigan **ikkilangan** toastlar (12 komponent, 20 joy) allaqachon olib tashlandi |

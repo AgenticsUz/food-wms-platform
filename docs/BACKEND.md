@@ -1,8 +1,9 @@
 # WMS — Backend arxitekturasi (`wms-api`)
 
-> **Oxirgi yangilanish:** 2026-08-06 · **Branch:** `saas-admin`
+> **Oxirgi yangilanish:** 2026-08-10 · **Branch:** `saas-admin`
 > **Holat:** SaaS majburlash (T1–T13), soddalashtirilgan model (S1–S7) va brendlash +
-> limit ogohlantirishi (B1–B2) bajarilgan — build 0 xato / 0 ogohlantirish,
+> limit ogohlantirishi (B1–B2), platforma audit + permission katalogi +
+> `MustChangePassword` (B4–B6) bajarilgan — build 0 xato / 0 ogohlantirish,
 > 54/54 va 31/31 uchma-uch sinov.
 > **2026-08-06 jonli sinovda topilgan tuzatishlar:** transfer yaratishni yiqitgan
 > `ReportUsageAsync` (§4.11), yangi tenantga o'lchov birliklari (§4.6), modul
@@ -468,6 +469,81 @@ tushmaydi — faqat "kim, qachon, qaysi tenantda parol tikladi" fakti qoladi.
 `User.LastLoginAt` ham qo'shildi (login paytida yoziladi) — SuperAdmin ro'yxatida "kim
 oxirgi marta kirgan" ko'rinadi, tiklashdan oldin kimni tanlashni bilish uchun.
 
+### `MustChangePassword` (B6)
+
+Tiklangan parol telefonda aytiladi yoki xabarda yuboriladi va **o'sha kanalda qolib ketadi**.
+`User.MustChangePassword` shuni belgilaydi: parolni egasidan boshqa odam qo'yganmi.
+
+| Qayerda | Qiymat |
+|---|---|
+| `PasswordResetService.ApplyAsync` (ikkala tiklash yo'li) | `true` |
+| `TenantProvisioner` — yangi tenant admini | `true` |
+| `UserService.CreateAsync` — yangi xodim | `true` |
+| `AuthService.ChangePasswordAsync` — **yagona tozalaydigan joy** | `false` |
+
+Login javobida `user.mustChangePassword` qaytadi.
+
+> **Backend ataylab bloklamaydi.** Bloklash aniq yechimdek ko'rinadi, lekin bloklangan
+> foydalanuvchiga kerak bo'ladigan endpoint aynan `change-password` — uni ham to'sib
+> qo'yish bir qadam narida va zanjirli muammo yaratadi. Majburlash frontendda (F8/R22).
+
+Mavjud foydalanuvchilarda migration `false` qo'yadi: deploy hammadan parol o'zgartirishni
+talab qilsa, buni buzilishdan ajratib bo'lmaydi.
+
+---
+
+### 4.13 Platforma audit ko'rinishi (B4)
+
+`/api/audit` JWT'dagi `TenantId` bilan chegaralangan, ya'ni SuperAdmin u orqali mijoz
+ichida nima bo'lganini ko'ra olmaydi — `IsPlatformAction` va `ActorTenantId` aynan shuning
+uchun yozilgan bo'lsa ham.
+
+```
+GET /api/admin/audit?tenantId=&userId=&entityType=&action=
+                    &platformOnly=&from=&to=&page=&pageSize=     SuperAdmin
+GET /api/admin/audit/entity-types                                SuperAdmin
+```
+
+- `tenantId` berilmasa — **barcha** tenantlar.
+- Sahifalash **majburiy**: default `50`, maksimal `200`. `pageSize=1000` **xato emas** —
+  jimgina 200 ga qisqartiriladi. Audit — sxemadagi eng tez o'sadigan jadval.
+- Javobda `tenantName` va `actorTenantName` bor. Aks holda frontend har qator uchun
+  alohida so'rov qilardi.
+- Nomlar `join` bilan emas, sahifadagi id'lar bo'yicha **ikkinchi so'rov** bilan olinadi:
+  `AuditLog` da `Tenant` ga navigatsiya ataylab yo'q (append-only). Qidiruv soft-delete
+  filtridan o'tmaydi — o'chirilgan mijozning izi nomsiz qolmasin.
+- `AuditLog.CreatedAt` ga **alohida indeks** qo'shildi: tenant bo'yicha filtrlanmagan
+  so'rov mavjud `(TenantId, CreatedAt)` indeksidan foydalana olmaydi (birinchi ustun yo'q).
+
+Tenant ro'yxati uchun alohida endpoint yozilmadi — `GET /api/admin/tenants` id va nomni
+allaqachon qaytaradi va konsol uni baribir yuklab turadi.
+
+### 4.14 Permission katalogi va tarif (B5)
+
+Katalog plandan qat'i nazar to'liq qaytardi: Basic mijoz "Manage Production" ni belgilab
+saqlardi, texnolog bo'sh menyuga kirardi. Xavfsizlik teshigi emas (gate baribir 403),
+lekin har yangi mijozda takrorlanadigan qo'llab-quvvatlash muammosi.
+
+Har `PermissionDto` da endi **`isAvailable`** bor. Ro'yxat **kesilmaydi**: qatorni
+yashirish tushuntirishni ham yo'q qiladi. Kulrang va yorliqli qator ham savolga javob
+beradi, ham tarifni kengaytirish taklifiga aylanadi.
+
+`Permission.Module` va `ModuleCodes` **bir xil lug'at emas** → `PermissionModules` jadvali:
+
+| Ruxsat guruhi | Qaysi modul(lar) yoqadi |
+|---|---|
+| `WAREHOUSE` | `WAREHOUSE_RAW` **yoki** `WAREHOUSE_FINISHED` |
+| `PARTNERS` | `SUPPLIERS` **yoki** `CLIENTS` |
+| `PRODUCTION` · `TRANSFERS` · `FINANCE` · `KPI` · `QUALITY` · `AGENTS` · `DELIVERY` | shu nomdagi modul |
+| `DASHBOARD` · `PRODUCTS` · `SETTINGS` | modulsiz — **doim mavjud** (yadro) |
+
+> Nomlarni birxillashtirish o'rniga jadval yozildi: `Permission.Module` UI'dagi guruh
+> sarlavhasi hamdir, kodga tenglashtirish ikkita `WAREHOUSE` guruhi hosil qilardi.
+
+Tarifdan tashqari ruxsatni biriktirish **saqlanadi** va `warning: permissions_outside_plan`
+qaytaradi. Jimgina tashlab yuborish admin ko'rgan ekranni saqlangan holatdan ajratib
+qo'yardi; saqlansa esa, plan kengaytirilganda rol allaqachon to'g'ri sozlangan bo'ladi.
+
 ---
 
 ## 5. Autentifikatsiya va avtorizatsiya
@@ -515,7 +591,7 @@ Seed admin: telefon `+998901234567`, parol `Admin123456` (`Seed:AdminPassword` b
 |---|---|---|
 | `AuthController` | `/api/auth` | — (login, register, me, my-permissions) |
 | `SubscriptionController` | `/api/subscription` | — (`me`, `plans`) |
-| `AdminController` | `/api/admin` | SuperAdmin: tenants, plans, modules, stats |
+| `AdminController` | `/api/admin` | SuperAdmin: tenants, plans, modules, stats, **audit** (B4), parol tiklash, brendlash |
 | `TenantsController` | `/api/tenants` | `PUT modules` → SuperAdmin |
 | `UsersController` | `/api/users` | limit: `MaxUsers` |
 | `ProductsController` | `/api/products`, `/categories`, `/units` | — |
