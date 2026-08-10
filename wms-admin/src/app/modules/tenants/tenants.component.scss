@@ -176,3 +176,75 @@ code { font-family: var(--font-mono, monospace); font-size: 12px; }
   display: flex; align-items: center; justify-content: space-between; gap: 8px;
   padding: 6px 0; font-size: 13px;
 }
+
+/* ── Brendlash (F9) ────────────────────────────────────────────────────── */
+
+.name-cell { display: flex; align-items: center; gap: 8px; }
+.row-logo { width: 22px; height: 22px; object-fit: contain; border-radius: 4px; flex-shrink: 0; }
+
+.brand-grid { display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: start; }
+@media (max-width: 520px) { .brand-grid { grid-template-columns: 1fr; } }
+
+.logo-slot {
+  display: flex; flex-direction: column; gap: 6px;
+  label { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+}
+
+/* Shaffof logolar ham ko'rinsin — fon aniq, chegara yengil */
+.logo-box {
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg-inset); border: 1px dashed var(--border-subtle);
+  border-radius: var(--radius-sm); overflow: hidden;
+  img { max-width: 100%; max-height: 100%; object-fit: contain; }
+}
+.logo-box.wide { width: 100%; height: 64px; }
+.logo-box.square { width: 96px; height: 96px; }
+.logo-empty { font-size: 11px; color: var(--text-muted); }
+
+.logo-actions { display: flex; align-items: center; gap: 4px; }
+
+.upload-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle); background: none;
+  font-size: 12px; cursor: pointer; color: var(--text-secondary);
+  &:hover { background: var(--bg-inset); }
+  i { font-size: 11px; }
+}
+
+.color-row { display: flex; align-items: center; gap: 8px; }
+.color-swatch {
+  width: 40px; height: 34px; padding: 2px; cursor: pointer;
+  border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);
+  background: none;
+}
+.color-hex { width: 110px; font-family: var(--font-mono, monospace); }
+
+/* Jonli ko'rinish — mijoz nimani ko'rishini shu yerda ko'rsatamiz */
+.brand-preview {
+  display: flex; gap: 0; margin-top: 6px;
+  border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); overflow: hidden;
+  font-size: 11px;
+}
+.preview-sidebar {
+  width: 120px; flex-shrink: 0; padding: 8px;
+  background: var(--preview-brand); color: #fff;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.preview-logo {
+  height: 24px; display: flex; align-items: center; margin-bottom: 4px;
+  font-weight: 700; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+  img { max-height: 24px; max-width: 100%; object-fit: contain; }
+}
+.preview-item { padding: 3px 6px; border-radius: 4px; opacity: 0.75; }
+.preview-item.active { background: rgba(255,255,255,0.22); opacity: 1; }
+
+.preview-body {
+  flex: 1; padding: 12px; background: var(--bg-surface, #fff);
+  display: flex; align-items: center; gap: 10px;
+}
+.preview-btn {
+  padding: 4px 12px; border-radius: var(--radius-sm);
+  background: var(--preview-brand); color: #fff; font-weight: 600;
+}
+.preview-note { color: var(--text-muted); }

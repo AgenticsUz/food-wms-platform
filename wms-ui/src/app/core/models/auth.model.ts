@@ -1,3 +1,5 @@
+import { Branding } from '../services/branding.service';
+
 export interface LoginDto {
   phone: string;
   password: string;
@@ -7,6 +9,8 @@ export interface LoginDto {
 export interface AuthResponse {
   token: string;
   user: User;
+  /** Tenant brendi login javobi bilan keladi — kirgan zahoti qo'llanadi, ikkinchi so'rovsiz. */
+  branding?: Branding | null;
 }
 
 export interface User {

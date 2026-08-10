@@ -1,6 +1,7 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { map, tap } from 'rxjs/operators';
 import { ApiService } from './api.service';
+import { BrandingService } from './branding.service';
 import {
   SubscriptionInfo, SubscriptionLimits, SubscriptionPlan, LimitDetail, WARN_BEFORE_DAYS
 } from '../models/subscription.model';
@@ -13,6 +14,7 @@ import { ApiResponse } from '../models/api-response.model';
 @Injectable({ providedIn: 'root' })
 export class SubscriptionService {
   private api = inject(ApiService);
+  private branding = inject(BrandingService);
 
   info = signal<SubscriptionInfo | null>(null);
   loading = signal(false);
@@ -52,7 +54,13 @@ export class SubscriptionService {
   fetch() {
     return this.api.get<unknown>('subscription/me').pipe(
       map(res => normalizeResponse(res)),
-      tap(res => { if (res.success && res.data) this.info.set(res.data); })
+      tap(res => {
+        if (!res.success || !res.data) return;
+        this.info.set(res.data);
+        // Sahifa yangilanganda login javobi yo'q — brend shu yerdan tiklanadi va
+        // `localStorage` dagi nusxa server bilan sinxron qoladi (admin rangni o'zgartirsa).
+        this.branding.apply(res.data.branding, res.data.tenantName || null);
+      })
     );
   }
 
@@ -112,7 +120,9 @@ function normalizeResponse(res: ApiResponse<unknown>): ApiResponse<SubscriptionI
     enabledFeatures: raw['enabledFeatures'] ?? [],
 
     supportPhone: raw['supportPhone'] ?? null,
-    supportEmail: raw['supportEmail'] ?? null
+    supportEmail: raw['supportEmail'] ?? null,
+
+    branding: raw['branding'] ?? null
   } };
 }
 

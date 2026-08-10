@@ -54,7 +54,7 @@ wms-ui/src/app/
 │   ├── styles/          # module-common.scss
 │   └── utils/           # date.util · transfer-enums · delivery-enums
 ├── modules/             # 15 funksional modul (quyida)
-└── assets/i18n/         # uz · uz-cyrl · ru · en  (615 kalit, parite majburiy)
+└── assets/i18n/         # uz · uz-cyrl · ru · en  (634 kalit, parite majburiy)
 ```
 
 ### 2.2 Modullar va sahifalar
@@ -77,14 +77,15 @@ wms-ui/src/app/
 | `agent-portal` | agent portali: login · dashboard | alohida token |
 | `custom` | maxsus (per-mijoz) fitchalar — konvensiya va namuna skelet | `custom.*` feature |
 
-### 2.3 Core servislar (29)
+### 2.3 Core servislar (30)
 
 `api` (HTTP wrapper) · `auth` · `tenant` (enabledModules) · `permission` · **`subscription`** ·
 **`feature`** (enabledFeatures) · **`lead`** (demo so'rovi) ·
 `product` · `warehouse` · `transfer` · `production` · `counterparty` · `agent` · `delivery` ·
 `finance` · `kpi` · `analytics` · `audit` · `settings` · `portal` · `agent-portal` ·
 `notification-bell` · `export` · `import` · `currency` · `theme` · `loading` · `transloco-loader` ·
-**`public-info`** (tokensiz sahifalar uchun aloqa ma'lumoti).
+**`public-info`** (tokensiz sahifalar uchun aloqa ma'lumoti) ·
+**`branding`** (mijoz logotipi va rangi — §2.9).
 
 ### 2.4 Himoya qatlamlari
 
@@ -184,6 +185,48 @@ qolinadi.
 > tenantning hisobi ishlasa ham, unga kirishning **iloji yo'q edi**. R20 (subdomen)
 > shu qatlam ustida qo'shimcha ishsiz ishlaydi.
 
+### 2.9 Mijoz brendi (`branding.service.ts`)
+
+Brendlash **ma'lumot**, kod emas: bitta build hamma mijozga xizmat qiladi. Serverdan uch
+maydon keladi — `logoUrl`, `logoSquareUrl`, `brandColor` — va aynan shu obyekt uchta
+manbada bir xil: login javobi, `GET /api/subscription/me`, `GET /api/public/branding?slug=`.
+
+**Rang.** Mijozdan **bitta** rang so'raladi; qolgan palitra shundan hosil qilinadi (oq/qora
+bilan aralashtirish). Qiymatlar `document.documentElement` ning inline uslubiga yoziladi,
+shuning uchun `styles.scss` dagi `:root` qoidasidan ustun turadi:
+
+| O'zgaruvchi | Kim ishlatadi |
+|---|---|
+| `--p-primary-50…700`, `--p-primary-color`, `--p-button-primary-*` | PrimeNG Aura |
+| `--brand-primary`, `--brand-primary-soft`, `--brand-primary-strong` | ilova uslublari (sidebar aksentlari) |
+
+Ilova uslublarida har doim zaxira bilan yoziladi — `var(--brand-primary, var(--color-pistachio-500))`.
+`brandColor` `null` bo'lsa o'zgaruvchilar **o'chiriladi** va standart pistachio palitrasi qaytadi.
+Dark mode buzilmaydi: faqat primary ranglar almashtiriladi, sirt (surface) ranglariga tegilmaydi.
+
+**Logo va sarlavha.**
+
+| Joy | Manba |
+|---|---|
+| Sidebar (yoyilgan) | `logoUrl` → tenant nomi matn sifatida |
+| Sidebar (yig'ilgan, 72px) | `logoSquareUrl` → `logoUrl` → standart belgi |
+| Favicon | `logoSquareUrl` → `logoUrl` → `favicon.ico` |
+| Tab sarlavhasi | `«Tenant nomi» — WMS` → `WMS Platform` |
+
+**Miltillashning oldi.** Rang CSS o'zgaruvchilari bilan qo'llanadi, ya'ni faqat Angular
+ishga tushgandan keyin ta'sir qiladi. Serverdan javob kutilsa mijoz avval bizning yashil
+rangimizni, so'ng o'zinikini ko'rardi. Shuning uchun oxirgi ma'lum brend `localStorage`
+(`branding`) da turadi va `provideAppInitializer` da — birinchi chizishdan **oldin** —
+qo'llanadi. Faqat token mavjud bo'lganda: **login sahifasi doim standart** ko'rinishda
+qoladi, chunki bitta URL'da kim kirayotgani hali noma'lum.
+
+**Logout'da tozalanadi.** Bitta kompyuterdan ikki mijoz kirsa, ikkinchisiga birinchisining
+logotipi va rangi ko'rsatilishi shunchaki chiroyli emas — bu boshqa kompaniyaning brendi.
+
+> `GET /api/public/branding?slug=` allaqachon tayyor (`public-info.service` uni aloqa
+> ma'lumoti uchun chaqiradi). Har mijozga subdomen berilganda (R20) login sahifasini
+> brendlash uchun shu javobning `branding` qismini qo'llash yetarli.
+
 ---
 
 ## 3. `wms-admin` — control plane
@@ -207,7 +250,7 @@ wms-admin/src/app/
 │   ├── leads/          # demo so'rovlari · filtr · drawer · tenantga aylantirish
 │   ├── organizations/  # STIR bo'yicha kompaniyalar · bog'lanishlar
 │   └── plans/          # CRUD · modul + feature to'plami · limitlar · trialDays · isDefault
-└── public/i18n/      # uz · ru · en (284 kalit, parite majburiy)
+└── public/i18n/      # uz · ru · en (315 kalit, parite majburiy)
 ```
 
 ### 3.2 Xususiyatlari
@@ -251,6 +294,16 @@ wms-admin/src/app/
   > Parol javobda **bir marta** keladi: u toastga ham, konsolga ham chiqarilmaydi (toastda
   > faqat "Nusxalandi"). Nusxalash — Clipboard API, oddiy `http` orqali ochilgan konsol uchun
   > `execCommand` zaxirasi bilan.
+- **Brendlash** (tenant formasidagi **BRENDLASH** bo'limi) — ikki logo slot (keng va
+  kvadrat) darhol ko'rinish bilan, `<input type="color">` + hex maydon, rangni tozalash
+  tugmasi va **jonli ko'rinish**: mijozning sidebar'i va tugmasi tanlangan rangda.
+  Rang ustidagi oq matn kontrasti WCAG AA (4.5:1) dan past bo'lsa ogohlantiriladi, lekin
+  **bloklanmaydi** — aks holda mijoz "sizning tizimingiz mening rangimni qabul qilmaydi"
+  deydi. Fayl turi va hajmi (512 KB) klientda ham tekshiriladi: backend baribir rad etadi,
+  lekin foydalanuvchi 512 KB'ni yuklab bo'lib eshitmasligi kerak. Yuklash `FormData` bilan
+  to'g'ridan-to'g'ri `HttpClient` orqali ketadi — `ApiService` `Content-Type` ni o'zi
+  qo'yadi va bu `multipart` chegarasini buzardi. Ro'yxatdagi mijoz nomi yonida ham kvadrat
+  logo ko'rsatiladi.
 
 ---
 

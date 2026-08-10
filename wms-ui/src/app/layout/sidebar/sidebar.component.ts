@@ -7,6 +7,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { PermissionService } from '../../core/services/permission.service';
 import { FeatureService } from '../../core/services/feature.service';
 import { NotificationService } from '../../shared/services/notification.service';
+import { BrandingService } from '../../core/services/branding.service';
 
 export interface NavChild {
   key: string;
@@ -47,6 +48,15 @@ export class SidebarComponent {
   expandedMenu = signal<string | null>(null);
 
   currentUser = this.authService.currentUser;
+
+  private branding = inject(BrandingService);
+
+  /** Mijoz logotipi. Yo'q bo'lsa `null` — shablon standart belgiga qaytadi. */
+  wideLogo = computed(() => this.branding.logoSrc(this.branding.logoUrl()));
+  /** Yig'ilgan panel uchun: kvadrat logo, bo'lmasa kengi (kesilmaydi, sig'diriladi). */
+  squareLogo = computed(() =>
+    this.branding.logoSrc(this.branding.logoSquareUrl() ?? this.branding.logoUrl()));
+  tenantName = computed(() => this.branding.tenantName() ?? this.currentUser()?.tenantName ?? '');
 
   userInitials = computed(() => {
     const name = this.currentUser()?.fullName ?? '';

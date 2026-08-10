@@ -17,7 +17,7 @@ import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { PlatformService } from '../../core/services/platform.service';
 import { NotificationService } from '../../core/services/notification.service';
 import {
-  Tenant, TenantModuleInfo, SubscriptionStatus,
+  Tenant, TenantModuleInfo, SubscriptionStatus, Branding, LogoKind,
   PaymentRecord, PaymentMethod, PAYMENT_METHODS,
   SuspendReason, SUSPEND_REASONS,
   TenantUser, PasswordResetResult
@@ -25,11 +25,28 @@ import {
 import { Plan } from '../../core/models/plan.model';
 import { TenantFeature } from '../../core/models/feature.model';
 import { utcDateOnly, daysUntil } from '../../core/utils/date.util';
+import { contrastWithWhite, hasReadableWhiteText, isValidHex, normalizeHex } from '../../core/utils/color.util';
+import { environment } from '../../../environments/environment';
+
+/** Backend chegaralari bilan bir xil (`BrandingService`). */
+const MAX_LOGO_BYTES = 512 * 1024;
+const ALLOWED_LOGO_TYPES = ['image/svg+xml', 'image/png', 'image/webp'];
+
+/**
+ * Logolar `/uploads/...` da, `/api` OSTIDA EMAS. `apiUrl` nisbiy (`/api`) bo'lganda
+ * ularni shu domendan olamiz; absolyut bo'lsa — o'sha xostdan.
+ */
+function apiOrigin(): string {
+  const base = environment.apiUrl;
+  if (!base.startsWith('http')) return '';
+  try { return new URL(base).origin; } catch { return ''; }
+}
 
 interface TenantForm {
   id?: number; name: string; slug: string; inn: string;
   adminFullName: string; adminPhone: string; adminPassword: string;
   isActive: boolean; planId: number | null; subscriptionStatus: SubscriptionStatus; trialEndsAt: Date | null;
+  brandColor: string;
 }
 
 interface PaymentForm {
@@ -144,7 +161,8 @@ export default class TenantsComponent implements OnInit {
 
   private empty(): TenantForm {
     return { name: '', slug: '', inn: '', adminFullName: '', adminPhone: '', adminPassword: '',
-      isActive: true, planId: null, subscriptionStatus: SubscriptionStatus.Trial, trialEndsAt: null };
+      isActive: true, planId: null, subscriptionStatus: SubscriptionStatus.Trial, trialEndsAt: null,
+      brandColor: '' };
   }
 
   private emptyPayment(): PaymentForm {
@@ -181,9 +199,16 @@ export default class TenantsComponent implements OnInit {
     this.form.set({
       id: t.id, name: t.name, slug: t.slug, inn: t.inn ?? '', adminFullName: '', adminPhone: '', adminPassword: '',
       isActive: t.isActive, planId: t.planId, subscriptionStatus: t.subscriptionStatus,
-      trialEndsAt: t.trialEndsAt ? new Date(t.trialEndsAt) : null
+      trialEndsAt: t.trialEndsAt ? new Date(t.trialEndsAt) : null,
+      brandColor: t.brandColor ?? ''
     });
     this.editing.set(true); this.dialogVisible.set(true);
+
+    // Logolar tenant ro'yxatida ham keladi, lekin bu yerda alohida so'raymiz:
+    // yuklashdan keyin ro'yxat eskirgan bo'lishi mumkin.
+    this.branding.set({ logoUrl: t.logoUrl ?? null, logoSquareUrl: t.logoSquareUrl ?? null,
+      brandColor: t.brandColor ?? null });
+    this.service.getBranding(t.id).subscribe(r => { if (r.success && r.data) this.branding.set(r.data); });
   }
   updateForm(field: keyof TenantForm, value: unknown) { this.form.update(f => ({ ...f, [field]: value })); }
 
@@ -196,7 +221,9 @@ export default class TenantsComponent implements OnInit {
       this.service.updateTenant(f.id!, {
         name: f.name.trim(), slug: f.slug.trim(), inn: f.inn.trim() || null, isActive: f.isActive, planId: f.planId,
         subscriptionStatus: f.subscriptionStatus,
-        trialEndsAt: f.trialEndsAt ? utcDateOnly(f.trialEndsAt) : null
+        trialEndsAt: f.trialEndsAt ? utcDateOnly(f.trialEndsAt) : null,
+        // Bo'sh satr — "rangni olib tashla" degani; backend `null` ga o'giradi.
+        brandColor: f.brandColor.trim()
       }).subscribe({ next: () => this.afterSave(), error: () => this.saving.set(false) });
     } else {
       if (!f.adminFullName.trim() || !f.adminPhone.trim() || f.adminPassword.length < 6) {
@@ -293,6 +320,72 @@ export default class TenantsComponent implements OnInit {
     const t = this.modulesTenant(); if (!t) return;
     this.service.toggleModule(t.id, m.moduleId, enabled).subscribe(() => {
       this.modules.update(list => list.map(x => x.moduleId === m.moduleId ? { ...x, isEnabled: enabled } : x));
+    });
+  }
+
+  // ---- Brendlash (F9) -----------------------------------------------------
+  // Mijozdan BITTA rang so'raymiz — palitrani `wms-ui` shundan hosil qiladi.
+  // Logolar alohida endpoint bilan darhol yuklanadi (forma saqlanishini kutmaydi),
+  // chunki fayl yuborish `multipart` va uni tenant PUT'iga qo'shish shartnomani buzardi.
+
+  branding = signal<Branding>({ logoUrl: null, logoSquareUrl: null, brandColor: null });
+  uploadingLogo = signal<LogoKind | null>(null);
+
+  /** Formadagi rang — saqlanganda `updateTenant` bilan ketadi. */
+  brandColor = computed(() => this.form().brandColor);
+
+  /** Oq matn bilan WCAG AA bermasa ogohlantiramiz, lekin bloklamaymiz. */
+  colorContrast = computed(() => contrastWithWhite(this.form().brandColor));
+  colorUnreadable = computed(() =>
+    isValidHex(this.form().brandColor) && !hasReadableWhiteText(this.form().brandColor));
+
+  /** Jonli ko'rinish uchun — rang yaroqsiz bo'lsa standart pistachio. */
+  previewColor = computed(() => normalizeHex(this.form().brandColor) ?? '#7cb342');
+
+  /** Serverdagi nisbiy manzilni to'liq URL'ga aylantiradi (`/uploads/...`). */
+  logoSrc(url: string | null): string | null {
+    if (!url) return null;
+    return url.startsWith('http') ? url : apiOrigin() + url;
+  }
+
+  onLogoSelected(event: Event, kind: LogoKind) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';   // bir xil faylni qayta tanlash ham ishlasin
+    if (!file) return;
+
+    const t = this.form().id;
+    if (!t) return;
+
+    // Klient tomonda ham tekshiramiz — backend baribir rad etadi, lekin foydalanuvchi
+    // 512 KB dagi chegarani yuklashdan OLDIN bilgani yaxshi.
+    if (!ALLOWED_LOGO_TYPES.includes(file.type)) {
+      this.notify.warn(this.transloco.translate('tenants.branding.badType'));
+      return;
+    }
+    if (file.size > MAX_LOGO_BYTES) {
+      this.notify.warn(this.transloco.translate('tenants.branding.tooBig'));
+      return;
+    }
+
+    this.uploadingLogo.set(kind);
+    this.service.uploadLogo(t, kind, file).subscribe({
+      next: (res) => {
+        this.uploadingLogo.set(null);
+        if (res.success && res.data) this.branding.set(res.data);
+        this.load();   // jadvaldagi kvadrat logo ham yangilansin
+      },
+      // Xato toastini interceptor chiqaradi.
+      error: () => this.uploadingLogo.set(null)
+    });
+  }
+
+  removeLogo(kind: LogoKind) {
+    const t = this.form().id;
+    if (!t) return;
+    this.service.deleteLogo(t, kind).subscribe(res => {
+      if (res.success && res.data) this.branding.set(res.data);
+      this.load();
     });
   }
 

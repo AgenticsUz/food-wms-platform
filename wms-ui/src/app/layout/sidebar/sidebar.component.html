@@ -1,15 +1,25 @@
 <aside class="sidebar" [class.collapsed]="collapsed()" *transloco="let t">
   <!-- Logo -->
   <div class="sidebar-header">
+    <!-- Yig'ilganda kvadrat logo, yoyilganda keng logo. Mijozda logo bo'lmasa —
+         standart belgi va kompaniya nomi (bo'sh joy qolmaydi). -->
     <div class="logo-area">
-      <div class="logo-mark">
-        <i class="pi pi-warehouse"></i>
-      </div>
-      @if (!collapsed()) {
-        <div class="logo-text">
-          <span class="brand">WMS</span>
-          <span class="tenant-name">Platform</span>
-        </div>
+      @if (!collapsed() && wideLogo(); as wide) {
+        <img class="logo-wide" [src]="wide" [alt]="tenantName()" />
+      } @else {
+        @if (squareLogo(); as square) {
+          <img class="logo-mark logo-image" [src]="square" [alt]="tenantName()" />
+        } @else {
+          <div class="logo-mark">
+            <i class="pi pi-warehouse"></i>
+          </div>
+        }
+        @if (!collapsed()) {
+          <div class="logo-text">
+            <span class="brand">{{ tenantName() || 'WMS' }}</span>
+            <span class="tenant-name">{{ tenantName() ? 'WMS' : 'Platform' }}</span>
+          </div>
+        }
       }
     </div>
     <button class="collapse-btn" (click)="toggleCollapse()">

@@ -156,6 +156,23 @@
       "suspendedUntil": "Suspended until {{date}}",
       "activate": "Activate"
     },
+    "branding": {
+      "section": "Branding",
+      "wideLogo": "Wide logo",
+      "squareLogo": "Square logo",
+      "noLogo": "No logo",
+      "upload": "Upload",
+      "limits": "PNG, JPEG, SVG or WebP — up to 512 KB. The wide logo is used in the expanded sidebar, the square one in the collapsed sidebar and the favicon.",
+      "color": "Brand colour",
+      "colorHint": "One colour is enough — the client app derives the rest of the palette from it.",
+      "clearColor": "Clear colour",
+      "lowContrast": "White text on this colour has a contrast of {{ratio}}:1 — below the readable 4.5:1. You can still save it.",
+      "tenantName": "Tenant name",
+      "previewItem": "Warehouse",
+      "previewNote": "This is how the client sees it",
+      "badType": "Only PNG, JPEG, SVG or WebP images are allowed.",
+      "tooBig": "The file is larger than 512 KB."
+    },
     "reset": {
       "action": "Reset password",
       "title": "Reset password — {{name}}",

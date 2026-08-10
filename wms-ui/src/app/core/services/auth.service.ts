@@ -10,6 +10,7 @@ import { PermissionService } from './permission.service';
 import { NotificationBellService } from './notification-bell.service';
 import { SubscriptionService } from './subscription.service';
 import { FeatureService } from './feature.service';
+import { BrandingService } from './branding.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -19,6 +20,7 @@ export class AuthService {
   private bellService = inject(NotificationBellService);
   private subscriptionService = inject(SubscriptionService);
   private featureService = inject(FeatureService);
+  private brandingService = inject(BrandingService);
 
   token = signal<string | null>(localStorage.getItem('token'));
   currentUser = signal<User | null>(this.loadUserFromStorage());
@@ -40,6 +42,8 @@ export class AuthService {
       localStorage.setItem('currentUser', JSON.stringify(res.data.user));
       this.permissionService.setRoles(res.data.user.roles ?? []);
       localStorage.setItem('userRoles', JSON.stringify(res.data.user.roles ?? []));
+      // Brend login javobida keladi — logotip va rang birinchi ekrandayoq to'g'ri bo'ladi
+      this.brandingService.apply(res.data.branding, res.data.user.tenantName ?? null);
       // Login javobi feature ro'yxatini ham beradi — sahifa yangilangunicha shu ishlatiladi
       if (res.data.user.enabledFeatures) {
         this.featureService.setFeatures(res.data.user.enabledFeatures);
@@ -97,6 +101,8 @@ export class AuthService {
     // Obuna holati ham tozalanadi — boshqa tenant kirsa eski banner ko'rinmasin
     this.subscriptionService.clear();
     this.featureService.clear();
+    // Bitta kompyuterdan boshqa mijoz kirsa, oldingisining logotipi va rangi qolmasin
+    this.brandingService.clear();
     localStorage.removeItem('token');
     localStorage.removeItem('currentUser');
     // Modul ro'yxatini ham tozalaymiz — boshqa tenant/user kirsa eski sidebar ko'rinmasin

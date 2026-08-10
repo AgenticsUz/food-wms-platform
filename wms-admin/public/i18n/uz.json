@@ -156,6 +156,23 @@
       "suspendedUntil": "{{date}} gacha to'xtatildi",
       "activate": "Faollashtirish"
     },
+    "branding": {
+      "section": "Brendlash",
+      "wideLogo": "Keng logo",
+      "squareLogo": "Kvadrat logo",
+      "noLogo": "Logo yo‘q",
+      "upload": "Yuklash",
+      "limits": "PNG, JPEG, SVG yoki WebP — 512 KB gacha. Keng logo yoyilgan yon panelda, kvadrati yig‘ilgan panel va favicon’da ishlatiladi.",
+      "color": "Brend rangi",
+      "colorHint": "Bitta rang yetarli — qolgan palitrani mijoz ilovasi o‘zi hosil qiladi.",
+      "clearColor": "Rangni olib tashlash",
+      "lowContrast": "Bu rang ustidagi oq matn kontrasti {{ratio}}:1 — o‘qish uchun kerakli 4.5:1 dan past. Baribir saqlashingiz mumkin.",
+      "tenantName": "Mijoz nomi",
+      "previewItem": "Ombor",
+      "previewNote": "Mijoz shunday ko‘radi",
+      "badType": "Faqat PNG, JPEG, SVG yoki WebP rasmlar qabul qilinadi.",
+      "tooBig": "Fayl 512 KB dan katta."
+    },
     "reset": {
       "action": "Parolni tiklash",
       "title": "Parolni tiklash — {{name}}",

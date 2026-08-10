@@ -25,7 +25,14 @@
       </ng-template>
       <ng-template #body let-row>
         <tr [class.inactive-row]="!row.isActive">
-          <td><span class="item-name">{{ row.name }}</span></td>
+          <td>
+            <div class="name-cell">
+              @if (logoSrc(row.logoSquareUrl); as src) {
+                <img class="row-logo" [src]="src" alt="" />
+              }
+              <span class="item-name">{{ row.name }}</span>
+            </div>
+          </td>
           <td><code>{{ row.slug }}</code></td>
           <td>{{ planName(row.planId) }}</td>
           <td>
@@ -123,6 +130,99 @@
           <small class="field-hint">{{ t('tenants.form.trialEndsHint') }}</small>
         </div>
         <div class="ff-inline"><label>{{ t('tenants.form.activeLabel') }}</label><p-toggleswitch [ngModel]="form().isActive" (ngModelChange)="updateForm('isActive', $event)" /></div>
+
+        <!-- Brendlash (F9). Faqat tahrirlashda: logo yuklash uchun tenant id kerak. -->
+        <div class="divider">{{ t('tenants.branding.section') }}</div>
+
+        <div class="brand-grid">
+          <div class="logo-slot">
+            <label>{{ t('tenants.branding.wideLogo') }}</label>
+            <div class="logo-box wide">
+              @if (logoSrc(branding().logoUrl); as src) {
+                <img [src]="src" alt="" />
+              } @else {
+                <span class="logo-empty">{{ t('tenants.branding.noLogo') }}</span>
+              }
+            </div>
+            <div class="logo-actions">
+              <label class="upload-btn">
+                <input type="file" accept=".svg,.png,.webp" (change)="onLogoSelected($event, 'wide')" hidden />
+                <i class="pi" [class.pi-upload]="uploadingLogo() !== 'wide'" [class.pi-spin]="uploadingLogo() === 'wide'"
+                   [class.pi-spinner]="uploadingLogo() === 'wide'"></i>
+                {{ t('tenants.branding.upload') }}
+              </label>
+              @if (branding().logoUrl) {
+                <p-button icon="pi pi-trash" [text]="true" size="small" severity="danger"
+                  [title]="t('common.delete')" (onClick)="removeLogo('wide')" />
+              }
+            </div>
+          </div>
+
+          <div class="logo-slot">
+            <label>{{ t('tenants.branding.squareLogo') }}</label>
+            <div class="logo-box square">
+              @if (logoSrc(branding().logoSquareUrl); as src) {
+                <img [src]="src" alt="" />
+              } @else {
+                <span class="logo-empty">{{ t('tenants.branding.noLogo') }}</span>
+              }
+            </div>
+            <div class="logo-actions">
+              <label class="upload-btn">
+                <input type="file" accept=".svg,.png,.webp" (change)="onLogoSelected($event, 'square')" hidden />
+                <i class="pi" [class.pi-upload]="uploadingLogo() !== 'square'" [class.pi-spin]="uploadingLogo() === 'square'"
+                   [class.pi-spinner]="uploadingLogo() === 'square'"></i>
+                {{ t('tenants.branding.upload') }}
+              </label>
+              @if (branding().logoSquareUrl) {
+                <p-button icon="pi pi-trash" [text]="true" size="small" severity="danger"
+                  [title]="t('common.delete')" (onClick)="removeLogo('square')" />
+              }
+            </div>
+          </div>
+        </div>
+
+        <small class="field-hint">{{ t('tenants.branding.limits') }}</small>
+
+        <div class="ff">
+          <label>{{ t('tenants.branding.color') }}</label>
+          <div class="color-row">
+            <input type="color" class="color-swatch" [value]="previewColor()"
+              (input)="updateForm('brandColor', $any($event.target).value)" />
+            <input pInputText [ngModel]="form().brandColor" (ngModelChange)="updateForm('brandColor', $event)"
+              placeholder="#7cb342" maxlength="7" autocomplete="off" class="color-hex" />
+            @if (form().brandColor) {
+              <p-button icon="pi pi-times" [text]="true" size="small"
+                [title]="t('tenants.branding.clearColor')" (onClick)="updateForm('brandColor', '')" />
+            }
+          </div>
+          @if (colorUnreadable()) {
+            <small class="field-hint field-error">
+              {{ t('tenants.branding.lowContrast', { ratio: colorContrast() }) }}
+            </small>
+          } @else {
+            <small class="field-hint">{{ t('tenants.branding.colorHint') }}</small>
+          }
+        </div>
+
+        <!-- Jonli ko'rinish: mijoz sidebar'ini shu rang va logo bilan ko'rsatadi -->
+        <div class="brand-preview" [style.--preview-brand]="previewColor()">
+          <div class="preview-sidebar">
+            <div class="preview-logo">
+              @if (logoSrc(branding().logoUrl); as src) {
+                <img [src]="src" alt="" />
+              } @else {
+                <span>{{ form().name || t('tenants.branding.tenantName') }}</span>
+              }
+            </div>
+            <div class="preview-item active">{{ t('nav.dashboard') }}</div>
+            <div class="preview-item">{{ t('tenants.branding.previewItem') }}</div>
+          </div>
+          <div class="preview-body">
+            <div class="preview-btn">{{ t('common.save') }}</div>
+            <span class="preview-note">{{ t('tenants.branding.previewNote') }}</span>
+          </div>
+        </div>
       }
     </div>
     <ng-template #footer>

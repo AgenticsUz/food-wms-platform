@@ -1,9 +1,13 @@
 import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 import { ApiService } from './api.service';
+import { ApiResponse } from '../models/api-response.model';
 import {
   Tenant, CreateTenantDto, UpdateTenantDto, TenantModuleInfo,
   PaymentRecord, CreatePaymentDto, SuspendTenantDto, ExpiringTenant,
-  TenantUser, ResetUserPasswordDto, PasswordResetResult
+  TenantUser, ResetUserPasswordDto, PasswordResetResult,
+  Branding, LogoKind
 } from '../models/tenant.model';
 import { Plan, CreatePlanDto, PlatformStats, ModuleInfo } from '../models/plan.model';
 import { Lead, UpdateLeadDto, ConvertLeadDto } from '../models/lead.model';
@@ -14,6 +18,7 @@ import { AuditQuery, PaginatedAudit } from '../models/audit.model';
 @Injectable({ providedIn: 'root' })
 export class PlatformService {
   private api = inject(ApiService);
+  private http = inject(HttpClient);
 
   // Tenants
   getTenants() { return this.api.get<Tenant[]>('admin/tenants'); }
@@ -69,6 +74,25 @@ export class PlatformService {
   getTenantFeatures(tenantId: number) { return this.api.get<TenantFeature[]>(`admin/tenants/${tenantId}/features`); }
   updateTenantFeatures(tenantId: number, dto: UpdateFeaturesDto) {
     return this.api.put<void>(`admin/tenants/${tenantId}/features`, dto);
+  }
+
+  // Branding (B1/F9)
+  getBranding(tenantId: number) { return this.api.get<Branding>(`admin/tenants/${tenantId}/branding`); }
+
+  /**
+   * Logo yuklash. `multipart/form-data` — shuning uchun `ApiService` emas, to'g'ridan-to'g'ri
+   * `HttpClient`: `ApiService` JSON tanani nazarda tutadi va `Content-Type` ni o'zi qo'yadi,
+   * bu esa `FormData` chegarasini (`boundary`) buzadi.
+   */
+  uploadLogo(tenantId: number, kind: LogoKind, file: File) {
+    const form = new FormData();
+    form.append('file', file, file.name);
+    return this.http.post<ApiResponse<Branding>>(
+      `${environment.apiUrl}/admin/tenants/${tenantId}/logo?type=${kind}`, form);
+  }
+
+  deleteLogo(tenantId: number, kind: LogoKind) {
+    return this.api.delete<Branding>(`admin/tenants/${tenantId}/logo?type=${kind}`);
   }
 
   // Audit (platforma ko'rinishi, B4)

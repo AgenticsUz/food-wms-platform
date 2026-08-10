@@ -34,6 +34,11 @@ export interface Tenant {
   inn: string | null;
   createdAt: string;
   userCount: number;
+
+  /** Brendlash — ro'yxatda kvadrat logoni ko'rsatish uchun ham keladi (B1). */
+  logoUrl: string | null;
+  logoSquareUrl: string | null;
+  brandColor: string | null;
 }
 
 export interface CreateTenantDto {
@@ -55,6 +60,8 @@ export interface UpdateTenantDto {
   subscriptionStatus: SubscriptionStatus;
   trialEndsAt: string | null;
   inn?: string | null;
+  /** `#RRGGBB` yoki bo'sh satr (— rangni olib tashlash). Backend normalizatsiya qiladi. */
+  brandColor?: string | null;
 }
 
 export interface SuspendTenantDto {
@@ -66,6 +73,18 @@ export interface SuspendTenantDto {
   /** Shu sanada avtomatik qayta yoqiladi. null → muddatsiz. */
   until: string | null;
 }
+
+/** `GET/POST/DELETE admin/tenants/{id}/logo` va tenant javoblaridagi `branding` obyekti. */
+export interface Branding {
+  /** Keng logo — yoyilgan sidebar, hisobot sarlavhalari. */
+  logoUrl: string | null;
+  /** Kvadrat logo — yig'ilgan sidebar, favicon. */
+  logoSquareUrl: string | null;
+  /** Bitta asosiy rang `#RRGGBB`; qolgan palitrani mijoz ilovasi o'zi hosil qiladi. */
+  brandColor: string | null;
+}
+
+export type LogoKind = 'wide' | 'square';
 
 export interface TenantModuleInfo {
   moduleId: number;

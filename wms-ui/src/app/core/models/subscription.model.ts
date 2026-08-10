@@ -1,3 +1,5 @@
+import { Branding } from '../services/branding.service';
+
 /** Bloklanish sabablari — backend `code` maydonidagi qiymatlar bilan bir xil. */
 export type BlockedReason =
   | 'trial_expired'
@@ -93,6 +95,9 @@ export interface SubscriptionInfo {
 
   supportPhone: string | null;
   supportEmail: string | null;
+
+  /** Login javobidagi bilan bir xil obyekt — sahifa yangilanganda brend shu yerdan tiklanadi. */
+  branding?: Branding | null;
 }
 
 /** Sahifada ko'rsatiladigan bitta limit qatori. */
