@@ -24,5 +24,19 @@ public class User : BaseEntity
 
     /// Oxirgi muvaffaqiyatli kirish — SuperAdmin "kim hali kira oladi" ro'yxati uchun.
     public DateTime? LastLoginAt { get; set; }
+
+    /// <summary>
+    /// Parol boshqa odam tomonidan qo'yilgan (tiklangan yoki hisob yaratilgan) va u
+    /// telefon/Telegram orqali aytilgan — ya'ni o'sha kanalda qolib ketgan.
+    /// Foydalanuvchi o'z parolini qo'ymaguncha `true` bo'lib turadi.
+    ///
+    /// Backend buni **majburlamaydi**: bloklash `change-password` endpointining o'zini
+    /// ham to'sib qo'yish xavfini tug'diradi. Login javobida qaytariladi, majburlash
+    /// frontendda.
+    ///
+    /// Mavjud foydalanuvchilarda migration'dan keyin `false` — deploy hech kimning
+    /// ishini to'xtatmasin.
+    /// </summary>
+    public bool MustChangePassword { get; set; }
     public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
 }

@@ -107,7 +107,9 @@ public static class TenantProvisioner
             FullName = adminFullName.Trim(),
             Phone = normalizedPhone,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(adminPassword),
-            IsActive = true
+            IsActive = true,
+            // Parolni biz qo'ydik va mijozga aytdik — u o'zinikini qo'yishi kerak.
+            MustChangePassword = true
         };
         db.Users.Add(user);
         await db.SaveChangesAsync();

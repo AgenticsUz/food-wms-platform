@@ -90,6 +90,9 @@ public class PasswordResetService : IPasswordResetService
 
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(password);
         user.SecurityStamp = Guid.NewGuid().ToString("N");
+        // Bu parolni boshqa odam ko'rdi — u telefonda aytiladi yoki xabarda yuboriladi va
+        // o'sha kanalda qolib ketadi. Foydalanuvchi o'zinikini qo'ymaguncha vaqtinchalik.
+        user.MustChangePassword = true;
         await _db.SaveChangesAsync(ct);
         _security.Invalidate(user.Id);
 

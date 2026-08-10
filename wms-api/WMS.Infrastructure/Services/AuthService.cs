@@ -113,6 +113,7 @@ public class AuthService : IAuthService
                 TenantId = tenant.Id,
                 TenantName = tenant.Name,
                 IsSuperAdmin = user.IsSuperAdmin,
+                MustChangePassword = user.MustChangePassword,
                 Roles = roles,
                 EnabledModules = modules,
                 EnabledFeatures = features,
@@ -197,6 +198,7 @@ public class AuthService : IAuthService
                 TenantId = tenant.Id,
                 TenantName = tenant.Name,
                 IsSuperAdmin = false,
+                MustChangePassword = user.MustChangePassword,
                 Roles = new List<string> { "Admin" },
                 EnabledModules = modules,
                 EnabledFeatures = features,
@@ -237,6 +239,7 @@ public class AuthService : IAuthService
             TenantId = tenantId,
             TenantName = user.Tenant.Name,
             IsSuperAdmin = user.IsSuperAdmin,
+            MustChangePassword = user.MustChangePassword,
             TelegramChatId = user.TelegramChatId,
             Roles = user.UserRoles.Select(ur => ur.Role.Name).ToList(),
             EnabledModules = modules,
@@ -275,6 +278,8 @@ public class AuthService : IAuthService
         // Changing your own password signs out every other session — that is the point of
         // changing it after someone else has seen it.
         user.SecurityStamp = Guid.NewGuid().ToString("N");
+        // Yagona joy, bu bayroq tozalanadigan: parolni endi faqat egasi biladi.
+        user.MustChangePassword = false;
         await _db.SaveChangesAsync();
         _security.Invalidate(user.Id);
     }

@@ -49,7 +49,9 @@ public class UserService : IUserService
         {
             TenantId = tenantId, FullName = dto.FullName, Phone = phone,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-            IsActive = dto.IsActive
+            IsActive = dto.IsActive,
+            // Parolni admin qo'ydi va xodimga aytdi — xodim o'zinikini qo'yishi kerak.
+            MustChangePassword = true
         };
         _db.Users.Add(user);
         await _db.SaveChangesAsync();

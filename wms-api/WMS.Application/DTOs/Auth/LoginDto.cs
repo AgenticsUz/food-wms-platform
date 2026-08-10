@@ -27,6 +27,14 @@ public class UserInfoDto
     public int TenantId { get; set; }
     public string TenantName { get; set; } = null!;
     public bool IsSuperAdmin { get; set; }
+
+    /// <summary>
+    /// Parolni boshqa odam qo'ygan (hisob yaratilgan yoki parol tiklangan). Frontend
+    /// foydalanuvchini parol o'zgartirish ekraniga yo'naltiradi — backend bloklamaydi,
+    /// aks holda `change-password` endpointining o'zi ham to'siladi.
+    /// </summary>
+    public bool MustChangePassword { get; set; }
+
     public string? TelegramChatId { get; set; }
     public List<string> Roles { get; set; } = new();
     public List<string> EnabledModules { get; set; } = new();
