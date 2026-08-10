@@ -50,6 +50,11 @@ public static class Messages
     public const string LimitWarnWarehouses = "You are close to your plan limit: {0} of {1} warehouses";
     public const string LimitWarnTransfers = "You are close to your plan limit: {0} of {1} transfers this month";
 
+    /// Rolga tarifga kirmaydigan ruxsat biriktirildi (B5). Saqlanadi, lekin ishlamaydi —
+    /// admin buni bilib tursin.
+    public const string PermissionsOutsidePlan =
+        "{0} of the selected permissions are outside your plan and will not take effect until it is extended";
+
     // ── Password reset ──
     public const string PasswordTooShort = "The password must be at least {0} characters";
     public const string CannotResetPlatformUser = "This is a platform account — only a platform administrator can reset it";

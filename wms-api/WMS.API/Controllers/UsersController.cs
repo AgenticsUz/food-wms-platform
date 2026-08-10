@@ -93,5 +93,5 @@ public class PermissionsController : BaseController
 
     [HttpGet]
     public async Task<IActionResult> GetAll()
-        => Ok(ApiResponse<List<PermissionDto>>.Ok(await _users.GetAllPermissionsAsync()));
+        => Ok(ApiResponse<List<PermissionDto>>.Ok(await _users.GetAllPermissionsAsync(TenantId)));
 }

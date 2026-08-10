@@ -89,6 +89,9 @@ public static class Translations
         [Messages.LimitWarnWarehouses] = [
             "Tarif limitiga yaqinlashdingiz: {1} tadan {0} ta ombor",
             "Вы приближаетесь к лимиту тарифа: {0} из {1} складов"],
+        [Messages.PermissionsOutsidePlan] = [
+            "Tanlangan ruxsatlardan {0} tasi tarifingizga kirmaydi va tarif kengaytirilmaguncha ishlamaydi",
+            "{0} из выбранных разрешений не входят в ваш тариф и не будут работать до его расширения"],
         [Messages.LimitWarnTransfers] = [
             "Tarif limitiga yaqinlashdingiz: bu oyda {1} tadan {0} ta harakat",
             "Вы приближаетесь к лимиту тарифа: {0} из {1} перемещений в этом месяце"],

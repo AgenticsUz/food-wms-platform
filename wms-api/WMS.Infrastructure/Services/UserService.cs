@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using WMS.Application.Common;
+using WMS.Application.Common.Localization;
 using WMS.Application.DTOs.Users;
 using WMS.Application.Interfaces;
 using WMS.Domain.Entities;
@@ -144,16 +145,38 @@ public class UserService : IUserService
         await _db.SaveChangesAsync();
     }
 
-    public async Task<List<PermissionDto>> GetAllPermissionsAsync()
+    /// <summary>
+    /// Katalog **kesilmaydi** — har ruxsat `IsAvailable` bilan qaytadi. Sababi: Basic
+    /// planli mijoz "Ishlab chiqarish" ruxsatlarini ko'rmasa, nima uchun texnologda
+    /// menyu yo'qligini tushunmaydi. Ko'rinib tursa-yu kulrang bo'lsa — sabab ham
+    /// ravshan, tarifni kengaytirish taklifi ham o'z-o'zidan chiqadi.
+    /// </summary>
+    public async Task<List<PermissionDto>> GetAllPermissionsAsync(int tenantId)
     {
-        return await _db.Permissions
+        var enabled = await EnabledModuleCodesAsync(tenantId);
+
+        var all = await _db.Permissions
             .OrderBy(p => p.Module).ThenBy(p => p.Code)
             .Select(p => new PermissionDto
             {
                 Id = p.Id, Code = p.Code, Name = p.Name,
                 Module = p.Module, Description = p.Description
             }).ToListAsync();
+
+        foreach (var p in all)
+            p.IsAvailable = PermissionModules.IsAvailable(p.Module, enabled);
+
+        return all;
     }
+
+    /// Tenantda yoqilgan modul kodlari. Plansiz tenant — barcha modullar
+    /// (`TenantModule` qatorlari shu holatni allaqachon aks ettiradi).
+    private async Task<HashSet<string>> EnabledModuleCodesAsync(int tenantId)
+        => (await _db.TenantModules
+                .Where(tm => tm.TenantId == tenantId && tm.IsEnabled)
+                .Join(_db.Modules, tm => tm.ModuleId, m => m.Id, (tm, m) => m.Code)
+                .ToListAsync())
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
     public async Task<List<PermissionDto>> GetRolePermissionsAsync(int tenantId, int roleId)
     {
@@ -180,14 +203,23 @@ public class UserService : IUserService
         _db.RolePermissions.RemoveRange(existing);
 
         var requestedIds = dto.PermissionIds.Where(x => x > 0).Distinct().ToList();
-        var validIds = await _db.Permissions
+        var valid = await _db.Permissions
             .Where(p => requestedIds.Contains(p.Id))
-            .Select(p => p.Id)
+            .Select(p => new { p.Id, p.Module })
             .ToListAsync();
-        foreach (var permId in validIds)
-            _db.RolePermissions.Add(new RolePermission { RoleId = roleId, PermissionId = permId });
+        foreach (var perm in valid)
+            _db.RolePermissions.Add(new RolePermission { RoleId = roleId, PermissionId = perm.Id });
 
         await _db.SaveChangesAsync();
+
+        // Tarifga kirmaydigan ruxsatlar **saqlanadi**, jimgina tashlanmaydi: mijoz planni
+        // keyin kengaytirsa rol allaqachon to'g'ri sozlangan bo'ladi. Gate baribir 403
+        // beradi, shuning uchun bu xavfsizlik masalasi emas. Lekin admin nima
+        // saqlanganini bilishi kerak — shu sababli ogohlantirish.
+        var enabled = await EnabledModuleCodesAsync(tenantId);
+        var outsidePlan = valid.Count(p => !PermissionModules.IsAvailable(p.Module, enabled));
+        if (outsidePlan > 0)
+            _warnings.Add("permissions_outside_plan", Messages.PermissionsOutsidePlan, outsidePlan);
     }
 
     public async Task<List<string>> GetUserPermissionsAsync(int tenantId, int userId)

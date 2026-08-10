@@ -65,6 +65,15 @@ public class PermissionDto
     public string Name { get; set; } = null!;
     public string Module { get; set; } = null!;
     public string? Description { get; set; }
+
+    /// <summary>
+    /// Ruxsat tenantning tarifida amalda ishlaydimi (tegishli modul yoqilganmi).
+    /// Ro'yxatdan **olib tashlanmaydi**: frontend uni kulrang qilib "Tarifingizga
+    /// kirmaydi" yorlig'i bilan ko'rsatadi. Yashirilsa, mijoz nima uchun ruxsat
+    /// yo'qligini tushunmaydi va qo'ng'iroq qiladi; ko'rinib tursa — yumshoq upsell.
+    /// SuperAdmin uchun har doim `true`.
+    /// </summary>
+    public bool IsAvailable { get; set; } = true;
 }
 
 public class AssignPermissionsDto
