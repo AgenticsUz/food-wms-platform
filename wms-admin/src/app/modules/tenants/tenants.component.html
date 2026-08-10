@@ -68,6 +68,8 @@
             <p-button icon="pi pi-th-large" [text]="true" size="small" [title]="t('tenants.modules.action')" (onClick)="openModules(row)" />
             <p-button icon="pi pi-sliders-h" [text]="true" size="small" [title]="t('tenants.features.action')" (onClick)="openFeatures(row)" />
             <p-button icon="pi pi-key" [text]="true" size="small" [title]="t('tenants.reset.action')" (onClick)="openReset(row)" />
+            <p-button icon="pi pi-history" [text]="true" size="small" [title]="t('audit.tenantLog')"
+              (onClick)="openAudit(row)" />
             <p-button icon="pi pi-pencil" [text]="true" size="small" [title]="t('common.edit')" (onClick)="openEdit(row)" />
             <p-button icon="pi pi-trash" [text]="true" size="small" severity="danger" (onClick)="remove(row)" />
           </td>

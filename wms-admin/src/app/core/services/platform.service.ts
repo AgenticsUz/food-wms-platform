@@ -9,6 +9,7 @@ import { Plan, CreatePlanDto, PlatformStats, ModuleInfo } from '../models/plan.m
 import { Lead, UpdateLeadDto, ConvertLeadDto } from '../models/lead.model';
 import { FeatureInfo, TenantFeature, UpdateFeaturesDto } from '../models/feature.model';
 import { Organization, OrganizationDetail } from '../models/organization.model';
+import { AuditQuery, PaginatedAudit } from '../models/audit.model';
 
 @Injectable({ providedIn: 'root' })
 export class PlatformService {
@@ -69,6 +70,23 @@ export class PlatformService {
   updateTenantFeatures(tenantId: number, dto: UpdateFeaturesDto) {
     return this.api.put<void>(`admin/tenants/${tenantId}/features`, dto);
   }
+
+  // Audit (platforma ko'rinishi, B4)
+  /** Sahifalash server tomonda — `pageSize` 200 dan oshsa backend jimgina qisqartiradi. */
+  getAudit(query: AuditQuery) {
+    const params: Record<string, string | number | boolean> = {
+      page: query.page, pageSize: query.pageSize
+    };
+    if (query.tenantId) params['tenantId'] = query.tenantId;
+    if (query.entityType) params['entityType'] = query.entityType;
+    if (query.action) params['action'] = query.action;
+    if (query.platformOnly) params['platformOnly'] = true;
+    if (query.from) params['from'] = query.from;
+    if (query.to) params['to'] = query.to;
+    return this.api.get<PaginatedAudit>('admin/audit', params);
+  }
+
+  getAuditEntityTypes() { return this.api.get<string[]>('admin/audit/entity-types'); }
 
   // Meta + stats
   getModules() { return this.api.get<ModuleInfo[]>('admin/modules'); }

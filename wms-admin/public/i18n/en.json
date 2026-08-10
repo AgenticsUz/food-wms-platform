@@ -37,7 +37,8 @@
     "signOutConfirm": "Sign out of the admin console?",
     "signOutHeader": "Sign out",
     "language": "Language",
-    "theme": "Theme"
+    "theme": "Theme",
+    "audit": "Audit"
   },
   "login": {
     "title": "Platform control",
@@ -324,5 +325,22 @@
   },
   "errors": {
     "unexpected": "An unexpected error occurred"
+  },
+  "audit": {
+    "subtitle": "Change history across every customer",
+    "allTenants": "All customers",
+    "allTypes": "All types",
+    "platformOnly": "Platform actions only",
+    "clearFilters": "Clear filters",
+    "date": "Date",
+    "tenant": "Customer",
+    "user": "User",
+    "action": "Action",
+    "object": "Object",
+    "record": "Record",
+    "platformAction": "Platform action",
+    "by": "by {{name}}",
+    "empty": "No audit entries found",
+    "tenantLog": "This customer's audit log"
   }
 }

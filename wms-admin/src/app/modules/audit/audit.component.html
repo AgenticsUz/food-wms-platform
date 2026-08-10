@@ -1,0 +1,80 @@
+<ng-container *transloco="let t">
+  <p class="page-note">{{ t('audit.subtitle') }}</p>
+
+  <div class="wms-card page-toolbar">
+    <div class="filters">
+      <p-select [options]="tenantOptions()" [ngModel]="tenantId()" (ngModelChange)="tenantId.set($event); applyFilters()"
+        optionLabel="label" optionValue="value" [showClear]="true"
+        [placeholder]="t('audit.allTenants')" styleClass="filter-select" />
+
+      <p-select [options]="entityTypeOptions()" [ngModel]="entityType()" (ngModelChange)="entityType.set($event); applyFilters()"
+        optionLabel="label" optionValue="value" [showClear]="true"
+        [placeholder]="t('audit.allTypes')" styleClass="filter-select" />
+
+      <p-datepicker [ngModel]="from()" (ngModelChange)="from.set($event); applyFilters()"
+        dateFormat="yy-mm-dd" [showIcon]="true" [showClear]="true" [placeholder]="t('common.from')" />
+      <p-datepicker [ngModel]="to()" (ngModelChange)="to.set($event); applyFilters()"
+        dateFormat="yy-mm-dd" [showIcon]="true" [showClear]="true" [placeholder]="t('common.to')" />
+
+      <label class="platform-toggle">
+        <p-toggleswitch [ngModel]="platformOnly()" (ngModelChange)="platformOnly.set($event); applyFilters()" />
+        <span>{{ t('audit.platformOnly') }}</span>
+      </label>
+
+      <p-button icon="pi pi-filter-slash" [text]="true" size="small"
+        [title]="t('audit.clearFilters')" (onClick)="clearFilters()" />
+    </div>
+  </div>
+
+  <div class="wms-card table-wrapper">
+    <!-- Sahifalash server tomonda: `lazy` + `totalRecords`. Barcha yozuvni yuklamaymiz. -->
+    <p-table [value]="rows()" [loading]="loading()"
+      [lazy]="true" (onLazyLoad)="onLazyLoad($event)"
+      [paginator]="true" [rows]="pageSize" [totalRecords]="total()"
+      [scrollable]="true" styleClass="p-datatable-sm p-datatable-striped">
+      <ng-template #header>
+        <tr>
+          <th>{{ t('audit.date') }}</th>
+          <th>{{ t('audit.tenant') }}</th>
+          <th>{{ t('audit.user') }}</th>
+          <th>{{ t('audit.action') }}</th>
+          <th>{{ t('audit.object') }}</th>
+          <th class="text-right">{{ t('audit.record') }}</th>
+          <th></th>
+        </tr>
+      </ng-template>
+
+      <ng-template #body let-row>
+        <tr>
+          <td class="nowrap">{{ row.createdAt | date:'MMM d, y HH:mm' }}</td>
+          <td>
+            <span class="item-name">{{ row.tenantName ?? '—' }}</span>
+            @if (row.isPlatformAction && row.actorTenantName) {
+              <div class="actor">{{ t('audit.by', { name: row.actorTenantName }) }}</div>
+            }
+          </td>
+          <td>{{ row.userName ?? '—' }}</td>
+          <td><span [class]="actionClass(row.action)">{{ row.action }}</span></td>
+          <td>{{ objectLabel(row) }}</td>
+          <td class="text-right num">{{ row.entityId ? '#' + row.entityId : '—' }}</td>
+          <td>
+            @if (row.isPlatformAction) {
+              <span class="pill pill-info">{{ t('audit.platformAction') }}</span>
+            }
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="7">
+            <div class="empty-state">
+              <i class="pi pi-history"></i>
+              <p>{{ t('audit.empty') }}</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</ng-container>

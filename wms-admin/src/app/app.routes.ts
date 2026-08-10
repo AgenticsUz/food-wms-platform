@@ -14,7 +14,8 @@ export const routes: Routes = [
       { path: 'tenants', loadComponent: () => import('./modules/tenants/tenants.component') },
       { path: 'leads', loadComponent: () => import('./modules/leads/leads.component') },
       { path: 'organizations', loadComponent: () => import('./modules/organizations/organizations.component') },
-      { path: 'plans', loadComponent: () => import('./modules/plans/plans.component') }
+      { path: 'plans', loadComponent: () => import('./modules/plans/plans.component') },
+      { path: 'audit', loadComponent: () => import('./modules/audit/audit.component') }
     ]
   },
   { path: '**', redirectTo: '' }

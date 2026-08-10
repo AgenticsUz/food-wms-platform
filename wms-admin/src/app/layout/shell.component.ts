@@ -33,7 +33,8 @@ export class ShellComponent {
     { key: 'nav.tenants', icon: 'pi pi-building', route: '/tenants' },
     { key: 'nav.leads', icon: 'pi pi-inbox', route: '/leads' },
     { key: 'nav.organizations', icon: 'pi pi-sitemap', route: '/organizations' },
-    { key: 'nav.plans', icon: 'pi pi-tags', route: '/plans' }
+    { key: 'nav.plans', icon: 'pi pi-tags', route: '/plans' },
+    { key: 'nav.audit', icon: 'pi pi-history', route: '/audit' }
   ];
 
   /** Sarlavha marshrutdan olinadi — har sahifa o'z h1 ini takrorlamasin. */

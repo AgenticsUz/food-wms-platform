@@ -37,7 +37,8 @@
     "signOutConfirm": "Admin konsolidan chiqasizmi?",
     "signOutHeader": "Chiqish",
     "language": "Til",
-    "theme": "Mavzu"
+    "theme": "Mavzu",
+    "audit": "Audit"
   },
   "login": {
     "title": "Platforma boshqaruvi",
@@ -324,5 +325,22 @@
   },
   "errors": {
     "unexpected": "Kutilmagan xatolik yuz berdi"
+  },
+  "audit": {
+    "subtitle": "Barcha mijozlar bo'yicha o'zgarishlar tarixi",
+    "allTenants": "Barcha mijozlar",
+    "allTypes": "Barcha turlar",
+    "platformOnly": "Faqat platforma amallari",
+    "clearFilters": "Filtrlarni tozalash",
+    "date": "Sana",
+    "tenant": "Mijoz",
+    "user": "Foydalanuvchi",
+    "action": "Amal",
+    "object": "Obyekt",
+    "record": "Yozuv",
+    "platformAction": "Platforma amali",
+    "by": "{{name}} tomonidan",
+    "empty": "Audit yozuvlari topilmadi",
+    "tenantLog": "Shu mijozning audit jurnali"
   }
 }

@@ -1,7 +1,7 @@
 import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TableModule } from 'primeng/table';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
@@ -78,6 +78,7 @@ export default class TenantsComponent implements OnInit {
   private service = inject(PlatformService);
   private notify = inject(NotificationService);
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private transloco = inject(TranslocoService);
 
   tenants = signal<Tenant[]>([]);
@@ -255,6 +256,11 @@ export default class TenantsComponent implements OnInit {
       },
       error: () => this.saving.set(false)
     });
+  }
+
+  /** Shu mijozning audit jurnali — filtr oldindan qo'yilgan holda. */
+  openAudit(t: Tenant) {
+    this.router.navigate(['/audit'], { queryParams: { tenantId: t.id } });
   }
 
   activate(t: Tenant) { this.service.activateTenant(t.id).subscribe(() => { this.notify.success(this.transloco.translate('tenants.activated')); this.load(); }); }
