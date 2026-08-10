@@ -17,6 +17,12 @@ export interface User {
   phone: string;
   isActive: boolean;
   isSuperAdmin?: boolean;
+  /**
+   * Parolni egasidan boshqa odam qo'ygan (hisob yaratilgan yoki parol tiklangan).
+   * Backend **bloklamaydi** — majburlash shu yerda: `mustChangePasswordGuard`
+   * foydalanuvchini profil sahifasiga yo'naltiradi.
+   */
+  mustChangePassword?: boolean;
   telegramChatId?: string | null;
   roles: string[];
   permissions?: string[];

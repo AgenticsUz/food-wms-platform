@@ -6,7 +6,8 @@ import {
   ModuleInfo,
   QcParameter, QcParameterCreateDto,
   ChangePasswordDto,
-  PermissionInfo
+  PermissionInfo,
+  PasswordResetResult
 } from '../models/settings.model';
 
 @Injectable({ providedIn: 'root' })
@@ -19,6 +20,14 @@ export class SettingsService {
   updateUser(id: number, dto: UserUpdateDto) { return this.api.put<UserDetail>(`users/${id}`, dto); }
   deleteUser(id: number) { return this.api.delete<void>(`users/${id}`); }
   assignRoles(userId: number, roleIds: number[]) { return this.api.put<void>(`users/${userId}/roles`, { roleIds }); }
+  /**
+   * Xodimning parolini tiklaydi. `newPassword` bermasa server 12 belgili parol yaratadi
+   * (chalkash belgilarsiz — telefonda aytish uchun). Javobdagi parol **bir martalik**.
+   * Tiklash xodimning barcha faol sessiyalarini bekor qiladi.
+   */
+  resetUserPassword(userId: number, newPassword: string | null) {
+    return this.api.post<PasswordResetResult>(`users/${userId}/reset-password`, { newPassword });
+  }
 
   // Roles
   getRoles() { return this.api.get<RoleInfo[]>('roles'); }

@@ -1,6 +1,7 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TranslocoDirective } from '@jsverse/transloco';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { RadioButton } from 'primeng/radiobutton';
 import { TableModule } from 'primeng/table';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
@@ -15,14 +16,19 @@ import { SettingsService } from '../../../core/services/settings.service';
 import { NotificationService } from '../../../shared/services/notification.service';
 import { ImportButtonComponent } from '../../../shared/components/import-button/import-button.component';
 import { PhoneInputComponent } from '../../../shared/components/phone-input/phone-input.component';
-import { UserDetail, UserCreateDto, UserUpdateDto, RoleInfo } from '../../../core/models/settings.model';
+import { UserDetail, UserCreateDto, UserUpdateDto, RoleInfo, PasswordResetResult } from '../../../core/models/settings.model';
+import { AuthService } from '../../../core/services/auth.service';
+import { writeToClipboard } from '../../../shared/utils/clipboard.util';
+
+/** Backenddagi `PasswordGenerator.MinimumManualLength` bilan bir xil. */
+const MIN_PASSWORD_LENGTH = 8;
 
 @Component({
   selector: 'app-users',
   standalone: true,
   imports: [
     FormsModule, TableModule, Button, InputText, Dialog,
-    ToggleSwitch, Password, Checkbox, Tooltip,
+    ToggleSwitch, Password, Checkbox, Tooltip, RadioButton,
     PageHeaderComponent, StatusBadgeComponent, TranslocoDirective, ImportButtonComponent, PhoneInputComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -32,6 +38,8 @@ import { UserDetail, UserCreateDto, UserUpdateDto, RoleInfo } from '../../../cor
 export default class UsersComponent implements OnInit {
   private settingsService = inject(SettingsService);
   private notify = inject(NotificationService);
+  private auth = inject(AuthService);
+  private transloco = inject(TranslocoService);
 
   users = signal<UserDetail[]>([]);
   roles = signal<RoleInfo[]>([]);
@@ -50,6 +58,89 @@ export default class UsersComponent implements OnInit {
   roleDialogVisible = signal(false);
   selectedUserId = signal<number | null>(null);
   selectedRoleIds = signal<number[]>([]);
+
+  // ---- Parolni tiklash (F8) ------------------------------------------------
+  // Yangi parol javobda bir marta keladi, qayta olib bo'lmaydi. Shuning uchun u
+  // toast'ga ham, konsolga ham chiqarilmaydi va natija dialogi tasodifan yopilmaydi.
+
+  resetTarget = signal<UserDetail | null>(null);
+  resetMode = signal<'auto' | 'manual'>('auto');
+  resetPassword = signal('');
+  resetting = signal(false);
+  resetResult = signal<PasswordResetResult | null>(null);
+  copiedField = signal<'login' | 'password' | null>(null);
+
+  readonly minPasswordLength = MIN_PASSWORD_LENGTH;
+
+  /**
+   * Forma va natija — ikki ALOHIDA dialog. PrimeNG `closable`/`closeOnEscape`
+   * tinglovchilarini dialog ochilganda bir marta bog'laydi va keyin bu inputlar
+   * o'zgarsa qayta ko'rib chiqmaydi; bitta dialogda bayroqlarni natija kelgach
+   * `false` ga o'tkazish yetarli emas edi — Esc baribir yopib, qaytarib bo'lmaydigan
+   * parolni yo'qotardi.
+   */
+  resetFormVisible = computed(() => this.resetTarget() !== null && this.resetResult() === null);
+
+  /** O'ziga va platforma hisobiga tugma ko'rsatilmaydi — backend ham 403 beradi. */
+  canReset(user: UserDetail): boolean {
+    return user.id !== this.auth.currentUser()?.id && !user.isSuperAdmin;
+  }
+
+  manualTooShort = computed(() =>
+    this.resetMode() === 'manual' &&
+    this.resetPassword().trim().length > 0 &&
+    this.resetPassword().trim().length < MIN_PASSWORD_LENGTH);
+
+  canSubmitReset = computed(() =>
+    this.resetMode() === 'auto' || this.resetPassword().trim().length >= MIN_PASSWORD_LENGTH);
+
+  openReset(user: UserDetail) {
+    this.resetTarget.set(user);
+    this.resetMode.set('auto');
+    this.resetPassword.set('');
+    this.resetResult.set(null);
+    this.copiedField.set(null);
+  }
+
+  /** Natija kelganda forma dialogi o'zi yopiladi — bu holatni tozalash deb hisoblamaymiz. */
+  onResetFormVisibleChange(visible: boolean) {
+    if (!visible && this.resetResult() === null) this.closeReset();
+  }
+
+  closeReset() {
+    this.resetTarget.set(null);
+    this.resetResult.set(null);
+    this.resetPassword.set('');
+    this.copiedField.set(null);
+  }
+
+  submitReset() {
+    const user = this.resetTarget();
+    if (!user || !this.canSubmitReset()) return;
+    this.resetting.set(true);
+    this.settingsService
+      .resetUserPassword(user.id, this.resetMode() === 'manual' ? this.resetPassword().trim() : null)
+      .subscribe({
+        // Dialog ataylab ochiq qoladi: parol boshqa hech qayerdan olinmaydi.
+        next: (res) => {
+          this.resetting.set(false);
+          if (res.success && res.data) this.resetResult.set(res.data);
+        },
+        // Xato toastini interceptor chiqaradi — ikkinchisini qo'shmaymiz.
+        error: () => this.resetting.set(false)
+      });
+  }
+
+  async copyValue(value: string, field: 'login' | 'password') {
+    if (!await writeToClipboard(value)) {
+      this.notify.warn(this.transloco.translate('settings.reset.copyFailed'));
+      return;
+    }
+    this.copiedField.set(field);
+    // Toast'da faqat "nusxalandi" — qiymatning o'zi hech qachon toastga tushmaydi.
+    this.notify.success(this.transloco.translate('settings.reset.copied'));
+    setTimeout(() => { if (this.copiedField() === field) this.copiedField.set(null); }, 2000);
+  }
 
   ngOnInit() {
     this.loadUsers();

@@ -22,3 +22,13 @@
   display: flex;
   justify-content: flex-start;
 }
+
+/* Parolni majburiy o'zgartirish sababi (F8) */
+.must-change-notice {
+  display: flex; align-items: flex-start; gap: 8px;
+  margin-bottom: 14px; padding: 10px 12px;
+  border-radius: var(--radius-sm); font-size: 12px; font-weight: 600;
+  background: var(--color-berry-50); color: var(--color-berry-700);
+  border-left: 3px solid var(--color-berry-600);
+  i { font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+}

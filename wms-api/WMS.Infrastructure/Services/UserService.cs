@@ -33,6 +33,7 @@ public class UserService : IUserService
             .Select(u => new UserDto
             {
                 Id = u.Id, FullName = u.FullName, Phone = u.Phone, IsActive = u.IsActive,
+                IsSuperAdmin = u.IsSuperAdmin,
                 Roles = u.UserRoles.Select(ur => new UserRoleDto { Id = ur.Role.Id, Name = ur.Role.Name }).ToList()
             }).ToListAsync();
     }

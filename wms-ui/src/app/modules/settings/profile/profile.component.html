@@ -38,6 +38,12 @@
   <!-- Change Password -->
   <div class="wms-card section-card">
     <h3 class="section-title">{{ t('settings.changePassword') }}</h3>
+    @if (wasForced()) {
+      <div class="must-change-notice">
+        <i class="pi pi-exclamation-triangle"></i>
+        <span>{{ t('settings.reset.mustChange') }}</span>
+      </div>
+    }
     <div class="form-col password-form">
       <div class="form-field">
         <label>{{ t('settings.currentPassword') }} *</label>

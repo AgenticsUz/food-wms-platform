@@ -10,6 +10,12 @@ public class UserDto
     public string Phone { get; set; } = null!;
     public bool IsActive { get; set; }
     public List<UserRoleDto> Roles { get; set; } = new();
+
+    /// <summary>
+    /// Platforma hisobi. Tenant admin unga parol tiklay olmaydi (backend **403** beradi) —
+    /// UI tugmani oldindan yashirishi uchun shu bayroq kerak.
+    /// </summary>
+    public bool IsSuperAdmin { get; set; }
 }
 
 public class UserRoleDto

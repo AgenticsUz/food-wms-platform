@@ -379,7 +379,26 @@
     "audit": "Audit jurnali",
     "telegram": "Telegram bildirishnomalari",
     "telegramHint": "Ogohlantirishlarni olish uchun Telegramni ulang. chat ID ni @userinfobot dan oling.",
-    "telegramChatId": "Chat ID"
+    "telegramChatId": "Chat ID",
+    "reset": {
+      "action": "Parolni tiklash",
+      "title": "Parolni tiklash — {{name}}",
+      "mode": "Parol qanday qo'yiladi",
+      "modeAuto": "Avtomatik yaratilsin",
+      "modeManual": "Qo'lda kiritaman",
+      "newPassword": "Yangi parol",
+      "minLength": "Kamida {{min}} ta belgi.",
+      "sessionWarning": "Bu foydalanuvchining barcha faol sessiyalari bekor qilinadi — u yangi parol bilan qaytadan kirishi kerak bo'ladi.",
+      "onceWarning": "Bu parol faqat bir marta ko'rsatiladi. Hozir nusxa oling — uni qayta olishning imkoni yo'q.",
+      "login": "Login",
+      "copy": "Nusxa olish",
+      "copied": "Nusxalandi",
+      "copyFailed": "Nusxalab bo'lmadi — qiymatni belgilab, qo'lda ko'chiring.",
+      "resultFor": "{{name}} uchun parol tiklandi.",
+      "done": "Tayyor",
+      "mustChange": "Parolingizni boshqa odam qo'ygan. Davom etish uchun o'zingizning parolingizni qo'ying.",
+      "changedSignOut": "Parol o'zgartirildi. Yangi parol bilan qaytadan kiring."
+    }
   },
   "dashboard": {
     "goodMorning": "Xayrli tong",

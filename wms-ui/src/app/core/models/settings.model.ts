@@ -6,6 +6,20 @@ export interface UserDetail {
   isActive: boolean;
   roles: RoleInfo[];
   createdAt: string;
+  /** Platforma hisobi — tenant admin unga parol tiklay olmaydi (backend 403). */
+  isSuperAdmin?: boolean;
+}
+
+/**
+ * `POST /api/users/{id}/reset-password` javobi. `newPassword` **faqat bir marta**
+ * keladi — hech qayerda saqlanmaydi va qayta olib bo'lmaydi. Shuning uchun u toast'ga
+ * ham, konsolga ham chiqarilmaydi; faqat dialog ichida ko'rsatiladi.
+ */
+export interface PasswordResetResult {
+  userId: number;
+  login: string;
+  fullName: string;
+  newPassword: string;
 }
 
 export interface UserCreateDto {

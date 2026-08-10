@@ -379,7 +379,26 @@
     "audit": "Audit Log",
     "telegram": "Telegram notifications",
     "telegramHint": "Link your Telegram to receive alerts. Get your chat ID from @userinfobot.",
-    "telegramChatId": "Chat ID"
+    "telegramChatId": "Chat ID",
+    "reset": {
+      "action": "Reset password",
+      "title": "Reset password — {{name}}",
+      "mode": "How to set the password",
+      "modeAuto": "Generate automatically",
+      "modeManual": "Set manually",
+      "newPassword": "New password",
+      "minLength": "At least {{min}} characters.",
+      "sessionWarning": "Every active session of this user will be cancelled — they will have to sign in again with the new password.",
+      "onceWarning": "This password is shown only once. Copy it now — there is no way to see it again.",
+      "login": "Login",
+      "copy": "Copy",
+      "copied": "Copied",
+      "copyFailed": "Could not copy — select the value and copy it manually.",
+      "resultFor": "Password reset for {{name}}.",
+      "done": "Done",
+      "mustChange": "Your password was set by someone else. Set your own password to continue.",
+      "changedSignOut": "Password changed. Sign in again with the new one."
+    }
   },
   "dashboard": {
     "goodMorning": "Good morning",

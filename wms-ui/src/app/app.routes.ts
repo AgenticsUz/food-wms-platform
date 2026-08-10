@@ -6,6 +6,7 @@ import { portalGuard } from './core/guards/portal.guard';
 import { agentPortalGuard } from './core/guards/agent-portal.guard';
 import { permissionGuard } from './core/guards/permission.guard';
 import { featureGuard } from './core/guards/feature.guard';
+import { mustChangePasswordGuard } from './core/guards/must-change-password.guard';
 
 export const routes: Routes = [
   {
@@ -15,7 +16,10 @@ export const routes: Routes = [
   {
     path: '',
     component: ShellComponent,
+    // `mustChangePasswordGuard` shell'ning HAMMA bolasiga qo'llanadi va faqat profil
+    // sahifasini o'tkazadi — parol o'sha yerda o'zgartiriladi.
     canActivate: [authGuard],
+    canActivateChild: [mustChangePasswordGuard],
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       {

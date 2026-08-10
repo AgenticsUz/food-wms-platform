@@ -1,6 +1,7 @@
 import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TranslocoDirective } from '@jsverse/transloco';
+import { ActivatedRoute, Router } from '@angular/router';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Password } from 'primeng/password';
@@ -21,7 +22,18 @@ import { ChangePasswordDto } from '../../../core/models/settings.model';
 export default class ProfileComponent implements OnInit {
   private settingsService = inject(SettingsService);
   private authService = inject(AuthService);
+  private auth = this.authService;
   private notify = inject(NotificationService);
+  private transloco = inject(TranslocoService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+
+  /**
+   * Foydalanuvchi bu sahifaga o'z xohishi bilan kelmadi — `mustChangePasswordGuard`
+   * uni shu yerga yubordi. Shunda sabab ko'rsatiladi va parol o'zgargach bosh
+   * sahifaga qaytariladi.
+   */
+  wasForced = signal(false);
 
   fullName = signal('');
   phone = signal('');
@@ -42,6 +54,9 @@ export default class ProfileComponent implements OnInit {
       this.phone.set(user.phone);
       this.telegramChatId.set(user.telegramChatId ?? '');
     }
+    this.wasForced.set(
+      this.route.snapshot.queryParamMap.get('mustChangePassword') === '1' ||
+      (user?.mustChangePassword ?? false));
   }
 
   saveTelegram() {
@@ -123,12 +138,17 @@ export default class ProfileComponent implements OnInit {
         this.currentPassword.set('');
         this.newPassword.set('');
         this.confirmPassword.set('');
-        this.notify.success('Password changed successfully');
+        this.auth.clearMustChangePassword();
+        // Parol o'zgarishi `SecurityStamp` ni aylantiradi — bu ataylab, boshqa
+        // sessiyalarni o'ldirish uchun. Ammo joriy token ham o'sha stamp bilan
+        // yozilgan, ya'ni u ham o'ladi. Kutib turilsa foydalanuvchi keyingi so'rovda
+        // 401 olib, sababsiz login sahifasiga uloqtiriladi. Shuning uchun sababni
+        // aytib, o'zimiz chiqaramiz.
+        this.notify.success(this.transloco.translate('settings.reset.changedSignOut'));
+        this.auth.logout();
       },
-      error: () => {
-        this.changingPassword.set(false);
-        this.notify.error('Failed to change password');
-      }
+      // Xato toastini interceptor chiqaradi — ikkinchisini qo'shmaymiz.
+      error: () => this.changingPassword.set(false)
     });
   }
 }

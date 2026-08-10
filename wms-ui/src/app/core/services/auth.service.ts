@@ -75,6 +75,19 @@ export class AuthService {
     );
   }
 
+  /**
+   * Foydalanuvchi o'z parolini qo'ydi — majburiyat tugadi. Signal ham, `localStorage`
+   * dagi nusxa ham yangilanadi: aks holda sahifa yangilanganda guard uni yana profil
+   * sahifasiga qaytarardi va u qamalib qolgandek bo'lardi.
+   */
+  clearMustChangePassword() {
+    const user = this.currentUser();
+    if (!user?.mustChangePassword) return;
+    const updated = { ...user, mustChangePassword: false };
+    this.currentUser.set(updated);
+    localStorage.setItem('currentUser', JSON.stringify(updated));
+  }
+
   logout() {
     // 60s notification polling'ni to'xtatamiz — aks holda tokensiz 401 → logout sikli
     this.bellService.stopPolling();
