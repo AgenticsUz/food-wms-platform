@@ -196,6 +196,12 @@ public class WmsDbContext : DbContext
         modelBuilder.Entity<AuditLog>()
             .HasIndex(a => new { a.TenantId, a.CreatedAt });
 
+        // Platforma ko'rinishi (`/api/admin/audit`) tenant bo'yicha filtrlamasdan sanaga
+        // qarab tartiblaydi — yuqoridagi kompozit indeks bunda ishlamaydi, chunki
+        // birinchi ustun (TenantId) so'rovda yo'q.
+        modelBuilder.Entity<AuditLog>()
+            .HasIndex(a => a.CreatedAt);
+
         // ── Performance indekslar — barcha so'rovlar TenantId bilan filtrlanadi ──
         modelBuilder.Entity<Transfer>().HasIndex(t => new { t.TenantId, t.Status });
         modelBuilder.Entity<Transfer>().HasIndex(t => new { t.TenantId, t.ConfirmedAt });

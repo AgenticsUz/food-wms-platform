@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WMS.Application.Common;
+using WMS.Application.DTOs.Audit;
+using WMS.Application.DTOs.Common;
 using WMS.Application.DTOs.Plans;
 using WMS.Application.Common.Localization;
 using WMS.Application.DTOs.Branding;
@@ -27,12 +29,14 @@ public class AdminController : BaseController
     private readonly IOrganizationService _organizations;
     private readonly IBrandingService _branding;
     private readonly IPasswordResetService _passwords;
+    private readonly IAuditService _audit;
 
     public AdminController(ITenantService tenants, IPlanService plans, IBillingService billing,
         ILeadService leads, IFeatureService features, IOrganizationService organizations,
-        IBrandingService branding, IPasswordResetService passwords)
+        IBrandingService branding, IPasswordResetService passwords, IAuditService audit)
     {
         _passwords = passwords;
+        _audit = audit;
         _tenants = tenants;
         _plans = plans;
         _billing = billing;
@@ -249,4 +253,23 @@ public class AdminController : BaseController
     [HttpGet("stats")]
     public async Task<IActionResult> GetStats()
         => Ok(ApiResponse<PlatformStatsDto>.Ok(await _tenants.GetStatsAsync()));
+
+    // ── Audit (platforma ko'rinishi) ─────────────────────────────────────
+    // `/api/audit` JWT'dagi TenantId bilan chegaralangan — SuperAdmin u orqali boshqa
+    // tenantning izini ko'ra olmaydi. Shu sababli alohida endpoint.
+
+    /// <summary>
+    /// Barcha tenantlar bo'yicha audit. `tenantId` berilmasa — hammasi.
+    /// Sahifalash majburiy (default 50, maksimal 200): audit eng tez o'sadigan jadval.
+    /// </summary>
+    [HttpGet("audit")]
+    public async Task<IActionResult> GetAudit([FromQuery] AdminAuditQuery query, CancellationToken ct)
+        => Ok(ApiResponse<PaginatedList<AuditLogDto>>.Ok(await _audit.GetPlatformLogsAsync(query, ct)));
+
+    /// Filtr uchun amal turlari — barcha tenantlar bo'yicha.
+    /// Tenant ro'yxati uchun alohida endpoint yozilmadi: mavjud `GET /api/admin/tenants`
+    /// allaqachon id + nom qaytaradi va admin konsoli uni baribir yuklab turadi.
+    [HttpGet("audit/entity-types")]
+    public async Task<IActionResult> GetAuditEntityTypes(CancellationToken ct)
+        => Ok(ApiResponse<List<string>>.Ok(await _audit.GetPlatformEntityTypesAsync(ct)));
 }
