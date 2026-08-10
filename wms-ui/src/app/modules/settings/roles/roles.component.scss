@@ -35,3 +35,16 @@
   color: var(--text-primary);
   font-weight: 500;
 }
+
+/* Tarifga kirmaydigan ruxsat (B5/F11) — yashirilmaydi, kulrang qilinadi.
+   Belgilash mumkin: plan kengaytirilsa rol allaqachon to'g'ri sozlangan bo'ladi. */
+.perm-item.outside-plan {
+  opacity: 0.6;
+  .perm-label { color: var(--text-muted); }
+}
+.outside-plan-tag {
+  margin-left: 6px; padding: 1px 6px; border-radius: 999px;
+  font-size: 10px; font-weight: 600; white-space: nowrap;
+  background: var(--color-caramel-50, var(--bg-inset));
+  color: var(--color-caramel-700, var(--text-muted));
+}

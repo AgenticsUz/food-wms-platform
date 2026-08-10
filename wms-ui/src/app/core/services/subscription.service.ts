@@ -2,7 +2,7 @@ import { Injectable, inject, signal, computed } from '@angular/core';
 import { map, tap } from 'rxjs/operators';
 import { ApiService } from './api.service';
 import {
-  SubscriptionInfo, SubscriptionLimits, SubscriptionPlan, WARN_BEFORE_DAYS
+  SubscriptionInfo, SubscriptionLimits, SubscriptionPlan, LimitDetail, WARN_BEFORE_DAYS
 } from '../models/subscription.model';
 import { ApiResponse } from '../models/api-response.model';
 
@@ -65,10 +65,13 @@ export class SubscriptionService {
   }
 }
 
+const EMPTY_DETAIL: LimitDetail = { max: 0, current: 0, usagePercent: null, isNearLimit: null };
+
 const EMPTY_LIMITS: SubscriptionLimits = {
   maxUsers: 0, currentUsers: 0,
   maxWarehouses: 0, currentWarehouses: 0,
-  maxTransfersPerMonth: 0, currentTransfersThisMonth: 0
+  maxTransfersPerMonth: 0, currentTransfersThisMonth: 0,
+  users: EMPTY_DETAIL, warehouses: EMPTY_DETAIL, transfers: EMPTY_DETAIL
 };
 
 const STATUS_NAMES: Record<number, string> = { 1: 'Trial', 2: 'Active', 3: 'Suspended' };
@@ -115,7 +118,17 @@ function normalizeResponse(res: ApiResponse<unknown>): ApiResponse<SubscriptionI
 
 function normalizeLimits(limits: unknown): SubscriptionLimits {
   if (!limits) return EMPTY_LIMITS;
-  if (!Array.isArray(limits)) return { ...EMPTY_LIMITS, ...(limits as SubscriptionLimits) };
+
+  if (!Array.isArray(limits)) {
+    const raw = limits as Record<string, any>;
+    const merged = { ...EMPTY_LIMITS, ...(raw as SubscriptionLimits) };
+    // Detal obyektlari eski backendda bo'lmasligi mumkin — o'shanda tekis maydonlardan
+    // quramiz, lekin foizni **hisoblamaymiz**: u backendning ishi (`null` qoladi).
+    merged.users = detail(raw['users'], merged.maxUsers, merged.currentUsers);
+    merged.warehouses = detail(raw['warehouses'], merged.maxWarehouses, merged.currentWarehouses);
+    merged.transfers = detail(raw['transfers'], merged.maxTransfersPerMonth, merged.currentTransfersThisMonth);
+    return merged;
+  }
 
   // Eski shakl: [{ key, limit, used }, ...]
   const find = (key: string) => (limits as { key: string; limit: number; used: number }[])
@@ -126,6 +139,19 @@ function normalizeLimits(limits: unknown): SubscriptionLimits {
   return {
     maxUsers: users?.limit ?? 0, currentUsers: users?.used ?? 0,
     maxWarehouses: warehouses?.limit ?? 0, currentWarehouses: warehouses?.used ?? 0,
-    maxTransfersPerMonth: transfers?.limit ?? 0, currentTransfersThisMonth: transfers?.used ?? 0
+    maxTransfersPerMonth: transfers?.limit ?? 0, currentTransfersThisMonth: transfers?.used ?? 0,
+    users: detail(null, users?.limit ?? 0, users?.used ?? 0),
+    warehouses: detail(null, warehouses?.limit ?? 0, warehouses?.used ?? 0),
+    transfers: detail(null, transfers?.limit ?? 0, transfers?.used ?? 0)
+  };
+}
+
+function detail(raw: unknown, max: number, current: number): LimitDetail {
+  const d = raw as Partial<LimitDetail> | null | undefined;
+  return {
+    max: d?.max ?? max,
+    current: d?.current ?? current,
+    usagePercent: d?.usagePercent ?? null,
+    isNearLimit: d?.isNearLimit ?? null
   };
 }

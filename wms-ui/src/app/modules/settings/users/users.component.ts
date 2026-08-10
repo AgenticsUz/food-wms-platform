@@ -19,6 +19,7 @@ import { PhoneInputComponent } from '../../../shared/components/phone-input/phon
 import { UserDetail, UserCreateDto, UserUpdateDto, RoleInfo, PasswordResetResult } from '../../../core/models/settings.model';
 import { AuthService } from '../../../core/services/auth.service';
 import { writeToClipboard } from '../../../shared/utils/clipboard.util';
+import { LimitNoticeComponent } from '../../../shared/components/limit-notice/limit-notice.component';
 
 /** Backenddagi `PasswordGenerator.MinimumManualLength` bilan bir xil. */
 const MIN_PASSWORD_LENGTH = 8;
@@ -29,8 +30,7 @@ const MIN_PASSWORD_LENGTH = 8;
   imports: [
     FormsModule, TableModule, Button, InputText, Dialog,
     ToggleSwitch, Password, Checkbox, Tooltip, RadioButton,
-    PageHeaderComponent, StatusBadgeComponent, TranslocoDirective, ImportButtonComponent, PhoneInputComponent
-  ],
+    PageHeaderComponent, StatusBadgeComponent, TranslocoDirective, ImportButtonComponent, PhoneInputComponent, LimitNoticeComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './users.component.html',
   styleUrl: './users.component.scss'

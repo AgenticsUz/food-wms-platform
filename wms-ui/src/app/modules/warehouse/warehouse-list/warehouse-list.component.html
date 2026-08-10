@@ -34,6 +34,7 @@
 
 <ng-container *transloco="let t">
   <p-dialog [header]="editing() ? t('common.edit') + ' ' + t('nav.warehouse') : t('warehouse.addWarehouse')" [(visible)]="dialogVisible" [modal]="true" [style]="{ width: '460px' }" [draggable]="false">
+    @if (!editing()) { <app-limit-notice kind="warehouses" /> }
     <div class="form-col">
       <div class="form-field">
         <label>{{ t('common.name') }} *</label>

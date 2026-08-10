@@ -110,4 +110,10 @@ export interface PermissionInfo {
   code: string;
   name: string;
   module: string;
+  /**
+   * Ruxsat tenantning tarifida amalda ishlaydimi. `false` bo'lsa ham ro'yxatdan
+   * **yashirilmaydi** — kulrang qilib ko'rsatiladi: yashirish sababni ham yashiradi
+   * va admin "ruxsat berdim, ishlamayapti" deb qo'ng'iroq qiladi.
+   */
+  isAvailable?: boolean;
 }

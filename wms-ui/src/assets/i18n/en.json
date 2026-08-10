@@ -398,7 +398,8 @@
       "done": "Done",
       "mustChange": "Your password was set by someone else. Set your own password to continue.",
       "changedSignOut": "Password changed. Sign in again with the new one."
-    }
+    },
+    "outsidePlan": "Not in your plan"
   },
   "dashboard": {
     "goodMorning": "Good morning",
@@ -664,7 +665,8 @@
     "modulesCount": "Modules",
     "availablePlans": "Available plans",
     "currentPlan": "Current",
-    "contactUs": "Contact us to change your plan"
+    "contactUs": "Contact us to change your plan",
+    "nearLimit": "You are close to your plan limit: {{used}} / {{max}}"
   },
   "custom": {
     "exampleFeature": {

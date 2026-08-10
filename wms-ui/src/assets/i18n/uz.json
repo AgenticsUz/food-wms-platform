@@ -398,7 +398,8 @@
       "done": "Tayyor",
       "mustChange": "Parolingizni boshqa odam qo'ygan. Davom etish uchun o'zingizning parolingizni qo'ying.",
       "changedSignOut": "Parol o'zgartirildi. Yangi parol bilan qaytadan kiring."
-    }
+    },
+    "outsidePlan": "Tarifingizga kirmaydi"
   },
   "dashboard": {
     "goodMorning": "Xayrli tong",
@@ -664,7 +665,8 @@
     "modulesCount": "Modullar",
     "availablePlans": "Mavjud planlar",
     "currentPlan": "Joriy",
-    "contactUs": "Planni o'zgartirish uchun biz bilan bog'laning"
+    "contactUs": "Planni o'zgartirish uchun biz bilan bog'laning",
+    "nearLimit": "Plan limitiga yaqinlashdingiz: {{used}} / {{max}}"
   },
   "custom": {
     "exampleFeature": {

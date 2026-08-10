@@ -40,8 +40,20 @@ export const LIMIT_KEYS: Record<string, string> = {
 /** Muddat tugashiga necha kun qolganda ogohlantiramiz (backend `Subscription:WarnBeforeDays`). */
 export const WARN_BEFORE_DAYS = 7;
 
-/** Limitning necha foizidan boshlab sariq ko'rsatamiz. */
-export const LIMIT_WARN_PERCENT = 80;
+/**
+ * Bitta limit — foiz va ogohlantirish chegarasi **backendda** hisoblanadi
+ * (`Subscription:LimitWarnPercent`). Bu yerda qayta hisoblamang: ikki joydagi hisob
+ * vaqt o'tib ajralib ketadi va konfig o'zgarganda UI ergashmay qoladi.
+ *
+ * Plansiz tenantda `usagePercent` va `isNearLimit` — `null`: cheklov ham,
+ * ogohlantirish ham yo'q.
+ */
+export interface LimitDetail {
+  max: number;
+  current: number;
+  usagePercent: number | null;
+  isNearLimit: boolean | null;
+}
 
 export interface SubscriptionLimits {
   maxUsers: number;
@@ -50,6 +62,10 @@ export interface SubscriptionLimits {
   currentWarehouses: number;
   maxTransfersPerMonth: number;
   currentTransfersThisMonth: number;
+
+  users: LimitDetail;
+  warehouses: LimitDetail;
+  transfers: LimitDetail;
 }
 
 export interface SubscriptionInfo {
@@ -90,22 +106,27 @@ export interface LimitRow {
   isNearLimit: boolean;
 }
 
+/**
+ * Foiz ham, "limitga yaqin" bahosi ham **backenddan** olinadi. Bu yerda faqat
+ * ko'rsatish uchun shakl beriladi — hech qanday hisob yo'q.
+ */
 export function toLimitRows(limits: SubscriptionLimits | null): LimitRow[] {
   if (!limits) return [];
-  const rows: { key: LimitRow['key']; used: number; limit: number }[] = [
-    { key: 'users', used: limits.currentUsers, limit: limits.maxUsers },
-    { key: 'warehouses', used: limits.currentWarehouses, limit: limits.maxWarehouses },
-    { key: 'transfers', used: limits.currentTransfersThisMonth, limit: limits.maxTransfersPerMonth }
+  const rows: { key: LimitRow['key']; detail: LimitDetail }[] = [
+    { key: 'users', detail: limits.users },
+    { key: 'warehouses', detail: limits.warehouses },
+    { key: 'transfers', detail: limits.transfers }
   ];
-  return rows.map(r => {
-    const isUnlimited = !r.limit || r.limit <= 0;
-    const percent = isUnlimited ? 0 : Math.min(100, Math.round((r.used / r.limit) * 100));
+  return rows.map(({ key, detail }) => {
+    const isUnlimited = !detail.max || detail.max <= 0;
     return {
-      ...r,
+      key,
+      used: detail.current,
+      limit: detail.max,
       isUnlimited,
-      percent,
-      isExceeded: !isUnlimited && r.used >= r.limit,
-      isNearLimit: !isUnlimited && percent >= LIMIT_WARN_PERCENT
+      percent: detail.usagePercent ?? 0,
+      isExceeded: !isUnlimited && detail.current >= detail.max,
+      isNearLimit: detail.isNearLimit === true
     };
   });
 }

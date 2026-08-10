@@ -73,6 +73,7 @@
     [style]="{ width: '500px' }"
     [draggable]="false"
   >
+    @if (!editing()) { <app-limit-notice kind="users" /> }
     <div class="form-grid">
       <div class="form-field">
         <label>{{ t('settings.fullName') }} *</label>

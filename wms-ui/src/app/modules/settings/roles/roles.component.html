@@ -96,13 +96,16 @@
             <div class="perm-group-header">{{ group.module }}</div>
             <div class="perm-group-items">
               @for (perm of group.permissions; track perm.id) {
-                <label class="perm-item">
+                <label class="perm-item" [class.outside-plan]="perm.isAvailable === false">
                   <p-checkbox
                     [binary]="true"
                     [ngModel]="perm.checked"
                     (ngModelChange)="togglePermission(perm.id, $event)"
                   />
                   <span class="perm-label">{{ perm.name || perm.code }}</span>
+                  @if (perm.isAvailable === false) {
+                    <span class="outside-plan-tag">{{ t('settings.outsidePlan') }}</span>
+                  }
                 </label>
               }
             </div>

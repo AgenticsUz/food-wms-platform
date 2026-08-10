@@ -12,11 +12,12 @@ import { StatusBadgeComponent } from '../../../shared/components/status-badge/st
 import { WarehouseService } from '../../../core/services/warehouse.service';
 import { NotificationService } from '../../../shared/services/notification.service';
 import { Warehouse, WarehouseCreateDto, WarehouseType } from '../../../core/models/warehouse.model';
+import { LimitNoticeComponent } from '../../../shared/components/limit-notice/limit-notice.component';
 
 @Component({
   selector: 'app-warehouse-list',
   standalone: true,
-  imports: [FormsModule, TranslocoDirective, TableModule, Button, InputText, Dialog, Select, Textarea, PageHeaderComponent, StatusBadgeComponent],
+  imports: [FormsModule, TranslocoDirective, TableModule, Button, InputText, Dialog, Select, Textarea, PageHeaderComponent, StatusBadgeComponent, LimitNoticeComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './warehouse-list.component.html',
   styleUrl: './warehouse-list.component.scss'

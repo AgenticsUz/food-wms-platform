@@ -22,11 +22,12 @@ import { Counterparty } from '../../../core/models/counterparty.model';
 import { Warehouse } from '../../../core/models/warehouse.model';
 import { Product } from '../../../core/models/product.model';
 import { Agent } from '../../../core/models/agent.model';
+import { LimitNoticeComponent } from '../../../shared/components/limit-notice/limit-notice.component';
 
 @Component({
   selector: 'app-transfer-create',
   standalone: true,
-  imports: [DecimalPipe, FormsModule, TranslocoDirective, Button, InputNumber, Select, Textarea, TableModule, ToggleSwitch, PageHeaderComponent],
+  imports: [DecimalPipe, FormsModule, TranslocoDirective, Button, InputNumber, Select, Textarea, TableModule, ToggleSwitch, PageHeaderComponent, LimitNoticeComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './transfer-create.component.html',
   styleUrl: './transfer-create.component.scss'
