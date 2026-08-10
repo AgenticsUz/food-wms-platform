@@ -66,7 +66,7 @@ muddati tugasa tizim o'zi to'xtatadi.
 
 | Tomon | Build | Bajarilgan |
 |---|---|---|
-| `wms-api` | 0 xato, 0 ogohlantirish · 54/54 + 31/31 sinov | SaaS majburlash (modul gate, obuna middleware, trial+grace, limitlar, unique indeks, planlar seed, audit izi) **+ manual billing, muddatli suspend, lead oqimi, feature qatlami, Organization, brendlash, limit ogohlantirishi** |
+| `wms-api` | 0 xato, 0 ogohlantirish · **avtomatlashtirilgan sinov yo'q** (solutionda test loyihasi mavjud emas — R23) | SaaS majburlash (modul gate, obuna middleware, trial+grace, limitlar, unique indeks, planlar seed, audit izi) **+ manual billing, muddatli suspend, lead oqimi, feature qatlami, Organization, brendlash, limit ogohlantirishi** |
 | `wms-ui` | prod build 0 xato | F1–F12 bajarilgan: obuna sahifasi + banner, modullar faqat-ko'rish, 402/403 kod bo'yicha xato boshqaruvi, feature guardlari, demo so'rovi formasi, portal banneri, parol tiklash + `mustChangePassword`, mijoz brendi, markazlashgan `warning` |
 | `wms-admin` | prod build 0 xato | F1–F12 bajarilgan: to'lovlar, sabab bilan suspend, lead ro'yxati + convert, feature matritsasi, organizations, uch tilli interfeys, parol tiklash, brendlash formasi, audit sahifasi |
 | i18n (frontend) | `wms-ui` 4 fayl × 634 kalit · `wms-admin` 3 fayl × 315 kalit, farq yo'q | — |
@@ -116,6 +116,21 @@ muddati tugasa tizim o'zi to'xtatadi.
 | F12 | `expiring` endpointi | Dashboard mahalliy filtr o'rniga `GET /api/admin/tenants/expiring` dan foydalanadi |
 | F7 | Aloqa ma'lumoti | **Ochiq.** Kod tayyor — qiymat serverdagi `Support:Phone` / `Support:Email` dan keladi (R1); `environment*.ts` dagi placeholder faqat zaxira va haqiqiy raqam berilgach almashtiriladi |
 
+**R2 — to'liq zanjir sinovi (2026-08-10):** demo so'rovi → lead → mijozga aylantirish →
+brendlash → kirish → plan → feature → limit → to'lov → to'xtatish → qayta yoqilish →
+parol → audit. Har qadam **ikkala** ilovada tekshirildi. Natija: zanjir uzilmadi,
+uchta nuqson topildi va tuzatildi.
+
+| # | Nuqson | Tuzatish |
+|---|---|---|
+| 1 | Bosh sahifa plani Moliya/Ishlab chiqarishni o'z ichiga olmagan mijozga ham o'sha kartalarni ko'rsatib, so'rov yuborardi → mijoz kirishi bilan qizil **"Bu modul obuna planingizga kirmaydi"** xatosini ko'rardi | Karta ham, so'rov ham `TenantService.isModuleEnabled` ga bog'landi |
+| 2 | `limit-notice` paneli hech qachon chiqmasdi: `subscription/me` sahifa ochilganda bir marta yuklanardi, ya'ni ombor yaratilgach hisob eskirib qolardi (3/3 bo'lsa ham "2/3") | `ApiService` `limit_warn_*` ogohlantirishini ko'rsa obunani qayta o'qiydi (aylanma bog'liqliksiz — `Injector` orqali kech) |
+| 3 | Muddatli to'xtatish sanasi kelganda mijoz **24 soatgacha** bloklangan qolardi: qayta yoqish faqat sutkalik fon xizmatida edi, admin esa mijozga "shu sanada qayta yoqiladi" deb va'da qilgan | `SubscriptionPolicy` muddati kelgan to'xtatishni bloklamaydi. To'lov muddati o'tgan bo'lsa baribir bloklanadi (`payment_expired`) — "2 oyga to'xtating" degan mijoz to'lamasdan qaytib qolmasin |
+
+> Kuzatuv (nuqson emas): lead'ni mijozga aylantirish audit yozuvi **platforma** tenantida
+> qoladi, chunki amal boshlanganda yangi tenant hali mavjud emas va obyekt — lead.
+> Yangi mijozning jurnalidan "qaysi so'rovdan kelgan" ko'rinmaydi.
+
 **Jonli uchma-uch sinov va tuzatishlar (2026-08-06):** uchala ilova birga ishga tushirilib,
 yangi tenant mijoz yo'lidan o'tkazildi. Topilgan va tuzatilgan nuqsonlar:
 
@@ -158,7 +173,7 @@ Demo so'rovi (lead) oqimi · Kunlik DB backup · `/health` + Serilog · CI/CD ·
 | # | Kim | Ish |
 |---|---|---|
 | R1 | DevOps | **Haqiqiy aloqa ma'lumoti.** 2026-08-06 dan boshlab u faqat **serverda** turadi: `appsettings.Production.json` → `Support:Phone` / `Support:Email` (yoki `Support__Phone` env). Login sahifasi ham `GET /api/public/branding` orqali shuni oladi, ya'ni **frontendni qayta yig'ish shart emas**. `environment*.ts` dagi qiymatlar faqat server javob bermaganda ishlaydigan zaxira. Hozir ikkala joyda ham placeholder — bloklangan mijoz aynan shuni ko'radi |
-| R2 | Ikkalasi | **Jonli muhitda uchma-uch sinov** — §5 dagi 6 ssenariy |
+| R2 | Ikkalasi | **Jonli muhitda uchma-uch sinov** — §5 dagi 6 ssenariy. Zanjirning o'zi **lokalda to'liq o'tkazildi** (§3, 2026-08-10) va uchta nuqson tuzatildi; qolgani — aynan **test serverda** takrorlash (nginx, `/uploads` proxy, HTTPS, haqiqiy domenlar) |
 | R3 | DevOps | Deploydan oldin **bazani zaxiralash** (migration unique indeks qo'yadi, dublikat sluglarni `-dup<Id>` qiladi) |
 | R4 | Platforma egasi | Deploydan keyin mavjud mijozlarga plan biriktirish (plansiz = cheksiz) |
 
@@ -170,6 +185,7 @@ Demo so'rovi (lead) oqimi · Kunlik DB backup · `/health` + Serilog · CI/CD ·
 | ~~R19~~ | ~~Frontend~~ | ~~Brendlash UI~~ — **bajarildi (F9)**, §3 dagi jadvalga va `FRONTEND.md` §2.9 ga qarang |
 | R20 | Ikkalasi | **Subdomen** — qaror qabul qilingan, birinchi 1–2 mijozdan keyin. `GET /api/public/branding?slug=` allaqachon tayyor. **Frontend qismi 2026-08-06 da bajarildi:** `tenant-slug.util.ts` slug'ni subdomen → eslab qolingan → standart tartibida aniqlaydi (`FRONTEND.md` §2.8), qolgani DNS/nginx |
 | R21 | Ikkalasi | **S8/S9 hamkorlik** (tenantlar o'rtasida hujjat almashinuvi) — birinchi real juftlik paydo bo'lganda. Poydevor: `Organization` (S6) |
+| R23 | Backend | **Avtomatlashtirilgan sinovlar yo'q.** `WMS.sln` da test loyihasi umuman mavjud emas (`dotnet test` hech narsa topmaydi) — bu fayl 2026-08-10 gacha "54/54 + 31/31 sinov" deb yozgan edi, bu noto'g'ri. Eng avval `SubscriptionPolicy.Evaluate` uchun birlik sinovlari kerak: u login, middleware va obuna endpointi uchun **yagona** qaror nuqtasi, ya'ni undagi xato uchala yo'lni ham buzadi |
 | R6 | Backend | Trial tugashi haqida xabar yuborish (Telegram / in-app) — hozir fon xizmati faqat suspend qiladi, banner esa mijoz kirsagina ko'rinadi |
 | ~~R7~~ | ~~Frontend~~ | ~~Limit ogohlantirishi~~ — **bajarildi (B2, B5 + F11)** |
 | ~~R22~~ | ~~Frontend~~ | ~~`mustChangePassword` majburlash~~ — **bajarildi (B6 + F8)** |

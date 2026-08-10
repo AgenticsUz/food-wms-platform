@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, Injector, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -9,6 +9,7 @@ import { NotificationService } from '../../shared/services/notification.service'
 export class ApiService {
   private http = inject(HttpClient);
   private notify = inject(NotificationService);
+  private injector = inject(Injector);
   private base = environment.apiUrl;
 
   get<T>(path: string, params?: Record<string, string | number | boolean>): Observable<ApiResponse<T>> {
@@ -51,7 +52,37 @@ export class ApiService {
   private surfaceWarning<T>() {
     return tap<ApiResponse<T>>(res => {
       const warning = res?.warning;
-      if (warning?.message) this.notify.warn(warning.message);
+      if (!warning?.message) return;
+      this.notify.warn(warning.message);
+      if (warning.code?.startsWith('limit_warn_')) this.refreshLimits();
     });
   }
+
+  /**
+   * Limit ogohlantirishi kelgan bo'lsa hisoblar o'zgargan. `subscription/me` sahifa
+   * ochilganda bir marta yuklanadi, ya'ni foydalanuvchi ombor yaratgach hisob eskirib
+   * qoladi va `limit-notice` paneli "2 / 3" da qotib turardi — toast ogohlantirsa-yu
+   * forma jim tursa, mijoz limitga urilganini faqat 402 dan bilardi.
+   *
+   * `Injector` orqali kech olinadi: `SubscriptionService` ning o'zi `ApiService` ga
+   * bog'liq va konstruktorda olinsa aylanma bog'liqlik bo'lardi.
+   */
+  private refreshLimits(): void {
+    // `subscription/me` ning o'zi ham shu quvur orqali o'tadi — bayroqsiz u yana
+    // yangilanishni chaqirib, cheksiz halqa hosil qilishi mumkin.
+    if (this.refreshingLimits) return;
+    this.refreshingLimits = true;
+
+    // Kechiktiramiz — hozir `tap` ichidamiz, joriy oqim avval yakunlansin.
+    queueMicrotask(() => {
+      import('./subscription.service').then(({ SubscriptionService }) => {
+        this.injector.get(SubscriptionService).fetch().subscribe({
+          next: () => { this.refreshingLimits = false; },
+          error: () => { this.refreshingLimits = false; }
+        });
+      });
+    });
+  }
+
+  private refreshingLimits = false;
 }

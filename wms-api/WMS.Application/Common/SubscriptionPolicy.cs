@@ -64,6 +64,17 @@ public static class SubscriptionPolicy
         _ => Messages.SuspendedOther
     };
 
+    /// <summary>
+    /// A dated suspension whose date has arrived. The operator promised the client
+    /// "the system comes back on 11 August", and the client reads that as the date, not
+    /// "some time within a day of it". The background job only runs every 24 hours, so
+    /// relying on it alone leaves the tenant blocked for most of the day it was promised
+    /// back — and that is a support call, from a client already unhappy enough to have
+    /// been suspended. The job still clears the flag; this only stops the blocking early.
+    /// </summary>
+    public static bool IsSuspensionElapsed(TenantState tenant, DateTime utcNow)
+        => tenant.SuspendedUntil is { } until && utcNow >= until;
+
     public static SubscriptionVerdict Evaluate(TenantState? tenant, SubscriptionOptions options, DateTime utcNow)
     {
         if (tenant == null)
@@ -72,17 +83,24 @@ public static class SubscriptionPolicy
         if (!tenant.IsActive)
             return new SubscriptionVerdict(false, TenantInactive, Messages.TenantInactive);
 
-        if (tenant.Status == SubscriptionStatus.Suspended)
+        var elapsed = tenant.Status == SubscriptionStatus.Suspended && IsSuspensionElapsed(tenant, utcNow);
+
+        if (tenant.Status == SubscriptionStatus.Suspended && !elapsed)
             return new SubscriptionVerdict(false, SuspendedCode(tenant.SuspendReason),
                 SuspendedMessage(tenant.SuspendReason), tenant.SuspendPublicMessage);
 
-        if (tenant.Status == SubscriptionStatus.Trial && tenant.TrialEndsAt is { } ends
+        // The rest is judged as if the background job had already flipped the status back.
+        var status = elapsed ? SubscriptionStatus.Active : tenant.Status;
+
+        if (status == SubscriptionStatus.Trial && tenant.TrialEndsAt is { } ends
             && utcNow > ends.AddDays(options.GraceDays))
             return new SubscriptionVerdict(false, TrialExpired, Messages.TrialExpired);
 
         // Manual billing. Only bites when the tenant is actually on a plan and a paid-through
         // date exists — a tenant without either is deliberately never blocked for payment.
-        if (tenant.Status == SubscriptionStatus.Active && tenant.PlanId != null
+        // This also catches the elapsed suspension: a client who asked to be paused for two
+        // months and let the payment lapse comes back blocked for non-payment, not working.
+        if (status == SubscriptionStatus.Active && tenant.PlanId != null
             && tenant.PaidUntil is { } paidUntil
             && utcNow > paidUntil.AddDays(options.PaidGraceDays))
             return new SubscriptionVerdict(false, PaymentExpired, Messages.PaymentExpired);

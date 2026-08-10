@@ -76,6 +76,7 @@
       }
     } @else if (extSummary(); as ext) {
       <!-- Finance -->
+      @if (hasFinance()) {
       <div class="wms-card ext-card">
         <h4 class="ext-card-title"><i class="pi pi-wallet" style="color: var(--color-pistachio-600)"></i> {{ t('dashboard.financeSummary') }}</h4>
         <div class="ext-stats">
@@ -93,6 +94,7 @@
           </div>
         </div>
       </div>
+      }
 
       <!-- Transfers -->
       <div class="wms-card ext-card">
@@ -110,6 +112,7 @@
       </div>
 
       <!-- Production -->
+      @if (hasProduction()) {
       <div class="wms-card ext-card">
         <h4 class="ext-card-title"><i class="pi pi-cog" style="color: var(--color-blueberry-600)"></i> {{ t('dashboard.productionSummary') }}</h4>
         <div class="ext-stats">
@@ -127,6 +130,7 @@
           </div>
         </div>
       </div>
+      }
     }
   </div>
 
@@ -154,6 +158,7 @@
   <!-- Charts Section -->
   <div class="charts-section">
     <!-- Monthly comparison -->
+    @if (hasFinance()) {
     <div class="wms-card chart-card full-width">
       <h3 class="chart-title">{{ t('dashboard.monthlyOverview') }}</h3>
       @if (monthlyLoading()) {
@@ -168,8 +173,10 @@
         <div class="chart-empty"><i class="pi pi-chart-bar"></i><p>{{ t('common.noData') }}</p></div>
       }
     </div>
+    }
 
     <!-- Plan vs Actual -->
+    @if (hasProduction()) {
     <div class="wms-card chart-card full-width">
       <h3 class="chart-title">{{ t('dashboard.planVsActual') }}</h3>
       @if (planVsActualChart()) {
@@ -182,6 +189,7 @@
         <div class="chart-empty"><i class="pi pi-chart-line"></i><p>{{ t('dashboard.noProductionData') }}</p></div>
       }
     </div>
+    }
 
     <!-- Half charts -->
     <div class="chart-row">

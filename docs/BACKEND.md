@@ -224,6 +224,15 @@ muddati (+grace) o'tgan trial'lar → `Suspended`; `PaidUntil` (+grace) o'tgan p
 tenantlar → `Suspended` (`NonPayment`); `SuspendedUntil` sanasi kelganlar → avtomatik
 `Active` (to'lovi ham o'tgan bo'lsa yoqilmaydi). **Ma'lumot hech qachon o'chirilmaydi.**
 
+> **Muddatli to'xtatishni fon xizmati bloklamaydi.** `SubscriptionPolicy.Evaluate`
+> `SuspendedUntil` sanasi kelgan to'xtatishni **o'zi** o'tkazib yuboradi, ya'ni mijoz
+> aynan va'da qilingan sanada qaytadi. Fon xizmati faqat bayroqni tozalaydi.
+> Ilgari qayta yoqish faqat o'sha sutkalik ishda edi va admin mijozga "11-avgustda
+> qaytadi" deb yozgan bo'lsa ham, u kun bo'yi bloklangan qolishi mumkin edi.
+> Muddati kelgan to'xtatish qolgan tekshiruvlardan **`Active` sifatida** o'tadi —
+> shuning uchun to'lov muddati o'tgan mijoz baribir `payment_expired` bilan bloklanadi
+> (aks holda "ikki oyga to'xtating" degan mijoz to'lamasdan o'zi ochilib qolardi).
+
 ### 4.7 Manual billing (S1)
 
 Avtomat to'lov (CLICK/Payme) yo'q — pul qo'lda qabul qilinadi va SuperAdmin qayd etadi.

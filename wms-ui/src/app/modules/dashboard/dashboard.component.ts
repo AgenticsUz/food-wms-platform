@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { DecimalPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -10,6 +10,7 @@ import { TranslocoDirective } from '@jsverse/transloco';
 import { AnalyticsService } from '../../core/services/analytics.service';
 import { ExportService } from '../../core/services/export.service';
 import { AuthService } from '../../core/services/auth.service';
+import { TenantService } from '../../core/services/tenant.service';
 import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge.component';
 import { APEX_DEFAULTS } from '../../core/config/apex-defaults';
 import {
@@ -32,8 +33,18 @@ import { toLocalDateString } from '../../shared/utils/date.util';
 export default class DashboardComponent implements OnInit {
   private analyticsService = inject(AnalyticsService);
   private authService = inject(AuthService);
+  private tenantService = inject(TenantService);
   private router = inject(Router);
   exportService = inject(ExportService);
+
+  /**
+   * Bosh sahifa hamma modulni ko'rsatishga urinardi: plani Moliya yoki Ishlab
+   * chiqarishni o'z ichiga olmagan mijoz kirishi bilan qizil "Bu modul obuna
+   * planingizga kirmaydi" xatosini ko'rardi — birinchi ekranda, hech narsa
+   * qilmasidan. Kartani ham, so'rovni ham modulga bog'laymiz.
+   */
+  hasFinance = computed(() => this.tenantService.isModuleEnabled('FINANCE'));
+  hasProduction = computed(() => this.tenantService.isModuleEnabled('PRODUCTION'));
 
   userName = this.authService.currentUser()?.fullName ?? 'User';
   today = new Date();
@@ -153,6 +164,7 @@ export default class DashboardComponent implements OnInit {
   }
 
   private loadPlanVsActual() {
+    if (!this.hasProduction()) return;
     this.analyticsService.getProductionPlanVsActual(this.selectedDays()).subscribe({
       next: (res) => {
         if (res.success && res.data && res.data.length > 0) {
@@ -204,6 +216,7 @@ export default class DashboardComponent implements OnInit {
   }
 
   private loadMonthlyComparison() {
+    if (!this.hasFinance()) { this.monthlyLoading.set(false); return; }
     this.monthlyLoading.set(true);
     this.analyticsService.getMonthlyComparison().subscribe({
       next: (res) => {

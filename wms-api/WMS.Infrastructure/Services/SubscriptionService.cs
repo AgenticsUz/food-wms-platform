@@ -57,6 +57,12 @@ public class SubscriptionService : ISubscriptionService
             EnabledModules = moduleSet
         };
         var verdict = SubscriptionPolicy.Evaluate(state, _options, now);
+        // Faqat blok haqiqatan olib tashlangan bo'lsa. To'lov muddati o'tib ketgan mijoz
+        // muddatli to'xtatish tugagach ham ishlay olmaydi (fon xizmati uni NonPayment ga
+        // o'tkazadi) — unga "Faol" deb ko'rsatish yolg'on bo'lardi.
+        var suspensionElapsed = tenant.SubscriptionStatus == Domain.Enums.SubscriptionStatus.Suspended
+            && SubscriptionPolicy.IsSuspensionElapsed(state, now)
+            && verdict.Allowed;
 
         var trialDaysLeft = SubscriptionPolicy.TrialDaysLeft(state, now);
         var paidDaysLeft = SubscriptionPolicy.PaidDaysLeft(tenant.PaidUntil, now);
@@ -70,7 +76,11 @@ public class SubscriptionService : ISubscriptionService
             PlanName = plan?.Name,
             PlanCode = plan?.Code,
             PlanPrice = plan?.Price ?? 0,
-            Status = tenant.SubscriptionStatus.ToString(),
+            // Muddati kelgan to'xtatish endi bloklamaydi (SubscriptionPolicy) — holat ham
+            // shunga mos kelsin, aks holda mijoz ishlay olsa ham "To'xtatilgan" deb turadi.
+            Status = suspensionElapsed
+                ? Domain.Enums.SubscriptionStatus.Active.ToString()
+                : tenant.SubscriptionStatus.ToString(),
 
             TrialEndsAt = tenant.TrialEndsAt,
             DaysUntilTrialEnd = trialDaysLeft,
@@ -86,7 +96,7 @@ public class SubscriptionService : ISubscriptionService
             BlockedMessage = verdict.Allowed
                 ? null
                 : (verdict.PublicMessage ?? Translations.Format(verdict.Message, _language.Current)),
-            SuspendedUntil = tenant.SuspendedUntil,
+            SuspendedUntil = suspensionElapsed ? null : tenant.SuspendedUntil,
 
             IsExpiringSoon = soon,
             WarnBeforeDays = _options.WarnBeforeDays,

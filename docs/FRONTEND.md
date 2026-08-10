@@ -401,14 +401,14 @@ To'liq nginx qolipi va domenlar: `CLAUDE.md` §6.
 
 ## 7. Ma'lum bo'lgan kamchiliklar (frontend)
 
-> Ro'yxat 2026-08-06 da jonli sinov natijasi bo'yicha qayta o'lchandi. Bajarilganlari
-> olib tashlandi; qolganlari `CLAUDE.md` §4 dagi R-raqamlari bilan bog'landi.
+> Ro'yxat 2026-08-10 da F8–F12 yopilgach qayta o'lchandi. Bajarilganlari olib
+> tashlandi (brendlash → §2.9, audit sahifasi → §3.2, limit ogohlantirishi va parol
+> tiklash → §2.5 / §3.2); qolganlari `CLAUDE.md` §4 dagi R-raqamlari bilan bog'landi.
 
 | Nima | Izoh |
 |---|---|
-| **Qattiq yozilgan inglizcha matnlar** (R10) | O'lchangan: `notify.*` da **158**, tasdiq dialoglarida **22**, `placeholder` larda **42** — jami ~222 matn × 4 til. Ichida validatsiya ogohlantirishlari (`Recipe name is required`), enum yorliqlari (`Raw Material`, `No expiry`, `Root`) va ruxsat nomlari (`Manage Warehouse`) bor. **Ikkilangan** toastlar (12 komponent, 20 joy) allaqachon olib tashlandi |
-| Brendlash UI (R19) | Backend tayyor (B1), UI ikkala ilovada ham yo'q |
-| Limit 80 % ogohlantirishi (R7) | Backend `warning` va `usagePercent` yuboradi, frontend ularni **o'qimaydi**; obuna sahifasi foizni o'zi qayta hisoblaydi |
-| `wms-admin` da audit sahifasi (R5) | Sahifa yo'q. Backend endpointini avval Swagger'dan tasdiqlash kerak |
+| **Qattiq yozilgan inglizcha matnlar** (R10) | O'lchangan: `notify.*` da **158**, tasdiq dialoglarida **22**, `placeholder` larda **42** — jami ~222 matn × 4 til. Ichida validatsiya ogohlantirishlari (`Recipe name is required`), enum yorliqlari (`Raw Material`, `No expiry`, `Root`) va ruxsat nomlari (`Manage Warehouse`) bor. PrimeNG `confirmDialog` ning `No`/`Yes` tugmalari ham tarjima qilinmagan. **Ikkilangan** toastlar (12 komponent, 20 joy) allaqachon olib tashlandi |
+| Aloqa raqami placeholder (R1 / F7) | Kod tayyor — qiymat serverdagi `Support:Phone` / `Support:Email` dan keladi va frontendni qayta yig'ish shart emas. `environment*.ts` dagi zaxira hali `+998 90 000 00 00`; haqiqiy raqam berilgach almashtiriladi |
+| Login sahifasi brendlanmaydi | Ataylab: bitta URL'da kim kirayotgani noma'lum. `GET /api/public/branding?slug=` tayyor, subdomenga o'tilganda (R20) yoqiladi — §2.9 |
 | Plan o'zgartirish oqimi (R9) | Faqat "biz bilan bog'laning" — self-service upgrade billing bilan birga keladi |
 | `wms-ui` mavzusi OS sozlamasiga ergashmaydi | `wms-admin` ergashadi. Nomuvofiqlik, xato emas — §5 ga qarang |
