@@ -29,7 +29,15 @@
 
   <!-- Navigation -->
   <nav class="sidebar-nav">
-    @for (item of visibleNavItems(); track item.key) {
+    @if (navLocked()) {
+      <div class="nav-locked" [title]="t('settings.reset.navLocked')">
+        <i class="pi pi-lock"></i>
+        @if (!collapsed()) {
+          <span>{{ t('settings.reset.navLocked') }}</span>
+        }
+      </div>
+    }
+    @for (item of navLocked() ? [] : visibleNavItems(); track item.key) {
       @if (!item.children) {
         <a class="nav-item"
            [routerLink]="item.route"
@@ -74,7 +82,9 @@
 
   <!-- Footer -->
   <div class="sidebar-footer">
-    <!-- Settings -->
+    <!-- Settings — parol majburiyati holatida u ham yopiladi (profil sahifasi
+         baribir ochiq, foydalanuvchi hozir aynan o'sha yerda turibdi). -->
+    @if (!navLocked()) {
     <div class="nav-group" [class.expanded]="isExpanded(settingsItem.key)" [class.group-active]="isMenuActive(settingsItem)">
       <button class="nav-item nav-group-toggle"
               (click)="toggleMenu(settingsItem.key)"
@@ -99,6 +109,7 @@
         </div>
       }
     </div>
+    }
 
     <!-- User + Logout -->
     <div class="user-section">

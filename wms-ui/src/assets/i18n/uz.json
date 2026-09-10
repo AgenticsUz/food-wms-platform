@@ -397,7 +397,11 @@
       "resultFor": "{{name}} uchun parol tiklandi.",
       "done": "Tayyor",
       "mustChange": "Parolingizni boshqa odam qo'ygan. Davom etish uchun o'zingizning parolingizni qo'ying.",
-      "changedSignOut": "Parol o'zgartirildi. Yangi parol bilan qaytadan kiring."
+      "changedSignOut": "Parol o'zgartirildi. Yangi parol bilan qaytadan kiring.",
+      "mustChangeTitle": "Parolni o'zgartiring",
+      "mustChangeLead": "Davom etish uchun parolni o'zgartiring. Sizga berilgan parol vaqtinchalik.",
+      "navLocked": "Parol o'zgartirilgach menyu ochiladi.",
+      "changedContinue": "Parol o'zgartirildi. Xush kelibsiz!"
     },
     "outsidePlan": "Tarifingizga kirmaydi"
   },

@@ -380,3 +380,33 @@
 :host-context(.dark-mode) .logout-btn:hover {
   background: rgba(217, 76, 102, 0.12);
 }
+
+/* Parol majburiyati holatida menyu o'rnidagi izoh — bo'sh panel buzilgandek
+   ko'rinmasligi uchun. Yig'ilgan panelda faqat qulf belgisi qoladi. */
+.nav-locked {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 4px 2px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.45;
+  background: var(--color-berry-50);
+  color: var(--color-berry-700);
+
+  i {
+    font-size: 14px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+}
+
+.sidebar.collapsed .nav-locked {
+  justify-content: center;
+  padding: 10px 0;
+}
+
+:host-context(.dark-mode) .nav-locked {
+  background: rgba(217, 76, 102, 0.12);
+}

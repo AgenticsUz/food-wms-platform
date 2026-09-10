@@ -397,7 +397,11 @@
       "resultFor": "Password reset for {{name}}.",
       "done": "Done",
       "mustChange": "Your password was set by someone else. Set your own password to continue.",
-      "changedSignOut": "Password changed. Sign in again with the new one."
+      "changedSignOut": "Password changed. Sign in again with the new one.",
+      "mustChangeTitle": "Change your password",
+      "mustChangeLead": "Change your password to continue. The password you were given is temporary.",
+      "navLocked": "The menu opens once you change your password.",
+      "changedContinue": "Password changed. Welcome!"
     },
     "outsidePlan": "Not in your plan"
   },

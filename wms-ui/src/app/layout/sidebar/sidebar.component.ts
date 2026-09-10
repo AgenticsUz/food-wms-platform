@@ -58,6 +58,14 @@ export class SidebarComponent {
     this.branding.logoSrc(this.branding.logoSquareUrl() ?? this.branding.logoUrl()));
   tenantName = computed(() => this.branding.tenantName() ?? this.currentUser()?.tenantName ?? '');
 
+  /**
+   * Parol o'zgartirilmaguncha `mustChangePasswordGuard` boshqa marshrutni o'tkazmaydi.
+   * Shunda menyuni ko'rsatishning ma'nosi yo'q — bosilgan har bir element foydalanuvchini
+   * o'sha profil sahifasiga qaytaradi va bu buzilgandek tuyuladi. O'rniga sabab yoziladi;
+   * chiqish tugmasi esa har doim joyida qoladi.
+   */
+  navLocked = computed(() => this.currentUser()?.mustChangePassword ?? false);
+
   userInitials = computed(() => {
     const name = this.currentUser()?.fullName ?? '';
     const parts = name.split(' ').filter(Boolean);

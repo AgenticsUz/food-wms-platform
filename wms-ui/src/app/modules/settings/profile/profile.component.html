@@ -1,8 +1,21 @@
-<div class="page-enter" *transloco="let t">
+<div class="page-enter profile-page" [class.forced]="wasForced()" *transloco="let t">
   <app-page-header [title]="t('settings.profile')" [subtitle]="t('settings.profileInfo')" />
 
+  <!-- Guard shu yerga majburan yubordi: sabab va keyingi qadam birinchi ekranda,
+       qidirib topiladigan joyda emas. Parol kartasi ham tepaga chiqadi (SCSS: order). -->
+  @if (wasForced()) {
+    <div class="must-change-banner">
+      <i class="pi pi-lock"></i>
+      <div class="banner-text">
+        <strong>{{ t('settings.reset.mustChangeTitle') }}</strong>
+        <span>{{ t('settings.reset.mustChangeLead') }}</span>
+      </div>
+    </div>
+  }
+
+  <div class="sections">
   <!-- Profile Information -->
-  <div class="wms-card section-card">
+  <div class="wms-card section-card secondary-section">
     <h3 class="section-title">{{ t('settings.profileInfo') }}</h3>
     <div class="form-grid">
       <div class="form-field">
@@ -21,7 +34,7 @@
   </div>
 
   <!-- Telegram notifications -->
-  <div class="wms-card section-card">
+  <div class="wms-card section-card secondary-section">
     <h3 class="section-title"><i class="pi pi-telegram"></i> {{ t('settings.telegram') }}</h3>
     <p class="section-hint">{{ t('settings.telegramHint') }}</p>
     <div class="form-grid">
@@ -36,7 +49,7 @@
   </div>
 
   <!-- Change Password -->
-  <div class="wms-card section-card">
+  <div class="wms-card section-card password-section">
     <h3 class="section-title">{{ t('settings.changePassword') }}</h3>
     @if (wasForced()) {
       <div class="must-change-notice">
@@ -45,7 +58,7 @@
       </div>
     }
     <div class="form-col password-form">
-      <div class="form-field">
+      <div class="form-field js-current-password">
         <label>{{ t('settings.currentPassword') }} *</label>
         <p-password [ngModel]="currentPassword()" (ngModelChange)="currentPassword.set($event)" [toggleMask]="true" [feedback]="false" styleClass="w-full" inputStyleClass="w-full" placeholder="Enter current password" />
       </div>
@@ -63,5 +76,6 @@
     <div class="form-actions">
       <p-button [label]="t('settings.changePassword')" icon="pi pi-lock" (onClick)="changePassword()" [loading]="changingPassword()" severity="warn" />
     </div>
+  </div>
   </div>
 </div>

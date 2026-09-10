@@ -1,6 +1,7 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, OnInit, AfterViewInit, ElementRef, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { resolveTenantSlug } from '../../../shared/utils/tenant-slug.util';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
@@ -19,7 +20,7 @@ import { ChangePasswordDto } from '../../../core/models/settings.model';
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss'
 })
-export default class ProfileComponent implements OnInit {
+export default class ProfileComponent implements OnInit, AfterViewInit {
   private settingsService = inject(SettingsService);
   private authService = inject(AuthService);
   private auth = this.authService;
@@ -27,6 +28,7 @@ export default class ProfileComponent implements OnInit {
   private transloco = inject(TranslocoService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private host: ElementRef<HTMLElement> = inject(ElementRef);
 
   /**
    * Foydalanuvchi bu sahifaga o'z xohishi bilan kelmadi — `mustChangePasswordGuard`
@@ -57,6 +59,18 @@ export default class ProfileComponent implements OnInit {
     this.wasForced.set(
       this.route.snapshot.queryParamMap.get('mustChangePassword') === '1' ||
       (user?.mustChangePassword ?? false));
+  }
+
+  /**
+   * Majburiy holatda kursor darhol birinchi parol maydonida bo'lsin — foydalanuvchi
+   * bu sahifaga o'z xohishi bilan kelmagan, shuning uchun keyingi qadam qidirilmasin.
+   */
+  ngAfterViewInit() {
+    if (!this.wasForced()) return;
+    queueMicrotask(() =>
+      this.host.nativeElement
+        .querySelector<HTMLInputElement>('.js-current-password input')
+        ?.focus());
   }
 
   saveTelegram() {
@@ -132,23 +146,50 @@ export default class ProfileComponent implements OnInit {
       newPassword: this.newPassword()
     };
 
+    const phone = this.auth.currentUser()?.phone ?? '';
+    const newPassword = this.newPassword();
+
     this.settingsService.changePassword(dto).subscribe({
       next: () => {
-        this.changingPassword.set(false);
         this.currentPassword.set('');
         this.newPassword.set('');
         this.confirmPassword.set('');
         this.auth.clearMustChangePassword();
         // Parol o'zgarishi `SecurityStamp` ni aylantiradi — bu ataylab, boshqa
         // sessiyalarni o'ldirish uchun. Ammo joriy token ham o'sha stamp bilan
-        // yozilgan, ya'ni u ham o'ladi. Kutib turilsa foydalanuvchi keyingi so'rovda
-        // 401 olib, sababsiz login sahifasiga uloqtiriladi. Shuning uchun sababni
-        // aytib, o'zimiz chiqaramiz.
-        this.notify.success(this.transloco.translate('settings.reset.changedSignOut'));
-        this.auth.logout();
+        // yozilgan, ya'ni u ham o'ladi va keyingi so'rov 401 bo'ladi. Foydalanuvchini
+        // login sahifasiga uloqtirmaslik uchun yangi parol bilan JIMGINA qayta
+        // kiramiz: token, `currentUser`, ruxsatlar va brend serverdan yangilanadi.
+        this.reAuthenticate(phone, newPassword);
       },
       // Xato toastini interceptor chiqaradi — ikkinchisini qo'shmaymiz.
       error: () => this.changingPassword.set(false)
     });
+  }
+
+  /**
+   * Parol o'zgargandan keyingi jimgina qayta kirish. Muvaffaqiyatli bo'lsa
+   * foydalanuvchi hech narsa sezmaydi va bosh sahifaga tushadi; bo'lmasa — eski
+   * xatti-harakat: sababni aytib, login sahifasiga chiqaramiz (token baribir o'lgan,
+   * uni ushlab turishning ma'nosi yo'q).
+   */
+  private reAuthenticate(phone: string, password: string) {
+    if (!phone) { this.fallbackToLogin(); return; }
+
+    this.auth.login({ phone, password, tenantSlug: resolveTenantSlug() }).subscribe({
+      next: res => {
+        if (!res.success || !res.data) { this.fallbackToLogin(); return; }
+        this.changingPassword.set(false);
+        this.notify.success(this.transloco.translate('settings.reset.changedContinue'));
+        this.router.navigate(['/dashboard']);
+      },
+      error: () => this.fallbackToLogin()
+    });
+  }
+
+  private fallbackToLogin() {
+    this.changingPassword.set(false);
+    this.notify.success(this.transloco.translate('settings.reset.changedSignOut'));
+    this.auth.logout();
   }
 }
