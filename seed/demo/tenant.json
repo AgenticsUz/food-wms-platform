@@ -1,0 +1,29 @@
+{
+  "_comment": [
+    "WMS demo manifesti (DemoSeeder, `seed demo` rejimi). Assemblyga EmbeddedResource bo'lib kiradi.",
+    "⚠️ agentics-platform/seed/demo/01-identity.sql bilan SINXRON turishi SHART: tenant id/kod/nom,",
+    "modullar (tenant_product.modules, 'wms'), odamlarning Identity id (sub), telefoni, ismi va 'wms' roli.",
+    "Ajralsa JIT birinchi kirishda IKKINCHI profil ochadi (sub bo'yicha topolmay) va demo xodimlar",
+    "ma'lumotdan uziladi; tenant id ajralsa esa seed kod bandligi bilan ATAYLAB yiqiladi.",
+    "Sub'lar Identity demo seed'ida QOTIRILGAN (f0000001-...-21..24) — shuning uchun profil oldindan",
+    "yaratiladi; telefon esa zaxira kalit (Wash naqshi): sub eskirsa JIT yozgan profil telefon bo'yicha topiladi."
+  ],
+  "version": 1,
+  "tenant": {
+    "id": "d0000000-0000-4000-8000-000000000001",
+    "code": "demo",
+    "name": "Demo tashkilot"
+  },
+  "modules": [
+    "WAREHOUSE_RAW", "PRODUCTION", "WAREHOUSE_FINISHED", "TRANSFERS", "FINANCE", "KPI",
+    "SUPPLIERS", "CLIENTS", "QUALITY", "AGENTS", "DELIVERY"
+  ],
+  "planCode": "enterprise",
+  "subscriptionStatus": "active",
+  "users": [
+    { "sub": "f0000001-0000-4000-8000-000000000021", "phone": "+998901112301", "fullName": "Aziz Yusupov", "role": "admin" },
+    { "sub": "f0000001-0000-4000-8000-000000000022", "phone": "+998901112302", "fullName": "Nodira Saidova", "role": "manager" },
+    { "sub": "f0000001-0000-4000-8000-000000000023", "phone": "+998901112303", "fullName": "Otabek Mirzayev", "role": "employee" },
+    { "sub": "f0000001-0000-4000-8000-000000000024", "phone": "+998901112304", "fullName": "Gulnora Ahmedova", "role": "viewer" }
+  ]
+}

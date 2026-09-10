@@ -1,0 +1,228 @@
+:host {
+  display: block;
+}
+
+.app-header {
+  height: 64px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.mobile-menu-btn,
+.theme-toggle {
+  background: none;
+  border: 1px solid var(--border);
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: var(--bg-muted);
+    color: var(--brand-primary, var(--primary-500));
+  }
+}
+
+.mobile-menu-btn {
+  display: none;
+
+  i {
+    font-size: 18px;
+  }
+}
+
+.theme-toggle {
+  display: flex;
+
+  i {
+    font-size: 16px;
+  }
+}
+
+.page-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.lang-switcher {
+  display: flex;
+  background: var(--bg-muted);
+  border-radius: 8px;
+  padding: 2px;
+}
+
+.lang-btn {
+  background: none;
+  border: none;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+
+  &.active {
+    background: var(--bg-surface);
+    color: var(--brand-primary, var(--primary-500));
+    box-shadow: var(--shadow-sm);
+  }
+
+  &:hover:not(.active) {
+    color: var(--text-secondary);
+  }
+}
+
+.user-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  padding: 4px 6px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+
+  &:hover {
+    background: var(--bg-muted);
+  }
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--brand-primary-soft, var(--primary-50));
+  color: var(--brand-primary, var(--primary-500));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  i {
+    font-size: 14px;
+  }
+}
+
+.user-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.user-caret {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+// ---- Valyuta vidjeti ----
+.currency-widget {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 12px;
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.currency-loading {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.currency-entry {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-secondary);
+
+  & + & {
+    padding-left: 12px;
+    border-left: 1px solid var(--border-default);
+  }
+}
+
+.currency-code {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.currency-rate {
+  font-family: var(--font-mono);
+}
+
+.currency-refresh {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+  margin-left: 4px;
+  transition: color 0.15s ease;
+
+  &:hover {
+    color: var(--brand-primary, var(--primary-500));
+  }
+
+  i {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 768px) {
+  .mobile-menu-btn {
+    display: flex;
+  }
+
+  .user-name,
+  .user-caret {
+    display: none;
+  }
+
+  .app-header {
+    padding: 0 12px;
+  }
+
+  .header-right {
+    gap: 8px;
+  }
+
+  .lang-btn {
+    padding: 6px 8px;
+  }
+
+  .currency-widget {
+    display: none;
+  }
+}

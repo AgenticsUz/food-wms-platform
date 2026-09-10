@@ -1,0 +1,47 @@
+<div class="page-enter" *transloco="let t">
+  <app-page-header [title]="t('production.newOrder')" [subtitle]="t('production.createOrder')">
+    <p-button icon="pi pi-arrow-left" [label]="t('common.back')" [text]="true" (onClick)="goBack()" />
+  </app-page-header>
+
+  <div class="wms-card section-card">
+    <h3 class="section-title">{{ t('common.details') }}</h3>
+    <div class="form-grid">
+      <div class="form-field">
+        <label for="order-recipe">{{ t('production.recipe') }} *</label>
+        <p-select inputId="order-recipe" [options]="recipes()" [ngModel]="recipeId()" (ngModelChange)="recipeId.set($event)"
+          optionLabel="name" optionValue="id" placeholder="Select recipe" [filter]="true" [style]="{ width: '100%' }" />
+      </div>
+      <div class="form-field">
+        <label for="order-qty">{{ t('production.plannedQty') }} *</label>
+        <p-inputNumber inputId="order-qty" [ngModel]="plannedQuantity()" (ngModelChange)="plannedQuantity.set($event ?? 0)"
+          placeholder="Quantity" [min]="0" [minFractionDigits]="0" [maxFractionDigits]="2" [style]="{ width: '100%' }" />
+      </div>
+      <div class="form-field">
+        <label for="order-start">{{ t('production.startDate') }} *</label>
+        <p-datepicker inputId="order-start" [ngModel]="plannedStartDate()" (ngModelChange)="plannedStartDate.set($event)"
+          dateFormat="yy-mm-dd" [showIcon]="true" placeholder="Select start date" [style]="{ width: '100%' }" />
+      </div>
+      <div class="form-field">
+        <label for="order-end">{{ t('production.endDate') }}</label>
+        <p-datepicker inputId="order-end" [ngModel]="plannedEndDate()" (ngModelChange)="plannedEndDate.set($event)"
+          dateFormat="yy-mm-dd" [showIcon]="true" placeholder="Optional end date" [style]="{ width: '100%' }" />
+      </div>
+      <div class="form-field">
+        <label for="order-assignee">{{ t('production.assignedTo') }}</label>
+        <p-select inputId="order-assignee" [options]="users()" [ngModel]="assignedToUserId()"
+          (ngModelChange)="assignedToUserId.set($event)" optionLabel="fullName" optionValue="id"
+          placeholder="Optional" [filter]="true" [showClear]="true" [style]="{ width: '100%' }" />
+      </div>
+      <div class="form-field full-width">
+        <label for="order-note">{{ t('common.note') }}</label>
+        <textarea id="order-note" pTextarea [ngModel]="note()" (ngModelChange)="note.set($event)" class="w-full" rows="3"
+          placeholder="Optional notes..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="action-bar">
+    <p-button [label]="t('common.cancel')" [text]="true" severity="secondary" (onClick)="goBack()" />
+    <p-button [label]="t('common.create')" icon="pi pi-check" (onClick)="submit()" [loading]="saving()" />
+  </div>
+</div>

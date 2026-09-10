@@ -1,0 +1,109 @@
+<div class="page-enter" *transloco="let t">
+  <app-page-header [title]="t('partners.clients')" [subtitle]="t('partners.manageClients')">
+    <app-import-button type="counterparties" (imported)="loadData()" />
+    <p-button icon="pi pi-file-excel" [label]="exportService.exporting() ? t('common.exporting') : t('common.exportExcel')"
+      [loading]="exportService.exporting()" [disabled]="exportService.exporting()"
+      severity="success" [outlined]="true" size="small" (onClick)="exportClients()" />
+    <p-button *hasPermission="'partners.manage'" icon="pi pi-plus" [label]="t('partners.addClient')" (onClick)="openNew()" />
+  </app-page-header>
+
+  <div class="filters-bar wms-card">
+    <div class="filter-group">
+      <span class="p-input-icon-left">
+        <i class="pi pi-search"></i>
+        <input pInputText [placeholder]="t('common.search')" [ngModel]="search()" (ngModelChange)="search.set($event)" />
+      </span>
+    </div>
+  </div>
+
+  <div class="wms-card table-wrapper">
+    <p-table [value]="filtered()" [loading]="loading()" [paginator]="true" [rows]="15"
+      [rowsPerPageOptions]="[10, 15, 25, 50]" [scrollable]="true" styleClass="p-datatable-sm p-datatable-striped">
+      <ng-template #header>
+        <tr>
+          <th pSortableColumn="name">{{ t('common.name') }} <p-sortIcon field="name" /></th>
+          <th>{{ t('common.phone') }}</th>
+          <th>{{ t('partners.inn') }}</th>
+          <th>{{ t('common.address') }}</th>
+          <th>{{ t('agent.title') }}</th>
+          <th class="text-center">{{ t('common.actions') }}</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-item>
+        <tr>
+          <td>
+            <button type="button" class="item-name clickable" (click)="viewDetail(item)">{{ item.name }}</button>
+          </td>
+          <td>{{ item.phone || '—' }}</td>
+          <td>
+            @if (item.inn) {
+              <span class="inn-value">{{ item.inn }}</span>
+            } @else {
+              <span class="text-muted">—</span>
+            }
+          </td>
+          <td>{{ item.address || '—' }}</td>
+          <td>
+            @if (item.agentId) {
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-800">
+                <i class="pi pi-id-card text-xs"></i> {{ item.agentName }}
+              </span>
+            } @else {
+              <span class="text-muted">—</span>
+            }
+          </td>
+          <td class="text-center actions-cell">
+            <p-button icon="pi pi-eye" [rounded]="true" [text]="true" severity="secondary" (onClick)="viewDetail(item)" />
+            <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info" (onClick)="openEdit(item)" />
+            <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" (onClick)="deleteItem(item)" />
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr><td colspan="6"><div class="empty-state"><i class="pi pi-users"></i><p>{{ t('partners.noClients') }}</p></div></td></tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <p-dialog
+    [header]="editing() ? t('common.edit') + ' ' + t('partners.clients') : t('common.create') + ' ' + t('partners.clients')"
+    [(visible)]="dialogVisible" [modal]="true" [style]="{ width: '520px' }" [draggable]="false">
+    <div class="form-grid">
+      <div class="form-field full-width">
+        <label for="cli-name">{{ t('common.name') }} *</label>
+        <input id="cli-name" pInputText [ngModel]="form().name" (ngModelChange)="updateForm('name', $event)" class="w-full" />
+      </div>
+      <div class="form-field">
+        <label for="cli-phone">{{ t('common.phone') }}</label>
+        <app-phone-input id="cli-phone" [ngModel]="form().phone" (ngModelChange)="updateForm('phone', $event)" />
+      </div>
+      <div class="form-field">
+        <label for="cli-inn">{{ t('partners.inn') }}</label>
+        <input id="cli-inn" pInputText [ngModel]="form().inn ?? ''" (ngModelChange)="updateForm('inn', $event || null)"
+          maxlength="9" inputmode="numeric" class="w-full" [class.ng-invalid]="innInvalid()" />
+        @if (innInvalid()) {
+          <small class="field-error">{{ t('partners.innInvalid') }}</small>
+        }
+      </div>
+      <div class="form-field full-width">
+        <label for="cli-address">{{ t('common.address') }}</label>
+        <input id="cli-address" pInputText [ngModel]="form().address ?? ''" (ngModelChange)="updateForm('address', $event || null)" class="w-full" />
+      </div>
+      <div class="form-field full-width">
+        <label for="cli-note">{{ t('common.note') }}</label>
+        <textarea id="cli-note" pTextarea [ngModel]="form().note ?? ''" (ngModelChange)="updateForm('note', $event || null)"
+          class="w-full" rows="3"></textarea>
+      </div>
+      <div class="form-field">
+        <label for="cli-agent">{{ t('agent.assignAgent') }}</label>
+        <p-select inputId="cli-agent" [options]="agents()" [ngModel]="form().agentId" (ngModelChange)="updateForm('agentId', $event)"
+          optionLabel="name" optionValue="id" [showClear]="true" [placeholder]="t('agent.noAgent')" [filter]="true"
+          [style]="{ width: '100%' }" />
+      </div>
+    </div>
+    <ng-template #footer>
+      <p-button [label]="t('common.cancel')" [text]="true" (onClick)="dialogVisible.set(false)" />
+      <p-button [label]="editing() ? t('common.update') : t('common.create')" icon="pi pi-check" (onClick)="save()" [loading]="saving()" />
+    </ng-template>
+  </p-dialog>
+</div>

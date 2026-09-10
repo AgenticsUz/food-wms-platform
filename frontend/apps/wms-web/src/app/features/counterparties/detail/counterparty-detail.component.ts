@@ -1,0 +1,84 @@
+import { ChangeDetectionStrategy, Component, type OnInit, inject, signal } from '@angular/core';
+import { DatePipe, DecimalPipe } from '@angular/common';
+import { ActivatedRoute, Router } from '@angular/router';
+import { TableModule } from 'primeng/table';
+import { Button } from 'primeng/button';
+import { TranslocoDirective } from '@jsverse/transloco';
+
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
+import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
+import { paymentMethodKey, type PaymentHistory } from '../../finance/finance.model';
+import {
+  CounterpartyType,
+  counterpartyTypeKey,
+  transferStatusClass,
+  transferStatusKey,
+  transferTypeClass,
+  transferTypeKey,
+  type Counterparty,
+  type CounterpartyBalance,
+  type CounterpartyTransfer,
+} from '../counterparty.model';
+import { CounterpartyService } from '../counterparty.service';
+
+/**
+ * ⚠️ Eski «Portal» kartasi o'rnida endi «STIR» kartasi: kontragent portali F6 da
+ * o'chdi (D8), INN esa kontragentning oddiy maydoni bo'lib qoldi (D10).
+ */
+@Component({
+  selector: 'app-counterparty-detail',
+  imports: [DecimalPipe, DatePipe, TableModule, Button, TranslocoDirective, PageHeaderComponent, StatusBadgeComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  templateUrl: './counterparty-detail.component.html',
+  styleUrl: './counterparty-detail.component.scss',
+})
+export default class CounterpartyDetailComponent implements OnInit {
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly service = inject(CounterpartyService);
+
+  // Shablonda chaqiriladigan yordamchilar.
+  protected readonly transferStatusClass = transferStatusClass;
+  protected readonly transferStatusKey = transferStatusKey;
+  protected readonly transferTypeClass = transferTypeClass;
+  protected readonly transferTypeKey = transferTypeKey;
+  protected readonly typeKey = counterpartyTypeKey;
+  protected readonly methodKey = paymentMethodKey;
+
+  readonly counterparty = signal<Counterparty | null>(null);
+  readonly balance = signal<CounterpartyBalance | null>(null);
+  readonly transfers = signal<CounterpartyTransfer[]>([]);
+  readonly payments = signal<PaymentHistory[]>([]);
+  readonly loading = signal(true);
+
+  ngOnInit(): void {
+    const id = this.route.snapshot.paramMap.get('id');
+    if (!id) {
+      void this.router.navigate(['/counterparties']);
+      return;
+    }
+    this.service.getCounterparty(id).subscribe({
+      next: (res) => {
+        this.counterparty.set(res.data ?? null);
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false),
+    });
+    this.service.getBalance(id).subscribe({
+      next: (res) => this.balance.set(res.data ?? null),
+    });
+    this.service.getTransfers(id).subscribe({
+      next: (res) => this.transfers.set(res.data ?? []),
+      // Modul/ruxsat yo'q — tarix bo'sh qoladi (servis izohi).
+      error: () => undefined,
+    });
+    this.service.getPayments(id).subscribe({
+      next: (res) => this.payments.set(res.data ?? []),
+    });
+  }
+
+  goBack(): void {
+    const type = this.counterparty()?.type;
+    void this.router.navigate(['/counterparties', type === CounterpartyType.Client ? 'clients' : 'suppliers']);
+  }
+}

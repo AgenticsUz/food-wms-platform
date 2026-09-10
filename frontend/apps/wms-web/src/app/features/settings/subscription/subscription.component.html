@@ -1,0 +1,194 @@
+<div class="page-enter" *transloco="let t">
+  <app-page-header [title]="t('subscription.title')" [subtitle]="t('subscription.subtitle')" />
+
+  @if (loading()) {
+    <div class="wms-card loading-state">
+      <i class="pi pi-spin pi-spinner"></i>
+      <p>{{ t('common.loading') }}</p>
+    </div>
+  } @else if (info(); as s) {
+    @if (s.isBlocked) {
+      <div class="alert alert-danger">
+        <i class="pi pi-ban"></i>
+        <div>
+          <div class="alert-title">{{ s.blockedMessage || t(blockedKey(s)) }}</div>
+          @if (s.suspendedUntil) {
+            <div class="alert-text">
+              {{ t('subscription.autoReactivate', { date: (s.suspendedUntil | date: 'dd.MM.yyyy') }) }}
+            </div>
+          }
+          <div class="alert-text">
+            {{ t('subscription.contactUs') }}
+            @if (s.supportPhone) {
+              <a [href]="'tel:' + s.supportPhone">{{ s.supportPhone }}</a>
+            }
+            @if (s.supportEmail) {
+              <a [href]="'mailto:' + s.supportEmail">{{ s.supportEmail }}</a>
+            }
+          </div>
+        </div>
+      </div>
+    } @else if (inGrace()) {
+      <div class="alert alert-warning">
+        <i class="pi pi-exclamation-triangle"></i>
+        <div>
+          <div class="alert-title">
+            {{ usePaidPeriod() ? t('subscription.gracePaidTitle') : t('subscription.graceTitle') }}
+          </div>
+          <div class="alert-text">{{ t('subscription.graceText', { days: graceDaysLeft() }) }}</div>
+        </div>
+      </div>
+    } @else if (s.isExpiringSoon) {
+      <div class="alert alert-warning">
+        <i class="pi pi-clock"></i>
+        <div>
+          <div class="alert-title">
+            {{
+              usePaidPeriod()
+                ? t('subscription.paymentExpiringSoon', { days: daysLeft() })
+                : t('subscription.expiringSoon', { days: daysLeft() })
+            }}
+          </div>
+          <div class="alert-text">{{ t('subscription.contactUs') }}</div>
+        </div>
+      </div>
+    }
+
+    <div class="wms-card plan-card">
+      <div class="plan-head">
+        <div>
+          <div class="plan-label">{{ t('subscription.plan') }}</div>
+          <div class="plan-name">{{ s.planName ?? t('subscription.noPlan') }}</div>
+          @if (s.planCode) {
+            <div class="plan-code">{{ s.planCode }}</div>
+          }
+        </div>
+        <div class="plan-meta">
+          <span [class]="statusClass(s.status)">{{ t(statusKey(s.status)) }}</span>
+        </div>
+      </div>
+
+      @if (!s.planName) {
+        <p class="plan-hint">{{ t('subscription.noPlanHint') }}</p>
+      }
+
+      <!-- To'langan muddat trialdan ustun ko'rsatiladi -->
+      @if (s.paidUntil) {
+        <div class="plan-trial">
+          <span class="trial-label">{{ t('subscription.paidUntil') }}</span>
+          <span class="trial-value">{{ s.paidUntil | date: 'dd.MM.yyyy' }}</span>
+          @if (showDaysLeft()) {
+            <span class="trial-days">{{ t('subscription.daysLeft', { days: daysLeft() }) }}</span>
+          }
+        </div>
+        <p class="plan-hint">{{ t('subscription.graceHint', { days: s.paymentGraceDays }) }}</p>
+      } @else if (s.trialEndsAt) {
+        <div class="plan-trial">
+          <span class="trial-label">{{ t('subscription.trialEnds') }}</span>
+          <span class="trial-value">{{ s.trialEndsAt | date: 'dd.MM.yyyy' }}</span>
+          @if (showDaysLeft()) {
+            <span class="trial-days">{{ t('subscription.daysLeft', { days: daysLeft() }) }}</span>
+          }
+        </div>
+        <p class="plan-hint">{{ t('subscription.graceHint', { days: s.paymentGraceDays }) }}</p>
+      }
+    </div>
+
+    <div class="wms-card section-card">
+      <h3 class="section-title">{{ t('subscription.limits') }}</h3>
+      <div class="limit-list">
+        @for (limit of limits(); track limit.key) {
+          <div [class]="limitClass(limit)">
+            <div class="limit-head">
+              <span class="limit-name">{{ t(limitKey(limit)) }}</span>
+              <span class="limit-value amount">
+                {{ (limit.used | number) + ' / ' + (limit.isUnlimited ? t('subscription.unlimited') : (limit.limit | number)) }}
+              </span>
+            </div>
+            @if (!limit.isUnlimited) {
+              <p-progressbar [value]="limit.percent" [showValue]="false" [style]="{ height: '8px' }" />
+            }
+          </div>
+        } @empty {
+          <p class="plan-hint">{{ t('subscription.unlimited') }}</p>
+        }
+      </div>
+    </div>
+
+    <div class="wms-card section-card">
+      <h3 class="section-title">{{ t('subscription.modules') }}</h3>
+      <div class="module-chips">
+        @for (code of s.enabledModules; track code) {
+          <span class="chip">{{ code }}</span>
+        } @empty {
+          <p class="plan-hint">{{ t('common.noData') }}</p>
+        }
+      </div>
+    </div>
+
+    @if (featureGroups().length > 0) {
+      <div class="wms-card section-card">
+        <button type="button" class="feature-toggle" (click)="featuresOpen.set(!featuresOpen())">
+          <h3 class="section-title">{{ t('subscription.features') }}</h3>
+          <span class="feature-count">{{ s.enabledFeatures.length }}</span>
+          <i class="pi" [class.pi-chevron-down]="!featuresOpen()" [class.pi-chevron-up]="featuresOpen()"></i>
+        </button>
+        @if (featuresOpen()) {
+          <div class="feature-groups">
+            @for (group of featureGroups(); track group.group) {
+              <div class="feature-group">
+                <div class="feature-group-name">{{ group.group }}</div>
+                <div class="module-chips">
+                  @for (code of group.codes; track code) {
+                    <span class="chip">{{ code }}</span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    @if (plans().length > 0) {
+      <div class="wms-card table-wrapper">
+        <h3 class="section-title section-title-padded">{{ t('subscription.availablePlans') }}</h3>
+        <p-table [value]="plans()" styleClass="p-datatable-sm">
+          <ng-template #header>
+            <tr>
+              <th>{{ t('common.name') }}</th>
+              <th class="text-right">{{ t('common.price') }}</th>
+              <th class="text-center">{{ t('subscription.featuresCount') }}</th>
+              <th class="text-center">{{ t('subscription.limitUsers') }}</th>
+              <th class="text-center">{{ t('subscription.limitWarehouses') }}</th>
+              <th class="text-center">{{ t('subscription.limitTransfers') }}</th>
+            </tr>
+          </ng-template>
+          <ng-template #body let-plan>
+            <tr [class.current-plan]="isCurrentPlan(plan)">
+              <td>
+                <span class="item-name">{{ plan.name }}</span>
+                @if (isCurrentPlan(plan)) {
+                  <span class="badge-success current-badge">{{ t('subscription.currentPlan') }}</span>
+                }
+              </td>
+              <td class="text-right amount">{{ plan.price | number: '1.0-0' }}</td>
+              <td class="text-center">{{ plan.featureCodes.length }}</td>
+              <td class="text-center">{{ plan.maxUsers }}</td>
+              <td class="text-center">{{ plan.maxWarehouses }}</td>
+              <td class="text-center">{{ plan.maxTransfersPerMonth | number }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+        <p class="plan-hint contact-hint">
+          {{ t('subscription.contactUs') + (s.supportPhone ? ' — ' + s.supportPhone : '') }}
+        </p>
+      </div>
+    }
+  } @else {
+    <div class="wms-card empty-state">
+      <i class="pi pi-credit-card"></i>
+      <p>{{ t('common.noData') }}</p>
+    </div>
+  }
+</div>

@@ -1,23 +1,36 @@
 # ===========================
-# .NET Backend (wms-api)
+# .NET backend (src/)
 # ===========================
 **/bin/
 **/obj/
-*.db
-*.db-shm
-*.db-wal
 *.user
 *.suo
 *.userosscache
 *.sln.docstates
+# SQLite davridan qolgan lokal fayllar (F6 dan beri Postgres) — tasodifan kirmasin.
+*.db
+*.db-shm
+*.db-wal
 
 # ===========================
-# Angular Frontend (wms-ui)
+# Frontend (frontend/ — Nx)
 # ===========================
 **/node_modules/
 **/dist/
 **/.angular/
 **/.nx/cache/
+**/.nx/workspace-data/
+frontend/apps/*/src/assets/config/app-config.json
+!frontend/apps/*/src/assets/config/app-config.sample.json
+
+# ===========================
+# Sirlar va lokal sozlamalar
+# ===========================
+# ⚠️ `.claude/settings.local.json` F6 gacha git'da edi va unda admin telefoni
+# bilan paroli turardi (PLATFORMA-TZ §7·F6.1). Lokal agent sozlamalari repo'ga kirmaydi.
+.claude/
+**/.claude/
+docker/.env
 
 # ===========================
 # IDE
@@ -34,12 +47,10 @@ Thumbs.db
 desktop.ini
 
 # ===========================
-# Logs & backups
+# Loglar, zaxiralar, yuklamalar
 # ===========================
 *.log
 **/logs/
 **/backups/
-
-# Tenant logos are uploaded at runtime, not part of the source tree
-wms-api/WMS.API/wwwroot/uploads/*
-!wms-api/WMS.API/wwwroot/uploads/.gitkeep
+# Tenant logolari ish vaqtida yuklanadi (Docker'da `uploads` hajmi). Yo'l — `BrandingFileStore` yozadigan joy.
+src/WMS.API/wwwroot/uploads/tenants/

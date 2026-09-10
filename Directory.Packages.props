@@ -1,0 +1,64 @@
+<Project>
+
+  <!--
+    MARKAZIY PAKET BOSHQARUVI (CPM). Versiyalar Wash `Directory.Packages.props`
+    bilan bir xil (2026-09-10 holati) — platforma paketlari ikkala mahsulotda bir
+    xil runtime ustida sinalsin. Har yangi paket shu yerga litsenziya izohi bilan.
+  -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+
+  <!-- ==================== Agentics Platform (agentics-platform repo) ====================
+    Manba — `nuget.config` dagi lokal feed (`../agentics-platform/artifacts/nuget`).
+    ⚠️ Paket qayta pack qilinganda `rm -rf ~/.nuget/packages/agentics.platform.*`
+    SHART: versiya o'zgarmagani uchun NuGet keshdagi eski nusxani oladi.
+  -->
+  <ItemGroup Label="AgenticsPlatform">
+    <PackageVersion Include="Agentics.Platform.SharedKernel" Version="0.1.0" />
+    <PackageVersion Include="Agentics.Platform.Infrastructure" Version="0.1.0" />
+    <PackageVersion Include="Agentics.Platform.Web" Version="0.1.0" />
+  </ItemGroup>
+
+  <!-- ==================== .NET platforma ==================== -->
+  <ItemGroup Label="Runtime">
+    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.11" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="10.0.11" />
+    <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.11" />
+    <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.11" />
+    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.11" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.11" />
+  </ItemGroup>
+
+  <!-- ==================== Ma'lumotlar ==================== -->
+  <ItemGroup Label="Data">
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="10.0.11" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.11" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.11" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+    <PackageVersion Include="Npgsql" Version="10.0.3" />
+  </ItemGroup>
+
+  <!-- ==================== Hujjatlar ==================== -->
+  <ItemGroup Label="Documents">
+    <!-- ClosedXML (MIT) — Excel import/eksport. -->
+    <PackageVersion Include="ClosedXML" Version="0.105.0" />
+    <!-- QuestPDF Community — yuk xati va transfer PDF'i. -->
+    <PackageVersion Include="QuestPDF" Version="2026.2.4" />
+  </ItemGroup>
+
+  <!-- ==================== Observability ==================== -->
+  <ItemGroup Label="Observability">
+    <PackageVersion Include="Serilog.AspNetCore" Version="10.0.0" />
+    <PackageVersion Include="Serilog.Sinks.Console" Version="6.1.1" />
+    <PackageVersion Include="Serilog.Enrichers.Environment" Version="3.0.1" />
+    <PackageVersion Include="AspNetCore.HealthChecks.NpgSql" Version="9.0.0" />
+  </ItemGroup>
+
+  <!-- ==================== API hujjatlashtirish ==================== -->
+  <ItemGroup Label="ApiDocs">
+    <PackageVersion Include="Scalar.AspNetCore" Version="2.16.20" />
+  </ItemGroup>
+
+</Project>

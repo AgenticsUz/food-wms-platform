@@ -1,0 +1,15 @@
+@use '../module-common';
+
+// Eski shablondagi inline uslublar (`style="margin-bottom: 20px; padding: 24px;"`) sinfga olindi.
+.chart-card {
+  margin-bottom: 20px;
+  padding: 24px;
+  &:hover { transform: none; }
+}
+
+.chart-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 16px;
+}

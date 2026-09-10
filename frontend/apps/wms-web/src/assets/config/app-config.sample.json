@@ -1,0 +1,19 @@
+{
+  "__comment": [
+    "RUNTIME konfiguratsiya NAMUNASI. Ishchi nusxa (`app-config.json`) repoga tushmaydi:",
+    "`npm run start:web` / `build` dan oldin `tools/ensure-app-config.mjs` shu fayldan uni yasaydi",
+    "(mavjud bo'lsa TEGMAYDI). Docker'da fayl konteyner ko'tarilganda PUBLIC_* muhit",
+    "o'zgaruvchilaridan yoziladi (W2-5, docker agenti).",
+    "`apiUrl` nisbiy (`/api`): dev-server `proxy.conf.json` va nginx uni wms-api (5511) ga uzatadi.",
+    "`identityUrl` proksi ostiga QO'YILMAYDI — refresh cookie Identity domenida (ONBOARDING §3)."
+  ],
+  "apiUrl": "/api",
+  "identityUrl": "http://localhost:5245",
+  "signalRUrl": "/hubs",
+  "clientId": "wms-web",
+  "__comment_scope": "Wash naqshi, `wash.api` o'rniga `wms.api` (audience `wms-api`, PLATFORMA-TZ §5.1). `phone` — JIT profil nusxasi telefonni TOKENDAN yozadi, scope'siz u tokenga tushmaydi.",
+  "scope": "openid profile phone offline_access wms.api",
+  "audience": "wms-api",
+  "defaultLocale": "uz-Latn",
+  "features": {}
+}

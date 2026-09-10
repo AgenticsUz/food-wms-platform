@@ -1,0 +1,37 @@
+<main class="state-scene" *transloco="let t">
+  <section class="state-card">
+    <div class="state-mark" [class.state-mark--danger]="kind() === 'blocked'" [class.state-mark--warn]="kind() !== 'blocked'">
+      <i class="pi" [class.pi-ban]="kind() === 'blocked'" [class.pi-question-circle]="kind() !== 'blocked'"></i>
+    </div>
+    <h1 class="state-title">{{ t('shell.tenant.' + stateKey() + '.title') }}</h1>
+    <p class="state-subtitle">{{ t('shell.tenant.' + stateKey() + '.subtitle') }}</p>
+
+    @if (kind() === 'blocked') {
+      @if (tenantName(); as name) {
+        <p class="state-meta">{{ name }}</p>
+      }
+      <p class="state-notice state-notice--danger" role="status">
+        <i class="pi pi-info-circle"></i>
+        <!-- Administrator yozgan ochiq matn ustun; bo'lmasa sabab kodi tarjimasi. -->
+        <span data-testid="tenant-message">{{ message() ?? t(reasonKey()) }}</span>
+      </p>
+      @if (planName(); as plan) {
+        <p class="state-meta">{{ t('shell.tenant.plan', { plan: plan }) }}</p>
+      }
+    }
+
+    @if (!notLinked()) {
+      <div class="state-actions">
+        <p-button
+          [label]="t('shell.tenant.retry')"
+          icon="pi pi-refresh"
+          [loading]="busy()"
+          styleClass="w-full"
+          (onClick)="retry()"
+        />
+      </div>
+    }
+
+    <button type="button" class="state-link" (click)="signOut()">{{ t('auth.logout') }}</button>
+  </section>
+</main>

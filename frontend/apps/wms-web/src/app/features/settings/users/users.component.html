@@ -1,0 +1,141 @@
+<div class="page-enter" *transloco="let t">
+  <app-page-header [title]="t('settings.users')" [subtitle]="t('settings.manageUsers')" />
+
+  <div class="readonly-notice">
+    <i class="pi pi-info-circle"></i>
+    <p class="notice-text">{{ t('settings.usersIdentityHint') }}</p>
+  </div>
+
+  <div class="wms-card table-wrapper">
+    <p-table
+      [value]="users()"
+      [loading]="loading()"
+      [paginator]="true"
+      [rows]="20"
+      [scrollable]="true"
+      styleClass="p-datatable-sm p-datatable-striped"
+    >
+      <ng-template #header>
+        <tr>
+          <th pSortableColumn="fullName">{{ t('settings.fullName') }} <p-sortIcon field="fullName" /></th>
+          <th>{{ t('common.phone') }}</th>
+          <th class="text-center">{{ t('common.active') }}</th>
+          <th>{{ t('settings.roles') }}</th>
+          <th>{{ t('settings.lastSeen') }}</th>
+          <th class="text-center">{{ t('common.actions') }}</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-user>
+        <tr>
+          <td>
+            <span class="item-name">{{ user.fullName }}</span>
+          </td>
+          <td>
+            <span class="number">{{ user.phone || '—' }}</span>
+          </td>
+          <td class="text-center">
+            <app-status-badge
+              [status]="user.isActive ? 'Active' : 'Cancelled'"
+              [label]="user.isActive ? t('common.active') : t('common.inactive')"
+            />
+          </td>
+          <td>
+            <span class="roles-text">{{ roleNames(user) }}</span>
+          </td>
+          <td>
+            <span class="text-muted">{{ (parse(user.lastSeenAt) | date: 'MMM d, y HH:mm') || '—' }}</span>
+          </td>
+          <td class="text-center actions-cell">
+            <p-button
+              icon="pi pi-users"
+              [rounded]="true"
+              [text]="true"
+              severity="help"
+              [pTooltip]="t('settings.assignRoles')"
+              (onClick)="openRoleDialog(user)"
+            />
+            <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info" (onClick)="openEdit(user)" />
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="6">
+            <div class="empty-state">
+              <i class="pi pi-users"></i>
+              <p>{{ t('common.noData') }}</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <!-- Holat: ism va telefon faqat ko'rsatiladi (Identity'niki), o'zgaradigani — WMS o'chirgichi -->
+  <p-dialog
+    [header]="t('common.edit') + ' ' + t('settings.users')"
+    [visible]="dialogVisible()"
+    (visibleChange)="$event || closeEdit()"
+    [modal]="true"
+    [style]="{ width: '500px' }"
+    [draggable]="false"
+  >
+    @if (editTarget(); as user) {
+      <div class="form-grid">
+        <div class="form-field">
+          <label for="userName">{{ t('settings.fullName') }}</label>
+          <input id="userName" pInputText [value]="user.fullName" [disabled]="true" class="w-full" />
+        </div>
+        <div class="form-field">
+          <label for="userPhone">{{ t('common.phone') }}</label>
+          <input id="userPhone" pInputText [value]="user.phone ?? ''" [disabled]="true" class="w-full" />
+        </div>
+        <p class="field-hint full-width">{{ t('settings.identityManaged') }}</p>
+        <div class="form-field full-width">
+          <label for="userActive">{{ t('common.active') }}</label>
+          <p-toggleswitch
+            inputId="userActive"
+            [ngModel]="editActive()"
+            (ngModelChange)="editActive.set($event)"
+            [disabled]="editingSelf()"
+          />
+        </div>
+      </div>
+    }
+
+    <ng-template #footer>
+      <p-button [label]="t('common.cancel')" [text]="true" (onClick)="closeEdit()" />
+      <p-button [label]="t('common.update')" icon="pi pi-check" (onClick)="save()" [loading]="saving()" />
+    </ng-template>
+  </p-dialog>
+
+  <p-dialog
+    [header]="t('settings.assignRoles')"
+    [visible]="roleDialogVisible()"
+    (visibleChange)="$event || closeRoleDialog()"
+    [modal]="true"
+    [style]="{ width: '450px' }"
+    [draggable]="false"
+  >
+    <div class="role-checkbox-list">
+      @for (role of roles(); track role.id) {
+        <label class="role-checkbox-item" [for]="'role-' + role.id">
+          <p-checkbox
+            [inputId]="'role-' + role.id"
+            [binary]="true"
+            [ngModel]="selectedRoleIds().includes(role.id)"
+            (ngModelChange)="toggleRole(role.id, $event)"
+          />
+          <span>{{ role.name }}</span>
+        </label>
+      } @empty {
+        <p class="field-hint">{{ t('common.noData') }}</p>
+      }
+    </div>
+
+    <ng-template #footer>
+      <p-button [label]="t('common.cancel')" [text]="true" (onClick)="closeRoleDialog()" />
+      <p-button [label]="t('common.save')" icon="pi pi-check" (onClick)="saveRoles()" [loading]="saving()" />
+    </ng-template>
+  </p-dialog>
+</div>

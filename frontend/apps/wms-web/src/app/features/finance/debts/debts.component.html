@@ -1,0 +1,45 @@
+<div class="page-enter" *transloco="let t">
+  <app-page-header [title]="t('finance.debts')" [subtitle]="t('finance.debt')" />
+
+  <div class="wms-card table-wrapper">
+    <p-table [value]="debts()" [loading]="loading()" [paginator]="true" [rows]="15"
+      [rowsPerPageOptions]="[10, 15, 25, 50]" [scrollable]="true" styleClass="p-datatable-sm p-datatable-striped">
+      <ng-template #header>
+        <tr>
+          <th pSortableColumn="counterpartyName">{{ t('finance.counterparty') }} <p-sortIcon field="counterpartyName" /></th>
+          <th>{{ t('common.type') }}</th>
+          <th class="text-right" pSortableColumn="amount">{{ t('common.amount') }} <p-sortIcon field="amount" /></th>
+          <th>{{ t('finance.direction') }}</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-d>
+        <tr>
+          <td><span class="item-name">{{ d.counterpartyName }}</span></td>
+          <td>
+            <app-status-badge [status]="typeBadgeStatus(d.counterpartyType)" [label]="t(typeKey(d.counterpartyType))" />
+          </td>
+          <td class="text-right">
+            <span class="number" [class.debt-positive]="d.amount >= 0" [class.debt-negative]="d.amount < 0">
+              {{ (d.amount >= 0 ? d.amount : -d.amount) | number: '1.0-2' }}
+            </span>
+          </td>
+          <td>
+            <span class="direction-label" [class.direction-positive]="d.amount >= 0" [class.direction-negative]="d.amount < 0">
+              {{ d.amount >= 0 ? t('finance.theyOweUs') : t('finance.weOweThem') }}
+            </span>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="4">
+            <div class="empty-state">
+              <i class="pi pi-wallet"></i>
+              <p>{{ t('finance.noDebts') }}</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>

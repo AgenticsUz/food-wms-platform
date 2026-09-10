@@ -1,0 +1,32 @@
+# Build konteksti repo ildizi (docker/Dockerfile.api) — faqat kerakli narsa image'ga kirsin.
+#
+# ⚠️ Wash'dan FARQI: bu yerda TAQIQ emas, RUXSAT ro'yxati (avval hammasi chiqariladi,
+# keyin keraklisi qaytariladi). Sabab ikkita:
+#   1) Repo'da hali ko'chirilmagan eski daraxtlar turibdi (`legacy/`, `wms-api/`,
+#      `wms-ui/`, `wms-admin/`). Taqiq ro'yxatida bittasi unutilsa yuzlab MB kontekst,
+#      eski `publish/` va ichida JWT kaliti bor eski `appsettings.Production.json`
+#      image qatlamiga tushardi (PLATFORMA-TZ §7·F6.1 — «Git'da sir bor»).
+#   2) Dockerfile.api `COPY . ./` qiladi, chunki `seed/` hali yo'q (F6.3 W2·6), lekin
+#      `WMS.Infrastructure` uni EmbeddedResource sifatida kutadi. `COPY seed/` papka
+#      paydo bo'lguncha build'ni yiqitardi; `!seed/` esa papka yo'q bo'lsa jim o'tadi.
+#
+# Dockerfile.web bu faylni O'QIMAYDI — yonidagi `docker/Dockerfile.web.dockerignore`
+# undan ustun turadi (BuildKit qoidasi).
+*
+
+!AgenticsWms.slnx
+!global.json
+!nuget.config
+!Directory.Build.props
+!Directory.Packages.props
+!.editorconfig
+!src/
+!seed/
+
+**/bin/
+**/obj/
+
+# Tenant logolari ish vaqtida `wms-uploads` hajmiga yoziladi — dasturchi
+# mashinasida yuklangan fayllar image'ga kirmasin.
+src/WMS.API/wwwroot/uploads/
+src/WMS.API/uploads/

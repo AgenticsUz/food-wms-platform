@@ -1,0 +1,110 @@
+<div class="page-enter" *transloco="let t">
+  <app-page-header [title]="t('warehouse.batches')" [subtitle]="t('warehouse.trackLots')">
+    <p-button icon="pi pi-refresh" [label]="t('common.refresh')" [outlined]="true" (onClick)="loadBatches()" />
+  </app-page-header>
+
+  <div class="filters-bar wms-card">
+    <div class="filter-group">
+      <span class="p-input-icon-left">
+        <i class="pi pi-search"></i>
+        <input pInputText [placeholder]="t('warehouse.searchLot')" [ngModel]="search()" (ngModelChange)="search.set($event)" />
+      </span>
+    </div>
+  </div>
+
+  <div class="wms-card table-wrapper">
+    <p-table [value]="filtered()" [loading]="loading()" [paginator]="true" [rows]="20"
+      [rowsPerPageOptions]="[10, 20, 50]" [scrollable]="true" styleClass="p-datatable-sm p-datatable-striped">
+      <ng-template #header>
+        <tr>
+          <th pSortableColumn="productName">{{ t('common.name') }} <p-sortIcon field="productName" /></th>
+          <th>{{ t('warehouse.lotNumber') }}</th>
+          <th>{{ t('warehouse.manufactured') }}</th>
+          <th>{{ t('warehouse.expiry') }}</th>
+          <th class="text-right">{{ t('warehouse.initialQty') }}</th>
+          <th class="text-right">{{ t('warehouse.remainingQty') }}</th>
+          <th>{{ t('common.status.label') }}</th>
+          <th class="text-center">{{ t('common.actions') }}</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-b>
+        <tr [class.row-highlight]="highlightId() === b.id">
+          <td><span class="item-name">{{ b.productName }}</span></td>
+          <td><span class="lot-number">{{ b.lotNumber }}</span></td>
+          <td>{{ b.manufacturedDate | date:'MMM d, yyyy' }}</td>
+          <td>{{ b.expiryDate ? (b.expiryDate | date:'MMM d, yyyy') : '—' }}</td>
+          <td class="text-right"><span class="number">{{ b.initialQuantity | number:'1.0-2' }}</span></td>
+          <td class="text-right"><span class="number">{{ b.remainingQuantity | number:'1.0-2' }}</span></td>
+          <td>
+            <app-status-badge [status]="expiryStatus(b.expiryDate)" [label]="t(expiryKey(b.expiryDate))" />
+          </td>
+          <td class="text-center actions-cell">
+            <ng-container *hasPermission="'warehouse.manage'">
+              <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info"
+                        [ariaLabel]="t('batch.edit')" (onClick)="openEdit(b)" />
+              <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger"
+                        [ariaLabel]="t('batch.delete')" (onClick)="deleteBatch(b)" />
+            </ng-container>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr><td colspan="8"><div class="empty-state"><i class="pi pi-box"></i><p>{{ t('warehouse.noBatches') }}</p></div></td></tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <p-dialog [header]="t('batch.editTitle')" [(visible)]="dialogVisible" [modal]="true"
+            [style]="{ width: '480px' }" [draggable]="false">
+    @if (editForm(); as f) {
+      <div class="form-col">
+        <div class="form-field">
+          <label for="batch-product">{{ t('common.name') }}</label>
+          <input id="batch-product" pInputText [value]="f.productName" disabled class="w-full" />
+        </div>
+
+        <div class="form-field">
+          <label for="batch-lot">{{ t('batch.lotNumber') }} *</label>
+          <input id="batch-lot" pInputText [ngModel]="f.lotNumber"
+                 (ngModelChange)="updateForm('lotNumber', $event)" class="w-full" />
+        </div>
+
+        <div class="form-field">
+          <label for="batch-expiry">{{ t('batch.expiryDate') }}</label>
+          <p-datepicker inputId="batch-expiry" [ngModel]="f.expiryDate"
+                        (ngModelChange)="updateForm('expiryDate', $event)"
+                        dateFormat="yy-mm-dd" [showIcon]="true" [showClear]="true"
+                        [style]="{ width: '100%' }" appendTo="body" />
+        </div>
+
+        <div class="form-field">
+          <label for="batch-notes">{{ t('batch.notes') }}</label>
+          <textarea id="batch-notes" pTextarea [ngModel]="f.notes ?? ''"
+                    (ngModelChange)="updateForm('notes', $event || null)"
+                    class="w-full" rows="3"></textarea>
+        </div>
+
+        <div class="qty-readonly">
+          <i class="pi pi-info-circle"></i>
+          <span>{{ t('batch.quantityReadonly') }}</span>
+        </div>
+
+        <div class="qty-grid">
+          <div class="form-field">
+            <label for="batch-initial">{{ t('warehouse.initialQty') }}</label>
+            <input id="batch-initial" pInputText [value]="f.initialQuantity" disabled class="w-full number" />
+          </div>
+          <div class="form-field">
+            <label for="batch-remaining">{{ t('warehouse.remainingQty') }}</label>
+            <input id="batch-remaining" pInputText [value]="f.remainingQuantity" disabled class="w-full number" />
+          </div>
+        </div>
+      </div>
+    }
+    <ng-template #footer>
+      <p-button [label]="t('common.cancel')" [text]="true" (onClick)="dialogVisible.set(false)" />
+      <p-button [label]="t('common.update')" icon="pi pi-check"
+                (onClick)="saveEdit()" [loading]="saving()" />
+    </ng-template>
+  </p-dialog>
+</div>

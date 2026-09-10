@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- DTO'lar, servis interfeyslari, umumiy qoidalar (obuna siyosati, ruxsat katalogi). -->
+  <ItemGroup>
+    <ProjectReference Include="../WMS.Domain/WMS.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

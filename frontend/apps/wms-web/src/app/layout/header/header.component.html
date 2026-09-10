@@ -1,0 +1,77 @@
+<header class="app-header" *transloco="let t">
+  <div class="header-left">
+    <button
+      type="button"
+      class="mobile-menu-btn"
+      (click)="menuToggled.emit()"
+      [attr.aria-label]="t('shell.menu')"
+    >
+      <i class="pi pi-bars"></i>
+    </button>
+    <h2 class="page-title">{{ tenantName() || t('shell.product') }}</h2>
+  </div>
+
+  <div class="currency-widget">
+    @if (currency.loading()) {
+      <i class="pi pi-spin pi-spinner currency-loading"></i>
+    } @else {
+      @for (entry of mainRates(); track entry.code) {
+        <span class="currency-entry">
+          <span class="currency-code">{{ entry.code }}</span>
+          <span class="currency-rate">{{ entry.rate | number: '1.0-0' }}</span>
+        </span>
+      }
+      <button
+        type="button"
+        class="currency-refresh"
+        (click)="currency.loadRates()"
+        [title]="t('shell.currencyRefresh')"
+        [attr.aria-label]="t('shell.currencyRefresh')"
+      >
+        <i class="pi pi-refresh"></i>
+      </button>
+    }
+  </div>
+
+  <div class="header-right">
+    <div class="lang-switcher" role="group" [attr.aria-label]="t('common.language.label')">
+      @for (lang of languages; track lang) {
+        <button
+          type="button"
+          class="lang-btn"
+          [class.active]="lang === activeLanguage()"
+          [attr.aria-pressed]="lang === activeLanguage()"
+          [title]="t('common.language.' + lang)"
+          (click)="onLanguage(lang)"
+        >
+          {{ shortLabel[lang] }}
+        </button>
+      }
+    </div>
+
+    <button
+      type="button"
+      class="theme-toggle"
+      (click)="theme.toggle()"
+      [attr.aria-label]="t(theme.isDark() ? 'common.theme.light' : 'common.theme.dark')"
+    >
+      <i class="pi" [class.pi-moon]="!theme.isDark()" [class.pi-sun]="theme.isDark()"></i>
+    </button>
+
+    <app-notification-bell />
+
+    <button
+      type="button"
+      class="user-badge"
+      (click)="toggleUserMenu($event, userMenu)"
+      [attr.aria-label]="t('shell.userMenu')"
+    >
+      <span class="avatar">
+        <i class="pi pi-user"></i>
+      </span>
+      <span class="user-name">{{ fullName() }}</span>
+      <i class="pi pi-chevron-down user-caret"></i>
+    </button>
+    <p-menu #userMenu [model]="userMenuItems()" [popup]="true" appendTo="body" />
+  </div>
+</header>

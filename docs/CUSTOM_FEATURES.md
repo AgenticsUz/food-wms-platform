@@ -19,7 +19,8 @@
 | 5 | Har custom controller `[RequireFeature("custom.<kod>")]` bilan | code review |
 | 6 | Mantiq `WMS.Application/Features/Custom/<kod>/` ichida, umumiy servislarda emas | code review |
 
-Yoqish: `PUT /api/admin/tenants/{id}/features` → `{ "features": [{ "code": "custom.x", "isEnabled": true }] }`.
+Yoqish (F6 dan beri — Console'ning WMS bo'limi): `PUT /admin/v1/tenants/{id}/features`
+→ `[{ "code": "custom.x", "enabled": true, "note": "..." }]` (`enabled: null` — override'ni olib tashlaydi).
 
 ---
 

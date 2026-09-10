@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- EF Core + Npgsql, RLS generatori va interceptor'i, servislar, hujjatlar (Excel/PDF),
+       Telegram, fon xizmatlari. `Microsoft.AspNetCore.App` — servislar so'rov kontekstini
+       (til, ogohlantirishlar) va yuklangan faylni o'qiydi. -->
+  <ItemGroup>
+    <ProjectReference Include="../WMS.Application/WMS.Application.csproj" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <!-- seed/ manifestlari (bazaviy katalog, demo) assemblyga kiradi — prod image'da fayl manbai kerak emas. -->
+  <ItemGroup>
+    <EmbeddedResource Include="../../seed/**/*.json" LinkBase="seed" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Platforma: ICurrentTenant, EffectiveAccess kabi seam'lar. -->
+    <PackageReference Include="Agentics.Platform.Infrastructure" />
+    <PackageReference Include="Agentics.Platform.SharedKernel" />
+
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    <!-- Caching.Memory va Http ATAYLAB yo'q: ular `Microsoft.AspNetCore.App` ichida va
+         alohida havola NU1510 beradi (TreatWarningsAsErrors ostida restore yiqiladi). -->
+    <PackageReference Include="AspNetCore.HealthChecks.NpgSql" />
+    <PackageReference Include="ClosedXML" />
+    <PackageReference Include="QuestPDF" />
+  </ItemGroup>
+
+</Project>

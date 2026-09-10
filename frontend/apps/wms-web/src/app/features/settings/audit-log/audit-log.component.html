@@ -1,0 +1,93 @@
+<div class="page-enter" *transloco="let t">
+  <app-page-header [title]="t('audit.title')" [subtitle]="t('audit.subtitle')" />
+
+  <div class="filters-bar wms-card">
+    <div class="filter-group">
+      <label class="filter-label" for="auditEntity">{{ t('audit.entityType') }}:</label>
+      <p-select
+        inputId="auditEntity"
+        [options]="entityTypes()"
+        [ngModel]="entityFilter()"
+        (ngModelChange)="setEntity($event)"
+        optionLabel="label"
+        optionValue="value"
+        [style]="{ minWidth: '160px' }"
+      />
+    </div>
+    <div class="filter-group">
+      <label class="filter-label" for="auditFrom">{{ t('common.from') }}:</label>
+      <p-datepicker
+        inputId="auditFrom"
+        [ngModel]="dateFrom()"
+        (ngModelChange)="setFrom($event)"
+        dateFormat="yy-mm-dd"
+        [showIcon]="true"
+      />
+    </div>
+    <div class="filter-group">
+      <label class="filter-label" for="auditTo">{{ t('common.to') }}:</label>
+      <p-datepicker
+        inputId="auditTo"
+        [ngModel]="dateTo()"
+        (ngModelChange)="setTo($event)"
+        dateFormat="yy-mm-dd"
+        [showIcon]="true"
+      />
+    </div>
+    <div class="filter-group">
+      <label class="filter-label" for="auditPlatform">{{ t('audit.platformOnly') }}:</label>
+      <p-toggleswitch inputId="auditPlatform" [ngModel]="platformOnly()" (ngModelChange)="platformOnly.set($event)" />
+    </div>
+  </div>
+
+  <div class="wms-card table-wrapper">
+    <p-table
+      [value]="visibleLogs()"
+      [loading]="loading()"
+      [paginator]="true"
+      [rows]="20"
+      [rowsPerPageOptions]="[20, 50, 100]"
+      [scrollable]="true"
+      styleClass="p-datatable-sm p-datatable-striped"
+    >
+      <ng-template #header>
+        <tr>
+          <th>{{ t('audit.date') }}</th>
+          <th>{{ t('audit.user') }}</th>
+          <th>{{ t('audit.action') }}</th>
+          <th>{{ t('audit.entity') }}</th>
+          <th>{{ t('audit.record') }}</th>
+          <th></th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-row>
+        <tr>
+          <td>{{ parse(row.createdAt) | date: 'MMM d, y HH:mm' }}</td>
+          <td [title]="row.actorSub ?? ''">{{ row.userName || '—' }}</td>
+          <td><app-status-badge [status]="actionClass(row.action)" [label]="row.action" /></td>
+          <td>
+            {{ row.entityType }}
+            @if (row.entityAction) {
+              <span class="entity-action">{{ '· ' + row.entityAction }}</span>
+            }
+          </td>
+          <td [title]="row.entityId ?? ''">{{ row.entityId ? '#' + shortEntityId(row.entityId) : '—' }}</td>
+          <td>
+            @if (row.isPlatformAction) {
+              <span class="badge-info platform-badge" [title]="t('audit.platformActionHint')">
+                {{ t('audit.platformAction') }}
+              </span>
+            }
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="6">
+            <div class="empty-state"><i class="pi pi-history"></i><p>{{ t('audit.noLogs') }}</p></div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>

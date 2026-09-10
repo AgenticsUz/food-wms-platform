@@ -1,0 +1,20 @@
+# Faqat shu Dockerfile uchun (BuildKit ildizdagi .dockerignore o'rniga shuni oladi).
+# Avval HAMMASINI chiqarib tashlaymiz, keyin kerakligini qaytaramiz — kontekst
+# minimal bo'lsin va .NET manbalari, eski `wms-ui`/`legacy`, docs, uploads umuman yuborilmasin.
+*
+!frontend/
+!docker/nginx/
+!docker/web-config/
+
+# frontend ichidagi og'ir/stendga xos narsalar:
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/.nx/
+frontend/**/*.log
+frontend/.husky/
+# Ishchi runtime konfiguratsiya — stend'ga xos, image'ga kirmaydi (entrypoint yasaydi).
+# Ikki yo'l: `@agentics/config` `assets/config/` ni o'qiydi, repo `.gitignore` esa
+# hozircha `src/config/` ni yozgan — qaysi biri qolsa ham image'ga tushmasin.
+frontend/apps/*/src/assets/config/app-config.json
+frontend/apps/*/src/config/app-config.json

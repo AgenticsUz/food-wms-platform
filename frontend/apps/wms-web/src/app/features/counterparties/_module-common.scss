@@ -1,0 +1,142 @@
+// Eski `wms-ui/shared/styles/module-common.scss` — ro'yxat/forma/detal sahifalarining
+// umumiy sinflari. Qobiqning global `styles.css` ida ular YO'Q (faqat mobil
+// ustama qoidalari bor), `shared/` esa bu bo'lim agentiga tegishli emas — shuning
+// uchun nusxa bo'lim ichida. Umumiy `shared/styles/module-common.scss` paydo
+// bo'lganda shu fayl o'chiriladi va importlar o'shanga almashtiriladi.
+
+.filters-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding: 16px 20px;
+  flex-wrap: wrap;
+  &:hover { transform: none; }
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.p-input-icon-left {
+  position: relative;
+  i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    z-index: 1;
+  }
+  input {
+    padding-left: 36px;
+    min-width: 260px;
+  }
+}
+
+.table-wrapper {
+  padding: 0;
+  overflow: hidden;
+  &:hover { transform: none; }
+}
+
+.text-right { text-align: right !important; }
+.text-center { text-align: center !important; }
+.text-muted { color: var(--text-muted); }
+
+.actions-cell { white-space: nowrap; }
+
+.item-name {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 20px;
+  color: var(--text-muted);
+  gap: 12px;
+  i { font-size: 48px; opacity: 0.4; }
+  p { margin: 0; font-size: 15px; font-weight: 500; }
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+  }
+  &.full-width {
+    grid-column: 1 / -1;
+  }
+}
+
+.w-full { width: 100%; }
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.detail-card {
+  padding: 20px;
+  &:hover { transform: none; }
+}
+
+.detail-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin: 0 0 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.detail-card-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 16px;
+}
+
+.section-card {
+  padding: 24px;
+  margin-bottom: 20px;
+  &:hover { transform: none; }
+}
+
+@media (max-width: 768px) {
+  .form-grid { grid-template-columns: 1fr; }
+  .detail-grid { grid-template-columns: 1fr; }
+}

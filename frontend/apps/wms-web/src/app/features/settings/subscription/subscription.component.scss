@@ -1,0 +1,211 @@
+@use '../module-common';
+
+/* Ogohlantirishlar */
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+
+  > i { font-size: 18px; margin-top: 2px; }
+}
+
+.alert-danger {
+  background: var(--color-berry-50);
+  border-color: var(--color-berry-100);
+  color: var(--color-berry-700);
+}
+
+.alert-warning {
+  background: var(--color-caramel-50);
+  border-color: var(--color-caramel-100);
+  color: var(--color-caramel-600);
+}
+
+:host-context(.dark-mode) {
+  .alert-danger {
+    background: rgba(217, 76, 102, 0.18);
+    border-color: rgba(217, 76, 102, 0.35);
+    color: #f0a3b1;
+  }
+
+  .alert-warning {
+    background: rgba(200, 144, 47, 0.18);
+    border-color: rgba(200, 144, 47, 0.35);
+    color: #e8b964;
+  }
+
+  .trial-days {
+    background: rgba(200, 144, 47, 0.18);
+    color: #e8b964;
+  }
+
+  .limit-danger .limit-value { color: #f0a3b1; }
+}
+
+.alert-title { font-weight: 600; font-size: 15px; }
+.alert-text  { font-size: 13px; margin-top: 2px; opacity: 0.9; }
+.alert a { color: inherit; text-decoration: underline; margin-left: 6px; }
+
+/* Plan kartasi */
+.plan-card { margin-bottom: 20px; }
+
+.plan-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.plan-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.plan-name { font-size: 24px; font-weight: 700; color: var(--text-primary); }
+
+.plan-code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.plan-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.plan-hint { font-size: 13px; color: var(--text-secondary); margin: 8px 0 0; }
+.contact-hint { padding: 0 20px 16px; }
+
+.plan-trial {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.trial-label { font-size: 13px; color: var(--text-secondary); }
+.trial-value { font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+
+.trial-days {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: var(--color-caramel-50);
+  color: var(--color-caramel-600);
+}
+
+/* Bo'limlar */
+.section-card { margin-bottom: 20px; }
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 16px;
+  color: var(--text-primary);
+}
+
+.section-title-padded { padding: 20px 20px 0; }
+
+/* Limitlar */
+.limit-list { display: flex; flex-direction: column; gap: 18px; }
+
+.limit-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+
+.limit-name { font-size: 14px; color: var(--text-secondary); }
+.limit-value { font-size: 14px; font-weight: 600; }
+
+.limit-ok     ::ng-deep .p-progressbar-value { background: var(--color-pistachio-500); }
+.limit-warn   ::ng-deep .p-progressbar-value { background: var(--color-caramel-500); }
+.limit-danger ::ng-deep .p-progressbar-value { background: var(--color-berry-500); }
+.limit-danger .limit-value { color: var(--color-berry-700); }
+
+/* Modullar */
+.module-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.chip {
+  padding: 5px 12px;
+  border-radius: 20px;
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  font-size: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text-secondary);
+}
+
+/* Planlar jadvali */
+.current-plan { background: var(--bg-muted); }
+.current-badge { margin-left: 8px; }
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+  color: var(--text-muted);
+  gap: 8px;
+
+  i { font-size: 24px; }
+  p { margin: 0; font-size: 14px; }
+}
+
+/* Feature ro'yxati — yig'iladigan panel */
+.feature-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  text-align: left;
+
+  .section-title { margin: 0; flex: 1; }
+  i { font-size: 12px; color: var(--text-muted); }
+}
+
+.feature-count {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 9px;
+  border-radius: 20px;
+  background: var(--bg-muted);
+  color: var(--text-secondary);
+}
+
+.feature-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.feature-group-name {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}

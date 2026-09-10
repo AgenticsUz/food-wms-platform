@@ -1,0 +1,144 @@
+# =============================================================================
+#  AGENTICS WMS — PROD COMPOSE (wms.agentics.uz)
+#
+#  Konteynerlar: postgres · wms-migrator (bir martalik) · wms-api · wms-web
+#  (nginx: SPA + /api, /admin/v1, /uploads proxy). Worker YO'Q — fon xizmatlari
+#  API ichida (PLATFORMA-TZ §7·F6.2 D12).
+#  Identity — platforma stack'ining o'z compose'ida (id.agentics.uz); bu yerda faqat URL.
+#  Host nginx (docker/host-nginx) TLS + wms.agentics.uz → 127.0.0.1:5510 (wms-web:80).
+#  Tashqariga FAQAT shu loopback port ochiq (§6.1, D16).
+#  Image'lar GHCR'dan (ci.yml). Sirlar docker/.env (gitignore).
+# =============================================================================
+name: agentics-wms
+
+x-hardening: &hardening
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  tmpfs: [/tmp]
+  logging:
+    driver: json-file
+    options: { max-size: '20m', max-file: '5' }
+
+x-dotnet-env: &dotnet-env
+  ASPNETCORE_ENVIRONMENT: Production
+  TZ: Asia/Tashkent
+  ConnectionStrings__wms: 'Host=postgres;Port=5432;Database=${POSTGRES_DB:-agentics_wms};Username=app_user;Password=${APP_USER_PASSWORD:?};Search Path=wms,public;Include Error Detail=false'
+  Auth__Issuer: ${PUBLIC_IDENTITY_URL:?}
+  # ⚠️ Ikki audience, bitta xost (izohi dev compose'da).
+  Auth__Audiences__Wms: wms-api
+  Auth__Audiences__Admin: wms-admin-api
+  Cors__AllowedOrigins__0: ${PUBLIC_WEB_URL:?}
+
+  # ⚠️ Bu qator TUSHIB QOLSA `X-Forwarded-*` UMUMAN o'qilmaydi: `Request.IsHttps`
+  # yolg'on `false` bo'ladi (TLS host nginx'da tugaydi) va rate limit hamma
+  # mijozni nginx konteynerining IP'siga jamlaydi — bitta faol mijoz
+  # qolganlarni bloklab qo'yadi. `Proxy__KnownNetworks__*` berilmagan: sukut
+  # ro'yxat (10/8, 172.16/12, 192.168/16) Docker tarmog'ini qoplaydi va
+  # ilovaga faqat nginx orqali kelinadi.
+  Proxy__TrustForwardedHeaders: 'true'
+
+  # Obuna siyosati (sukutlar appsettings.json bilan bir xil, izohi dev compose'da).
+  Subscription__TrialDays: ${SUBSCRIPTION_TRIAL_DAYS:-14}
+  Subscription__GraceDays: ${SUBSCRIPTION_GRACE_DAYS:-3}
+  Subscription__PaidGraceDays: ${SUBSCRIPTION_PAID_GRACE_DAYS:-3}
+  Subscription__StateCacheSeconds: ${SUBSCRIPTION_STATE_CACHE_SECONDS:-60}
+  Subscription__WarnBeforeDays: ${SUBSCRIPTION_WARN_BEFORE_DAYS:-7}
+  Subscription__LimitWarnPercent: ${SUBSCRIPTION_LIMIT_WARN_PERCENT:-80}
+  Migrations__Mode: none
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: wms-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-agentics_wms}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+      APP_USER_PASSWORD: ${APP_USER_PASSWORD:?}
+      APP_MIGRATOR_PASSWORD: ${APP_MIGRATOR_PASSWORD:?}
+      POSTGRES_INITDB_ARGS: '--encoding=UTF8 --locale=C.UTF-8'
+    command: ['postgres', '-c', 'shared_buffers=512MB', '-c', 'max_connections=120', '-c', 'log_min_duration_statement=1000']
+    volumes:
+      - wms-pgdata:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    networks: [internal]
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-agentics_wms}']
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    logging:
+      driver: json-file
+      options: { max-size: '20m', max-file: '5' }
+
+  wms-migrator:
+    image: ${IMAGE_REGISTRY:?}/wms-api:${IMAGE_TAG:-latest}
+    container_name: wms-migrator
+    # Prod'da demo tenant YO'Q — faqat sxema + bazaviy katalog.
+    command: ['migrate']
+    environment:
+      <<: *dotnet-env
+      # DDL huquqli ulanish FAQAT shu bir martalik konteynerda; ishlab turgan
+      # wms-api uni umuman ko'rmaydi.
+      ConnectionStrings__wms_migrator: 'Host=postgres;Port=5432;Database=${POSTGRES_DB:-agentics_wms};Username=app_migrator;Password=${APP_MIGRATOR_PASSWORD:?};Search Path=wms,public'
+    networks: [internal]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: 'no'
+    <<: *hardening
+
+  wms-api:
+    image: ${IMAGE_REGISTRY:?}/wms-api:${IMAGE_TAG:-latest}
+    container_name: wms-api
+    restart: unless-stopped
+    environment:
+      <<: *dotnet-env
+      Auth__MetadataAddress: ${IDENTITY_METADATA_URL:-}
+    volumes:
+      # `read_only` ildizda yagona yoziladigan joy (tmpfs /tmp dan tashqari).
+      - wms-uploads:/app/wwwroot/uploads
+    # `edge` — JWKS uchun https://id.agentics.uz ga CHIQISH kerak (§6.1: stack'lar
+    # bir-biriga faqat ochiq URL bilan boradi); `internal` tarmog'i tashqariga yopiq.
+    networks: [internal, edge]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      wms-migrator:
+        condition: service_completed_successfully
+    <<: *hardening
+
+  wms-web:
+    image: ${IMAGE_REGISTRY:?}/wms-web:${IMAGE_TAG:-latest}
+    container_name: wms-web
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Tashkent
+      # Nisbiy manzil: SPA API bilan bir originda (nginx proksilaydi),
+      # shu sabab brauzerda CORS umuman qatnashmaydi.
+      PUBLIC_API_URL: /api
+      # Identity BRAUZERDAN ochiladi — bu tashqi manzil (konteyner nomi emas).
+      PUBLIC_IDENTITY_URL: ${PUBLIC_IDENTITY_URL:?}
+      DEFAULT_LOCALE: ${DEFAULT_LOCALE:-uz-Latn}
+      IDLE_TIMEOUT_MINUTES: ${IDLE_TIMEOUT_MINUTES:-30}
+    ports:
+      # Faqat loopback: TLS'ni host nginx uzadi, tashqaridan to'g'ridan-to'g'ri
+      # kirish bo'lmasin (aks holda HSTS va xavfsizlik sarlavhalari chetlab o'tilardi).
+      - '127.0.0.1:${WEB_PORT:-5510}:80'
+    networks: [edge]
+    depends_on:
+      - wms-api
+    logging:
+      driver: json-file
+      options: { max-size: '20m', max-file: '5' }
+
+networks:
+  internal:
+    internal: true
+  edge:
+
+volumes:
+  wms-pgdata:
+  wms-uploads:

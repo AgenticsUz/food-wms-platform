@@ -1,0 +1,116 @@
+# syntax=docker/dockerfile:1.7
+# =============================================================================
+#  AGENTICS WMS — .NET 10 API MULTI-STAGE IMAGE (Wash Dockerfile.api asosida)
+#
+#  Bitta servis: WMS.API (api + `migrate` / `seed demo` rejimi). Worker YO'Q — fon
+#  xizmatlari API ichida (PLATFORMA-TZ §7·F6.2 D12).
+#
+#     docker build -f docker/Dockerfile.api \
+#       --build-context platform=../agentics-platform/artifacts \
+#       -t agentics-wms/wms-api:local .
+#
+#  Build konteksti — REPO ILDIZI (compose'da `context: ..`): CPM va ProjectReference'lar
+#  butun daraxtni talab qiladi. Nima kirishini ildizdagi `.dockerignore` (ruxsat
+#  ro'yxati) belgilaydi. Prinsiplar: root EMAS, `dotnet ef` YO'Q (migratsiya
+#  `WMS.API migrate` bilan app_migrator roli ostida).
+#
+#  ⚠️ `platform` NOMLI KONTEKST MAJBURIY. `Agentics.Platform.*` paketlari nuget.org da
+#  yo'q, `nuget.config` esa qo'shni repo'ning `../agentics-platform/artifacts/nuget`
+#  papkasiga qaraydi — u build kontekstidan TASHQARIDA. Wash image'i buni hal
+#  qilmagan (HOLAT §4 #14, F7 — GitHub Packages). Bu yerda yechim: artefaktlar
+#  alohida kontekst sifatida beriladi va `nuget.config` kutgan joyga qo'yiladi.
+#  Bayroqsiz BuildKit `platform` ni IMAGE nomi deb o'qiydi va «pull access denied»
+#  bilan yiqiladi — xato chalg'itadi, sababi shu.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+#  1-BOSQICH: build
+# -----------------------------------------------------------------------------
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+ARG PROJECT_PATH=src/WMS.API/WMS.API.csproj
+ARG ASSEMBLY_NAME=WMS.API
+ARG BUILD_CONFIGURATION=Release
+ARG SOURCE_REVISION=unknown
+
+WORKDIR /src
+
+ENV DOTNET_NOLOGO=true \
+    DOTNET_CLI_TELEMETRY_OPTOUT=true \
+    DOTNET_SKIP_FIRST_TIME_EXPERIENCE=true \
+    NUGET_XMLDOC_MODE=skip
+
+# `nuget.config` /src da turadi va `../agentics-platform/artifacts/nuget` ga qaraydi —
+# ya'ni aynan /agentics-platform/artifacts/nuget. Faqat .nupkg: .snupkg restore'ga kerak emas.
+COPY --from=platform nuget/*.nupkg /agentics-platform/artifacts/nuget/
+
+# Repo ildizi — `.dockerignore` ruxsat bergan qism (slnx, props, nuget.config, src/, seed/).
+COPY . ./
+
+# ⚠️ Keshdagi `agentics.platform.*` HAR SAFAR o'chiriladi. Paket versiyasi (0.1.0)
+# qayta pack qilinganda o'zgarmaydi va NuGet keshdagi ESKI nusxani jimgina oladi
+# (Directory.Packages.props izohi) — cache mount build'lar orasida saqlangani uchun
+# bu yerda xato image'ga eski platforma kodi bo'lib tushardi.
+RUN --mount=type=cache,target=/root/.nuget/packages \
+    rm -rf /root/.nuget/packages/agentics.platform.* \
+ && dotnet restore "${PROJECT_PATH}"
+
+RUN --mount=type=cache,target=/root/.nuget/packages \
+    dotnet publish "${PROJECT_PATH}" \
+      --configuration "${BUILD_CONFIGURATION}" \
+      --no-restore \
+      --output /app/publish \
+      -p:UseAppHost=false \
+      -p:SourceRevisionId="${SOURCE_REVISION}" \
+      -p:DebugType=portable
+
+# -----------------------------------------------------------------------------
+#  2-BOSQICH: runtime
+# -----------------------------------------------------------------------------
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
+ARG ASSEMBLY_NAME=WMS.API
+ARG SOURCE_REVISION=unknown
+
+LABEL org.opencontainers.image.title="Agentics WMS — ${ASSEMBLY_NAME}" \
+      org.opencontainers.image.vendor="Agentics" \
+      org.opencontainers.image.revision="${SOURCE_REVISION}" \
+      org.opencontainers.image.licenses="proprietary"
+
+# curl — healthcheck; tzdata — Asia/Tashkent; ICU allaqachon bor (InvariantGlobalization=false).
+RUN apt-get update \
+ && apt-get install --yes --no-install-recommends curl tzdata \
+ && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY --from=build /app/publish .
+
+# Tenant logolari: /app/wwwroot/uploads → `wms-uploads` hajmi, API ularni `/uploads/*`
+# da beradi. Papka image'da OLDINDAN va APP_UID egaligida yaratiladi, chunki:
+#   - bo'sh nomli hajm birinchi ulanishda image'dagi papkaning egasi va mazmunini
+#     oladi — usiz u root'niki bo'lib qolar va logo yuklash 500 berardi;
+#   - prod'da konteyner `read_only` (x-hardening). Program.cs ishga tushishda
+#     `wwwroot/uploads/tenants` ni `CreateDirectory` qiladi; papka allaqachon bo'lsa bu
+#     yozuvsiz o'tadi — hajmsiz yuradigan `wms-migrator` ham shunda yiqilmaydi.
+RUN mkdir -p /app/wwwroot/uploads/tenants \
+ && chown -R "$APP_UID":"$APP_UID" /app/wwwroot/uploads
+
+ENV APP_DLL="${ASSEMBLY_NAME}.dll" \
+    ASPNETCORE_HTTP_PORTS=8080 \
+    DOTNET_NOLOGO=true \
+    DOTNET_CLI_TELEMETRY_OPTOUT=true \
+    DOTNET_RUNNING_IN_CONTAINER=true \
+    DOTNET_GCHeapHardLimitPercent=75 \
+    DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
+
+USER $APP_UID
+
+EXPOSE 8080
+
+# `127.0.0.1` (localhost EMAS — ::1 ga yechilib refused berishi mumkin).
+# `/alive` — faqat jarayon tirikligi; bazaga bog'liq `/health/ready` bu yerda EMAS,
+# aks holda Postgres qisqa uzilganda Docker sog'lom API'ni ham «unhealthy» qilardi.
+HEALTHCHECK --interval=15s --timeout=5s --start-period=40s --retries=5 \
+  CMD curl --fail --silent --show-error http://127.0.0.1:8080/alive || exit 1
+
+# `sh -c` — $APP_DLL kengaytirilishi uchun; `"$@"` — compose `command: ['migrate']`
+# (yoki `seed demo`) argumentlarini uzatadi.
+ENTRYPOINT ["/bin/sh", "-c", "exec dotnet /app/$APP_DLL \"$@\"", "--"]

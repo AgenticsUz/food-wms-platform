@@ -1,0 +1,53 @@
+import { Injectable, inject } from '@angular/core';
+
+import { ApiService } from '../../core/api/api.service';
+import type { PaymentHistory } from '../finance/finance.model';
+import type {
+  Counterparty,
+  CounterpartyBalance,
+  CounterpartySaveDto,
+  CounterpartyTransfer,
+  CounterpartyType,
+} from './counterparty.model';
+
+/** Kontragentlar API'si (eski `core/services/counterparty.service.ts`). */
+@Injectable({ providedIn: 'root' })
+export class CounterpartyService {
+  private readonly api = inject(ApiService);
+
+  getCounterparties(type?: CounterpartyType) {
+    return this.api.get<Counterparty[]>('counterparties', { type });
+  }
+  getCounterparty(id: string) {
+    return this.api.get<Counterparty>(`counterparties/${id}`);
+  }
+  createCounterparty(dto: CounterpartySaveDto) {
+    return this.api.post<Counterparty>('counterparties', dto);
+  }
+  updateCounterparty(id: string, dto: CounterpartySaveDto) {
+    return this.api.put<Counterparty>(`counterparties/${id}`, dto);
+  }
+  deleteCounterparty(id: string) {
+    return this.api.delete<null>(`counterparties/${id}`);
+  }
+  getBalance(id: string) {
+    return this.api.get<CounterpartyBalance>(`counterparties/${id}/balance`);
+  }
+  getPayments(id: string) {
+    return this.api.get<PaymentHistory[]>(`counterparties/${id}/payments`);
+  }
+
+  /**
+   * O'tkazmalar tarixi — `TRANSFERS` moduli va `transfers.view` ruxsati ortida.
+   * Kontragentlar esa modulsiz ochiladi; o'tkazmasiz tarifda sahifa 403 toasti
+   * bilan ochilmasin — jadval shunchaki bo'sh qoladi (`skipErrorNotify`).
+   * `pageSize` — backend standarti 50, eski jadval hammasini ko'rsatardi.
+   */
+  getTransfers(id: string) {
+    return this.api.get<CounterpartyTransfer[]>(
+      'transfers',
+      { counterpartyId: id, page: 1, pageSize: 1000 },
+      { skipErrorNotify: true }
+    );
+  }
+}

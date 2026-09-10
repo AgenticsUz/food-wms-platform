@@ -1,0 +1,45 @@
+<div class="page-enter" *transloco="let t">
+  <app-page-header [title]="t('kpi.dashboard')" [subtitle]="t('kpi.shiftEfficiency')" />
+
+  <div class="chart-row">
+    <div class="wms-card chart-card">
+      <h3 class="chart-title">{{ t('kpi.shiftEfficiency') }}</h3>
+      @if (efficiencyChart(); as c) {
+        <apx-chart
+          [series]="c.series"
+          [chart]="c.chart"
+          [labels]="c.labels"
+          [colors]="c.colors"
+          [plotOptions]="c.plotOptions"
+        />
+      } @else {
+        <div class="chart-empty">
+          <i class="pi pi-chart-bar"></i>
+          <p>{{ t('common.noData') }}</p>
+        </div>
+      }
+    </div>
+
+    <div class="wms-card chart-card">
+      <h3 class="chart-title">{{ t('kpi.planVsActual') }}</h3>
+      @if (planVsActualChart(); as c) {
+        <apx-chart
+          [series]="c.series"
+          [chart]="c.chart"
+          [xaxis]="c.xaxis"
+          [colors]="c.colors"
+          [grid]="c.grid"
+          [tooltip]="c.tooltip"
+          [stroke]="c.stroke"
+          [markers]="c.markers"
+          [legend]="c.legend"
+        />
+      } @else {
+        <div class="chart-empty">
+          <i class="pi pi-chart-line"></i>
+          <p>{{ t('common.noData') }}</p>
+        </div>
+      }
+    </div>
+  </div>
+</div>

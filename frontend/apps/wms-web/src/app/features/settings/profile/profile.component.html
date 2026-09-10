@@ -1,0 +1,59 @@
+<div class="page-enter" *transloco="let t">
+  <app-page-header [title]="t('settings.profile')" [subtitle]="t('settings.profileInfo')" />
+
+  <div class="wms-card section-card">
+    <h3 class="section-title">{{ t('settings.profileInfo') }}</h3>
+    <div class="form-grid">
+      <div class="form-field">
+        <label for="profileName">{{ t('settings.fullName') }}</label>
+        <input id="profileName" pInputText [value]="session.fullName()" [disabled]="true" class="w-full" />
+      </div>
+
+      <div class="form-field">
+        <label for="profilePhone">{{ t('common.phone') }}</label>
+        <input id="profilePhone" pInputText [value]="session.phone() ?? ''" [disabled]="true" class="w-full" />
+      </div>
+    </div>
+    @if (session.roles().length > 0) {
+      <div class="role-chips">
+        @for (role of session.roles(); track role) {
+          <span class="badge-neutral">{{ t('shell.roles.' + role) }}</span>
+        }
+      </div>
+    }
+    <p class="section-hint">{{ t('settings.identityManaged') }}</p>
+  </div>
+
+  <div class="wms-card section-card">
+    <h3 class="section-title"><i class="pi pi-telegram"></i> {{ t('settings.telegram') }}</h3>
+    <p class="section-hint">{{ t('settings.telegramHint') }}</p>
+    @if (telegramEnabled() === false) {
+      <div class="telegram-warning">
+        <i class="pi pi-exclamation-triangle"></i>
+        <span>{{ t('settings.telegramDisabled') }}</span>
+      </div>
+    }
+    <div class="form-grid">
+      <div class="form-field">
+        <label for="telegramChatId">{{ t('settings.telegramChatId') }}</label>
+        <input
+          id="telegramChatId"
+          pInputText
+          [ngModel]="telegramChatId()"
+          (ngModelChange)="telegramChatId.set($event)"
+          class="w-full"
+          placeholder="123456789"
+        />
+      </div>
+    </div>
+    <div class="form-actions">
+      <p-button
+        [label]="t('common.save')"
+        icon="pi pi-check"
+        (onClick)="saveTelegram()"
+        [loading]="savingTelegram()"
+        [outlined]="true"
+      />
+    </div>
+  </div>
+</div>

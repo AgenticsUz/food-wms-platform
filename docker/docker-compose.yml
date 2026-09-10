@@ -1,0 +1,174 @@
+# =============================================================================
+#  AGENTICS WMS — DEV COMPOSE (Aspire YO'Q)
+#
+#  Ishga tushirish (repo ildizidan):
+#     docker compose -f docker/docker-compose.yml up -d postgres      # faqat baza (kundalik ish)
+#     docker compose -f docker/docker-compose.yml up -d --build       # hammasi (prod'ga yaqin sinov)
+#
+#  Portlar (PLATFORMA-TZ §7·F6.2 D16; lokal PG 5432, Wash 5433 ni band qilgani uchun 5434):
+#     postgres 5434 · wms-api 5511 · wms-web 5510
+#
+#  Identity — BU YERDA YO'Q. Dev'da uni platformaning O'Z stack'i beradi:
+#     cd ../agentics-platform && docker compose -f docker/docker-compose.yml up -d --build
+#  → http://localhost:5245. `wms-web` mijozi (redirect 5510) va CORS 5510 o'sha
+#  stack'ning `appsettings.Development.json` ida allaqachon bor. Wash'dagi
+#  `identity` profili (Identity nusxasini mahsulot bazasida ko'tarish) ATAYLAB
+#  takrorlanmadi — Wash o'zi ham platforma stack'ini «afzalroq» deb yozgan.
+#
+#  Image build'i platforma artefaktlarini `platform` nomli kontekst sifatida oladi
+#  (`additional_contexts`, sababi Dockerfile.api sarlavhasida). Oldin:
+#     cd ../agentics-platform && dotnet pack AgenticsPlatform.slnx -c Release \
+#       && cd frontend && npm run build && npm run pack
+#
+#  Sirlar docker/.env dan (docker/.env.example → nusxa).
+# =============================================================================
+name: agentics-wms
+
+x-dotnet-env: &dotnet-env
+  ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+  TZ: Asia/Tashkent
+  ConnectionStrings__wms: 'Host=postgres;Port=5432;Database=${POSTGRES_DB:-agentics_wms};Username=app_user;Password=${APP_USER_PASSWORD:?APP_USER_PASSWORD majburiy};Search Path=wms,public;Include Error Detail=true'
+  Auth__Issuer: ${PUBLIC_IDENTITY_URL:-http://localhost:5245}
+  # Server tomondagi discovery manzili. Bo'sh — emitentning o'zi ishlatiladi.
+  # ⚠️ Konteyner ichida `localhost:5245` — konteynerning O'ZI, host emas. Ichki
+  # manzil kerak bo'lsa: http://host.docker.internal:5245/.well-known/openid-configuration
+  # (`extra_hosts` pastda). Lekin discovery ichidagi `jwks_uri` baribir emitent
+  # (`localhost:5245`) asosida keladi — konteynerdagi API bilan to'liq login dev'da
+  # tekshirilmagan. Kundalik dev: API `dotnet run` bilan hostda (5511), baza shu yerdan.
+  Auth__MetadataAddress: ${IDENTITY_METADATA_URL:-}
+  # ⚠️ IKKI audience, bitta xost. `/api/*` ombor ilovasi uchun, `/admin/v1/*`
+  # Console uchun — alohida JWT sxemalarida tekshiriladi (`WmsSurfaces`).
+  # Ajratilmasa `wms-web` tokeni admin yuzasini ochib yuborardi.
+  # Kalit KO'PLIKDA: birlikdagi `Auth__Audience` muhitdan kelgan qiymatni jimgina
+  # e'tiborsiz qoldirardi (HRM'da o'lchangan dars).
+  Auth__Audiences__Wms: wms-api
+  Auth__Audiences__Admin: wms-admin-api
+  Cors__AllowedOrigins__0: ${PUBLIC_WEB_URL:-http://localhost:5510}
+  # Obuna siyosati. Sukutlar `appsettings.json` bilan bir xil (2026-09-10) — bu
+  # yerda faqat stend bo'yicha o'zgartirish imkoni uchun.
+  Subscription__TrialDays: ${SUBSCRIPTION_TRIAL_DAYS:-14}
+  Subscription__GraceDays: ${SUBSCRIPTION_GRACE_DAYS:-3}
+  Subscription__PaidGraceDays: ${SUBSCRIPTION_PAID_GRACE_DAYS:-3}
+  Subscription__StateCacheSeconds: ${SUBSCRIPTION_STATE_CACHE_SECONDS:-60}
+  Subscription__WarnBeforeDays: ${SUBSCRIPTION_WARN_BEFORE_DAYS:-7}
+  Subscription__LimitWarnPercent: ${SUBSCRIPTION_LIMIT_WARN_PERCENT:-80}
+
+x-api-build: &api-build
+  context: ..
+  dockerfile: docker/Dockerfile.api
+  additional_contexts:
+    platform: ../../agentics-platform/artifacts
+  args:
+    PROJECT_PATH: src/WMS.API/WMS.API.csproj
+    ASSEMBLY_NAME: WMS.API
+
+services:
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:17-alpine
+    container_name: wms-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-agentics_wms}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD majburiy}
+      # init skripti \getenv bilan o'qiydi
+      APP_USER_PASSWORD: ${APP_USER_PASSWORD:?APP_USER_PASSWORD majburiy}
+      APP_MIGRATOR_PASSWORD: ${APP_MIGRATOR_PASSWORD:?APP_MIGRATOR_PASSWORD majburiy}
+      POSTGRES_INITDB_ARGS: '--encoding=UTF8 --locale=C.UTF-8'
+    command:
+      - postgres
+      - -c
+      - shared_buffers=256MB
+      - -c
+      - max_connections=100
+      - -c
+      - log_min_duration_statement=1000
+    ports:
+      - '${POSTGRES_PORT:-5434}:5432'
+    volumes:
+      - wms-pgdata:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-agentics_wms}']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  # ---------------------------------------------------------------------------
+  #  wms-migrator — bir martalik: EF migratsiya + RLS + GRANT catch-up + bazaviy seed.
+  #  Bir xil image, faqat argument. app_migrator bilan ulanadi; xato → exit 1 va
+  #  wms-api KO'TARILMAYDI (service_completed_successfully).
+  # ---------------------------------------------------------------------------
+  wms-migrator:
+    image: ${IMAGE_REGISTRY:-agentics-wms}/wms-api:${IMAGE_TAG:-local}
+    build: *api-build
+    container_name: wms-migrator
+    # `migrate` — sxema + bazaviy katalog; `seed demo` — demo tenant ham (dev).
+    command: ${MIGRATOR_COMMAND:-migrate}
+    environment:
+      <<: *dotnet-env
+      # ⚠️ Migrator ulanishi FAQAT shu servisda (Wash dev'dan farqi — u yerda
+      # umumiy blokda). DDL huquqli parol ishlab turgan API konteyneriga kirmasin:
+      # prod'da ham aynan shunday, dev ham o'sha shaklni sinasin.
+      ConnectionStrings__wms_migrator: 'Host=postgres;Port=5432;Database=${POSTGRES_DB:-agentics_wms};Username=app_migrator;Password=${APP_MIGRATOR_PASSWORD:?APP_MIGRATOR_PASSWORD majburiy};Search Path=wms,public;Include Error Detail=true'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: 'no'
+
+  # ---------------------------------------------------------------------------
+  #  wms-api — `/api/*` (wms-web) va `/admin/v1/*` (Console). Fon xizmatlari
+  #  (partiya/obuna muddati) SHU jarayonda — worker yo'q (D12).
+  # ---------------------------------------------------------------------------
+  wms-api:
+    image: ${IMAGE_REGISTRY:-agentics-wms}/wms-api:${IMAGE_TAG:-local}
+    build: *api-build
+    container_name: wms-api
+    restart: unless-stopped
+    environment:
+      <<: *dotnet-env
+      # Sxemaga tegmaydi — migratsiya alohida wms-migrator qadamida (app_migrator).
+      Migrations__Mode: none
+    ports:
+      - '${API_PORT:-5511}:8080'
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    volumes:
+      - wms-uploads:/app/wwwroot/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      wms-migrator:
+        condition: service_completed_successfully
+
+  # ---------------------------------------------------------------------------
+  wms-web:
+    image: ${IMAGE_REGISTRY:-agentics-wms}/wms-web:${IMAGE_TAG:-local}
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.web
+      additional_contexts:
+        platform: ../../agentics-platform/artifacts
+    container_name: wms-web
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Tashkent
+      # SPA shu nginx ostida, API esa /api ga proksilanadi — nisbiy manzil
+      # brauzerni CORS'siz qoldiradi.
+      PUBLIC_API_URL: /api
+      # Identity BRAUZERDAN ochiladi, shuning uchun bu manzil host'niki
+      # (konteyner ichidagi nom emas).
+      PUBLIC_IDENTITY_URL: ${PUBLIC_IDENTITY_URL:?PUBLIC_IDENTITY_URL majburiy}
+      DEFAULT_LOCALE: ${DEFAULT_LOCALE:-uz-Latn}
+      IDLE_TIMEOUT_MINUTES: ${IDLE_TIMEOUT_MINUTES:-30}
+    ports:
+      - '${WEB_PORT:-5510}:80'
+    depends_on:
+      wms-api:
+        condition: service_healthy
+
+volumes:
+  wms-pgdata:
+  wms-uploads:

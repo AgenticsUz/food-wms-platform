@@ -1,0 +1,661 @@
+/* ============================================================
+   Agentics WMS — global uslublar (eski wms-ui/src/styles.scss dan ko'chirilgan).
+   Palitra: cream + pistachio + berry + caramel + cocoa + blueberry.
+   Shriftlar: Inter (UI) · Fraunces (display) · JetBrains Mono (raqamlar).
+   SCSS emas, CSS: Tailwind 4 Sass bilan rasman ishlamaydi; ichma-ich yozuv
+   brauzerning o'z CSS nesting'i (build uni kerak bo'lsa tekislaydi).
+   ============================================================ */
+
+@import 'tailwindcss';
+
+/* Shriftlar LOKAL — CDN yo'q (CSP; eski ilova Google Fonts'dan olardi). */
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/inter/700.css';
+@import '@fontsource/fraunces/500.css';
+@import '@fontsource/jetbrains-mono/400.css';
+@import '@fontsource/jetbrains-mono/500.css';
+@import 'primeicons/primeicons.css';
+
+/* Tailwind v4 `dark:` sukut bo'yicha OS `prefers-color-scheme` ga bog'lanadi; ilova
+   esa o'z mavzusini `.dark-mode` bilan boshqaradi. Bog'lanmasa OS qora rejimda
+   `dark:text-white` yorug' fonda yonib, sarlavhalar ko'rinmay qolardi. */
+@custom-variant dark (&:where(.dark-mode, .dark-mode *, .dark, .dark *));
+
+@theme {
+  --color-cream-50: #fbf8f3;
+  --color-cream-100: #f6f1e7;
+  --color-cream-200: #ede4d0;
+
+  --color-pistachio-50: #f0f7ec;
+  --color-pistachio-100: #ddedce;
+  --color-pistachio-200: #b8d99c;
+  --color-pistachio-400: #7eb35a;
+  --color-pistachio-500: #5e9540;
+  --color-pistachio-600: #4a7a32;
+  --color-pistachio-700: #355823;
+
+  --color-berry-50: #fdf2f4;
+  --color-berry-100: #fce4e8;
+  --color-berry-300: #f0a3b1;
+  --color-berry-500: #d94c66;
+  --color-berry-600: #b73951;
+  --color-berry-700: #8d2a3d;
+
+  --color-caramel-50: #fdf6e9;
+  --color-caramel-100: #fae9c4;
+  --color-caramel-300: #e8b964;
+  --color-caramel-500: #c8902f;
+  --color-caramel-600: #9a6c1e;
+
+  --color-cocoa-50: #f7f5f2;
+  --color-cocoa-100: #ece8e1;
+  --color-cocoa-200: #d6cfc2;
+  --color-cocoa-300: #b3a895;
+  --color-cocoa-400: #8a7e6a;
+  --color-cocoa-500: #635846;
+  --color-cocoa-600: #443c2f;
+  --color-cocoa-700: #2c2620;
+  --color-cocoa-900: #1a1612;
+
+  --color-blueberry-100: #dde6f5;
+  --color-blueberry-500: #4a6fb5;
+  --color-blueberry-600: #36548f;
+
+  --font-sans: 'Inter', 'DM Sans', system-ui, sans-serif;
+  --font-display: 'Fraunces', 'Inter', serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
+
+  --radius-lg: 1rem;
+  --radius-xl: 1.375rem;
+  --radius-2xl: 1.75rem;
+
+  --shadow-soft: 0 2px 6px rgba(99, 88, 70, 0.06), 0 1px 2px rgba(99, 88, 70, 0.04);
+  --shadow-card: 0 6px 20px rgba(99, 88, 70, 0.08), 0 2px 6px rgba(99, 88, 70, 0.04);
+  --shadow-pop: 0 18px 40px rgba(99, 88, 70, 0.1), 0 6px 14px rgba(99, 88, 70, 0.05);
+}
+
+/* ---- Semantik taxalluslar (runtime CSS o'zgaruvchilari) ---- */
+:root {
+  --bg-app: var(--color-cream-50);
+  --bg-surface: #ffffff;
+  --bg-muted: var(--color-cream-100);
+  --bg-inset: var(--color-cocoa-50);
+
+  --border-subtle: rgba(99, 88, 70, 0.08);
+  --border-default: rgba(99, 88, 70, 0.14);
+  --border-strong: rgba(99, 88, 70, 0.22);
+
+  --text-primary: var(--color-cocoa-700);
+  --text-secondary: var(--color-cocoa-500);
+  --text-muted: var(--color-cocoa-400);
+
+  --color-success: var(--color-pistachio-500);
+  --color-warning: var(--color-caramel-500);
+  --color-danger: var(--color-berry-500);
+  --color-info: var(--color-blueberry-500);
+
+  /* Eski sinflar uchun moslik */
+  --primary-50: var(--color-pistachio-50);
+  --primary-100: var(--color-pistachio-100);
+  --primary-500: var(--color-pistachio-500);
+  --primary-600: var(--color-pistachio-600);
+  --primary-700: var(--color-pistachio-700);
+
+  --success: var(--color-pistachio-500);
+  --warning: var(--color-caramel-500);
+  --danger: var(--color-berry-500);
+  --info: var(--color-blueberry-500);
+
+  --bg-base: var(--color-cream-50);
+  --border: var(--border-subtle);
+
+  --shadow-sm: var(--shadow-soft);
+  --shadow-md: var(--shadow-card);
+  --shadow-lg: var(--shadow-pop);
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+}
+
+.dark-mode,
+.dark {
+  --bg-app: #1a1612;
+  --bg-surface: #2c2620;
+  --bg-muted: #443c2f;
+  --bg-inset: #443c2f;
+  --text-primary: #fbf8f3;
+  --text-secondary: #d6cfc2;
+  --text-muted: #b3a895;
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.12);
+  --border-strong: rgba(255, 255, 255, 0.2);
+
+  --bg-base: #1a1612;
+  --border: rgba(255, 255, 255, 0.06);
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg-app);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.6;
+  font-feature-settings: 'ss01', 'cv11';
+  letter-spacing: -0.005em;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1 {
+  font-size: 28px;
+  font-weight: 700;
+}
+h2 {
+  font-size: 22px;
+  font-weight: 600;
+}
+h3 {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.num,
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.display {
+  font-family: var(--font-display);
+  font-variation-settings: 'opsz' 32, 'SOFT' 50;
+  letter-spacing: -0.025em;
+  font-weight: 500;
+}
+
+.number,
+.qty,
+.amount {
+  font-family: var(--font-mono);
+  font-weight: 500;
+}
+
+/* ============================================================
+   PrimeNG override — palitra. Tenant rangi (`BrandingService`) `--p-primary-*` ni
+   `documentElement` inline uslubi bilan USTIGA yozadi.
+   ============================================================ */
+:root {
+  --p-primary-50: var(--color-pistachio-50);
+  --p-primary-100: var(--color-pistachio-100);
+  --p-primary-200: var(--color-pistachio-200);
+  --p-primary-300: var(--color-pistachio-200);
+  --p-primary-400: var(--color-pistachio-400);
+  --p-primary-500: var(--color-pistachio-500);
+  --p-primary-600: var(--color-pistachio-600);
+  --p-primary-700: var(--color-pistachio-700);
+  --p-primary-color: var(--color-pistachio-500);
+  --p-primary-contrast-color: #ffffff;
+  --p-primary-hover-color: var(--color-pistachio-600);
+  --p-primary-active-color: var(--color-pistachio-700);
+
+  --p-surface-0: #ffffff;
+  --p-surface-50: var(--color-cream-50);
+  --p-surface-100: var(--color-cream-100);
+  --p-surface-200: var(--color-cream-200);
+  --p-surface-300: var(--color-cocoa-200);
+  --p-surface-400: var(--color-cocoa-300);
+  --p-surface-500: var(--color-cocoa-400);
+  --p-surface-600: var(--color-cocoa-500);
+  --p-surface-700: var(--color-cocoa-600);
+  --p-surface-800: var(--color-cocoa-700);
+
+  --p-content-background: #ffffff;
+  --p-content-border-color: var(--border-subtle);
+  --p-content-color: var(--text-primary);
+
+  --p-button-primary-background: var(--color-pistachio-500);
+  --p-button-primary-hover-background: var(--color-pistachio-600);
+  --p-button-primary-border-color: var(--color-pistachio-500);
+  --p-button-secondary-background: var(--color-cream-100);
+  --p-button-secondary-color: var(--text-primary);
+
+  --p-button-success-background: var(--color-pistachio-500);
+  --p-button-warn-background: var(--color-caramel-500);
+  --p-button-danger-background: var(--color-berry-500);
+  --p-button-info-background: var(--color-blueberry-500);
+
+  --p-inputtext-background: #ffffff;
+  --p-inputtext-border-color: var(--border-default);
+  --p-inputtext-focus-border-color: var(--color-pistachio-500);
+  --p-inputtext-border-radius: 10px;
+
+  --p-datatable-header-cell-background: var(--bg-muted);
+  --p-datatable-header-cell-color: var(--text-muted);
+  --p-datatable-row-striped-background: var(--color-cream-50);
+  --p-datatable-row-hover-background: var(--color-cream-100);
+  --p-datatable-border-color: var(--border-subtle);
+
+  --p-dialog-background: #ffffff;
+  --p-dialog-border-radius: 16px;
+
+  --p-tabs-active-bar-background: var(--color-pistachio-500);
+
+  --p-drawer-background: #ffffff;
+}
+
+/* Qorong'i rejim PrimeNG tokenlari — aks holda dialog/input/drawer/jadval oq qoladi. */
+.dark-mode,
+.dark {
+  --p-surface-0: #2c2620;
+  --p-surface-50: #332d26;
+  --p-surface-100: #3a332b;
+  --p-surface-200: #443c2f;
+
+  --p-content-background: var(--bg-surface);
+  --p-content-border-color: var(--border-subtle);
+  --p-content-color: var(--text-primary);
+
+  --p-inputtext-background: var(--bg-surface);
+  --p-inputtext-border-color: var(--border-default);
+  --p-inputtext-color: var(--text-primary);
+
+  --p-datatable-header-cell-background: var(--bg-inset);
+  --p-datatable-header-cell-color: var(--text-muted);
+  --p-datatable-row-striped-background: rgba(255, 255, 255, 0.03);
+  --p-datatable-row-hover-background: rgba(255, 255, 255, 0.06);
+  --p-datatable-border-color: var(--border-subtle);
+
+  --p-dialog-background: var(--bg-surface);
+  --p-drawer-background: var(--bg-surface);
+
+  --p-button-secondary-background: var(--bg-inset);
+  --p-button-secondary-color: var(--text-primary);
+}
+
+/* ---- Tayyor sinflar ---- */
+.wms-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  padding: 20px;
+  transition: all 0.15s ease;
+
+  &:hover {
+    box-shadow: var(--shadow-card);
+    transform: translateY(-1px);
+  }
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.pill::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.85;
+}
+.pill-success {
+  background: var(--color-pistachio-50);
+  color: var(--color-pistachio-700);
+}
+.pill-warning {
+  background: var(--color-caramel-50);
+  color: var(--color-caramel-600);
+}
+.pill-danger {
+  background: var(--color-berry-50);
+  color: var(--color-berry-700);
+}
+.pill-info {
+  background: var(--color-blueberry-100);
+  color: var(--color-blueberry-600);
+}
+.pill-neutral {
+  background: var(--color-cocoa-100);
+  color: var(--color-cocoa-600);
+}
+
+.dark-mode,
+.dark {
+  .pill-success {
+    background: rgba(94, 149, 64, 0.18);
+    color: #b8d99c;
+  }
+  .pill-warning {
+    background: rgba(200, 144, 47, 0.18);
+    color: #e8b964;
+  }
+  .pill-danger {
+    background: rgba(217, 76, 102, 0.18);
+    color: #f0a3b1;
+  }
+  .pill-info {
+    background: rgba(74, 111, 181, 0.2);
+    color: #a7bce0;
+  }
+  .pill-neutral {
+    background: rgba(255, 255, 255, 0.08);
+    color: #d6cfc2;
+  }
+}
+
+.badge-success,
+.badge-warning,
+.badge-danger,
+.badge-info,
+.badge-neutral {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.badge-success {
+  background: var(--color-pistachio-50);
+  color: var(--color-pistachio-700);
+}
+.badge-warning {
+  background: var(--color-caramel-50);
+  color: var(--color-caramel-600);
+}
+.badge-danger {
+  background: var(--color-berry-50);
+  color: var(--color-berry-700);
+}
+.badge-info {
+  background: var(--color-blueberry-100);
+  color: var(--color-blueberry-600);
+}
+.badge-neutral {
+  background: var(--color-cocoa-100);
+  color: var(--color-cocoa-600);
+}
+
+.dark-mode {
+  .badge-success {
+    background: rgba(94, 149, 64, 0.18);
+    color: #b8d99c;
+  }
+  .badge-warning {
+    background: rgba(200, 144, 47, 0.18);
+    color: #e8b964;
+  }
+  .badge-danger {
+    background: rgba(217, 76, 102, 0.18);
+    color: #f0a3b1;
+  }
+  .badge-info {
+    background: rgba(74, 111, 181, 0.2);
+    color: #a7bce0;
+  }
+  .badge-neutral {
+    background: rgba(255, 255, 255, 0.08);
+    color: #d6cfc2;
+  }
+}
+
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-enter {
+  animation: fadeSlideIn 0.2s ease-out;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--color-cream-100), var(--color-cream-200), var(--color-cream-100));
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 8px;
+}
+
+.dark-mode .skeleton {
+  background: linear-gradient(90deg, #2c2620, #443c2f, #2c2620);
+  background-size: 200% 100%;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Global progress chizig'i (`app.html`). */
+.global-loading-bar {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  height: 3px !important;
+}
+
+.global-loading-bar .p-progressbar-value {
+  background: var(--brand-primary, var(--color-pistachio-500)) !important;
+}
+
+/* ============================================================
+   PrimeNG komponentlari
+   ============================================================ */
+.p-datatable {
+  .p-datatable-thead > tr > th {
+    background: var(--bg-muted) !important;
+    color: var(--text-muted) !important;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border-subtle) !important;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+  .p-datatable-tbody > tr {
+    transition: background 0.15s ease;
+    &:hover {
+      background: var(--color-cream-100) !important;
+    }
+    > td {
+      border-bottom: 1px solid var(--border-subtle) !important;
+    }
+    &:nth-child(even) {
+      background: rgba(251, 248, 243, 0.5);
+    }
+  }
+}
+
+.dark-mode .p-datatable {
+  .p-datatable-thead > tr > th {
+    background: #443c2f !important;
+    color: var(--text-secondary) !important;
+  }
+  .p-datatable-tbody > tr {
+    &:hover {
+      background: rgba(255, 255, 255, 0.04) !important;
+    }
+    &:nth-child(even) {
+      background: rgba(255, 255, 255, 0.02);
+    }
+  }
+}
+
+.form-field label {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  color: var(--text-muted) !important;
+  margin-bottom: 6px !important;
+}
+
+.dark-mode .form-field label {
+  color: var(--text-secondary) !important;
+}
+
+.p-inputtext {
+  border-radius: 10px !important;
+  border-color: var(--border-default) !important;
+  font-family: var(--font-sans) !important;
+  &:focus {
+    border-color: var(--color-pistachio-500) !important;
+    box-shadow: 0 0 0 3px rgba(94, 149, 64, 0.15) !important;
+  }
+}
+
+.p-button {
+  border-radius: 10px !important;
+  font-family: var(--font-sans) !important;
+  font-weight: 600 !important;
+  transition: transform 0.1s ease !important;
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+.p-dialog {
+  border-radius: 16px !important;
+  box-shadow: var(--shadow-pop) !important;
+  .p-dialog-header {
+    border-radius: 16px 16px 0 0 !important;
+  }
+}
+
+.p-tag {
+  font-weight: 600 !important;
+  font-size: 11px !important;
+  padding: 3px 10px !important;
+  border-radius: 999px !important;
+}
+.p-tag-success {
+  background: var(--color-pistachio-50) !important;
+  color: var(--color-pistachio-700) !important;
+}
+.p-tag-warning {
+  background: var(--color-caramel-50) !important;
+  color: var(--color-caramel-600) !important;
+}
+.p-tag-danger {
+  background: var(--color-berry-50) !important;
+  color: var(--color-berry-700) !important;
+}
+.p-tag-info {
+  background: var(--color-blueberry-100) !important;
+  color: var(--color-blueberry-600) !important;
+}
+
+.dark-mode {
+  .p-tag-success {
+    background: rgba(94, 149, 64, 0.18) !important;
+    color: #b8d99c !important;
+  }
+  .p-tag-warning {
+    background: rgba(200, 144, 47, 0.18) !important;
+    color: #e8b964 !important;
+  }
+  .p-tag-danger {
+    background: rgba(217, 76, 102, 0.18) !important;
+    color: #f0a3b1 !important;
+  }
+  .p-tag-info {
+    background: rgba(74, 111, 181, 0.2) !important;
+    color: #a7bce0 !important;
+  }
+}
+
+.field-error {
+  color: var(--color-berry-500);
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.p-inputtext.ng-invalid.ng-touched {
+  border-color: var(--color-berry-500) !important;
+}
+
+@media (max-width: 768px) {
+  .form-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .form-field.full-width {
+    grid-column: 1 !important;
+  }
+  .detail-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .filters-bar {
+    flex-direction: column;
+    align-items: stretch !important;
+  }
+  .filter-group {
+    width: 100%;
+  }
+  .p-input-icon-left input {
+    min-width: unset !important;
+    width: 100%;
+  }
+  .summary-cards {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .chart-row {
+    grid-template-columns: 1fr !important;
+  }
+  h1 {
+    font-size: 22px;
+  }
+  .p-dialog {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+
+    .p-dialog-header {
+      border-radius: 0 !important;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .summary-cards {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-muted);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-cocoa-300);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-cocoa-400);
+}

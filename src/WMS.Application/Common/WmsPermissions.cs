@@ -1,0 +1,171 @@
+namespace WMS.Application.Common;
+
+/// <summary>Ruxsat katalogidagi bitta yozuv.</summary>
+/// <param name="Code">Kod (<c>warehouse.view</c>).</param>
+/// <param name="Name">Nom (inglizcha — frontend tarjima qiladi).</param>
+/// <param name="Group">Guruh (<c>WAREHOUSE</c>) — modul bilan 1:1 EMAS, <c>PermissionModules</c> ga qarang.</param>
+public sealed record PermissionDefinition(string Code, string Name, string Group);
+
+/// <summary>
+/// WMS'ning nozik ruxsat katalogi — YAGONA manba.
+/// </summary>
+/// <remarks>
+/// SQLite davrida katalog bazada (<c>Permission</c> jadvali, <c>HasData</c>) va
+/// controller'larda satr literal sifatida ikki joyda yashardi. Endi kodda: u faqat
+/// deploy bilan o'zgaradi, rol xaritasi (<c>WmsRoleMap</c>), Console'ning
+/// <c>permission-catalog</c> yuzasi va rollar ekrani BITTA ro'yxatni ko'radi.
+/// Kodlar o'zgarmadi — wms-web ularni o'sha shaklda tekshiradi.
+/// </remarks>
+public static class WmsPermissions
+{
+    public const string DashboardView = "dashboard.view";
+    public const string WarehouseView = "warehouse.view";
+    public const string WarehouseManage = "warehouse.manage";
+    public const string TransfersView = "transfers.view";
+    public const string TransfersCreate = "transfers.create";
+    public const string TransfersConfirm = "transfers.confirm";
+    public const string TransfersReject = "transfers.reject";
+    public const string ProductionView = "production.view";
+    public const string ProductionManage = "production.manage";
+    public const string FinanceView = "finance.view";
+    public const string FinanceManage = "finance.manage";
+    public const string KpiView = "kpi.view";
+    public const string KpiManage = "kpi.manage";
+    public const string PartnersView = "partners.view";
+    public const string PartnersManage = "partners.manage";
+    public const string ProductsView = "products.view";
+    public const string ProductsManage = "products.manage";
+    public const string SettingsUsers = "settings.users";
+    public const string SettingsRoles = "settings.roles";
+    public const string SettingsModules = "settings.modules";
+    public const string QualityView = "quality.view";
+    public const string QualityManage = "quality.manage";
+    public const string AgentsView = "agents.view";
+    public const string AgentsManage = "agents.manage";
+    public const string AuditView = "audit.view";
+    public const string DeliveryView = "delivery.view";
+    public const string DeliveryManage = "delivery.manage";
+
+    /// <summary>To'liq katalog (27 ta).</summary>
+    public static readonly IReadOnlyList<PermissionDefinition> All =
+    [
+        new(DashboardView, "View Dashboard", "DASHBOARD"),
+        new(WarehouseView, "View Warehouse", "WAREHOUSE"),
+        new(WarehouseManage, "Manage Warehouse", "WAREHOUSE"),
+        new(TransfersView, "View Transfers", "TRANSFERS"),
+        new(TransfersCreate, "Create Transfers", "TRANSFERS"),
+        new(TransfersConfirm, "Confirm Transfers", "TRANSFERS"),
+        new(TransfersReject, "Reject Transfers", "TRANSFERS"),
+        new(ProductionView, "View Production", "PRODUCTION"),
+        new(ProductionManage, "Manage Production", "PRODUCTION"),
+        new(FinanceView, "View Finance", "FINANCE"),
+        new(FinanceManage, "Manage Finance", "FINANCE"),
+        new(KpiView, "View KPI", "KPI"),
+        new(KpiManage, "Manage KPI", "KPI"),
+        new(PartnersView, "View Partners", "PARTNERS"),
+        new(PartnersManage, "Manage Partners", "PARTNERS"),
+        new(ProductsView, "View Products", "PRODUCTS"),
+        new(ProductsManage, "Manage Products", "PRODUCTS"),
+        new(SettingsUsers, "Manage Users", "SETTINGS"),
+        new(SettingsRoles, "Manage Roles", "SETTINGS"),
+        new(SettingsModules, "Manage Modules", "SETTINGS"),
+        new(QualityView, "View Quality", "QUALITY"),
+        new(QualityManage, "Manage Quality", "QUALITY"),
+        new(AgentsView, "View Agents", "AGENTS"),
+        new(AgentsManage, "Manage Agents", "AGENTS"),
+        new(AuditView, "View Audit Log", "SETTINGS"),
+        new(DeliveryView, "View Delivery", "DELIVERY"),
+        new(DeliveryManage, "Manage Delivery", "DELIVERY"),
+    ];
+
+    /// <summary>Kod katalogdami.</summary>
+    public static bool IsKnown(string code) =>
+        All.Any(p => string.Equals(p.Code, code, StringComparison.Ordinal));
+}
+
+/// <summary>
+/// Identity'dagi YIRIK rol → WMS tizim roli va uning boshlang'ich ruxsatlari (D5).
+/// </summary>
+/// <remarks>
+/// <para>
+/// ⚠️ Identity reyestrida <c>wms</c> mahsulotining <c>product.roles</c> ro'yxati
+/// AYNAN shu to'rtta bo'lishi SHART. Beshinchi nom Console'da tanlanadigan, lekin
+/// WMS'da hech qanday eshik ochmaydigan rol bo'lardi (Wash F4 darsi).
+/// </para>
+/// <para>
+/// To'plamlar — BOSHLANG'ICH qiymat: JIT odamni tizim roliga biriktiradi, keyin
+/// tenant admini rolning ruxsatlarini nozik sozlaydi va JIT unga qayta tegmaydi.
+/// </para>
+/// </remarks>
+public static class WmsSystemRoles
+{
+    public const string Admin = "admin";
+    public const string Manager = "manager";
+    public const string Employee = "employee";
+    public const string Viewer = "viewer";
+
+    /// <summary>Kattadan kichikka — bir odamda bir nechta rol bo'lsa ENG KATTASI yutadi.</summary>
+    public static readonly IReadOnlyList<string> Ordered = [Admin, Manager, Employee, Viewer];
+
+    /// <summary>Ko'rsatiladigan nom (tenant o'zgartira oladi).</summary>
+    public static string DisplayName(string code) => code switch
+    {
+        Admin => "Administrator",
+        Manager => "Menejer",
+        Employee => "Xodim",
+        Viewer => "Kuzatuvchi",
+        _ => code,
+    };
+
+    /// <summary>Tizim rolining boshlang'ich ruxsatlari.</summary>
+    public static IReadOnlyList<string> PermissionsFor(string code) => code switch
+    {
+        Admin => [.. WmsPermissions.All.Select(p => p.Code)],
+
+        // Tenant sozlamalaridan tashqari hammasi: foydalanuvchi, rol va modul — tenant
+        // egasining qarori.
+        Manager =>
+        [
+            .. WmsPermissions.All
+                .Select(p => p.Code)
+                .Where(c => c is not (WmsPermissions.SettingsUsers or WmsPermissions.SettingsRoles or WmsPermissions.SettingsModules)),
+        ],
+
+        // Sex va ombor xodimi: ko'radi, transfer yaratadi, ishlab chiqarish bosqichini
+        // bajaradi va sifat tekshiruvini kiritadi. Tasdiqlash, moliya, sozlamalar — yo'q.
+        Employee =>
+        [
+            WmsPermissions.DashboardView,
+            WmsPermissions.WarehouseView,
+            WmsPermissions.ProductsView,
+            WmsPermissions.PartnersView,
+            WmsPermissions.TransfersView,
+            WmsPermissions.TransfersCreate,
+            WmsPermissions.ProductionView,
+            WmsPermissions.ProductionManage,
+            WmsPermissions.QualityView,
+            WmsPermissions.QualityManage,
+            WmsPermissions.KpiView,
+            WmsPermissions.DeliveryView,
+        ],
+
+        Viewer => [.. WmsPermissions.All.Select(p => p.Code).Where(c => c.EndsWith(".view", StringComparison.Ordinal))],
+
+        _ => [],
+    };
+
+    /// <summary>
+    /// Tokendagi yirik rollardan tizim rolini tanlaydi; tanilmasa <see langword="null"/>
+    /// (fail-closed — hech qanday rol biriktirilmaydi).
+    /// </summary>
+    public static string? FromTokenRoles(IEnumerable<string>? roles)
+    {
+        if (roles is null)
+        {
+            return null;
+        }
+
+        HashSet<string> set = new(roles, StringComparer.OrdinalIgnoreCase);
+        return Ordered.FirstOrDefault(set.Contains);
+    }
+}

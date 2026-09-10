@@ -1,0 +1,17 @@
+<div class="shell" [class.sidebar-collapsed]="sidebarCollapsed()">
+  @if (mobileMenuOpen()) {
+    <div class="mobile-overlay" (click)="closeMobileMenu()" aria-hidden="true"></div>
+  }
+
+  <div class="sidebar-wrapper" [class.mobile-open]="mobileMenuOpen()">
+    <app-sidebar (collapseToggled)="onSidebarToggle($event)" />
+  </div>
+
+  <div class="main-area">
+    <app-header (menuToggled)="toggleMobileMenu()" />
+    <app-subscription-banner />
+    <main class="content page-enter">
+      <router-outlet />
+    </main>
+  </div>
+</div>

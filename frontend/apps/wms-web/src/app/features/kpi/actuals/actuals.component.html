@@ -1,0 +1,156 @@
+<div class="page-enter" *transloco="let t">
+  <app-page-header [title]="t('kpi.actuals')" [subtitle]="t('kpi.enterActuals')">
+    <p-button icon="pi pi-plus" [label]="t('kpi.recordActual')" (onClick)="openNew()" />
+  </app-page-header>
+
+  <div class="wms-card table-wrapper">
+    <p-table
+      [value]="actuals()"
+      [loading]="loading()"
+      [paginator]="true"
+      [rows]="20"
+      [scrollable]="true"
+      styleClass="p-datatable-sm p-datatable-striped"
+    >
+      <ng-template #header>
+        <tr>
+          <th pSortableColumn="shiftName">{{ t('kpi.shift') }} <p-sortIcon field="shiftName" /></th>
+          <th pSortableColumn="productName">{{ t('nav.products') }} <p-sortIcon field="productName" /></th>
+          <th class="text-right">{{ t('kpi.actual') }}</th>
+          <th class="text-right">{{ t('kpi.waste') }}</th>
+          <th pSortableColumn="date">{{ t('common.date') }} <p-sortIcon field="date" /></th>
+          <th>{{ t('common.note') }}</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-actual>
+        <tr>
+          <td>
+            <span class="item-name">{{ actual.shiftName }}</span>
+          </td>
+          <td>{{ actual.productName }}</td>
+          <td class="text-right">
+            <span class="number">{{ actual.actualQuantity | number: '1.0-2' }}</span>
+          </td>
+          <td class="text-right">
+            @if (actual.wasteQuantity > 0) {
+              <span class="number waste-qty">{{ actual.wasteQuantity | number: '1.0-2' }}</span>
+            } @else {
+              <span class="text-muted">{{ 0 }}</span>
+            }
+          </td>
+          <td>{{ actual.date | date: 'mediumDate' }}</td>
+          <td>
+            <span class="note-text">{{ actual.note || '—' }}</span>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="6">
+            <div class="empty-state">
+              <i class="pi pi-chart-bar"></i>
+              <p>{{ t('kpi.noActuals') }}</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <p-dialog
+    [header]="t('kpi.recordActual')"
+    [(visible)]="dialogVisible"
+    [modal]="true"
+    [style]="{ width: '500px' }"
+    [draggable]="false"
+  >
+    <div class="form-grid">
+      <div class="form-field">
+        <label for="actualShift">{{ t('kpi.shift') }} *</label>
+        <p-select
+          inputId="actualShift"
+          [options]="shifts()"
+          optionLabel="name"
+          optionValue="id"
+          [ngModel]="form().shiftId"
+          (ngModelChange)="updateForm('shiftId', $event)"
+          [placeholder]="t('kpi.shift')"
+          class="w-full"
+        />
+      </div>
+
+      <div class="form-field">
+        <label for="actualProduct">{{ t('nav.products') }} *</label>
+        <p-select
+          inputId="actualProduct"
+          [options]="products()"
+          optionLabel="name"
+          optionValue="id"
+          [ngModel]="form().productId"
+          (ngModelChange)="updateForm('productId', $event)"
+          [placeholder]="t('nav.products')"
+          [filter]="true"
+          [filterPlaceholder]="t('common.search')"
+          class="w-full"
+        />
+      </div>
+
+      <div class="form-field">
+        <label for="actualQty">{{ t('kpi.actual') }} *</label>
+        <p-inputNumber
+          inputId="actualQty"
+          [ngModel]="form().actualQuantity"
+          (ngModelChange)="updateForm('actualQuantity', $event)"
+          [minFractionDigits]="0"
+          [maxFractionDigits]="2"
+          [min]="0"
+          placeholder="0"
+          class="w-full"
+        />
+      </div>
+
+      <div class="form-field">
+        <label for="actualWaste">{{ t('kpi.waste') }}</label>
+        <p-inputNumber
+          inputId="actualWaste"
+          [ngModel]="form().wasteQuantity"
+          (ngModelChange)="updateForm('wasteQuantity', $event)"
+          [minFractionDigits]="0"
+          [maxFractionDigits]="2"
+          [min]="0"
+          placeholder="0"
+          class="w-full"
+        />
+      </div>
+
+      <div class="form-field">
+        <label for="actualDate">{{ t('common.date') }} *</label>
+        <p-datePicker
+          inputId="actualDate"
+          [ngModel]="form().date"
+          (ngModelChange)="updateForm('date', $event)"
+          dateFormat="yy-mm-dd"
+          [placeholder]="t('common.date')"
+          class="w-full"
+        />
+      </div>
+
+      <div class="form-field">
+        <label for="actualNote">{{ t('common.note') }}</label>
+        <textarea
+          id="actualNote"
+          pTextarea
+          [ngModel]="form().note"
+          (ngModelChange)="updateForm('note', $event)"
+          [rows]="3"
+          class="w-full"
+        ></textarea>
+      </div>
+    </div>
+
+    <ng-template #footer>
+      <p-button [label]="t('common.cancel')" [text]="true" (onClick)="dialogVisible.set(false)" />
+      <p-button [label]="t('kpi.recordActual')" icon="pi pi-check" (onClick)="save()" [loading]="saving()" />
+    </ng-template>
+  </p-dialog>
+</div>

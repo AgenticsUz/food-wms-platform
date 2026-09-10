@@ -1,0 +1,46 @@
+name: deploy
+
+# Qo'lda: CI GHCR'ga yuborgan image'ni serverga tortadi va stack'ni yangilaydi.
+# Image'lar build QILINMAYDI — serverda faqat compose, init SQL va host nginx fayllari.
+# `docker/.env` serverda qo'lda turadi (sirlar, parol menejerida nusxasi — §6.3).
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Image tag (sha yoki latest)
+        required: true
+        default: latest
+
+jobs:
+  deploy:
+    name: deploy to wms.agentics.uz
+    runs-on: ubuntu-latest
+    # Server tayyor bo'lmaguncha (prod F7 da chiqadi) tugma bosilsa ham hech narsa qilmaydi.
+    if: vars.DEPLOY_ENABLED == 'true'
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - name: Copy compose + nginx to host
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          source: docker/docker-compose.prod.yml,docker/postgres/init/01-roles-schemas.sql,docker/host-nginx/*
+          target: /opt/agentics-wms
+      - name: Pull + up
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          # wms-migrator `up` ichida avval ishlaydi; u yiqilsa wms-api eski image'da
+          # qoladi (service_completed_successfully) va `set -e` qadamni qizil qiladi.
+          script: |
+            set -e
+            cd /opt/agentics-wms/docker
+            echo "IMAGE_TAG=${{ inputs.tag }}" > .env.tag
+            docker compose -f docker-compose.prod.yml --env-file .env --env-file .env.tag pull
+            docker compose -f docker-compose.prod.yml --env-file .env --env-file .env.tag up -d --remove-orphans
+            docker compose -f docker-compose.prod.yml ps

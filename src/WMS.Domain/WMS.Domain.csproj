@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Entity'lar va enum'lar. Tashqi paketsiz: domen infratuzilmaga bog'lanmaydi. -->
+
+</Project>

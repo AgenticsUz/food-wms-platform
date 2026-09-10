@@ -1,0 +1,101 @@
+// Bo'lim ekranlarining umumiy uslublari (eski `wms-ui/shared/styles/module-common.scss`).
+// Nega bo'lim ichida: `shared/` boshqa agentniki, ekranlar esa eski ko'rinishni saqlashi kerak.
+// `shared/styles` ga bitta nusxa ko'chirilsa — bu fayl o'chiriladi.
+
+.filters-bar {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding: 16px 20px;
+  flex-wrap: wrap;
+  &:hover { transform: none; }
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.filter-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.table-wrapper {
+  padding: 0;
+  overflow: hidden;
+  &:hover { transform: none; }
+}
+
+.text-right { text-align: right !important; }
+.text-center { text-align: center !important; }
+.text-muted { color: var(--text-muted); }
+
+.actions-cell { white-space: nowrap; }
+
+.item-name {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 20px;
+  color: var(--text-muted);
+  gap: 12px;
+  i { font-size: 48px; opacity: 0.4; }
+  p { margin: 0; font-size: 15px; font-weight: 500; }
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+  }
+  &.full-width {
+    grid-column: 1 / -1;
+  }
+}
+
+.w-full { width: 100%; }
+
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 16px;
+}
+
+.section-card {
+  padding: 24px;
+  margin-bottom: 20px;
+  &:hover { transform: none; }
+}
+
+@media (max-width: 640px) {
+  .form-grid { grid-template-columns: 1fr; }
+}

@@ -1,0 +1,90 @@
+<div class="import-actions" *transloco="let t">
+  <button
+    type="button"
+    class="import-btn template-btn"
+    (click)="downloadTemplate()"
+    [title]="t('import.downloadTemplate')"
+  >
+    <i class="pi pi-download"></i>
+    <span>{{ t('import.template') }}</span>
+  </button>
+
+  <button
+    type="button"
+    class="import-btn upload-btn"
+    (click)="fileInput.click()"
+    [disabled]="importing()"
+  >
+    <i [class]="importing() ? 'pi pi-spin pi-spinner' : 'pi pi-upload'"></i>
+    <span>{{ importing() ? t('import.importing') : t('import.importExcel') }}</span>
+  </button>
+
+  <input
+    #fileInput
+    type="file"
+    accept=".xlsx,.xls"
+    class="hidden-input"
+    (change)="onFileSelected($event)"
+  />
+</div>
+
+<ng-container *transloco="let t">
+  <p-dialog
+    [visible]="showResult()"
+    (visibleChange)="closeResult()"
+    [header]="t('import.result')"
+    [modal]="true"
+    [style]="{ width: '480px' }"
+    [draggable]="false"
+  >
+    @if (importResult(); as result) {
+      <div class="result-content">
+        <div class="result-summary">
+          <div class="result-card total">
+            <p class="result-number">{{ result.totalRows }}</p>
+            <p class="result-label">{{ t('import.totalRows') }}</p>
+          </div>
+          <div class="result-card success">
+            <p class="result-number">{{ result.successCount }}</p>
+            <p class="result-label">{{ t('import.imported') }}</p>
+          </div>
+          <div class="result-card error">
+            <p class="result-number">{{ result.errorCount }}</p>
+            <p class="result-label">{{ t('import.errors') }}</p>
+          </div>
+        </div>
+
+        @if (result.errors?.length) {
+          <div class="errors-section">
+            <p class="errors-title">
+              <i class="pi pi-exclamation-triangle"></i>
+              {{ t('import.errors') }}
+            </p>
+            <div class="errors-list">
+              @for (err of result.errors; track err.row + err.field) {
+                <div class="error-row">
+                  <span class="error-row-num">{{ t('shell.import.row', { row: err.row }) }}</span>
+                  <span class="error-msg">{{ err.field }}</span>
+                  <span class="error-msg">{{ err.message }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        @if (result.successCount > 0) {
+          <p class="success-msg">
+            <i class="pi pi-check-circle"></i>
+            {{ t('shell.import.done', { count: result.successCount }) }}
+          </p>
+        }
+      </div>
+    }
+
+    <ng-template #footer>
+      <button type="button" class="close-btn" (click)="closeResult()">
+        {{ t('common.close') }}
+      </button>
+    </ng-template>
+  </p-dialog>
+</ng-container>

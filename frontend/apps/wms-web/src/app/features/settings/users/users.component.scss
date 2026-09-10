@@ -1,0 +1,55 @@
+@use '../module-common';
+
+.roles-text {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* D7: yangi odamni Agentics administratori qo'shadi — sabab ekranning o'zida */
+.readonly-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--color-blueberry-500);
+  border-radius: var(--radius-md);
+  background: var(--bg-muted);
+
+  > i {
+    font-size: 16px;
+    margin-top: 2px;
+    color: var(--color-blueberry-500);
+  }
+}
+
+.notice-text {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.field-hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-muted);
+
+  &.full-width { grid-column: 1 / -1; }
+}
+
+.role-checkbox-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.role-checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text-primary);
+  font-weight: 500;
+}

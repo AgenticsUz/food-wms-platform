@@ -1,0 +1,56 @@
+@use '../module-common';
+
+.lot-number {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.qty-readonly {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  margin: 4px 0;
+  background: var(--color-caramel-50);
+  color: var(--color-caramel-600);
+  border-radius: 10px;
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.4;
+
+  i { font-size: 15px; flex-shrink: 0; }
+}
+
+:host-context(.dark-mode) .qty-readonly {
+  background: rgba(200, 144, 47, 0.15);
+  color: var(--color-caramel-300);
+}
+
+.qty-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+// Bildirishnomadan kirilganda qator qisqa yonadi.
+:host ::ng-deep .row-highlight > td {
+  animation: row-flash 3s ease-out;
+  position: relative;
+}
+
+@keyframes row-flash {
+  0%   { background: var(--color-caramel-100); }
+  20%  { background: var(--color-caramel-100); }
+  100% { background: transparent; }
+}
+
+:host-context(.dark-mode) ::ng-deep .row-highlight > td {
+  animation-name: row-flash-dark;
+}
+
+@keyframes row-flash-dark {
+  0%   { background: rgba(200, 144, 47, 0.25); }
+  20%  { background: rgba(200, 144, 47, 0.25); }
+  100% { background: transparent; }
+}

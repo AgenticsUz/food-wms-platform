@@ -1,0 +1,64 @@
+<div class="relative" *transloco="let t">
+  <button
+    type="button"
+    (click)="overlay.toggle($event)"
+    [attr.aria-label]="t('notifications.title')"
+    class="bell-btn relative p-2 rounded-lg transition-all cursor-pointer border-none bg-transparent"
+  >
+    <i class="pi pi-bell text-lg"></i>
+    @if (bell.unreadCount() > 0) {
+      <span
+        class="bell-count absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 text-white font-bold rounded-full flex items-center justify-center"
+      >
+        {{ bell.unreadCount() > 9 ? '9+' : bell.unreadCount() }}
+      </span>
+    }
+  </button>
+
+  <p-popover #overlay [style]="{ width: '380px' }">
+    <div class="notif-head flex items-center justify-between px-4 py-3">
+      <span class="font-semibold">{{ t('notifications.title') }}</span>
+      @if (bell.unreadCount() > 0) {
+        <button
+          type="button"
+          (click)="bell.markAllAsRead()"
+          class="notif-link text-xs font-medium cursor-pointer border-none bg-transparent"
+        >
+          {{ t('notifications.markAllRead') }}
+        </button>
+      }
+    </div>
+
+    <div class="max-h-96 overflow-y-auto">
+      @if (bell.notifications().length === 0) {
+        <div class="notif-empty flex flex-col items-center py-10">
+          <i class="pi pi-bell-slash text-4xl mb-2 opacity-50"></i>
+          <p class="text-sm m-0">{{ t('notifications.empty') }}</p>
+        </div>
+      }
+      @for (n of bell.notifications(); track n.id) {
+        <button
+          type="button"
+          (click)="onNotificationClick(n, overlay)"
+          class="notif-item flex items-start gap-3 px-4 py-3 cursor-pointer"
+          [class.unread]="!n.isRead"
+        >
+          <span
+            class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
+            [ngClass]="iconBg(n.type)"
+          >
+            <i class="pi text-sm" [ngClass]="icon(n.type)"></i>
+          </span>
+          <span class="flex-1 min-w-0">
+            <span class="notif-title text-sm font-semibold">{{ title(n) }}</span>
+            <span class="notif-message text-xs mt-0.5">{{ n.message }}</span>
+            <span class="notif-time text-xs mt-1">{{ relativeTime(n.createdAt) }}</span>
+          </span>
+          @if (!n.isRead) {
+            <span class="notif-dot w-2 h-2 rounded-full flex-shrink-0 mt-1.5"></span>
+          }
+        </button>
+      }
+    </div>
+  </p-popover>
+</div>

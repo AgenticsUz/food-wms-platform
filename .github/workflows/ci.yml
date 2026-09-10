@@ -1,40 +1,171 @@
-name: CI
+# =============================================================================
+#  CI — Agentics WMS (Wash ci.yml asosida)
+#
+#  Job grafi:
+#     platform     — agentics-platform'dan `Agentics.Platform.*` NuGet va `@agentics/*`
+#                    npm artefaktlari (qolgan hamma job shunga tayanadi)
+#     backend      — build (0 ogohlantirish, `-warnaserror`)
+#     frontend     — wms-web: lint, test, build
+#     images       — wms-api, wms-web image'lari (main'ga push'da GHCR'ga)
+#
+#  ⚠️ Backend test job'lari (unit/arxitektura, Testcontainers integratsiyasi) HOZIR
+#  YO'Q va bu ATAYLAB: F6 da foydalanuvchi qarori — yangi avtomatlashtirilgan test
+#  yozilmaydi (PLATFORMA-TZ §7·F6, HOLAT §3). Test loyihasi paydo bo'lganda Wash
+#  naqshi qaytadi: `bash scripts/run-tests.sh Release` (`dotnet test` EMAS — MTP v2
+#  da u «0 test» bilan yashil chiqadi) va alohida `integration` job'i.
+#
+#  ⚠️ `platform` job'i Wash'da YO'Q va bu ATAYLAB. `nuget.config` va
+#  `frontend/package.json` qo'shni repo'ning `../agentics-platform/artifacts`
+#  papkasiga qaraydi; runner'da u yo'q, ya'ni Wash CI'si restore'da yiqiladi
+#  (HOLAT §4 #14). GitHub Packages (F7) ulanmaguncha artefaktlar shu yerda
+#  platformaning manbasidan yig'iladi va AYNAN o'sha nisbiy yo'lga qo'yiladi —
+#  repo fayllari dasturchi mashinasidagi bilan bir xil ishlaydi.
+#  Sozlash: `secrets.PLATFORM_REPO_TOKEN` (agentics-platform'ga `contents:read`;
+#  repo ochiq bo'lsa shart emas), `vars.PLATFORM_REF` (sukut `main`).
+# =============================================================================
+name: ci
 
 on:
   push:
-    branches: [ new-style, main ]
+    branches: [main]
   pull_request:
-    branches: [ new-style, main ]
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
 
 jobs:
-  backend:
-    name: Backend build
+  platform:
+    name: platform packages (agentics-platform → artifacts)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Setup .NET 8
-        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
-      - name: Restore
-        run: dotnet restore wms-api/WMS.sln
-      - name: Build (Release)
-        run: dotnet build wms-api/WMS.sln --no-restore -c Release --nologo
+          repository: ${{ github.repository_owner }}/agentics-platform
+          ref: ${{ vars.PLATFORM_REF || 'main' }}
+          token: ${{ secrets.PLATFORM_REPO_TOKEN || github.token }}
+          path: agentics-platform
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: agentics-platform/global.json
+      - name: NuGet pack → artifacts/nuget
+        working-directory: agentics-platform
+        run: dotnet pack AgenticsPlatform.slnx -c Release --nologo
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: agentics-platform/frontend/package-lock.json
+      # `npm run pack` `dist/libs/*` ni o'raydi, ya'ni avval build SHART.
+      - name: npm build + pack → artifacts/npm
+        working-directory: agentics-platform/frontend
+        run: |
+          npm ci
+          npm run build
+          npm run pack
+      - uses: actions/upload-artifact@v4
+        with:
+          name: platform-artifacts
+          path: |
+            agentics-platform/artifacts/nuget/*.nupkg
+            agentics-platform/artifacts/npm/*.tgz
+          if-no-files-found: error
+
+  backend:
+    name: backend (build, 0 warnings)
+    runs-on: ubuntu-latest
+    needs: platform
+    steps:
+      - uses: actions/checkout@v4
+      # Workspace'ning OTASIGA: `nuget.config` dagi `../agentics-platform/artifacts/nuget`
+      # aynan shu yerga yechiladi.
+      - uses: actions/download-artifact@v4
+        with:
+          name: platform-artifacts
+          path: ${{ github.workspace }}/../agentics-platform/artifacts
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - run: dotnet restore AgenticsWms.slnx
+      - run: dotnet build AgenticsWms.slnx -c Release --no-restore -warnaserror
 
   frontend:
-    name: Frontend build
+    name: frontend (lint + test + build)
     runs-on: ubuntu-latest
+    needs: platform
+    defaults:
+      run:
+        working-directory: frontend
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Node 20
-        uses: actions/setup-node@v4
+      # `frontend/package.json` → `file:../../agentics-platform/artifacts/npm/*.tgz`,
+      # ya'ni yana workspace'ning otasi.
+      - uses: actions/download-artifact@v4
         with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: wms-ui/package-lock.json
-      - name: Install deps
-        run: npm ci
-        working-directory: wms-ui
-      - name: Build (production)
-        run: npx ng build --configuration production
-        working-directory: wms-ui
+          name: platform-artifacts
+          path: ${{ github.workspace }}/../agentics-platform/artifacts
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      # Ro'yxat OSHKOR (`--all` emas): quyidagi ikki test qadamining ajratilish
+      # sababi shunda saqlanadi.
+      - run: npx nx run-many -t lint build --projects=wms-web
+      # Ilova Angular test executor'ida — u `--passWithNoTests` ni bilmaydi va
+      # butun qadamni «not found in schema» bilan yiqitardi. Kutubxonalarda esa
+      # bayroq kerak: ularning ba'zisida hali test yo'q (Wash'da o'lchangan).
+      - run: npx nx run-many -t test --all --exclude=wms-web --passWithNoTests
+      - run: npx nx run-many -t test --projects=wms-web
+
+  images:
+    name: docker images
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: platform-artifacts
+          path: ${{ github.workspace }}/../agentics-platform/artifacts
+      # ⚠️ Egasi KICHIK harfga o'tkaziladi: Docker katta harfli repo nomini
+      # «invalid reference format» bilan rad etadi, GitHub egasi esa `AgenticsUz`.
+      # (Wash ci.yml `github.repository_owner` ni to'g'ridan-to'g'ri qo'yadi.)
+      - name: Registry nomi
+        run: echo "IMAGE_REGISTRY=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_ENV"
+      - uses: docker/setup-buildx-action@v3
+      - name: Login GHCR
+        if: github.event_name == 'push'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      # `build-contexts: platform=...` — Dockerfile'lardagi `COPY --from=platform`
+      # shu nomli kontekstni kutadi (sababi Dockerfile.api sarlavhasida).
+      - name: wms-api
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile.api
+          build-contexts: |
+            platform=${{ github.workspace }}/../agentics-platform/artifacts
+          build-args: |
+            PROJECT_PATH=src/WMS.API/WMS.API.csproj
+            ASSEMBLY_NAME=WMS.API
+            SOURCE_REVISION=${{ github.sha }}
+          push: ${{ github.event_name == 'push' }}
+          tags: ${{ env.IMAGE_REGISTRY }}/wms-api:${{ github.sha }},${{ env.IMAGE_REGISTRY }}/wms-api:latest
+      - name: wms-web
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile.web
+          build-contexts: |
+            platform=${{ github.workspace }}/../agentics-platform/artifacts
+          push: ${{ github.event_name == 'push' }}
+          tags: ${{ env.IMAGE_REGISTRY }}/wms-web:${{ github.sha }},${{ env.IMAGE_REGISTRY }}/wms-web:latest

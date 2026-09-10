@@ -1,0 +1,156 @@
+<div class="page-enter" *transloco="let t">
+  <app-page-header [title]="t('finance.overview')" [subtitle]="t('finance.incomeExpenseChart')" />
+
+  <div class="detail-grid">
+    @if (loading()) {
+      @for (i of [1, 2, 3, 4]; track i) {
+        <div class="wms-card summary-card">
+          <div class="skeleton skeleton-icon"></div>
+          <div class="skeleton skeleton-number"></div>
+          <div class="skeleton skeleton-label"></div>
+        </div>
+      }
+    } @else {
+      <div class="wms-card summary-card">
+        <div class="card-icon icon-green"><i class="pi pi-arrow-down"></i></div>
+        <div class="card-content">
+          <span class="card-value number">{{ (summary()?.totalIncome ?? 0) | number: '1.0-0' }}</span>
+        </div>
+        <span class="card-label">{{ t('finance.totalIncome') }}</span>
+      </div>
+
+      <div class="wms-card summary-card">
+        <div class="card-icon icon-red"><i class="pi pi-arrow-up"></i></div>
+        <div class="card-content">
+          <span class="card-value number">{{ (summary()?.totalExpense ?? 0) | number: '1.0-0' }}</span>
+        </div>
+        <span class="card-label">{{ t('finance.totalExpense') }}</span>
+      </div>
+
+      <div class="wms-card summary-card">
+        <div class="card-icon icon-blue"><i class="pi pi-chart-line"></i></div>
+        <div class="card-content">
+          <span class="card-value number" [class.text-green]="(summary()?.netProfit ?? 0) >= 0"
+            [class.text-red]="(summary()?.netProfit ?? 0) < 0">
+            {{ (summary()?.netProfit ?? 0) | number: '1.0-0' }}
+          </span>
+        </div>
+        <span class="card-label">{{ t('finance.netAmount') }}</span>
+      </div>
+
+      <div class="wms-card summary-card">
+        <div class="card-icon icon-orange"><i class="pi pi-wallet"></i></div>
+        <div class="card-content">
+          <span class="card-value number">{{ (summary()?.totalDebt ?? 0) | number: '1.0-0' }}</span>
+        </div>
+        <span class="card-label">{{ t('finance.totalDebt') }}</span>
+      </div>
+    }
+  </div>
+
+  <div class="wms-card chart-card">
+    <h3 class="chart-title">{{ t('finance.incomeExpenseChart') }}</h3>
+    @if (chartConfig(); as c) {
+      <apx-chart
+        [series]="c.series"
+        [chart]="c.chart"
+        [xaxis]="c.xaxis"
+        [colors]="c.colors"
+        [grid]="c.grid"
+        [tooltip]="c.tooltip"
+        [fill]="c.fill"
+        [stroke]="c.stroke"
+        [legend]="c.legend" />
+    } @else {
+      <div class="chart-empty">
+        <i class="pi pi-chart-line"></i>
+        <p>{{ t('finance.noTransactions') }}</p>
+      </div>
+    }
+  </div>
+
+  <div class="wms-card chart-card">
+    <h3 class="chart-title">{{ t('finance.debts') }}</h3>
+    @if (debtorsChart(); as c) {
+      <apx-chart
+        [series]="c.series"
+        [chart]="c.chart"
+        [xaxis]="c.xaxis"
+        [colors]="c.colors"
+        [grid]="c.grid"
+        [tooltip]="c.tooltip"
+        [plotOptions]="c.plotOptions"
+        [legend]="c.legend" />
+    } @else {
+      <div class="chart-empty">
+        <i class="pi pi-wallet"></i>
+        <p>{{ t('finance.noDebts') }}</p>
+      </div>
+    }
+  </div>
+
+  <!-- Valyuta kalkulyatori -->
+  <div class="wms-card calc-card">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="calc-title">
+        <i class="pi pi-arrow-right-arrow-left" style="color: var(--primary-500)"></i>
+        {{ t('currency.calculator') }}
+      </h3>
+      <span class="text-xs" style="color: var(--text-muted)">
+        {{ t('currency.useCbu') }} · {{ lastUpdatedFormatted() }}
+      </span>
+    </div>
+
+    <div class="flex gap-2 mb-4 flex-wrap">
+      @for (code of currencies; track code) {
+        <button type="button" (click)="selectCurrency(code)"
+          class="px-3 py-1.5 rounded-lg text-sm font-semibold transition-all cursor-pointer border-none"
+          [style.background]="selectedCurrency() === code ? 'var(--primary-500)' : 'var(--bg-muted)'"
+          [style.color]="selectedCurrency() === code ? '#fff' : 'var(--text-secondary)'">
+          {{ code }}
+        </button>
+      }
+    </div>
+
+    <div class="rounded-xl p-3 mb-4 flex items-center justify-between" style="background: rgba(99, 102, 241, 0.06);">
+      <span class="text-sm" style="color: var(--text-secondary)">1 {{ selectedCurrency() }} =</span>
+      <span class="text-xl font-bold font-mono" style="color: var(--primary-500)">
+        {{ currentRate() | number: '1.2-2' }} {{ baseCurrency }}
+      </span>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <div class="flex-1">
+        <label for="calc-foreign" class="block text-xs font-semibold uppercase tracking-wide mb-1.5"
+          style="color: var(--text-secondary)">{{ selectedCurrency() }}</label>
+        <input id="calc-foreign" type="number" [ngModel]="foreignAmount()" (ngModelChange)="onForeignChange($event)"
+          placeholder="0" class="calc-input w-full px-3 py-2.5 rounded-lg text-sm font-mono text-right" />
+      </div>
+      <div style="padding-top: 20px;">
+        <button type="button" (click)="swapAmounts()" [attr.aria-label]="t('currency.calculator')"
+          class="w-9 h-9 rounded-lg flex items-center justify-center cursor-pointer border-none transition-all"
+          style="background: rgba(99, 102, 241, 0.1); color: var(--primary-500);">
+          <i class="pi pi-arrow-right-arrow-left text-sm"></i>
+        </button>
+      </div>
+      <div class="flex-1">
+        <label for="calc-uzs" class="block text-xs font-semibold uppercase tracking-wide mb-1.5"
+          style="color: var(--text-secondary)">{{ t('currency.uzsLabel') }}</label>
+        <input id="calc-uzs" type="number" [ngModel]="uzsAmount()" (ngModelChange)="onUzsChange($event)"
+          placeholder="0" class="calc-input w-full px-3 py-2.5 rounded-lg text-sm font-mono text-right" />
+      </div>
+    </div>
+
+    <div class="mt-3 flex items-center gap-2">
+      <input type="number" [ngModel]="customRate()" (ngModelChange)="customRate.set($event)"
+        [placeholder]="t('currency.customRate')" [attr.aria-label]="t('currency.customRate')"
+        class="calc-input dashed flex-1 px-3 py-2 rounded-lg text-xs" />
+      <button type="button" (click)="useCbuRate()"
+        class="px-3 py-2 text-xs rounded-lg cursor-pointer font-medium transition-all border-none"
+        style="background: rgba(99, 102, 241, 0.08); color: var(--primary-500);">
+        {{ t('currency.useCbu') }}
+      </button>
+    </div>
+    <p class="text-xs mt-1 m-0" style="color: var(--text-muted)">{{ t('currency.customRateHint') }}</p>
+  </div>
+</div>

@@ -1,0 +1,17 @@
+# Nx / Angular / Node — frontend/ ostida.
+node_modules/
+dist/
+tmp/
+out-tsc/
+.angular/
+.nx/
+.cache/
+.vite/
+coverage/
+*.tsbuildinfo
+
+# Runtime konfiguratsiya: ishchi nusxa har stendda o'zinikiga ega va repoga
+# tushmaydi — `tools/ensure-app-config.mjs` uni namunadan yasaydi (ildiz
+# `.gitignore` da ham xuddi shu qoida, Wash naqshi).
+apps/*/src/assets/config/app-config.json
+!apps/*/src/assets/config/app-config.sample.json

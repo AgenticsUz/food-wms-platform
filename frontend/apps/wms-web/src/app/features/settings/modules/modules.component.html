@@ -1,0 +1,30 @@
+<div class="page-enter" *transloco="let t">
+  <app-page-header [title]="t('settings.modules')" [subtitle]="t('settings.moduleSubtitle')" />
+
+  <div class="readonly-notice">
+    <i class="pi pi-info-circle"></i>
+    <div class="notice-body">
+      <p class="notice-text">{{ t('settings.modulesReadonlyNotice') }}</p>
+      <a class="notice-link" routerLink="/settings/subscription">
+        {{ t('settings.modulesViewSubscription') }}
+        <i class="pi pi-arrow-right"></i>
+      </a>
+    </div>
+  </div>
+
+  <div class="wms-card module-list">
+    @for (module of modules(); track module.code) {
+      <div class="module-row">
+        <div class="module-info">
+          <div class="module-name">{{ t('shell.modules.' + module.code) }}</div>
+          <div class="module-code">{{ module.code }}</div>
+        </div>
+        @if (module.isEnabled) {
+          <span class="badge-success">{{ t('settings.modulesEnabled') }}</span>
+        } @else {
+          <span class="badge-neutral">{{ t('settings.modulesDisabled') }}</span>
+        }
+      </div>
+    }
+  </div>
+</div>

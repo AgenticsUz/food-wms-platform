@@ -1,0 +1,84 @@
+{
+  "name": "wms-web",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "prefix": "app",
+  "sourceRoot": "apps/wms-web/src",
+  "tags": ["type:app"],
+  "targets": {
+    "build": {
+      "executor": "@angular/build:application",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/wms-web",
+        "browser": "apps/wms-web/src/main.ts",
+        "tsConfig": "apps/wms-web/tsconfig.app.json",
+        "inlineStyleLanguage": "scss",
+        "assets": [
+          { "glob": "**/*", "input": "apps/wms-web/public" },
+          { "glob": "**/*", "input": "apps/wms-web/src/assets", "output": "assets" }
+        ],
+        "styles": ["apps/wms-web/src/styles.css"]
+      },
+      "configurations": {
+        "production": {
+          "budgets": [
+            { "type": "initial", "maximumWarning": "1000kb", "maximumError": "1150kb" },
+            { "type": "anyComponentStyle", "maximumWarning": "8kb", "maximumError": "16kb" }
+          ],
+          "outputHashing": "all",
+          "assets": [
+            { "glob": "**/*", "input": "apps/wms-web/public" },
+            {
+              "glob": "**/*",
+              "input": "apps/wms-web/src/assets",
+              "output": "assets",
+              "ignore": ["config/app-config.json"]
+            }
+          ],
+          "optimization": {
+            "scripts": true,
+            "styles": { "minify": true, "inlineCritical": false },
+            "fonts": true
+          }
+        },
+        "development": {
+          "optimization": false,
+          "extractLicenses": false,
+          "sourceMap": true
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "serve": {
+      "continuous": true,
+      "executor": "@angular/build:dev-server",
+      "configurations": {
+        "production": { "buildTarget": "wms-web:build:production" },
+        "development": { "buildTarget": "wms-web:build:development" }
+      },
+      "defaultConfiguration": "development",
+      "options": {
+        "port": 5510,
+        "proxyConfig": "apps/wms-web/proxy.conf.json"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    },
+    "test": {
+      "executor": "@angular/build:unit-test",
+      "options": { "watch": false }
+    },
+    "serve-static": {
+      "continuous": true,
+      "executor": "@nx/web:file-server",
+      "options": {
+        "buildTarget": "wms-web:build",
+        "port": 5510,
+        "staticFilePath": "dist/apps/wms-web/browser",
+        "spa": true
+      }
+    }
+  }
+}

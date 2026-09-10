@@ -1,0 +1,52 @@
+<main class="state-scene" *transloco="let t">
+  <section class="state-card">
+    <div class="state-mark">
+      <i class="pi pi-warehouse"></i>
+    </div>
+    <p class="state-product">{{ t('shell.product') }}</p>
+    <p class="state-app">{{ t('shell.appName') }}</p>
+    <p class="state-subtitle">{{ t('auth.login.subtitle') }}</p>
+
+    @if (error(); as message) {
+      <p class="state-notice state-notice--danger" role="alert">
+        <i class="pi pi-times-circle"></i>
+        <span>{{ t(message) }}</span>
+      </p>
+    } @else if (reasonKey(); as key) {
+      <p class="state-notice" [class.state-notice--warn]="isWarning()" role="status">
+        <i class="pi" [class.pi-exclamation-triangle]="isWarning()" [class.pi-info-circle]="!isWarning()"></i>
+        <span>{{ t(key) }}</span>
+      </p>
+    }
+
+    <div class="state-actions">
+      <p-button
+        [label]="t('auth.login.action')"
+        icon="pi pi-sign-in"
+        [loading]="busy()"
+        [disabled]="busy()"
+        styleClass="w-full"
+        (onClick)="signIn()"
+      />
+    </div>
+
+    <p class="state-hint">
+      <i class="pi pi-lock"></i>
+      <span>{{ t('shell.login.hint') }}</span>
+    </p>
+
+    <div class="state-lang" role="group" [attr.aria-label]="t('common.language.label')">
+      @for (lang of languages; track lang) {
+        <button
+          type="button"
+          [class.active]="lang === activeLanguage()"
+          [attr.aria-pressed]="lang === activeLanguage()"
+          [title]="t('common.language.' + lang)"
+          (click)="onLanguage(lang)"
+        >
+          {{ shortLabel[lang] }}
+        </button>
+      }
+    </div>
+  </section>
+</main>

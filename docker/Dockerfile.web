@@ -1,0 +1,74 @@
+# =============================================================================
+#  AGENTICS WMS — WEB IMAGE (wms-web, nginx ostida)
+#
+#  Build konteksti REPO ILDIZI (docker-compose'dagi API image bilan bir xil),
+#  lekin qaysi fayllar kirishini yonidagi `Dockerfile.web.dockerignore` belgilaydi —
+#  u ildizdagi `.dockerignore` dan USTUN turadi (BuildKit qoidasi). Shu sabab
+#  ildizdagi ruxsat ro'yxatida `frontend/` yo'qligi bu yerda muammo emas.
+#
+#     docker build -f docker/Dockerfile.web \
+#       --build-context platform=../agentics-platform/artifacts \
+#       -t agentics-wms/wms-web:local .
+#
+#  Natija: `/` da ombor SPA'si. `apiUrl` nisbiy (`/api`) bo'lib qolaveradi —
+#  SPA va API bir originda va brauzerda CORS umuman qatnashmaydi. `/admin/v1/*`
+#  (Console → WMS admin yuzasi) ham shu nginx orqali API'ga o'tadi (`docker/nginx/wms.conf`).
+#
+#  ⚠️ `platform` NOMLI KONTEKST MAJBURIY: `@agentics/*` paketlari npm registry'da
+#  yo'q, `package.json` ularni `file:../../agentics-platform/artifacts/npm/*.tgz`
+#  dan oladi — build kontekstidan TASHQARIDA (HOLAT §4 #14; Wash image'i buni hal
+#  qilmagan). Sabab va bayroqsiz xato ko'rinishi `Dockerfile.api` sarlavhasida.
+# =============================================================================
+
+# --- 1-bosqich: build ---------------------------------------------------------
+FROM node:24-alpine AS build
+WORKDIR /src
+
+# `package.json` /src da turadi va tarballlarga `../../agentics-platform/...` bilan
+# qaraydi; /src dan ikki pog'ona yuqori — ildiz, ya'ni aynan /agentics-platform.
+# `package-lock.json` ham shu nisbiy yo'lni saqlaydi, shuning uchun manzil
+# dasturchi mashinasidagi bilan bir xil bo'lishi SHART (aks holda `npm ci` rad etadi).
+COPY --from=platform npm/ /agentics-platform/artifacts/npm/
+
+# Avval faqat manifestlar — qatlam keshi package.json o'zgarmaguncha saqlanadi.
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci --no-audit --no-fund
+
+COPY frontend/ ./
+
+# Nx daemon/cloud konteynerda foydasiz; CI'da ham shu holat.
+# `NX_NO_CLOUD` — Wash'dagi bo'sh `NX_CLOUD_ACCESS_TOKEN=` o'rniga: natija bir xil,
+# lekin nomida TOKEN bo'lgan ENV `docker build --check` da SecretsUsedInArgOrEnv
+# ogohlantirishini berardi va haqiqiy sir qo'shilganda uni shovqin ichida yashirardi.
+ENV NX_DAEMON=false NX_NO_CLOUD=true
+
+# Ishchi `app-config.json` image'da QOLMAYDI: runtime'da entrypoint uni muhitdan
+# qaytadan yozadi (bitta image — barcha stendlar).
+RUN npx nx build wms-web --configuration=production \
+ && rm -f dist/apps/wms-web/browser/assets/config/app-config.json
+
+# --- 2-bosqich: nginx ---------------------------------------------------------
+FROM nginx:1.27-alpine AS runtime
+
+RUN apk add --no-cache tzdata \
+ && rm -f /etc/nginx/conf.d/default.conf
+ENV TZ=Asia/Tashkent
+
+COPY --from=build /src/dist/apps/wms-web/browser/ /usr/share/nginx/html/
+
+COPY docker/nginx/wms.conf           /etc/nginx/conf.d/wms.conf
+COPY docker/web-config/entrypoint.sh /docker-entrypoint.d/40-app-config.sh
+
+# ⚠️ CR'ni olib tashlash ATAYLAB. Repo'da hali `.gitattributes` yo'q, Windows'da
+# esa `core.autocrlf=true` — skript CRLF bilan checkout bo'ladi va `#!/bin/sh\r`
+# ni Linux interpretator nomi deb o'qiydi: konteyner «not found» bilan yiqiladi.
+# Xato Windows'da emas, faqat Docker'da chiqadi (Wash `.gitattributes` izohi).
+RUN sed -i 's/\r$//' /docker-entrypoint.d/40-app-config.sh \
+ && chmod +x /docker-entrypoint.d/40-app-config.sh
+
+EXPOSE 80
+
+# nginx'ning o'z entrypoint'i /docker-entrypoint.d/*.sh ni tartib bilan bajaradi,
+# shuning uchun ENTRYPOINT ni almashtirmaymiz.
+HEALTHCHECK --interval=15s --timeout=3s --start-period=5s --retries=5 \
+  CMD wget -qO- http://127.0.0.1/healthz >/dev/null 2>&1 || exit 1

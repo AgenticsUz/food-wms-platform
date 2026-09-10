@@ -1,0 +1,122 @@
+<div class="page-enter" *transloco="let t">
+  <app-page-header [title]="t('production.newRecipe')" [subtitle]="t('production.createRecipe')">
+    <p-button icon="pi pi-arrow-left" [label]="t('common.back')" [text]="true" (onClick)="goBack()" />
+  </app-page-header>
+
+  <!-- Retsept ma'lumoti -->
+  <div class="wms-card section-card">
+    <h3 class="section-title">{{ t('production.recipeInfo') }}</h3>
+    <div class="form-grid">
+      <div class="form-field">
+        <label for="recipe-name">{{ t('common.name') }} *</label>
+        <input id="recipe-name" pInputText [ngModel]="recipeName()" (ngModelChange)="recipeName.set($event)"
+          placeholder="e.g. Plombir 100ml Recipe" class="w-full" />
+      </div>
+      <div class="form-field">
+        <label for="recipe-output-product">{{ t('production.outputProduct') }} *</label>
+        <p-select inputId="recipe-output-product" [options]="products()" [ngModel]="outputProductId()"
+          (ngModelChange)="outputProductId.set($event)" optionLabel="name" optionValue="id"
+          placeholder="Select finished product" [filter]="true" [style]="{ width: '100%' }" />
+      </div>
+      <div class="form-field">
+        <label for="recipe-output-qty">{{ t('production.outputQty') }} *</label>
+        <p-inputNumber inputId="recipe-output-qty" [ngModel]="outputQuantity()"
+          (ngModelChange)="outputQuantity.set($event ?? 0)" [placeholder]="t('common.quantity')"
+          [minFractionDigits]="0" [maxFractionDigits]="2" [style]="{ width: '100%' }" />
+      </div>
+      <div class="form-field">
+        <label for="recipe-output-unit">{{ t('common.unit') }} *</label>
+        <p-select inputId="recipe-output-unit" [options]="units()" [ngModel]="outputUnitId()"
+          (ngModelChange)="outputUnitId.set($event)" optionLabel="name" optionValue="id"
+          placeholder="Select unit" [style]="{ width: '100%' }" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Bosqichlar -->
+  @for (stage of stages(); track $index; let i = $index) {
+    <div class="wms-card section-card stage-card">
+      <div class="stage-header">
+        <h3 class="section-title">{{ t('production.stageN', { n: i + 1 }) }}</h3>
+        <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" (onClick)="removeStage(i)" />
+      </div>
+
+      <div class="form-grid">
+        <div class="form-field">
+          <label [for]="'stage-' + i">{{ t('production.stages') }} *</label>
+          <p-select [inputId]="'stage-' + i" [options]="availableStages()" [ngModel]="stage.stageId"
+            (ngModelChange)="stage.stageId = $event" optionLabel="name" optionValue="id"
+            placeholder="Select stage" [style]="{ width: '100%' }" />
+        </div>
+        <div class="form-field">
+          <label [for]="'stage-order-' + i">{{ t('common.code') }}</label>
+          <p-inputNumber [inputId]="'stage-order-' + i" [ngModel]="stage.orderNumber"
+            (ngModelChange)="stage.orderNumber = $event ?? (i + 1)" [min]="1" [style]="{ width: '100%' }" />
+        </div>
+        <div class="form-field">
+          <label [for]="'stage-qty-' + i">{{ t('production.outputQty') }}</label>
+          <p-inputNumber [inputId]="'stage-qty-' + i" [ngModel]="stage.expectedOutputQty"
+            (ngModelChange)="stage.expectedOutputQty = $event" [minFractionDigits]="0" [maxFractionDigits]="2"
+            placeholder="Optional" [style]="{ width: '100%' }" />
+        </div>
+        <div class="form-field">
+          <label [for]="'stage-product-' + i">{{ t('production.outputProduct') }}</label>
+          <p-select [inputId]="'stage-product-' + i" [options]="products()" [ngModel]="stage.outputProductId"
+            (ngModelChange)="stage.outputProductId = $event" optionLabel="name" optionValue="id"
+            placeholder="Optional" [filter]="true" [showClear]="true" [style]="{ width: '100%' }" />
+        </div>
+        <div class="form-field">
+          <label [for]="'stage-wh-toggle-' + i">{{ t('nav.warehouse') }}</label>
+          <p-toggleSwitch [inputId]="'stage-wh-toggle-' + i" [ngModel]="stage.allowWarehouseOutput"
+            (ngModelChange)="stage.allowWarehouseOutput = $event" />
+        </div>
+        @if (stage.allowWarehouseOutput) {
+          <div class="form-field">
+            <label [for]="'stage-wh-' + i">{{ t('transfer.selectWarehouse') }}</label>
+            <p-select [inputId]="'stage-wh-' + i" [options]="warehouses()" [ngModel]="stage.outputWarehouseId"
+              (ngModelChange)="stage.outputWarehouseId = $event" optionLabel="name" optionValue="id"
+              placeholder="Select warehouse" [style]="{ width: '100%' }" />
+          </div>
+        }
+      </div>
+
+      <!-- Bosqich kirishlari -->
+      <h4 class="inputs-title">{{ t('production.inputs') }}</h4>
+      @for (input of stage.inputs; track $index; let j = $index) {
+        <div class="input-row">
+          <div class="input-field">
+            <p-select [options]="products()" [ngModel]="input.productId" (ngModelChange)="input.productId = $event"
+              optionLabel="name" optionValue="id" placeholder="Select product" [filter]="true" [style]="{ width: '100%' }" />
+          </div>
+          <div class="input-field small">
+            <p-inputNumber [ngModel]="input.quantity" (ngModelChange)="input.quantity = $event ?? 0"
+              [placeholder]="t('common.quantity')" [minFractionDigits]="0" [maxFractionDigits]="2" [style]="{ width: '100%' }" />
+          </div>
+          <div class="input-field small">
+            <p-select [options]="units()" [ngModel]="input.unitId" (ngModelChange)="input.unitId = $event"
+              optionLabel="name" optionValue="id" [placeholder]="t('common.unit')" [style]="{ width: '100%' }" />
+          </div>
+          <p-button icon="pi pi-times" [rounded]="true" [text]="true" severity="danger" (onClick)="removeInput(i, j)" />
+        </div>
+      }
+
+      @if (stage.inputs.length === 0) {
+        <div class="empty-state small">
+          <p>{{ t('common.noData') }}</p>
+        </div>
+      }
+
+      <p-button icon="pi pi-plus" [label]="t('production.addInput')" [text]="true" severity="secondary" (onClick)="addInput(i)" />
+    </div>
+  }
+
+  <div class="add-stage-btn">
+    <p-button icon="pi pi-plus" [label]="t('production.addStage')" [outlined]="true" (onClick)="addStage()" [style]="{ width: '100%' }" />
+  </div>
+
+  <div class="action-bar">
+    <p-button [label]="t('common.cancel')" [text]="true" severity="secondary" (onClick)="goBack()" />
+    <p-button [label]="t('production.createRecipe')" icon="pi pi-check" (onClick)="submit()" [loading]="saving()"
+      [disabled]="stages().length === 0" />
+  </div>
+</div>

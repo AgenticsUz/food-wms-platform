@@ -1,0 +1,6 @@
+@if (loading()) {
+  <p-progressBar mode="indeterminate" styleClass="global-loading-bar" />
+}
+<p-toast position="top-right" [life]="4000" />
+<p-confirmDialog />
+<router-outlet />

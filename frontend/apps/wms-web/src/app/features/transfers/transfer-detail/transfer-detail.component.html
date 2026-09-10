@@ -1,0 +1,127 @@
+<div class="page-enter" *transloco="let t">
+  <app-page-header [title]="t('transfer.transferDetail') + ' #' + shortId(transfer()?.id)" [subtitle]="typeKey() ? t(typeKey()) : ''">
+    @if (canDownloadPdf()) {
+      <p-button icon="pi pi-file-pdf" [label]="exportService.exporting() ? t('common.exporting') : t('common.downloadPdf')"
+        [loading]="exportService.exporting()" [disabled]="exportService.exporting()"
+        severity="danger" [outlined]="true" size="small" (onClick)="downloadPdf()" />
+    }
+    <p-button icon="pi pi-arrow-left" [label]="t('common.back')" [text]="true" (onClick)="goBack()" />
+  </app-page-header>
+
+  @if (loading()) {
+    <div class="detail-grid">
+      @for (i of [1, 2, 3, 4]; track i) {
+        <div class="wms-card detail-card"><div class="skeleton" style="height:60px;width:100%"></div></div>
+      }
+    </div>
+  } @else if (transfer(); as tr) {
+    <!-- Ma'lumot kartalari -->
+    <div class="detail-grid">
+      <div class="wms-card detail-card">
+        <p class="detail-card-title">{{ t('common.status.label') }}</p>
+        <app-status-badge [status]="transferStatusClass(tr.status)" [label]="t(transferStatusKey(tr.status))" />
+      </div>
+      <div class="wms-card detail-card">
+        <p class="detail-card-title">{{ t('common.amount') }}</p>
+        <p class="detail-card-value">{{ tr.totalAmount | number:'1.0-2' }}</p>
+      </div>
+      <div class="wms-card detail-card">
+        <p class="detail-card-title">{{ t('transfer.counterparty') }}</p>
+        <p class="detail-card-value small">{{ tr.counterpartyName || '—' }}</p>
+      </div>
+      <div class="wms-card detail-card">
+        <p class="detail-card-title">{{ t('common.date') }}</p>
+        <p class="detail-card-value small">{{ tr.createdAt | date:'MMM d, yyyy HH:mm' }}</p>
+      </div>
+    </div>
+
+    <!-- Omborlar va qo'shimcha ma'lumot -->
+    <div class="wms-card section-card info-row">
+      @if (tr.fromWarehouseName) {
+        <div class="info-item">
+          <span class="info-label">{{ t('common.from') }}:</span>
+          <span class="info-value">{{ tr.fromWarehouseName }}</span>
+        </div>
+      }
+      @if (tr.toWarehouseName) {
+        <div class="info-item">
+          <span class="info-label">{{ t('common.to') }}:</span>
+          <span class="info-value">{{ tr.toWarehouseName }}</span>
+        </div>
+      }
+      @if (tr.note) {
+        <div class="info-item">
+          <span class="info-label">{{ t('common.note') }}:</span>
+          <span class="info-value">{{ tr.note }}</span>
+        </div>
+      }
+      @if (tr.createdByUserName) {
+        <div class="info-item">
+          <span class="info-label">{{ t('common.create') }}:</span>
+          <span class="info-value">{{ tr.createdByUserName }}</span>
+        </div>
+      }
+      @if (tr.agentId) {
+        <div class="info-item">
+          <span class="info-label">{{ t('agent.title') }}:</span>
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-800">
+            <i class="pi pi-id-card text-xs"></i> {{ tr.agentName }}
+            @if (tr.commissionPercent) { <span>{{ '· ' + tr.commissionPercent + '%' }}</span> }
+          </span>
+        </div>
+      }
+      @if (tr.returnReason) {
+        <div class="info-item">
+          <span class="info-label">{{ t('transfer.returnReason') }}:</span>
+          <span class="info-value">{{ tr.returnReasonName }}</span>
+        </div>
+      }
+      @if (tr.originalTransferId) {
+        <div class="info-item">
+          <span class="info-label">{{ t('transfer.originalTransfer') }}:</span>
+          <a class="info-value" [routerLink]="['/transfers', tr.originalTransferId]" [title]="tr.originalTransferId" style="color: var(--primary-600); font-weight: 600; text-decoration: none;">
+            {{ '#' + shortId(tr.originalTransferId) }}
+          </a>
+        </div>
+      }
+    </div>
+
+    <!-- Mahsulotlar -->
+    <div class="wms-card section-card">
+      <h3 class="section-title">{{ t('transfer.items') }}</h3>
+      <p-table [value]="tr.items" [scrollable]="true" styleClass="p-datatable-sm p-datatable-striped">
+        <ng-template #header>
+          <tr>
+            <th>{{ t('common.name') }}</th>
+            <th>{{ t('warehouse.lotNumber') }}</th>
+            <th class="text-right">{{ t('common.quantity') }}</th>
+            <th class="text-right">{{ t('common.price') }}</th>
+            <th class="text-right">{{ t('common.total') }}</th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-item>
+          <tr>
+            <td><span class="item-name">{{ item.productName }}</span></td>
+            <td><span class="lot-number">{{ item.lotNumber || '—' }}</span></td>
+            <td class="text-right"><span class="number">{{ item.quantity | number:'1.0-2' }}</span></td>
+            <td class="text-right"><span class="number">{{ item.unitPrice | number:'1.0-2' }}</span></td>
+            <td class="text-right"><span class="number">{{ item.totalPrice | number:'1.0-2' }}</span></td>
+          </tr>
+        </ng-template>
+        <ng-template #emptymessage>
+          <tr><td colspan="5"><div class="empty-state"><i class="pi pi-shopping-cart"></i><p>{{ t('transfer.noItems') }}</p></div></td></tr>
+        </ng-template>
+      </p-table>
+    </div>
+
+    <!-- Amallar -->
+    @if (isPending()) {
+      <div class="action-bar">
+        <p-button *hasPermission="'transfers.reject'" [label]="t('transfer.rejectTransfer')" icon="pi pi-times" severity="danger" [outlined]="true"
+          (onClick)="reject()" [loading]="rejecting()" />
+        <p-button *hasPermission="'transfers.confirm'" [label]="t('transfer.confirmTransfer')" icon="pi pi-check" severity="success"
+          (onClick)="confirm()" [loading]="confirming()" />
+      </div>
+    }
+  }
+</div>

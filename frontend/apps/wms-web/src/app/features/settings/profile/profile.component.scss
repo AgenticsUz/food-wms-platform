@@ -1,0 +1,42 @@
+@use '../module-common';
+
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 20px;
+}
+
+.section-hint {
+  margin: 12px 0 16px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.role-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.form-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+/* Bot sozlanmagan — chat ID saqlansa ham xabar kelmaydi, foydalanuvchi buni oldindan bilsin */
+.telegram-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  background: var(--color-caramel-50, var(--bg-inset));
+  color: var(--color-caramel-700, var(--text-secondary));
+  border-left: 3px solid var(--color-caramel-500, var(--color-blueberry-500));
+  i { font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+}
