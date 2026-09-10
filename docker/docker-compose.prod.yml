@@ -5,7 +5,8 @@
 #  (nginx: SPA + /api, /admin/v1, /uploads proxy). Worker YO'Q — fon xizmatlari
 #  API ichida (PLATFORMA-TZ §7·F6.2 D12).
 #  Identity — platforma stack'ining o'z compose'ida (id.agentics.uz); bu yerda faqat URL.
-#  Host nginx (docker/host-nginx) TLS + wms.agentics.uz → 127.0.0.1:5510 (wms-web:80).
+#  Host nginx (agentics-platform/deploy/host-nginx) TLS + wms.agentics.uz → 127.0.0.1:6510
+#  (wms-web:80). F7 port qoidasi: 5xxx dev, 6xxx Docker (agentics-platform/docs/F7-REJA.md).
 #  Tashqariga FAQAT shu loopback port ochiq (§6.1, D16).
 #  Image'lar GHCR'dan (ci.yml). Sirlar docker/.env (gitignore).
 # =============================================================================
@@ -126,7 +127,7 @@ services:
     ports:
       # Faqat loopback: TLS'ni host nginx uzadi, tashqaridan to'g'ridan-to'g'ri
       # kirish bo'lmasin (aks holda HSTS va xavfsizlik sarlavhalari chetlab o'tilardi).
-      - '127.0.0.1:${WEB_PORT:-5510}:80'
+      - '127.0.0.1:${WEB_PORT:-6510}:80'
     networks: [edge]
     depends_on:
       - wms-api

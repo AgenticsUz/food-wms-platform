@@ -1,0 +1,52 @@
+# =============================================================================
+#  LOKAL OVERLAY — prod compose'ni `agentics.localhost` bilan sinash (F7)
+#
+#      cd docker
+#      docker compose --env-file .env.local -f docker-compose.prod.yml -f docker-compose.local.yml build
+#      docker compose --env-file .env.local -f docker-compose.prod.yml -f docker-compose.local.yml up -d
+#
+#  Prod faylga TEGMAYDI. Lokalda kerak bo'ladigan narsalar:
+#   1. `build` — prod image'lar GHCR'dan keladi, lokalda esa shu yerda quriladi.
+#   2. Migrator `seed demo` bilan (prod'da faqat `migrate` — demo tenant YO'Q).
+#   3. wms-api Identity'ning JWKS'ini OCHIQ URL'dan oladi (TZ Q7). Konteyner ichida
+#      `id.agentics.localhost` konteynerning O'ZIGA yechilardi — nom hostdagi edge
+#      nginx'ga yo'naltiriladi va lokal CA'ga ishonch beriladi. Prod'da bu ommaviy
+#      DNS va Let's Encrypt.
+# =============================================================================
+x-api-build: &api-build
+  context: ..
+  dockerfile: docker/Dockerfile.api
+  additional_contexts:
+    platform: ../../agentics-platform/artifacts
+  args:
+    PROJECT_PATH: src/WMS.API/WMS.API.csproj
+    ASSEMBLY_NAME: WMS.API
+
+services:
+  wms-migrator:
+    build: *api-build
+    command: ['seed', 'demo']
+
+  wms-api:
+    build: *api-build
+    # `id.agentics.localhost` → edge konteyneri (uning alias'i). `extra_hosts:
+    # host-gateway` Docker Desktop'da avval yetib bo'lmaydigan IPv6 beradi.
+    networks:
+      agentics-edge: {}
+    environment:
+      # Tizim ildizlari + lokal CA (`agentics-platform/deploy/local-edge/make-local-ca.sh`).
+      SSL_CERT_FILE: /etc/agentics/ca-bundle.crt
+    volumes:
+      - ../../agentics-platform/deploy/local-edge/certs/ca-bundle.crt:/etc/agentics/ca-bundle.crt:ro
+
+  wms-web:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.web
+      additional_contexts:
+        platform: ../../agentics-platform/artifacts
+
+networks:
+  # `agentics-platform/deploy/local-edge` yaratadi — edge avval ko'tarilgan bo'lsin.
+  agentics-edge:
+    external: true

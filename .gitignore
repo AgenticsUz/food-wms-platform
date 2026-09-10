@@ -54,3 +54,6 @@ desktop.ini
 **/backups/
 # Tenant logolari ish vaqtida yuklanadi (Docker'da `uploads` hajmi). Yo'l — `BrandingFileStore` yozadigan joy.
 src/WMS.API/wwwroot/uploads/tenants/
+
+# F7: lokal prod-nusxa muhiti (agentics.localhost) — git'ga tushmaydi.
+docker/.env.local
