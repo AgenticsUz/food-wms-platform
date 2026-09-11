@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using WMS.Application.Common.Localization;
 using WMS.Application.Interfaces;
 using WMS.Domain.Enums;
 using WMS.Infrastructure.Persistence;
@@ -59,9 +60,9 @@ public class BatchExpiryService : IBatchExpiryService
             {
                 if (existingSet.Contains((batch.Id, NotificationType.BatchExpired)))
                     continue;
-                await _notifications.CreateAsync(null,
-                    "Batch Expired",
-                    $"{batch.ProductName} partiyasi #{batch.LotNumber} muddati o'tdi!",
+                await _notifications.NotifyAsync(null,
+                    NotificationMessages.BatchExpiredTitle, NotificationMessages.BatchExpired,
+                    [batch.LotNumber, batch.ProductName],
                     NotificationType.BatchExpired, BatchEntityType, batch.Id);
                 created++;
             }
@@ -69,9 +70,9 @@ public class BatchExpiryService : IBatchExpiryService
             {
                 if (existingSet.Contains((batch.Id, NotificationType.BatchExpiring)))
                     continue;
-                await _notifications.CreateAsync(null,
-                    "Batch Expiring",
-                    $"{batch.ProductName} partiyasi #{batch.LotNumber} muddati {expiry:yyyy-MM-dd} da tugaydi",
+                await _notifications.NotifyAsync(null,
+                    NotificationMessages.BatchExpiringTitle, NotificationMessages.BatchExpiring,
+                    [batch.LotNumber, batch.ProductName, expiry.ToString("dd.MM.yyyy", System.Globalization.CultureInfo.InvariantCulture)],
                     NotificationType.BatchExpiring, BatchEntityType, batch.Id);
                 created++;
             }

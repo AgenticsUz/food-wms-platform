@@ -20,6 +20,12 @@ public interface ITelegramLinkService
 
     /// <summary>Ulanishni uzadi (<c>is_active = false</c>); yozuv o'chirilmaydi.</summary>
     Task UnlinkAsync(Guid userId, CancellationToken cancellationToken);
+
+    /// <summary>O'chirilgan turlar (TG3) — <c>NotificationType</c> nomlari; noma'lum nom → 400. Ro'yxat to'plamni ALMASHTIRADI.</summary>
+    Task SetMutedTypesAsync(Guid userId, IReadOnlyCollection<string> types, CancellationToken cancellationToken);
+
+    /// <summary>Kunlik xulosa (TG11) yoqish/o'chirish.</summary>
+    Task SetDigestAsync(Guid userId, bool enabled, CancellationToken cancellationToken);
 }
 
 /// <summary>

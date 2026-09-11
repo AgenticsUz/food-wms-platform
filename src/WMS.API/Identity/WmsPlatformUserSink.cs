@@ -42,6 +42,7 @@ internal sealed partial class WmsPlatformUserSink : IPlatformUserSink
     private readonly ITenantStateService _tenantState;
     private readonly SubscriptionOptions _options;
     private readonly ILogger<WmsPlatformUserSink> _logger;
+    private readonly IOpsNotifier _ops;
 
     public WmsPlatformUserSink(
         WmsDbContext db,
@@ -50,8 +51,10 @@ internal sealed partial class WmsPlatformUserSink : IPlatformUserSink
         IWmsAccessResolver access,
         ITenantStateService tenantState,
         IOptions<SubscriptionOptions> options,
+        IOpsNotifier ops,
         ILogger<WmsPlatformUserSink> logger)
     {
+        _ops = ops;
         _db = db;
         _currentTenant = currentTenant;
         _baseline = baseline;
@@ -128,6 +131,11 @@ internal sealed partial class WmsPlatformUserSink : IPlatformUserSink
 
             _db.Tenants.Add(tenant);
             await _db.SaveChangesAsync(cancellationToken);
+
+            // Platforma egasiga (TG17): yangi zavod birinchi marta kirdi — Console'ga qaramasdan bilsin.
+            await _ops.SendAsync(
+                $"🆕 Yangi tenant: <b>{System.Net.WebUtility.HtmlEncode(tenant.Code)}</b> — trial {tenant.TrialEndsAt:dd.MM.yyyy} gacha",
+                $"ops:tenant-new:{tenant.Id:N}", cancellationToken);
             return true;
         }
 

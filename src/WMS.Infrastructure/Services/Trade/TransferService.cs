@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using WMS.Application.Common;
 using WMS.Application.DTOs.Transfers;
+using WMS.Application.Common.Localization;
 using WMS.Application.Interfaces;
 using WMS.Domain.Entities;
 using WMS.Domain.Enums;
@@ -90,10 +91,35 @@ public class TransferService : ITransferService
         _db.Transfers.Add(transfer);
         await _db.SaveChangesAsync();
 
-        await PlanLimits.ReportUsageAsync(_db, _warnings, PlanLimits.TransfersThisMonth,
-            _subscription.LimitWarnPercent);
+        await PlanLimits.ReportUsageAsync(_db, _warnings, PlanLimits.TransfersThisMonth, _subscription.LimitWarnPercent, _notifications);
+
+        // Tasdiqlovchilarga (transfers.confirm) — Telegram'da «Tasdiqlash/Rad etish» tugmalari bilan (TG9).
+        // Ilgari yaratilganda hech kim xabar olmasdi — menejer ilovani ochmaguncha «kutilmoqda» turardi.
+        await NotifySafelyAsync(transfer.Id, () => NotifyPendingAsync(transfer.Id, userId));
 
         return await GetByIdAsync(transfer.Id);
+    }
+
+    private async Task NotifyPendingAsync(Guid transferId, Guid createdByUserId)
+    {
+        var t = await _db.Transfers.AsNoTracking()
+            .Include(x => x.Counterparty).Include(x => x.FromWarehouse).Include(x => x.ToWarehouse).Include(x => x.Items)
+            .FirstAsync(x => x.Id == transferId);
+        string creator = await _db.UserProfiles.AsNoTracking().Where(u => u.Id == createdByUserId).Select(u => u.FullName).FirstOrDefaultAsync() ?? "—";
+        string amount = NotificationMessages.Amount(t.Items.Sum(i => i.Quantity * i.UnitPrice));
+        string date = NotificationMessages.Date(t.CreatedAt);
+        string party = t.Counterparty?.Name ?? t.FromWarehouse?.Name ?? t.ToWarehouse?.Name ?? "—";
+
+        (string template, string?[] args) = t.Type switch
+        {
+            TransferType.Return => (NotificationMessages.ReturnPending, new string?[] { party, date, amount, creator }),
+            TransferType.Incoming => (NotificationMessages.IncomingPending, new string?[] { party, date, amount, creator }),
+            TransferType.Internal => (NotificationMessages.InternalPending, new string?[] { t.FromWarehouse?.Name ?? "—", t.ToWarehouse?.Name ?? "—", date, creator }),
+            _ => (NotificationMessages.SalePending, new string?[] { party, date, amount, creator }),
+        };
+
+        await _notifications.NotifyAsync(null, NotificationMessages.TransferPendingTitle, template, args,
+            NotificationType.TransferPending, "Transfer", t.Id);
     }
 
     /// <summary>
@@ -162,22 +188,25 @@ public class TransferService : ITransferService
         if (transfer.Type == TransferType.Outgoing || transfer.Type == TransferType.Internal)
             await NotifySafelyAsync(transfer.Id, () => CheckLowStock(transfer));
 
-        var totalAmount = transfer.Items.Sum(i => i.Quantity * i.UnitPrice);
+        // Guid o'rniga odam o'qiydigan belgi: kontragent/ombor va sana (TG4). Qisqa raqam
+        // qarori (HOLAT «keyinga qolgan») chiqsa shu yerda almashadi.
+        string amount = NotificationMessages.Amount(transfer.Items.Sum(i => i.Quantity * i.UnitPrice));
+        string date = NotificationMessages.Date(transfer.CreatedAt);
+        string party = transfer.Counterparty?.Name ?? transfer.FromWarehouse?.Name ?? transfer.ToWarehouse?.Name ?? "—";
 
-        if (transfer.Type == TransferType.Return)
+        (string title, string template, string?[] args, NotificationType type) = transfer.Type switch
         {
-            await NotifySafelyAsync(transfer.Id, () => _notifications.CreateAsync(null,
-                "Return Received",
-                $"Return #{transfer.Id} received from {transfer.Counterparty?.Name}. Amount: {totalAmount:N0}",
-                NotificationType.Info, "Transfer", transfer.Id));
-        }
-        else
-        {
-            await NotifySafelyAsync(transfer.Id, () => _notifications.CreateAsync(null,
-                "Transfer Confirmed",
-                $"Transfer #{transfer.Id} has been confirmed. Amount: {totalAmount:N0}",
-                NotificationType.TransferConfirmed, "Transfer", transfer.Id));
-        }
+            TransferType.Return => (NotificationMessages.ReturnReceivedTitle, NotificationMessages.ReturnReceived,
+                new string?[] { party, date, amount }, NotificationType.ReturnReceived),
+            TransferType.Incoming => (NotificationMessages.TransferConfirmedTitle, NotificationMessages.IncomingConfirmed,
+                new string?[] { party, date, amount }, NotificationType.TransferConfirmed),
+            TransferType.Internal => (NotificationMessages.TransferConfirmedTitle, NotificationMessages.InternalConfirmed,
+                new string?[] { transfer.FromWarehouse?.Name ?? "—", transfer.ToWarehouse?.Name ?? "—", date }, NotificationType.TransferConfirmed),
+            _ => (NotificationMessages.TransferConfirmedTitle, NotificationMessages.SaleConfirmed,
+                new string?[] { party, date, amount }, NotificationType.TransferConfirmed),
+        };
+
+        await NotifySafelyAsync(transfer.Id, () => _notifications.NotifyAsync(null, title, template, args, type, "Transfer", transfer.Id));
 
         return MapToDto(transfer);
     }
@@ -192,9 +221,9 @@ public class TransferService : ITransferService
         // xmin: parallel tasdiq bilan to'qnashsa bittasi 409 oladi (tasdiqlangan transfer rad etilmaydi).
         await _db.SaveChangesAsync();
 
-        await NotifySafelyAsync(transfer.Id, () => _notifications.CreateAsync(null,
-            "Transfer Rejected",
-            $"Transfer #{transfer.Id} has been rejected.",
+        await NotifySafelyAsync(transfer.Id, () => _notifications.NotifyAsync(null,
+            NotificationMessages.TransferRejectedTitle, NotificationMessages.TransferRejected,
+            [transfer.Counterparty?.Name ?? transfer.FromWarehouse?.Name ?? transfer.ToWarehouse?.Name ?? "—", NotificationMessages.Date(transfer.CreatedAt)],
             NotificationType.TransferRejected, "Transfer", transfer.Id));
 
         return MapToDto(transfer);
@@ -615,10 +644,10 @@ public class TransferService : ITransferService
             var currentStock = stocks.GetValueOrDefault(product.Id, 0m);
             if (currentStock <= product.MinStock)
             {
-                var unitName = product.Unit?.ShortName ?? "units";
-                await _notifications.CreateAsync(null,
-                    "Low Stock Alert",
-                    $"{product.Name} stock is low ({currentStock:N0} {unitName} remaining). Min: {product.MinStock:N0}",
+                var unitName = product.Unit?.ShortName ?? "";
+                await _notifications.NotifyAsync(null,
+                    NotificationMessages.LowStockTitle, NotificationMessages.LowStock,
+                    [product.Name, NotificationMessages.Quantity(currentStock), unitName, NotificationMessages.Quantity(product.MinStock)],
                     NotificationType.LowStock, "Product", product.Id);
             }
         }

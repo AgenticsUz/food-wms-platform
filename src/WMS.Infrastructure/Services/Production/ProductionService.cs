@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using WMS.Application.Common;
 using WMS.Application.DTOs.Production;
+using WMS.Application.Common.Localization;
 using WMS.Application.Interfaces;
 using WMS.Domain.Entities;
 using WMS.Domain.Enums;
@@ -16,11 +18,14 @@ public class ProductionService : IProductionService
     private readonly WmsDbContext _db;
     private readonly INotificationService _notifications;
     private readonly IStockAllocator _stock;
-    public ProductionService(WmsDbContext db, INotificationService notifications, IStockAllocator stock)
+    private readonly ILogger<ProductionService> _logger;
+    public ProductionService(WmsDbContext db, INotificationService notifications, IStockAllocator stock,
+        ILogger<ProductionService> logger)
     {
         _db = db;
         _notifications = notifications;
         _stock = stock;
+        _logger = logger;
     }
 
     // === Stages ===
@@ -289,6 +294,7 @@ public class ProductionService : IProductionService
             throw new AppException("Planned quantity must be greater than zero");
 
         var recipe = await _db.ProductionRecipes.Include(r => r.RecipeStages)
+            .Include(r => r.OutputProduct).Include(r => r.OutputUnit) // bildirishnoma matni uchun (TG9)
             .FirstOrDefaultAsync(r => r.Id == dto.RecipeId)
             ?? throw new NotFoundException("Recipe not found");
 
@@ -317,6 +323,21 @@ public class ProductionService : IProductionService
 
         _db.ProductionOrders.Add(order);
         await _db.SaveChangesAsync();
+
+        // Ishlab chiqarish boshqaruvchilariga (production.manage) — «Boshlash» tugmasi bilan (TG9).
+        try
+        {
+            await _notifications.NotifyAsync(null, NotificationMessages.ProductionPendingTitle, NotificationMessages.ProductionPending,
+                [recipe.OutputProduct.Name, NotificationMessages.Date(order.PlannedStartDate),
+                    NotificationMessages.Quantity(order.PlannedQuantity), recipe.OutputUnit?.ShortName ?? ""],
+                NotificationType.ProductionPending, "ProductionOrder", order.Id);
+        }
+#pragma warning disable CA1031 // Bildirishnoma yiqilsa yaratilgan buyurtma baribir muvaffaqiyatli.
+        catch (Exception ex) when (ex is not OperationCanceledException)
+#pragma warning restore CA1031
+        {
+            _logger.LogWarning(ex, "Buyurtma {OrderId} bo'yicha bildirishnoma yuborilmadi", order.Id);
+        }
         return await GetOrderByIdAsync(order.Id);
     }
 
@@ -324,6 +345,7 @@ public class ProductionService : IProductionService
     {
         var order = await _db.ProductionOrders
             .Include(o => o.AssignedToUser)
+            .Include(o => o.Recipe).ThenInclude(r => r.OutputProduct) // bildirishnoma matni uchun (TG4)
             .FirstOrDefaultAsync(o => o.Id == id)
             ?? throw new NotFoundException("Order not found");
         if (order.Status != ProductionOrderStatus.Draft)
@@ -333,9 +355,9 @@ public class ProductionService : IProductionService
         await _db.SaveChangesAsync();
 
         var assignee = order.AssignedToUser?.FullName ?? "—";
-        await _notifications.CreateAsync(null,
-            "Production Started",
-            $"Buyurtma #{order.Id} boshlandi. Javobgar: {assignee}",
+        await _notifications.NotifyAsync(null,
+            NotificationMessages.ProductionStartedTitle, NotificationMessages.ProductionStarted,
+            [order.Recipe.OutputProduct.Name, NotificationMessages.Date(order.PlannedStartDate), assignee],
             NotificationType.ProductionStarted, "ProductionOrder", order.Id);
 
         return await GetOrderByIdAsync(id);
@@ -436,6 +458,7 @@ public class ProductionService : IProductionService
     {
         var order = await _db.ProductionOrders
             .Include(o => o.Recipe).ThenInclude(r => r.OutputProduct)
+            .Include(o => o.Recipe).ThenInclude(r => r.OutputUnit) // bildirishnoma matni uchun (TG4)
             .Include(o => o.StageExecutions).ThenInclude(se => se.RecipeStage)
             .FirstOrDefaultAsync(o => o.Id == id)
             ?? throw new NotFoundException("Order not found");
@@ -490,9 +513,10 @@ public class ProductionService : IProductionService
         await _db.SaveChangesAsync();
         await tx.CommitAsync();
 
-        await _notifications.CreateAsync(null,
-            "Production Completed",
-            $"Buyurtma #{order.Id} bajarildi. {totalOutput:N0} dona {order.Recipe.OutputProduct.Name} tayyor omborga kiritildi",
+        await _notifications.NotifyAsync(null,
+            NotificationMessages.ProductionCompletedTitle, NotificationMessages.ProductionCompleted,
+            [order.Recipe.OutputProduct.Name, NotificationMessages.Date(order.PlannedStartDate),
+                NotificationMessages.Quantity(totalOutput), order.Recipe.OutputUnit?.ShortName ?? ""],
             NotificationType.ProductionCompleted, "ProductionOrder", order.Id);
 
         return await GetOrderByIdAsync(id);

@@ -1,3 +1,6 @@
+using WMS.Domain.Enums;
+using System.Text.Json;
+using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using WMS.Application.Common;
 using WMS.Application.Common.Localization;
@@ -77,8 +80,13 @@ public static class PlanLimits
     /// urilib qo'ng'iroq qilishidan oldin bilib tursin.
     /// </summary>
     /// <param name="kind"><see cref="Warehouses"/> | <see cref="TransfersThisMonth"/> | <see cref="Users"/>.</param>
+    /// <param name="notifications">
+    /// Berilsa (TG5, R7) ogohlantirish ILOVA ICHIDA va Telegram'da ham bildirishnoma bo'ladi —
+    /// javobdagi <c>warning</c> ni faqat yaratgan odam ko'radi, admin esa ko'pincha boshqa odam.
+    /// Dedupe: oylik limit — oyiga bir; foydalanuvchi/ombor — qiymat o'zgarguncha bir.
+    /// </param>
     public static async Task ReportUsageAsync(WmsDbContext db, IRequestWarnings warnings,
-        string kind, int warnPercent, CancellationToken ct = default)
+        string kind, int warnPercent, INotificationService? notifications = null, CancellationToken ct = default)
     {
         // Bu metod yozuv MUVAFFAQIYATLI saqlangandan keyin chaqiriladi. Shuning uchun bu
         // yerdagi hech qanday nosozlik so'rovni yiqitmasligi kerak: aks holda mijoz "xato"
@@ -107,6 +115,20 @@ public static class PlanLimits
             if (Percent(used, max) < warnPercent) return;
 
             warnings.Add(code, template, used, max);
+
+            if (notifications is null) return;
+
+            string?[] args = [used.ToString(CultureInfo.InvariantCulture), max.ToString(CultureInfo.InvariantCulture)];
+            string argsJson = JsonSerializer.Serialize(args);
+            bool already = kind == TransfersThisMonth
+                ? await db.Notifications.AnyAsync(n => n.Type == NotificationType.LimitWarning
+                    && n.MessageTemplate == template && n.CreatedAt >= monthStart, ct)
+                : await db.Notifications.AnyAsync(n => n.Type == NotificationType.LimitWarning
+                    && n.MessageTemplate == template && n.MessageArgs == argsJson, ct);
+            if (already) return;
+
+            await notifications.NotifyAsync(null, NotificationMessages.PlanLimitTitle, template, args,
+                NotificationType.LimitWarning, "Plan", plan.Id);
         }
 #pragma warning disable CA1031 // Ogohlantirish yiqilsa saqlangan yozuv baribir muvaffaqiyatli (izoh yuqorida).
         catch (Exception ex) when (ex is not OperationCanceledException)

@@ -48,6 +48,8 @@ x-dotnet-env: &dotnet-env
   Subscription__LimitWarnPercent: ${SUBSCRIPTION_LIMIT_WARN_PERCENT:-80}
   # Telegram bot (TG8): @AgenticsWmsBot tokeni `.env` dan; bo'sh — bot o'chiq, xato emas.
   Telegram__BotToken: ${TELEGRAM_BOT_TOKEN:-}
+  Telegram__WebUrl: ${PUBLIC_WEB_URL:?}
+  Telegram__OpsChatId: ${TELEGRAM_OPS_CHAT_ID:-}
   Migrations__Mode: none
 
 services:

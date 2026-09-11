@@ -388,6 +388,13 @@
     "telegramOpenLink": "Telegram не открылся? Нажмите на ссылку",
     "telegramLinkExpired": "Срок ссылки истёк. Попробуйте ещё раз.",
     "telegramDisconnected": "Telegram отключён",
+    "telegramMutedTitle": "Какие уведомления присылать",
+    "telegramMutedHint": "Снимите галочку — уведомления этого типа не будут приходить в Telegram (в приложении останутся).",
+    "telegramGroupWarehouse": "Склад и партии",
+    "telegramGroupTransfers": "Перемещения",
+    "telegramGroupProduction": "Производство",
+    "telegramGroupSubscription": "Подписка и тариф",
+    "telegramDigest": "Ежедневная сводка (в 08:00)",
     "reset": {
       "action": "Сбросить пароль",
       "title": "Сброс пароля — {{name}}",
@@ -535,7 +542,13 @@
       "batchExpiring": "Срок партии истекает",
       "batchExpired": "Партия просрочена",
       "productionStarted": "Производство начато",
-      "productionCompleted": "Производство завершено"
+      "productionCompleted": "Производство завершено",
+      "returnReceived": "Возврат принят",
+      "subscriptionWarning": "Срок подписки",
+      "subscriptionSuspended": "Аккаунт приостановлен",
+      "limitWarning": "Лимит тарифа",
+      "transferPending": "Ожидает подтверждения",
+      "productionPending": "Новый заказ"
     }
   },
   "barcode": {

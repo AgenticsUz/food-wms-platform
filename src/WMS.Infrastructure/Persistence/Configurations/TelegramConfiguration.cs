@@ -53,8 +53,12 @@ internal sealed class TelegramOutboxConfiguration : IEntityTypeConfiguration<Tel
         builder.Property(o => o.Text).HasMaxLength(TelegramOutbox.MaxTextLength).IsRequired();
         builder.Property(o => o.LastError).HasMaxLength(500);
         builder.Property(o => o.DedupKey).HasMaxLength(200);
+        builder.Property(o => o.ReplyMarkup).HasMaxLength(2000);
 
         builder.HasIndex(o => new { o.Status, o.NextAttemptAt });
+
+        // Tugma bosilganda (chat_id, message_id) bo'yicha topiladi (TG9).
+        builder.HasIndex(o => new { o.ChatId, o.MessageId });
 
         // Ayni hodisa ikki marta ishlansa ikkinchi qator yozilmaydi (Postgres'da NULL'lar noyoblikka kirmaydi).
         builder.HasIndex(o => o.DedupKey).IsUnique();

@@ -41,6 +41,9 @@ public static class OperationsModule
         services.AddSingleton<ITelegramService, TelegramService>();
         services.AddScoped<ITelegramLinkService, TelegramLinkService>();
         services.AddScoped<ITelegramUpdateHandler, TelegramUpdateHandler>();
+        services.AddScoped<TelegramCallbackExecutor>();
+        services.AddScoped<IOpsNotifier, TelegramOpsNotifier>();
+        services.AddHostedService<TelegramDigestBackgroundService>();
 
         // Token bo'sh bo'lsa ikkalasi darhol chiqadi (D12: fon ishlari API jarayonida, worker yo'q).
         services.AddHostedService<TelegramPollingBackgroundService>();

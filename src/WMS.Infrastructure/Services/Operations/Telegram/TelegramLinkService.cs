@@ -35,7 +35,7 @@ public sealed class TelegramLinkService : ITelegramLinkService
     {
         var link = await _db.TelegramLinks.AsNoTracking()
             .Where(l => l.UserProfileId == userId && l.IsActive)
-            .Select(l => new { l.LinkedAt, l.Username, l.MutedTypes })
+            .Select(l => new { l.LinkedAt, l.Username, l.MutedTypes, l.Digest })
             .FirstOrDefaultAsync(cancellationToken);
 
         return new TelegramStatusDto
@@ -46,6 +46,7 @@ public sealed class TelegramLinkService : ITelegramLinkService
             LinkedAt = link?.LinkedAt,
             Username = link?.Username,
             MutedTypes = link?.MutedTypes?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? [],
+            Digest = link?.Digest ?? false,
         };
     }
 
@@ -97,6 +98,34 @@ public sealed class TelegramLinkService : ITelegramLinkService
         if (link is null) return;
 
         link.IsActive = false;
+        await _db.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task SetMutedTypesAsync(Guid userId, IReadOnlyCollection<string> types, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(types);
+
+        List<string> normalized = [];
+        foreach (string raw in types)
+        {
+            if (!Enum.TryParse(raw?.Trim(), ignoreCase: true, out NotificationType parsed) || !Enum.IsDefined(parsed))
+                throw new AppException("Unknown notification type '{0}'", raw ?? "");
+            string name = parsed.ToString();
+            if (!normalized.Contains(name, StringComparer.Ordinal)) normalized.Add(name);
+        }
+
+        TelegramLink link = await _db.TelegramLinks.FirstOrDefaultAsync(l => l.UserProfileId == userId && l.IsActive, cancellationToken)
+            ?? throw new NotFoundException("Telegram is not connected");
+
+        link.MutedTypes = normalized.Count == 0 ? null : string.Join(',', normalized);
+        await _db.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task SetDigestAsync(Guid userId, bool enabled, CancellationToken cancellationToken)
+    {
+        TelegramLink link = await _db.TelegramLinks.FirstOrDefaultAsync(l => l.UserProfileId == userId && l.IsActive, cancellationToken)
+            ?? throw new NotFoundException("Telegram is not connected");
+        link.Digest = enabled;
         await _db.SaveChangesAsync(cancellationToken);
     }
 

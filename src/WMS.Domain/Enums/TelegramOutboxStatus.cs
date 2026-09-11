@@ -15,3 +15,15 @@ public enum TelegramOutboxStatus
     /// </summary>
     Skipped = 4,
 }
+
+/// <summary>Navbat qatori nima qiladi.</summary>
+public enum TelegramOutboxKind
+{
+    Message = 1,
+
+    /// <summary>
+    /// Ilgari yuborilgan tugmali xabardan tugmalarni olib tashlash — amal web'dan yoki boshqa
+    /// menejer tomonidan bajarilganda (TG9). So'rov ichida emas, navbat orqali.
+    /// </summary>
+    RemoveButtons = 2,
+}

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using WMS.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using WMS.Infrastructure.Persistence;
 namespace WMS.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(WmsDbContext))]
-    partial class WmsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260911143156_AddNotificationMessageTemplate")]
+    partial class AddNotificationMessageTemplate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2253,18 +2256,10 @@ namespace WMS.Infrastructure.Persistence.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("is_deleted");
 
-                    b.Property<int>("Kind")
-                        .HasColumnType("integer")
-                        .HasColumnName("kind");
-
                     b.Property<string>("LastError")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)")
                         .HasColumnName("last_error");
-
-                    b.Property<long?>("MessageId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("message_id");
 
                     b.Property<DateTime?>("NextAttemptAt")
                         .HasColumnType("timestamptz")
@@ -2273,11 +2268,6 @@ namespace WMS.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("NotificationId")
                         .HasColumnType("uuid")
                         .HasColumnName("notification_id");
-
-                    b.Property<string>("ReplyMarkup")
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)")
-                        .HasColumnName("reply_markup");
 
                     b.Property<DateTime?>("SentAt")
                         .HasColumnType("timestamptz")
@@ -2311,9 +2301,6 @@ namespace WMS.Infrastructure.Persistence.Migrations
                     b.HasIndex("DedupKey")
                         .IsUnique()
                         .HasDatabaseName("ix_telegram_outbox_dedup_key");
-
-                    b.HasIndex("ChatId", "MessageId")
-                        .HasDatabaseName("ix_telegram_outbox_chat_id_message_id");
 
                     b.HasIndex("Status", "NextAttemptAt")
                         .HasDatabaseName("ix_telegram_outbox_status_next_attempt_at");

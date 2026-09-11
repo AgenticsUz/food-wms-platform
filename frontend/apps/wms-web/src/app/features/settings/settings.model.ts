@@ -120,6 +120,8 @@ export interface TelegramStatus {
   readonly username: string | null;
   /** O'chirilgan bildirishnoma turlari (TG3). */
   readonly mutedTypes: readonly string[];
+  /** Kunlik xulosa (TG11). */
+  readonly digest: boolean;
 }
 
 /** `POST /api/me/telegram/link-token` — bir martalik havola. */

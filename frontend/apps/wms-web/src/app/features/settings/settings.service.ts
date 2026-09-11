@@ -90,4 +90,11 @@ export class SettingsService {
   unlinkTelegram() {
     return this.api.delete<void>('me/telegram');
   }
+  /** O'chirilgan turlar — `NotificationType` nomlari; ro'yxat to'plamni ALMASHTIRADI. */
+  setTelegramMuted(types: readonly string[]) {
+    return this.api.put<void>('me/telegram/muted', { types });
+  }
+  setTelegramDigest(enabled: boolean) {
+    return this.api.put<void>('me/telegram/digest', { enabled });
+  }
 }

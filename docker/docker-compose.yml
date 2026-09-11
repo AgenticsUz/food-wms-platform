@@ -56,6 +56,10 @@ x-dotnet-env: &dotnet-env
   # Telegram bot (TG8). Bo'sh — bot o'chiq (polling va navbat ishga tushmaydi).
   # Dev'da O'Z test botingiz: bir tokenni ikki instans polling qilsa Telegram 409 beradi.
   Telegram__BotToken: ${TELEGRAM_BOT_TOKEN:-}
+  # Xabardagi «Ochish» havolasi — ilovaning ochiq manzili (CORS ro'yxatidagi bilan bir xil).
+  Telegram__WebUrl: ${PUBLIC_WEB_URL:?PUBLIC_WEB_URL majburiy}
+  # Platforma egasining chati (TG17) — bo'sh: o'chiq.
+  Telegram__OpsChatId: ${TELEGRAM_OPS_CHAT_ID:-}
 
 x-api-build: &api-build
   context: ..

@@ -53,6 +53,34 @@
   border-left: 3px solid var(--color-blueberry-500);
 }
 
+/* O'chirgichlar (TG3): guruh checkbox'lari, saqlash paytida xira */
+.mute-title {
+  margin: 18px 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.mute-hint {
+  margin: 0 0 10px;
+}
+
+.mute-groups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  &.saving { opacity: 0.6; }
+}
+
+.mute-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
 .telegram-linked {
   @extend %telegram-status;
   background: var(--color-pistachio-50, var(--bg-inset));

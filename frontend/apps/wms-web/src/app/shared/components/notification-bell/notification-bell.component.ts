@@ -19,6 +19,12 @@ const ICONS: Readonly<Record<NotificationType, string>> = {
   [NotificationType.BatchExpired]: 'pi-exclamation-circle',
   [NotificationType.ProductionStarted]: 'pi-cog',
   [NotificationType.ProductionCompleted]: 'pi-check-circle',
+  [NotificationType.ReturnReceived]: 'pi-replay',
+  [NotificationType.SubscriptionWarning]: 'pi-credit-card',
+  [NotificationType.SubscriptionSuspended]: 'pi-ban',
+  [NotificationType.LimitWarning]: 'pi-chart-bar',
+  [NotificationType.TransferPending]: 'pi-hourglass',
+  [NotificationType.ProductionPending]: 'pi-hourglass',
 };
 
 const ICON_BG: Readonly<Record<NotificationType, string>> = {
@@ -35,6 +41,12 @@ const ICON_BG: Readonly<Record<NotificationType, string>> = {
     'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400',
   [NotificationType.ProductionCompleted]:
     'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400',
+  [NotificationType.ReturnReceived]: 'bg-sky-100 text-sky-600 dark:bg-sky-900/20 dark:text-sky-400',
+  [NotificationType.SubscriptionWarning]: 'bg-amber-100 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400',
+  [NotificationType.SubscriptionSuspended]: 'bg-red-100 text-red-700 dark:bg-red-900/25 dark:text-red-400',
+  [NotificationType.LimitWarning]: 'bg-amber-100 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400',
+  [NotificationType.TransferPending]: 'bg-blue-100 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400',
+  [NotificationType.ProductionPending]: 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400',
 };
 
 const TYPE_KEYS: Readonly<Record<NotificationType, string>> = {
@@ -48,6 +60,12 @@ const TYPE_KEYS: Readonly<Record<NotificationType, string>> = {
   [NotificationType.BatchExpired]: 'notifications.types.batchExpired',
   [NotificationType.ProductionStarted]: 'notifications.types.productionStarted',
   [NotificationType.ProductionCompleted]: 'notifications.types.productionCompleted',
+  [NotificationType.ReturnReceived]: 'notifications.types.returnReceived',
+  [NotificationType.SubscriptionWarning]: 'notifications.types.subscriptionWarning',
+  [NotificationType.SubscriptionSuspended]: 'notifications.types.subscriptionSuspended',
+  [NotificationType.LimitWarning]: 'notifications.types.limitWarning',
+  [NotificationType.TransferPending]: 'notifications.types.transferPending',
+  [NotificationType.ProductionPending]: 'notifications.types.productionPending',
 };
 
 /**

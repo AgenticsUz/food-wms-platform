@@ -388,6 +388,13 @@
     "telegramOpenLink": "Telegram ochilmadimi? Havolani bosing",
     "telegramLinkExpired": "Havola muddati tugadi. Qayta urinib ko'ring.",
     "telegramDisconnected": "Telegram uzildi",
+    "telegramMutedTitle": "Qaysi xabarlar kelsin",
+    "telegramMutedHint": "Belgini olib tashlasangiz o'sha turdagi xabar Telegram'ga kelmaydi (ilova ichida qoladi).",
+    "telegramGroupWarehouse": "Zaxira va partiyalar",
+    "telegramGroupTransfers": "Transferlar",
+    "telegramGroupProduction": "Ishlab chiqarish",
+    "telegramGroupSubscription": "Obuna va tarif",
+    "telegramDigest": "Kunlik xulosa (har kuni 08:00)",
     "reset": {
       "action": "Parolni tiklash",
       "title": "Parolni tiklash — {{name}}",
@@ -535,7 +542,13 @@
       "batchExpiring": "Partiya muddati yaqin",
       "batchExpired": "Partiya muddati o'tgan",
       "productionStarted": "Ishlab chiqarish boshlandi",
-      "productionCompleted": "Ishlab chiqarish tugadi"
+      "productionCompleted": "Ishlab chiqarish tugadi",
+      "returnReceived": "Qaytarish qabul qilindi",
+      "subscriptionWarning": "Obuna muddati",
+      "subscriptionSuspended": "Hisob to'xtatildi",
+      "limitWarning": "Tarif limiti",
+      "transferPending": "Tasdiq kutmoqda",
+      "productionPending": "Yangi buyurtma"
     }
   },
   "barcode": {

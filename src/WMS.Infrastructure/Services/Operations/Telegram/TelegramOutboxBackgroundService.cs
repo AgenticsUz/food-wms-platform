@@ -143,7 +143,9 @@ public sealed class TelegramOutboxBackgroundService : BackgroundService
                 }
 
                 await ThrottleAsync(row.ChatId, ct);
-                TelegramSendResult result = await _telegram.SendMessageAsync(row.ChatId, row.Text, ct);
+                TelegramSendResult result = row.Kind == TelegramOutboxKind.RemoveButtons
+                    ? await RemoveButtonsAsync(row, ct)
+                    : await _telegram.SendMessageAsync(row.ChatId, row.Text, row.ReplyMarkup, ct);
                 DateTime at = DateTime.UtcNow;
 
                 if (result.Ok)
@@ -152,6 +154,7 @@ public sealed class TelegramOutboxBackgroundService : BackgroundService
                     row.SentAt = at;
                     row.LastError = null;
                     row.NextAttemptAt = null;
+                    if (row.Kind == TelegramOutboxKind.Message) row.MessageId = result.MessageId;
                     sent++;
                 }
                 else if (result.IsRateLimited)
@@ -194,6 +197,29 @@ public sealed class TelegramOutboxBackgroundService : BackgroundService
 
         _logger.LogInformation("Telegram navbati: {Sent} yuborildi, {Skipped} o'tkazildi, {Failed} xato, {Retried} qayta urinishda",
             sent, skipped, failed, retried);
+
+        // Bir yugurishda ko'p yakuniy xato — egaga (TG17), soatiga bir marta.
+        if (failed >= FailedAlertThreshold && DateTime.UtcNow - _lastFailureAlert > TimeSpan.FromHours(1))
+        {
+            _lastFailureAlert = DateTime.UtcNow;
+            await using AsyncServiceScope scope = _scopeFactory.CreateAsyncScope();
+            await scope.ServiceProvider.GetRequiredService<IOpsNotifier>().SendAsync(
+                $"🔴 Telegram navbati: bitta yugurishda {failed} ta xabar yakuniy xato bilan tugadi", null, ct);
+        }
+    }
+
+    private const int FailedAlertThreshold = 5;
+    private DateTime _lastFailureAlert = DateTime.MinValue;
+
+    /// <summary>
+    /// Tugmalarni olib tashlash (TG9). Xabar allaqachon tahrirlangan/o'chirilgan bo'lsa Telegram 400
+    /// («message is not modified» / «message to edit not found») beradi — bu xato emas, qator yopiladi.
+    /// </summary>
+    private async Task<TelegramSendResult> RemoveButtonsAsync(TelegramOutbox row, CancellationToken ct)
+    {
+        if (row.MessageId is not { } messageId) return TelegramSendResult.Success(null);
+        bool ok = await _telegram.RemoveReplyMarkupAsync(row.ChatId, messageId, ct);
+        return TelegramSendResult.Success(null) with { Ok = true, Description = ok ? null : "edit skipped" };
     }
 
     /// <summary>Bir chatga soniyada bittadan ko'p emas; umumiy oqimda qatorlar orasida qisqa pauza.</summary>

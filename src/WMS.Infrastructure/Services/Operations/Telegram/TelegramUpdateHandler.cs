@@ -31,15 +31,17 @@ public sealed class TelegramUpdateHandler : ITelegramUpdateHandler
 {
     private readonly IServiceProvider _services;
     private readonly ITelegramService _telegram;
+    private readonly TelegramCallbackExecutor _callbacks;
     private readonly TelegramOptions _options;
     private readonly ILogger<TelegramUpdateHandler> _logger;
 
-    public TelegramUpdateHandler(IServiceProvider services, ITelegramService telegram,
+    public TelegramUpdateHandler(IServiceProvider services, ITelegramService telegram, TelegramCallbackExecutor callbacks,
         IOptions<TelegramOptions> options, ILogger<TelegramUpdateHandler> logger)
     {
         ArgumentNullException.ThrowIfNull(options);
         _services = services;
         _telegram = telegram;
+        _callbacks = callbacks;
         _options = options.Value;
         _logger = logger;
     }
@@ -56,12 +58,27 @@ public sealed class TelegramUpdateHandler : ITelegramUpdateHandler
 
         if (!update.IsPrivate || update.ChatId == 0) return;
 
+        if (update.Kind == TelegramUpdateKind.CallbackQuery)
+        {
+            await _callbacks.ExecuteAsync(update, cancellationToken);
+            return;
+        }
+
         string lang = TelegramLanguage.Resolve(update.LanguageCode, _options.DefaultLanguage);
 
         switch (update.Kind)
         {
             case TelegramUpdateKind.Start when update.Payload is not null:
                 await LinkAsync(update, lang, cancellationToken);
+                break;
+
+            case TelegramUpdateKind.Command when update.Command == "status":
+                await ReplyAsync(update.ChatId, TelegramBotReplies.Status(await ConnectionsAsync(update.ChatId, cancellationToken), lang), cancellationToken);
+                break;
+
+            case TelegramUpdateKind.Command when update.Command == "stop":
+                await DeactivateAsync(update.ChatId, cancellationToken);
+                await ReplyAsync(update.ChatId, TelegramBotReplies.Stopped(lang), cancellationToken);
                 break;
 
             case TelegramUpdateKind.Start:
@@ -148,7 +165,28 @@ public sealed class TelegramUpdateHandler : ITelegramUpdateHandler
         await ReplyAsync(update.ChatId, TelegramBotReplies.Linked(tenantName, lang), cancellationToken);
     }
 
-    /// <summary>Bloklandi — chat ulangan BARCHA tenantlarda uziladi (kam hodisa; N ta scope maqbul).</summary>
+    /// <summary><c>/status</c>: chat ulangan tenantlar — har tenantda alohida scope (kam buyruq; N ta scope maqbul).</summary>
+    private async Task<IReadOnlyList<TelegramBotReplies.ConnectionLine>> ConnectionsAsync(long chatId, CancellationToken cancellationToken)
+    {
+        List<TelegramBotReplies.ConnectionLine> lines = [];
+        await TenantScopes.ForEachTenantAsync(_services, async (scope, tenantId, ct) =>
+        {
+            WmsDbContext db = scope.GetRequiredService<WmsDbContext>();
+            var found = await db.TelegramLinks.AsNoTracking()
+                .Where(l => l.ChatId == chatId && l.IsActive && l.UserProfile != null)
+                .Select(l => new { FullName = l.UserProfile!.FullName, l.MutedTypes })
+                .FirstOrDefaultAsync(ct);
+            if (found is null) return;
+
+            string tenantName = await db.Tenants.AsNoTracking().Where(t => t.Id == tenantId).Select(t => t.Name).FirstAsync(ct);
+            int muted = found.MutedTypes?.Split(',', StringSplitOptions.RemoveEmptyEntries).Length ?? 0;
+            lines.Add(new TelegramBotReplies.ConnectionLine(tenantName, found.FullName, muted));
+        }, _logger, cancellationToken);
+
+        return lines;
+    }
+
+    /// <summary>Bloklandi yoki <c>/stop</c> — chat ulangan BARCHA tenantlarda uziladi (kam hodisa; N ta scope maqbul).</summary>
     private async Task DeactivateAsync(long chatId, CancellationToken cancellationToken)
     {
         int deactivated = 0;
@@ -171,7 +209,7 @@ public sealed class TelegramUpdateHandler : ITelegramUpdateHandler
 
     private async Task ReplyAsync(long chatId, string text, CancellationToken cancellationToken)
     {
-        TelegramSendResult result = await _telegram.SendMessageAsync(chatId, text, cancellationToken);
+        TelegramSendResult result = await _telegram.SendMessageAsync(chatId, text, null, cancellationToken);
         if (!result.Ok)
             _logger.LogInformation("Telegram: javob yuborilmadi (HTTP {StatusCode}: {Description})", result.StatusCode, result.Description);
     }

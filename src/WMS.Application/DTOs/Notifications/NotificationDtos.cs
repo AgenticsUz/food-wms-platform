@@ -41,6 +41,21 @@ public class TelegramStatusDto
 
     /// <summary>O'chirilgan bildirishnoma turlari (TG3).</summary>
     public string[] MutedTypes { get; set; } = [];
+
+    /// <summary>Kunlik xulosa yoqiqmi (TG11).</summary>
+    public bool Digest { get; set; }
+}
+
+/// <summary><c>PUT /api/me/telegram/digest</c> tanasi.</summary>
+public class SetTelegramDigestDto
+{
+    public bool Enabled { get; set; }
+}
+
+/// <summary><c>PUT /api/me/telegram/muted</c> tanasi — <c>NotificationType</c> nomlari.</summary>
+public class SetTelegramMutedDto
+{
+    public string[]? Types { get; set; }
 }
 
 /// <summary><c>POST /api/me/telegram/link-token</c>: havola va uning muddati.</summary>

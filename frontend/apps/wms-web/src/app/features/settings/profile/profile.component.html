@@ -42,6 +42,36 @@
             @if (tg.linkedAt) { · {{ tg.linkedAt | date: 'dd.MM.yyyy HH:mm' }} }
           </span>
         </div>
+        @if (muteGroups.length > 0) {
+          <h4 class="mute-title">{{ t('settings.telegramMutedTitle') }}</h4>
+          <p class="section-hint mute-hint">{{ t('settings.telegramMutedHint') }}</p>
+          <div class="mute-groups" [class.saving]="savingMuted()">
+            @for (group of muteGroups; track group.key) {
+              <label class="mute-item" [for]="'mute-' + group.permission">
+                <p-checkbox
+                  [inputId]="'mute-' + group.permission"
+                  [binary]="true"
+                  [ngModel]="isGroupOn(group)"
+                  (ngModelChange)="toggleGroup(group, $event)"
+                  [disabled]="savingMuted()"
+                />
+                <span>{{ t(group.key) }}</span>
+              </label>
+            }
+            @if (session.can('dashboard.view')) {
+              <label class="mute-item" for="mute-digest">
+                <p-checkbox
+                  inputId="mute-digest"
+                  [binary]="true"
+                  [ngModel]="digest()"
+                  (ngModelChange)="toggleDigest($event)"
+                  [disabled]="savingMuted()"
+                />
+                <span>{{ t('settings.telegramDigest') }}</span>
+              </label>
+            }
+          </div>
+        }
         <div class="form-actions">
           <p-button
             [label]="t('settings.telegramUnlink')"

@@ -25,4 +25,12 @@ public interface INotificationService
     /// </remarks>
     Task<Notification> CreateAsync(Guid? userId, string title, string message,
         NotificationType type, string? entityType = null, Guid? entityId = null);
+
+    /// <summary>
+    /// Tarjima qilinadigan bildirishnoma (TG4): sarlavha va matn — <c>Translations</c> kalitlari,
+    /// argumentlar TAYYOR satrlar (raqam va sana chaqiruvchida formatlanadi). Ilova so'rov tilida,
+    /// Telegram ulanish tilida ko'rsatadi.
+    /// </summary>
+    Task<Notification> NotifyAsync(Guid? userId, string titleKey, string messageTemplate, string?[] messageArgs,
+        NotificationType type, string? entityType = null, Guid? entityId = null);
 }

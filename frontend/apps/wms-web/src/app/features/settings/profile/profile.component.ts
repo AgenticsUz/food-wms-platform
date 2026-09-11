@@ -3,7 +3,9 @@ import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal, type On
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { LanguageService } from '@agentics/i18n';
+import { FormsModule } from '@angular/forms';
 import { Button } from 'primeng/button';
+import { Checkbox } from 'primeng/checkbox';
 import { InputText } from 'primeng/inputtext';
 import { Subscription, switchMap, takeWhile, timer } from 'rxjs';
 
@@ -15,6 +17,23 @@ import { SettingsService } from '../settings.service';
 
 /** Ulanishni kutishda holat necha soniyada qayta so'raladi. */
 const LINK_POLL_MS = 3000;
+
+/**
+ * O'chirgich guruhlari (TG3): tur nomlari backend `NotificationType` bilan bir xil.
+ * Guruh faqat tegishli ruxsati borga ko'rsatiladi — server baribir shu ruxsat bo'yicha filtrlaydi.
+ */
+interface MuteGroup {
+  readonly key: string;
+  readonly permission: string;
+  readonly types: readonly string[];
+}
+
+const MUTE_GROUPS: readonly MuteGroup[] = [
+  { key: 'settings.telegramGroupWarehouse', permission: 'warehouse.view', types: ['LowStock', 'BatchExpiring', 'BatchExpired'] },
+  { key: 'settings.telegramGroupTransfers', permission: 'transfers.view', types: ['TransferConfirmed', 'TransferRejected', 'ReturnReceived'] },
+  { key: 'settings.telegramGroupProduction', permission: 'production.view', types: ['ProductionStarted', 'ProductionCompleted'] },
+  { key: 'settings.telegramGroupSubscription', permission: 'settings.modules', types: ['SubscriptionWarning', 'SubscriptionSuspended', 'LimitWarning'] },
+];
 
 /**
  * Mening profilim (D5).
@@ -31,7 +50,7 @@ const LINK_POLL_MS = 3000;
  */
 @Component({
   selector: 'app-profile',
-  imports: [Button, InputText, PageHeaderComponent, TranslocoDirective, DatePipe],
+  imports: [Button, Checkbox, FormsModule, InputText, PageHeaderComponent, TranslocoDirective, DatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss',
@@ -51,10 +70,53 @@ export default class ProfileComponent implements OnInit {
   readonly pendingLink = signal<string | null>(null);
   readonly linkExpired = signal(false);
 
+  /** O'chirilgan turlar — server holatidan; checkbox o'zgarganda darhol saqlanadi. */
+  readonly muted = signal<readonly string[]>([]);
+  readonly savingMuted = signal(false);
+  /** Kunlik xulosa (TG11) — faqat `dashboard.view` bo'lganga ko'rsatiladi. */
+  readonly digest = signal(false);
+
   private pollSubscription: Subscription | null = null;
 
   ngOnInit(): void {
     this.loadStatus();
+  }
+
+  /** Foydalanuvchining ruxsati bor guruhlar. */
+  get muteGroups(): readonly MuteGroup[] {
+    return MUTE_GROUPS.filter((g) => this.session.can(g.permission));
+  }
+
+  /** Guruh yoqiqmi — guruhdagi birorta tur ham o'chirilmagan bo'lsa. */
+  isGroupOn(group: MuteGroup): boolean {
+    const muted = this.muted();
+    return !group.types.some((t) => muted.includes(t));
+  }
+
+  toggleDigest(on: boolean): void {
+    this.digest.set(on);
+    this.savingMuted.set(true);
+    this.settingsService.setTelegramDigest(on).subscribe({
+      next: () => this.savingMuted.set(false),
+      error: () => {
+        this.savingMuted.set(false);
+        this.loadStatus();
+      },
+    });
+  }
+
+  toggleGroup(group: MuteGroup, on: boolean): void {
+    const without = this.muted().filter((t) => !group.types.includes(t));
+    const next = on ? without : [...without, ...group.types];
+    this.muted.set(next);
+    this.savingMuted.set(true);
+    this.settingsService.setTelegramMuted(next).subscribe({
+      next: () => this.savingMuted.set(false),
+      error: () => {
+        this.savingMuted.set(false);
+        this.loadStatus();
+      },
+    });
   }
 
   connect(): void {
@@ -88,7 +150,11 @@ export default class ProfileComponent implements OnInit {
 
   private loadStatus(): void {
     this.settingsService.getTelegram().subscribe((res) => {
-      if (res.success && res.data) this.telegram.set(res.data);
+      if (res.success && res.data) {
+        this.telegram.set(res.data);
+        this.muted.set(res.data.mutedTypes);
+        this.digest.set(res.data.digest);
+      }
     });
   }
 
@@ -109,6 +175,8 @@ export default class ProfileComponent implements OnInit {
         next: (res) => {
           if (!res.success || !res.data?.linked) return;
           this.telegram.set(res.data);
+          this.muted.set(res.data.mutedTypes);
+          this.digest.set(res.data.digest);
           this.pendingLink.set(null);
           this.pollSubscription?.unsubscribe();
           this.notify.success(this.language.translate('common.success'));

@@ -22,6 +22,9 @@ public enum TelegramUpdateKind
 
     /// <summary>Bloklash bekor qilindi — foydalanuvchi qayta <c>/start</c> qiladi, hech narsa qilinmaydi.</summary>
     Unblocked = 5,
+
+    /// <summary>Inline tugma bosildi (<c>callback_query</c>) — TG9.</summary>
+    CallbackQuery = 6,
 }
 
 /// <summary>
@@ -32,6 +35,9 @@ public enum TelegramUpdateKind
 /// <param name="LanguageCode">Telegram interfeys tili, xom (<c>ru</c>, <c>uz</c>, <c>en-US</c> …).</param>
 /// <param name="Command">Buyruq nomi <c>/</c> siz va <c>@bot</c> siz (<c>start</c>, <c>help</c>).</param>
 /// <param name="Payload">Buyruqdan keyingi matn (<c>/start &lt;token&gt;</c> dagi token).</param>
+/// <param name="CallbackId">Tugma bosilishining id'si — <c>answerCallbackQuery</c> uchun.</param>
+/// <param name="CallbackData">Tugmaning <c>callback_data</c> si (<c>tc:&lt;id&gt;</c>).</param>
+/// <param name="MessageId">Tugma turgan xabar — navbat qatori shu bilan topiladi.</param>
 public sealed record TelegramUpdate(
     long UpdateId,
     TelegramUpdateKind Kind,
@@ -43,7 +49,10 @@ public sealed record TelegramUpdate(
     string? LanguageCode,
     string? Command,
     string? Payload,
-    string? Text);
+    string? Text,
+    string? CallbackId = null,
+    string? CallbackData = null,
+    long? MessageId = null);
 
 /// <summary>
 /// Telegram JSON'ini o'qiydi — SOF funksiya, tarmoqqa tegmaydi.
@@ -55,6 +64,8 @@ public sealed record TelegramUpdate(
 /// </remarks>
 public static class TelegramUpdateReader
 {
+    private static readonly TelegramUpdate Empty = new(0, TelegramUpdateKind.Unknown, 0, false, null, null, null, null, null, null, null);
+
     public static TelegramUpdate Read(JsonElement update)
     {
         long updateId = update.ValueKind == JsonValueKind.Object
@@ -63,22 +74,19 @@ public static class TelegramUpdateReader
             ? parsedId
             : 0;
 
-        if (TryMessage(update, out JsonElement message))
-        {
+        if (TryObject(update, "message", out JsonElement message))
             return ReadMessage(updateId, message);
-        }
 
-        return ReadChatMember(updateId, update)
-               ?? new TelegramUpdate(updateId, TelegramUpdateKind.Unknown, 0, false, null, null, null, null, null, null, null);
+        if (TryObject(update, "callback_query", out JsonElement callback))
+            return ReadCallback(updateId, callback);
+
+        return ReadChatMember(updateId, update) ?? Empty with { UpdateId = updateId };
     }
 
     private static TelegramUpdate ReadMessage(long updateId, JsonElement message)
     {
         (long chatId, bool isPrivate) = Chat(message);
-        if (chatId == 0)
-        {
-            return new TelegramUpdate(updateId, TelegramUpdateKind.Unknown, 0, false, null, null, null, null, null, null, null);
-        }
+        if (chatId == 0) return Empty with { UpdateId = updateId };
 
         (long? fromId, string? username, string? firstName, string? lang) = From(message);
 
@@ -104,24 +112,45 @@ public static class TelegramUpdateReader
             chatId, isPrivate, fromId, username, firstName, lang, null, null, text);
     }
 
-    private static bool TryMessage(JsonElement update, out JsonElement message)
+    /// <summary><c>callback_query</c>: kim bosdi (<c>from</c>), qaysi xabarda (<c>message</c>), nima (<c>data</c>).</summary>
+    private static TelegramUpdate ReadCallback(long updateId, JsonElement callback)
     {
-        if (update.ValueKind == JsonValueKind.Object
-            && update.TryGetProperty("message", out message)
-            && message.ValueKind == JsonValueKind.Object)
+        string? callbackId = callback.TryGetProperty("id", out JsonElement idElement) ? idElement.GetString() : null;
+        string? data = callback.TryGetProperty("data", out JsonElement dataElement) ? dataElement.GetString() : null;
+        (long? fromId, string? username, string? firstName, string? lang) = From(callback);
+
+        long chatId = 0;
+        bool isPrivate = false;
+        long? messageId = null;
+        if (TryObject(callback, "message", out JsonElement message))
+        {
+            (chatId, isPrivate) = Chat(message);
+            messageId = message.TryGetProperty("message_id", out JsonElement mid) && mid.TryGetInt64(out long parsed) ? parsed : null;
+        }
+
+        if (callbackId is null || chatId == 0) return Empty with { UpdateId = updateId };
+
+        return new TelegramUpdate(updateId, TelegramUpdateKind.CallbackQuery, chatId, isPrivate, fromId, username, firstName, lang,
+            null, null, null, callbackId, data, messageId);
+    }
+
+    private static bool TryObject(JsonElement parent, string name, out JsonElement value)
+    {
+        if (parent.ValueKind == JsonValueKind.Object
+            && parent.TryGetProperty(name, out value)
+            && value.ValueKind == JsonValueKind.Object)
         {
             return true;
         }
 
-        message = default;
+        value = default;
         return false;
     }
 
     /// <summary><c>my_chat_member</c>: <c>kicked</c>/<c>left</c> — bloklandi; <c>member</c> — qaytdi.</summary>
     private static TelegramUpdate? ReadChatMember(long updateId, JsonElement update)
     {
-        if (update.ValueKind != JsonValueKind.Object
-            || !update.TryGetProperty("my_chat_member", out JsonElement member)
+        if (!TryObject(update, "my_chat_member", out JsonElement member)
             || !member.TryGetProperty("new_chat_member", out JsonElement status)
             || !status.TryGetProperty("status", out JsonElement state))
         {
@@ -153,9 +182,9 @@ public static class TelegramUpdateReader
         return (chatId, isPrivate);
     }
 
-    private static (long? Id, string? Username, string? FirstName, string? Lang) From(JsonElement message)
+    private static (long? Id, string? Username, string? FirstName, string? Lang) From(JsonElement container)
     {
-        if (!message.TryGetProperty("from", out JsonElement from))
+        if (!container.TryGetProperty("from", out JsonElement from))
         {
             return (null, null, null, null);
         }

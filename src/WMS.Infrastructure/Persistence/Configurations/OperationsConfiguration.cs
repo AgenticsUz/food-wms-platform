@@ -92,6 +92,8 @@ internal sealed class NotificationConfiguration : IEntityTypeConfiguration<Notif
     {
         builder.Property(n => n.Title).HasMaxLength(200).IsRequired();
         builder.Property(n => n.Message).HasMaxLength(2000).IsRequired();
+        builder.Property(n => n.MessageTemplate).HasMaxLength(300);
+        builder.Property(n => n.MessageArgs).HasMaxLength(2000);
         builder.Property(n => n.EntityType).HasMaxLength(64);
         builder.HasOne(n => n.User).WithMany().HasForeignKey(n => n.UserId).OnDelete(DeleteBehavior.Cascade);
         builder.HasIndex(n => new { n.TenantId, n.UserId, n.IsRead });

@@ -35,4 +35,22 @@ public sealed class MeTelegramController : BaseController
         await _links.UnlinkAsync(UserId, cancellationToken);
         return Ok(ApiResponse<object>.Ok(null!, "Telegram disconnected"));
     }
+
+    /// <summary>O'chirilgan turlar ro'yxati (TG3) — to'plamni almashtiradi; bo'sh — hammasi yoqiq.</summary>
+    [HttpPut("muted")]
+    public async Task<IActionResult> SetMuted([FromBody] SetTelegramMutedDto dto, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(dto);
+        await _links.SetMutedTypesAsync(UserId, dto.Types ?? [], cancellationToken);
+        return Ok(ApiResponse<object>.Ok(null!, "Saved"));
+    }
+
+    /// <summary>Kunlik xulosa (TG11).</summary>
+    [HttpPut("digest")]
+    public async Task<IActionResult> SetDigest([FromBody] SetTelegramDigestDto dto, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(dto);
+        await _links.SetDigestAsync(UserId, dto.Enabled, cancellationToken);
+        return Ok(ApiResponse<object>.Ok(null!, "Saved"));
+    }
 }

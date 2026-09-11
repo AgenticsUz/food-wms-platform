@@ -47,8 +47,8 @@ public class TelegramLink : TenantEntity
     /// </summary>
     public string? MutedTypes { get; set; }
 
-    /// <summary>Kunlik xulosa (TG11).</summary>
-    public bool Digest { get; set; }
+    /// <summary>Kunlik xulosa (TG11). Sukut yoqiq — qabul qiluvchi baribir `dashboard.view` bilan cheklanadi.</summary>
+    public bool Digest { get; set; } = true;
 }
 
 /// <summary>
@@ -116,6 +116,19 @@ public class TelegramOutbox : BaseEntity
     public string? LastError { get; set; }
 
     public DateTime? SentAt { get; set; }
+
+    /// <summary>Qator turi: xabar yoki mavjud xabarning tugmalarini olib tashlash (TG9).</summary>
+    public TelegramOutboxKind Kind { get; set; } = TelegramOutboxKind.Message;
+
+    /// <summary>Inline tugmalar — tayyor <c>reply_markup</c> JSON (TG9); yo'q — oddiy xabar.</summary>
+    public string? ReplyMarkup { get; set; }
+
+    /// <summary>
+    /// Yuborilgan xabarning Telegram id'si (<see cref="TelegramOutboxKind.Message"/>) yoki tahrirlanadigan
+    /// xabar (<see cref="TelegramOutboxKind.RemoveButtons"/>). Tugma bosilganda navbat qatori
+    /// <c>(chat_id, message_id)</c> bo'yicha topiladi — tenant va aktor shundan.
+    /// </summary>
+    public long? MessageId { get; set; }
 
     /// <summary>Orqaga chekinish: 1, 2, 4, 8 daqiqa (Wash <c>BackoffFor</c>).</summary>
     public static TimeSpan BackoffFor(int attempt) =>

@@ -66,6 +66,9 @@ public sealed class TelegramPollingBackgroundService : BackgroundService
                 IReadOnlyList<TelegramUpdate> updates =
                     await _telegram.GetUpdatesAsync(offset, Math.Max(1, _options.LongPollTimeoutSeconds), stoppingToken);
 
+                _outageSince = null;
+                _outageReported = false;
+
                 foreach (TelegramUpdate update in updates)
                 {
                     // Offset AVVAL suriladi: buzuq yangilanish qayta-qayta o'qilmasin.
@@ -85,6 +88,7 @@ public sealed class TelegramPollingBackgroundService : BackgroundService
                 // (HttpRequestException xabarida manzil bo'lishi mumkin).
                 string reason = ex is InvalidOperationException ? ex.Message : ex.GetType().Name;
                 _logger.LogWarning("Telegram polling xatosi: {Reason} — {Delay}s dan keyin qayta", reason, retryDelay.TotalSeconds);
+                await ReportOutageAsync(reason, stoppingToken);
                 await Task.Delay(retryDelay, stoppingToken);
             }
         }
@@ -105,14 +109,38 @@ public sealed class TelegramPollingBackgroundService : BackgroundService
 
         // Buyruqlar menyusi KODDAN (BotFather'da qo'lda qo'yilmaydi — ikki manba bo'lardi). Tilsiz
         // ro'yxat — sukut (uz); Telegram foydalanuvchining tiliga qarab tanlaydi.
-        TelegramBotCommand[] uz = [new("start", "Ulash"), new("help", "Yordam")];
-        TelegramBotCommand[] ru = [new("start", "Подключить"), new("help", "Помощь")];
+        TelegramBotCommand[] uz = [new("start", "Ulash"), new("status", "Qayerga ulanganman"), new("stop", "Uzish"), new("help", "Yordam")];
+        TelegramBotCommand[] ru = [new("start", "Подключить"), new("status", "Где я подключён"), new("stop", "Отключить"), new("help", "Помощь")];
         await _telegram.SetMyCommandsAsync(uz, null, cancellationToken);
         await _telegram.SetMyCommandsAsync(uz, "uz", cancellationToken);
         await _telegram.SetMyCommandsAsync(ru, "ru", cancellationToken);
 
         _logger.LogInformation("Telegram bot @{Bot} ishga tushdi (polling)", me.Username);
+
+        // Platforma egasiga (TG17): API qayta ko'tarildi — deploy yoki yiqilish belgisi.
+        await using (AsyncServiceScope scope = _scopeFactory.CreateAsyncScope())
+        {
+            await scope.ServiceProvider.GetRequiredService<IOpsNotifier>().SendAsync(
+                $"🟢 wms-api ishga tushdi — @{me.Username}, {Environment.MachineName}, {DateTime.UtcNow:dd.MM.yyyy HH:mm} UTC", null, cancellationToken);
+        }
+
         return true;
+    }
+
+    private DateTime? _outageSince;
+    private bool _outageReported;
+    private static readonly TimeSpan OutageThreshold = TimeSpan.FromMinutes(5);
+
+    /// <summary>Polling 5 daqiqadan ko'p uzilsa — egaga BIR marta (TG17); tiklanganda hisob nolga.</summary>
+    private async Task ReportOutageAsync(string reason, CancellationToken cancellationToken)
+    {
+        _outageSince ??= DateTime.UtcNow;
+        if (_outageReported || DateTime.UtcNow - _outageSince < OutageThreshold) return;
+        _outageReported = true;
+
+        await using AsyncServiceScope scope = _scopeFactory.CreateAsyncScope();
+        await scope.ServiceProvider.GetRequiredService<IOpsNotifier>().SendAsync(
+            $"🔴 Telegram polling {OutageThreshold.TotalMinutes} daqiqadan beri uzilgan: {System.Net.WebUtility.HtmlEncode(reason)}", null, cancellationToken);
     }
 
     private async Task HandleOneAsync(TelegramUpdate update, CancellationToken cancellationToken)

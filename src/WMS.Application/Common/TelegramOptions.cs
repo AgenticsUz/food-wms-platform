@@ -33,5 +33,28 @@ public class TelegramOptions
     /// <summary>Telegram tili <c>uz</c>/<c>ru</c> bo'lmasa bot shu tilda gapiradi.</summary>
     public string DefaultLanguage { get; set; } = "uz";
 
+    /// <summary>
+    /// Platforma egasining chati (TG17): yangi tenant, obuna hodisalari, navbat/polling nosozliklari,
+    /// API start. Bo'sh — o'chiq. Tenant ma'lumoti (mahsulot, summa) bu kanalga BORMAYDI.
+    /// </summary>
+    public long? OpsChatId { get; set; }
+
+    /// <summary>Kunlik xulosa soati, Toshkent vaqti (TG11).</summary>
+    public int DigestHour { get; set; } = 8;
+
+    /// <summary>
+    /// Tinch soatlar, Toshkent vaqti (TG11): oddiy (shoshilinch bo'lmagan) xabarlar
+    /// <see cref="QuietFromHour"/> dan <see cref="QuietToHour"/> gacha ushlab turiladi. Teng bo'lsa — o'chiq.
+    /// </summary>
+    public int QuietFromHour { get; set; } = 22;
+    public int QuietToHour { get; set; } = 7;
+
+    /// <summary>
+    /// wms-web manzili (<c>https://wms.agentics.uz</c>) — xabardagi «Ochish» havolasi uchun.
+    /// So'rov <c>Host</c> idan olinmaydi: fon xizmatida so'rov yo'q, nginx orqasida esa u ichki nom.
+    /// Bo'sh — havola qo'yilmaydi.
+    /// </summary>
+    public string? WebUrl { get; set; }
+
     public bool IsConfigured => !string.IsNullOrWhiteSpace(BotToken);
 }

@@ -33,6 +33,107 @@ public static class Translations
         ["Insufficient stock for input '{0}' (short by {1})"] = [
             "'{0}' xomashyosi yetarli emas ({1} yetishmaydi)",
             "Недостаточно сырья '{0}' (не хватает {1})"],
+        // ── Bildirishnomalar (TG4): sarlavha va matn kalitlari — NotificationMessages ──
+        ["Transfer Confirmed"] = ["Transfer tasdiqlandi", "Перемещение подтверждено"],
+        ["Transfer Rejected"] = ["Transfer rad etildi", "Перемещение отклонено"],
+        ["Return Received"] = ["Qaytarish qabul qilindi", "Возврат принят"],
+        ["Low Stock Alert"] = ["Zaxira kam", "Мало на складе"],
+        ["Batch Expired"] = ["Partiya muddati o'tdi", "Срок партии истёк"],
+        ["Batch Expiring"] = ["Partiya muddati tugayapti", "Срок партии истекает"],
+        ["Production Started"] = ["Ishlab chiqarish boshlandi", "Производство начато"],
+        ["Production Completed"] = ["Ishlab chiqarish yakunlandi", "Производство завершено"],
+        ["Incoming from {0} ({1}) confirmed. Amount: {2}"] = [
+            "{0} dan kirim ({1}) tasdiqlandi. Summa: {2}",
+            "Приход от {0} ({1}) подтверждён. Сумма: {2}"],
+        ["Sale to {0} ({1}) confirmed. Amount: {2}"] = [
+            "{0} ga sotuv ({1}) tasdiqlandi. Summa: {2}",
+            "Продажа {0} ({1}) подтверждена. Сумма: {2}"],
+        ["Internal transfer {0} → {1} ({2}) confirmed"] = [
+            "Ichki ko'chirish {0} → {1} ({2}) tasdiqlandi",
+            "Внутреннее перемещение {0} → {1} ({2}) подтверждено"],
+        ["Return from {0} ({1}) received. Amount: {2}"] = [
+            "{0} dan qaytarish ({1}) qabul qilindi. Summa: {2}",
+            "Возврат от {0} ({1}) принят. Сумма: {2}"],
+        ["Transfer {0} ({1}) rejected"] = ["Transfer {0} ({1}) rad etildi", "Перемещение {0} ({1}) отклонено"],
+        ["{0}: {1} {2} left, minimum {3}"] = ["{0}: {1} {2} qoldi, minimum {3}", "{0}: осталось {1} {2}, минимум {3}"],
+        ["Batch {0} of {1} has expired"] = ["{1} — {0} partiyasi muddati o'tdi", "{1} — срок партии {0} истёк"],
+        ["Batch {0} of {1} expires on {2}"] = ["{1} — {0} partiyasi muddati {2} da tugaydi", "{1} — срок партии {0} истекает {2}"],
+        ["Order {0} ({1}) started. Responsible: {2}"] = [
+            "{0} buyurtmasi ({1}) boshlandi. Javobgar: {2}",
+            "Заказ {0} ({1}) начат. Ответственный: {2}"],
+        ["Order {0} ({1}) completed. Output: {2} {3}"] = [
+            "{0} buyurtmasi ({1}) yakunlandi. Chiqish: {2} {3}",
+            "Заказ {0} ({1}) завершён. Выпуск: {2} {3}"],
+        ["Open"] = ["Ochish", "Открыть"],
+        ["Transfer Awaiting Confirmation"] = ["Transfer tasdiq kutmoqda", "Перемещение ожидает подтверждения"],
+        ["Production Order Created"] = ["Ishlab chiqarish buyurtmasi yaratildi", "Создан производственный заказ"],
+        ["Incoming from {0} ({1}), amount {2}, created by {3}"] = [
+            "{0} dan kirim ({1}), summa {2}, yaratdi: {3}",
+            "Приход от {0} ({1}), сумма {2}, создал: {3}"],
+        ["Sale to {0} ({1}), amount {2}, created by {3}"] = [
+            "{0} ga sotuv ({1}), summa {2}, yaratdi: {3}",
+            "Продажа {0} ({1}), сумма {2}, создал: {3}"],
+        ["Internal transfer {0} → {1} ({2}), created by {3}"] = [
+            "Ichki ko'chirish {0} → {1} ({2}), yaratdi: {3}",
+            "Внутреннее перемещение {0} → {1} ({2}), создал: {3}"],
+        ["Return from {0} ({1}), amount {2}, created by {3}"] = [
+            "{0} dan qaytarish ({1}), summa {2}, yaratdi: {3}",
+            "Возврат от {0} ({1}), сумма {2}, создал: {3}"],
+        ["Order {0} ({1}) is planned. Quantity: {2} {3}"] = [
+            "{0} buyurtmasi ({1}) rejalashtirildi. Miqdor: {2} {3}",
+            "Заказ {0} ({1}) запланирован. Количество: {2} {3}"],
+
+        // ── Kunlik xulosa (TG11) ──
+        ["Daily summary — {0}"] = ["Kunlik xulosa — {0}", "Сводка за день — {0}"],
+        ["Transfers awaiting confirmation: {0}"] = ["Tasdiq kutayotgan transferlar: {0}", "Перемещений в ожидании подтверждения: {0}"],
+        ["Active production orders: {0}"] = ["Faol ishlab chiqarish buyurtmalari: {0}", "Активных производственных заказов: {0}"],
+        ["Low-stock products: {0}"] = ["Zaxirasi kam mahsulotlar: {0}", "Товаров с низким запасом: {0}"],
+        ["Batches expiring within {0} days: {1}"] = ["{0} kun ichida muddati tugaydigan partiyalar: {1}", "Партий с истекающим сроком ({0} дн.): {1}"],
+        ["Total receivables: {0}"] = ["Jami qarzdorlik: {0}", "Общая дебиторская задолженность: {0}"],
+        ["Largest debtors:"] = ["Eng katta qarzdorlar:", "Крупнейшие должники:"],
+
+        // ── Telegram tugmalari va javoblari (TG9) ──
+        ["✅ Confirm"] = ["✅ Tasdiqlash", "✅ Подтвердить"],
+        ["❌ Reject"] = ["❌ Rad etish", "❌ Отклонить"],
+        ["▶️ Start"] = ["▶️ Boshlash", "▶️ Начать"],
+        ["✅ Confirmed by {0}, {1}"] = ["✅ Tasdiqladi: {0}, {1}", "✅ Подтвердил(а): {0}, {1}"],
+        ["❌ Rejected by {0}, {1}"] = ["❌ Rad etdi: {0}, {1}", "❌ Отклонил(а): {0}, {1}"],
+        ["▶️ Started by {0}, {1}"] = ["▶️ Boshladi: {0}, {1}", "▶️ Начал(а): {0}, {1}"],
+        ["Already processed by someone else."] = ["Allaqachon boshqa odam bajargan.", "Уже выполнено кем-то другим."],
+        ["You do not have permission for this action."] = ["Bu amal uchun ruxsatingiz yo'q.", "У вас нет права на это действие."],
+        ["This button has expired."] = ["Bu tugma eskirgan.", "Эта кнопка устарела."],
+        ["Only pending transfers can be confirmed"] = [
+            "Faqat kutilayotgan transferni tasdiqlash mumkin", "Подтвердить можно только ожидающее перемещение"],
+        ["Only pending transfers can be rejected"] = [
+            "Faqat kutilayotgan transferni rad etish mumkin", "Отклонить можно только ожидающее перемещение"],
+        ["Only draft orders can be started"] = [
+            "Faqat qoralama buyurtmani boshlash mumkin", "Начать можно только черновой заказ"],
+        ["Subscription Expiring"] = ["Obuna muddati tugayapti", "Срок подписки истекает"],
+        ["Account Suspended"] = ["Hisob to'xtatildi", "Аккаунт приостановлен"],
+        ["Plan Limit"] = ["Tarif limiti", "Лимит тарифа"],
+        ["Your trial ends on {0}. Choose a plan to continue."] = [
+            "Sinov muddati {0} da tugaydi. Davom etish uchun tarif tanlang.",
+            "Пробный период заканчивается {0}. Выберите тариф, чтобы продолжить."],
+        ["Your paid period ends on {0}. Contact us to renew."] = [
+            "To'lov muddati {0} da tugaydi. Uzaytirish uchun biz bilan bog'laning.",
+            "Оплаченный период заканчивается {0}. Свяжитесь с нами для продления."],
+        ["Your account is suspended for non-payment. Contact us to restore access."] = [
+            "Hisobingiz to'lov qilinmagani uchun to'xtatildi. Tiklash uchun biz bilan bog'laning.",
+            "Аккаунт приостановлен из-за неоплаты. Свяжитесь с нами для восстановления доступа."],
+
+        // ── Telegram bot buyruqlari (TG6) ──
+        ["You are not connected to any organization. Open your WMS profile → Connect Telegram."] = [
+            "Hech qaysi tashkilotga ulanmagansiz. WMS profilingiz → Telegram'ga ulash.",
+            "Вы не подключены ни к одной организации. Профиль WMS → Подключить Telegram."],
+        ["Connected organizations:"] = ["Ulangan tashkilotlar:", "Подключённые организации:"],
+        ["{0} notification type(s) muted"] = ["{0} tur o'chirilgan", "отключено типов: {0}"],
+        ["Disconnected from all organizations. To reconnect, open your WMS profile."] = [
+            "Barcha tashkilotlardan uzildingiz. Qayta ulash — WMS profilingizdan.",
+            "Отключено от всех организаций. Чтобы подключиться снова, откройте профиль WMS."],
+        ["Commands: /status — where you are connected, /stop — disconnect, /help — this message."] = [
+            "Buyruqlar: /status — qayerga ulangansiz, /stop — uzish, /help — shu xabar.",
+            "Команды: /status — где вы подключены, /stop — отключить, /help — это сообщение."],
+
         // ── Telegram bot (TG1): API xabarlari va botning o'z javoblari (HTML) ──
         ["Telegram bot is not configured"] = [
             "Telegram bot hali sozlanmagan",

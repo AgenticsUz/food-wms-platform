@@ -12,9 +12,10 @@ public sealed record TelegramBotCommand(string Command, string Description);
 /// <param name="StatusCode">HTTP kodi; tarmoq xatosida 0.</param>
 /// <param name="RetryAfterSeconds">429 dagi <c>parameters.retry_after</c>.</param>
 /// <param name="Description">Telegram <c>description</c> yoki istisno TURI (matni emas — unda manzil bo'lishi mumkin).</param>
-public sealed record TelegramSendResult(bool Ok, int StatusCode, int? RetryAfterSeconds, string? Description)
+/// <param name="MessageId">Yuborilgan xabarning id'si — tugmali xabarni keyin tahrirlash uchun (TG9).</param>
+public sealed record TelegramSendResult(bool Ok, int StatusCode, int? RetryAfterSeconds, string? Description, long? MessageId = null)
 {
-    public static TelegramSendResult Success() => new(true, 200, null, null);
+    public static TelegramSendResult Success(long? messageId) => new(true, 200, null, null, messageId);
 
     /// <summary>Foydalanuvchi botni bloklagan yoki chat yo'q — qayta urinish befoyda, ulanish uziladi.</summary>
     public bool IsChatGone =>
@@ -41,7 +42,17 @@ public interface ITelegramService
     Task<TelegramBotInfo> GetMeAsync(CancellationToken cancellationToken);
 
     /// <summary>HTML rejimida yuboradi. Istisno tashlamaydi — natija qaytaradi.</summary>
-    Task<TelegramSendResult> SendMessageAsync(long chatId, string text, CancellationToken cancellationToken);
+    /// <param name="replyMarkupJson">Inline tugmalar (<c>reply_markup</c> JSON) yoki <see langword="null"/>.</param>
+    Task<TelegramSendResult> SendMessageAsync(long chatId, string text, string? replyMarkupJson, CancellationToken cancellationToken);
+
+    /// <summary>Tugma bosilganiga javob (Telegram 30 s kutadi); <paramref name="showAlert"/> — modal oyna.</summary>
+    Task<bool> AnswerCallbackQueryAsync(string callbackQueryId, string? text, bool showAlert, CancellationToken cancellationToken);
+
+    /// <summary>Xabar matnini almashtiradi va tugmalarni OLIB TASHLAYDI (natija yozuvi bilan).</summary>
+    Task<bool> EditMessageTextAsync(long chatId, long messageId, string text, CancellationToken cancellationToken);
+
+    /// <summary>Faqat tugmalarni olib tashlaydi (matn qoladi) — web'dan bajarilgan amal uchun.</summary>
+    Task<bool> RemoveReplyMarkupAsync(long chatId, long messageId, CancellationToken cancellationToken);
 
     /// <summary>Long-poll (<c>getUpdates</c>); xatoda istisno tashlaydi — polling xizmati kutib qayta uradi.</summary>
     Task<IReadOnlyList<TelegramUpdate>> GetUpdatesAsync(long? offset, int timeoutSeconds, CancellationToken cancellationToken);

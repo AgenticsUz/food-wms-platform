@@ -12,12 +12,15 @@ public class WarehouseService : IWarehouseService
 {
     private readonly WmsDbContext _db;
     private readonly IRequestWarnings _warnings;
+    private readonly INotificationService _notifications;
     private readonly SubscriptionOptions _subscription;
 
-    public WarehouseService(WmsDbContext db, IRequestWarnings warnings, IOptions<SubscriptionOptions> subscription)
+    public WarehouseService(WmsDbContext db, IRequestWarnings warnings, IOptions<SubscriptionOptions> subscription,
+        INotificationService notifications)
     {
         _db = db;
         _warnings = warnings;
+        _notifications = notifications;
         _subscription = subscription.Value;
     }
 
@@ -41,8 +44,7 @@ public class WarehouseService : IWarehouseService
         _db.Warehouses.Add(w);
         await _db.SaveChangesAsync();
 
-        await PlanLimits.ReportUsageAsync(_db, _warnings, PlanLimits.Warehouses,
-            _subscription.LimitWarnPercent);
+        await PlanLimits.ReportUsageAsync(_db, _warnings, PlanLimits.Warehouses, _subscription.LimitWarnPercent, _notifications);
 
         return new WarehouseDto { Id = w.Id, Name = w.Name, Type = w.Type, Description = w.Description };
     }

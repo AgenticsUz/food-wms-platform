@@ -18,8 +18,8 @@ namespace WMS.Infrastructure.Services.Operations.Telegram;
 /// </para>
 /// <para>
 /// ⚠️ Token so'rov URI'sida (<c>/bot{token}/…</c>). Shuning uchun: nomlangan client'larning loggerlari
-/// o'chirilgan (<c>OperationsModule</c>), istisno obyekti logga BERILMAYDI (xabarida manzil bo'lishi
-/// mumkin) — faqat turi. Telegram <c>description</c> matni xavfsiz: unda token yo'q.
+/// o'chirilgan (<c>OperationsModule</c>), istisno obyekti logga BERILMAYDI — matni token yashirilgan
+/// holda. Telegram <c>description</c> matni xavfsiz: unda token yo'q.
 /// </para>
 /// </remarks>
 public sealed class TelegramService : ITelegramService
@@ -31,7 +31,11 @@ public sealed class TelegramService : ITelegramService
     public const string PollingHttpClientName = "telegram-poll";
 
     private const int MaxDescriptionLength = 300;
-    private static readonly string[] AllowedUpdates = ["message", "my_chat_member"];
+    private static readonly string[] AllowedUpdates = ["message", "my_chat_member", "callback_query"];
+    private static readonly JsonSerializerOptions BodyJson = new(JsonSerializerDefaults.Web)
+    {
+        DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
+    };
 
     private readonly IHttpClientFactory _httpFactory;
     private readonly ILogger<TelegramService> _logger;
@@ -69,17 +73,50 @@ public sealed class TelegramService : ITelegramService
         return new TelegramBotInfo(true, username, null);
     }
 
-    public async Task<TelegramSendResult> SendMessageAsync(long chatId, string text, CancellationToken cancellationToken)
+    public async Task<TelegramSendResult> SendMessageAsync(long chatId, string text, string? replyMarkupJson, CancellationToken cancellationToken)
     {
         if (!IsEnabled || chatId == 0) return new TelegramSendResult(false, 0, null, "not configured");
 
+        // reply_markup tayyor JSON (bazada shunday saqlanadi) — qayta serializatsiya qilinmasin.
         ApiCall call = await CallAsync(HttpClientName, "sendMessage",
-            new { chat_id = chatId, text, parse_mode = "HTML", disable_web_page_preview = true },
+            new SendMessageBody(chatId, text, "HTML", true, ParseMarkup(replyMarkupJson)),
             cancellationToken);
 
-        return call.Ok
-            ? TelegramSendResult.Success()
-            : new TelegramSendResult(false, call.StatusCode, call.RetryAfterSeconds, call.Description);
+        if (!call.Ok)
+            return new TelegramSendResult(false, call.StatusCode, call.RetryAfterSeconds, call.Description);
+
+        long? messageId = call.Result.ValueKind == JsonValueKind.Object
+                          && call.Result.TryGetProperty("message_id", out JsonElement id)
+                          && id.TryGetInt64(out long parsed)
+            ? parsed
+            : null;
+        return TelegramSendResult.Success(messageId);
+    }
+
+    public async Task<bool> AnswerCallbackQueryAsync(string callbackQueryId, string? text, bool showAlert, CancellationToken cancellationToken)
+    {
+        if (!IsEnabled) return false;
+        ApiCall call = await CallAsync(HttpClientName, "answerCallbackQuery",
+            new { callback_query_id = callbackQueryId, text, show_alert = showAlert }, cancellationToken);
+        return call.Ok;
+    }
+
+    public async Task<bool> EditMessageTextAsync(long chatId, long messageId, string text, CancellationToken cancellationToken)
+    {
+        if (!IsEnabled) return false;
+        ApiCall call = await CallAsync(HttpClientName, "editMessageText",
+            new { chat_id = chatId, message_id = messageId, text, parse_mode = "HTML", disable_web_page_preview = true },
+            cancellationToken);
+        return call.Ok;
+    }
+
+    public async Task<bool> RemoveReplyMarkupAsync(long chatId, long messageId, CancellationToken cancellationToken)
+    {
+        if (!IsEnabled) return false;
+        ApiCall call = await CallAsync(HttpClientName, "editMessageReplyMarkup",
+            new { chat_id = chatId, message_id = messageId, reply_markup = new { inline_keyboard = Array.Empty<object>() } },
+            cancellationToken);
+        return call.Ok;
     }
 
     public async Task<IReadOnlyList<TelegramUpdate>> GetUpdatesAsync(long? offset, int timeoutSeconds, CancellationToken cancellationToken)
@@ -125,6 +162,28 @@ public sealed class TelegramService : ITelegramService
         return call.Ok;
     }
 
+    /// <summary><c>sendMessage</c> tanasi — <c>reply_markup</c> xom JSON element bo'lib ketadi.</summary>
+    private sealed record SendMessageBody(
+        [property: System.Text.Json.Serialization.JsonPropertyName("chat_id")] long ChatId,
+        [property: System.Text.Json.Serialization.JsonPropertyName("text")] string Text,
+        [property: System.Text.Json.Serialization.JsonPropertyName("parse_mode")] string ParseMode,
+        [property: System.Text.Json.Serialization.JsonPropertyName("disable_web_page_preview")] bool DisablePreview,
+        [property: System.Text.Json.Serialization.JsonPropertyName("reply_markup")] JsonElement? ReplyMarkup);
+
+    private static JsonElement? ParseMarkup(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return null;
+        try
+        {
+            using JsonDocument document = JsonDocument.Parse(json);
+            return document.RootElement.Clone();
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+    }
+
     /// <summary>Telegram javobi: <c>{ok, result}</c> yoki <c>{ok:false, description, parameters.retry_after}</c>.</summary>
     private sealed record ApiCall(bool Ok, JsonElement Result, int StatusCode, string? Description, int? RetryAfterSeconds);
 
@@ -137,7 +196,7 @@ public sealed class TelegramService : ITelegramService
             // ⚠️ Manzil ABSOLYUT satr sifatida yasaladi: tokenda `:` bor va nisbiy `bot123:ABC/getMe`
             // `bot123` SXEMASI deb o'qilardi (NotSupportedException; Wash'da ham shu xato — `0c05a37`).
             Uri uri = new($"{client.BaseAddress}bot{_token}/{method}");
-            using HttpResponseMessage response = await client.PostAsJsonAsync(uri, body ?? new { }, cancellationToken);
+            using HttpResponseMessage response = await client.PostAsJsonAsync(uri, body ?? new { }, BodyJson, cancellationToken);
             string raw = await response.Content.ReadAsStringAsync(cancellationToken);
             return Read(raw, (int)response.StatusCode);
         }
