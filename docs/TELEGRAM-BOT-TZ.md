@@ -863,10 +863,25 @@ muloyim eslatma to'lovni tezlashtiradi.
 | TG1 | ✅ | `telegram_link` (RLS) + `telegram_link_token` (RLS yo'q), `user_profile.telegram_chat_id` o'chdi (migratsiya `AddTelegramLinkAndOutbox`). Polling (`TelegramPollingBackgroundService`), `/start <token>`, `my_chat_member` → `is_active=false`, til `language_code` dan. `GET/POST link-token/DELETE /api/me/telegram`. Real botda tekshirildi: ulandi, token yopildi, javob ruscha (Telegram tili `ru`) |
 | TG2 | ✅ | `telegram_outbox` (RLS yo'q, `dedup_key` unique), `TelegramOutboxBackgroundService`: tenant bo'yicha scope, 1 xabar/s chat, 429/403/backoff 1-2-4-8 daqiqa, tozalash. `NotificationService` navbatga bildirishnoma bilan bitta `SaveChanges`. Tekshirildi: to'g'ridan qator va `BatchExpiryService` → «Batch Expiring» Telegram'ga yetdi |
 | TG7 | ✅ (brauzerda hali ko'rilmagan) | Profil: «Telegram'ga ulash» → havola yangi oynada, 3 s polling `expiresAt` gacha, «Ulangan · @user · sana» + «Uzish». lint/test/build toza. Brauzer sinovi — lokal stack shu branch'dan qayta qurilganda |
-| TG3 | qisman | `telegram_link.muted_types` ustuni va navbatga yozishda filtr bor; tur → ruxsat xaritasi, `PUT muted` API va UI — yo'q |
-| TG4–TG6 | — | |
+| TG3 | ✅ | `NotificationRouting.RequiredPermission`, RBAC bo'yicha qabul qiluvchilar, `muted_types`, `PUT /api/me/telegram/muted`, profilda guruh o'chirgichlari; `ReturnReceived` turi |
+| TG4 | ✅ | `message_template`/`message_args` (NotifyAsync) — ilova so'rov tilida, Telegram ulanish tilida; tenant nomi, emoji, «Ochish» (`Telegram:WebUrl`); Guid o'rniga kontragent/ombor + sana. Tekshirildi (ru) |
+| TG5 | ✅ | Trial/to'lov muddati va to'xtatish — `settings.modules` egalariga (SubscriptionExpiry 4-qadam), limit 80 % — ilova ichida ham (PlanLimits), dedupe. Tekshirildi |
+| TG6 | ✅ | `/status`, `/stop`, `/help`, buyruqlar menyusi (uz/ru) |
+| TG9 | ✅ | `TransferPending`/`ProductionPending` tugmali xabarlar (callback_query), aktor = ulanish profili, ruxsat bosilgan paytda, audit `telegram:callback`, tahrir; web'dan bajarilganda tugmalar `RemoveButtons` navbati bilan olib tashlanadi. Real botda tasdiqlandi |
+| TG10 | ✅ | `/bugun`, `/kutilmoqda` (tugmalar bilan), `/qoldiq <nom>`, `/muddat`, `/qarz`; ko'p tenantli chatda tanlov (`telegram_chat_state`, 1 soat) |
+| TG11 | ✅ | Tinch soatlar 22–07 (shoshilinch bo'lmagan xabar ertalabgacha ushlab turiladi — birlashtirilMAYDI, TZ soddalashdi), kunlik xulosa 08:00 (`digest`, `dashboard.view`), profilda o'chirgich |
+| TG14 | ✅ | `/keldim` (`AttendanceMethod.Telegram`, smena joriy vaqtdan yoki tugma), `/ketdim`, `/smena`, `/kpi`; feature va ruxsat buyruq paytida. Ertalabki «kelmaganlar» xulosasi — QILINMADI |
+| TG15 | ✅ | `/hisobot` → zaxira/transfer/moliya/kontragent Excel (`IExportService`, `sendDocument`). Haftalik avtomat hisobot — QILINMADI |
+| TG16 | ✅ | `telegram_group`: `/ulash` (admin, shaxsiy ulanish orqali), `/sozlash` (tur guruhlari), `/uzish`; umumiy bildirishnomalar guruhga ham; guruhdagi tugma — bosgan odamning shaxsiy ulanishi; kicked/403 → uziladi. So'rov buyruqlari guruhda YO'Q |
+| TG17 | ✅ | `Telegram:OpsChatId`: yangi tenant (JIT), obuna hodisalari, API start, polling 5 daqiqa uzilishi, navbatda 5+ xato, kunlik qator 09:00. Tekshirildi |
+| TG12 | ✅ (real botda hali sinalmagan) | `telegram_link.driver_id`, kartadan 24 soatlik havola (`delivery/drivers/{id}/telegram-link`), marshrut (yaratilganda, yo'lga chiqqanda, `/marshrut`), ✅/❌ tugmalari faqat o'z yetkazishi, yuk xati PDF, yetkazilmagan → `delivery.manage`, audit `telegram:driver`. «Kontaktni ulashish» — QILINMADI |
+| TG13 | ✅ (real botda hali sinalmagan) | `telegram_link.counterparty_id`, kartadan havola, `Tenant.ClientTelegramEnabled` + `DebtReminderDays` (Sozlamalar → Modullar; sukut o'chiq); tasdiqlandi/yo'lda/yetkazildi/to'lov, `/qarzim`, qarz eslatmasi 10:00 N kunda bir. Hujjat PDF mijozga — QILINMADI; tenantning o'z boti — QILINMADI |
 
 Topilgan va tuzatilgan: tokendagi `:` nisbiy URI'ni sxema deb o'qitardi (`NotSupportedException`) — manzil absolyut satr (Wash `0c05a37` bilan bir xil xato); `getMe` o'tmasa polling endi taslim bo'lmaydi, har 60 s qayta uradi. Chat ID (TG17 uchun): egasining shaxsiy chati `806146645`.
+
+Migratsiyalar (tartib bilan): `AddTelegramLinkAndOutbox`, `AddNotificationMessageTemplate`, `AddTelegramOutboxButtons`, `AddTelegramChatState`, `AddTelegramGroup`, `AddTelegramPartners`.
+
+Sinov usuli: alohida `agentics_wms_tg` bazasi (F7 lokal stack'iga tegilmadi), `@AgenticsWmsDevBot`, egasining chati bir vaqtda xodim sifatida ulangan; navbat, tugma, tarjima va ops kanali real botda ko'rildi. Brauzerda (TG7, TG3/TG11 o'chirgichlari, haydovchi/kontragent dialoglari, mijoz sozlamasi) — HALI ko'rilmagan: lokal stack shu branch'dan qayta qurilganda.
 
 # Hisobot
 
