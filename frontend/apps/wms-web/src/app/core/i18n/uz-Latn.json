@@ -700,7 +700,36 @@
       "viewer": "Kuzatuvchi"
     },
     "login": {
-      "hint": "Parol Agentics ID sahifasida kiritiladi — bu ilova uni ko'rmaydi"
+      "hint": "Parol Agentics ID sahifasida kiritiladi — bu ilova uni ko'rmaydi",
+      "badge": "Agentics platformasi",
+      "welcome": "Xush kelibsiz",
+      "heroTitle": "Ombor, ishlab chiqarish va moliya — bitta tizimda",
+      "heroLead": "Agentics WMS xomashyo kirimidan tayyor mahsulot chiqimigacha bo'lgan har bir harakatni kuzatadi: qoldiqlar, partiyalar, o'tkazmalar, hamkorlar bilan hisob-kitob va KPI ko'rsatkichlari real vaqtda.",
+      "modulesLabel": "Tizim modullari",
+      "modules": {
+        "warehouse": "Qoldiqlar, joylashuvlar, partiyalar va harakatlar",
+        "production": "Buyurtmalar, retseptlar va bosqichlar nazorati",
+        "transfers": "Omborlar orasida ko'chirish va tasdiqlash",
+        "finance": "Tranzaksiyalar, qarzlar va to'lovlar tarixi",
+        "kpi": "Reja va haqiqiy ko'rsatkichlar tahlili",
+        "partners": "Kontragentlar, agentlar va yetkazib berish"
+      },
+      "highlights": {
+        "realtime": "Real vaqt rejimida yangilanish",
+        "multiWarehouse": "Ko'p omborli tuzilma",
+        "security": "Rolga asoslangan ruxsatlar",
+        "telegram": "Telegram bildirishnomalari"
+      },
+      "ssoDesc": "Yagona hisob — barcha Agentics ilovalari uchun",
+      "step1": "«Kirish» tugmasini bosing",
+      "step2": "Agentics ID sahifasida telefon va parolni kiriting",
+      "step3": "Tizimga avtomatik qaytasiz",
+      "themeDark": "Qorong'i rejim",
+      "themeLight": "Yorug' rejim",
+      "help": "Kirishda muammo bo'lsa, tashkilotingiz administratoriga murojaat qiling.",
+      "footer": "Ombor boshqaruv tizimi",
+      "ssoName": "Agentics ID",
+      "copyright": "© {{year}} Agentics"
     },
     "migrating": {
       "title": "Bo'lim ko'chirilmoqda",
