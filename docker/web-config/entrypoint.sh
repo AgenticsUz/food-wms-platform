@@ -92,5 +92,8 @@ JSON
 # mavjud bo'lmagan yo'lni «bor» deb ko'rsatardi.
 # ⚠️ `phone` — JIT profil nusxasi (`user_profile.phone`, D5) telefonni TOKENDAN
 # oladi; `phone` scope'isiz u access tokenga UMUMAN tushmaydi (Wash F4 da o'lchangan).
+# ⚠️ F8.1: `identity.tenant` — «Kirish hisoblari» sahifasi Identity'ning `/tenant/v1`
+# yuzasini SHU token bilan chaqiradi; scope so'ralmasa token `identity-tenant-api`
+# audience'isiz chiqadi va sahifa 403 oladi (F3 darsi, HOLAT §5.6).
 write_config /usr/share/nginx/html/assets/config wms-web \
-    "openid profile phone offline_access wms.api" wms-api
+    "openid profile phone offline_access wms.api identity.tenant" wms-api

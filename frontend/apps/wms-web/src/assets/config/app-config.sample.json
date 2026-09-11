@@ -12,7 +12,7 @@
   "signalRUrl": "/hubs",
   "clientId": "wms-web",
   "__comment_scope": "Wash naqshi, `wash.api` o'rniga `wms.api` (audience `wms-api`, PLATFORMA-TZ §5.1). `phone` — JIT profil nusxasi telefonni TOKENDAN yozadi, scope'siz u tokenga tushmaydi.",
-  "scope": "openid profile phone offline_access wms.api",
+  "scope": "openid profile phone offline_access wms.api identity.tenant",
   "audience": "wms-api",
   "defaultLocale": "uz-Latn",
   "features": {}
