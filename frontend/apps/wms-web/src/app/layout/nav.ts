@@ -16,6 +16,11 @@ export interface NavChild {
   readonly route: string;
   readonly permissionCode?: string;
   readonly featureCode?: string;
+  /**
+   * Identity mahsulot roli (`WmsSession.hasRole`) — WMS ruxsat kodi bilan
+   * ifodalab bo'lmaydigan bandlar uchun (Identity yuzasi, WMS jadvali emas).
+   */
+  readonly roleCode?: string;
 }
 
 export interface NavItem {
@@ -141,6 +146,8 @@ export const SETTINGS_NAV: NavItem = {
   children: [
     { key: 'settings.users', route: '/settings/users', permissionCode: 'settings.users' },
     { key: 'settings.roles', route: '/settings/roles', permissionCode: 'settings.roles' },
+    // F8.1: faqat Identity `admin` roli — marshrutda `roleGuard('admin')`, API'da ham shu.
+    { key: 'settings.accessAccounts', route: '/settings/access', roleCode: 'admin' },
     { key: 'settings.modules', route: '/settings/modules', permissionCode: 'settings.modules' },
     { key: 'subscription.title', route: '/settings/subscription' },
     // Marshrutda `quality.view` ham talab qilinadi — menyu ham shuni tekshiradi.

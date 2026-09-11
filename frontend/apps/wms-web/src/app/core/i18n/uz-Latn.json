@@ -352,6 +352,7 @@
     "manageUsers": "Tizim foydalanuvchilarini boshqarish",
     "roles": "Rollar",
     "manageRoles": "Foydalanuvchi rollarini boshqarish",
+    "accessAccounts": "Kirish hisoblari",
     "modules": "Modul sozlamalari",
     "moduleSubtitle": "Obuna planingizga kiritilgan modullar",
     "modulesReadonlyNotice": "Modullar to'plami obuna planingiz bilan belgilanadi. O'zgartirish uchun biz bilan bog'laning.",

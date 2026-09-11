@@ -64,6 +64,19 @@ export class WmsSession {
     return this.users.hasPermission(code);
   }
 
+  /**
+   * Identity `wms` mahsuloti roli bormi (`admin`, `manager`, …).
+   *
+   * Manba — `/api/me` dagi `roles`, backend uni tokenning `roles` claim'idan
+   * o'qiydi (`MeController`). Ruxsat KODI emas: «Kirish hisoblari» Identity
+   * yuzasi (`/tenant/v1`), u WMS ruxsat jadvalini bilmaydi va faqat `admin`
+   * rolini tan oladi. Platforma admini uchun `true` EMAS — uning tokenida
+   * `tenant_id` yo'q, Identity baribir 403 beradi.
+   */
+  hasRole(role: string): boolean {
+    return this.roles().includes(role);
+  }
+
   /** Kamida bittasi bo'lsa yetarli. */
   canAny(...codes: readonly string[]): boolean {
     return codes.length === 0 || this.users.hasAnyPermission(...codes);

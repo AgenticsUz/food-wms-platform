@@ -21,6 +21,7 @@
     "@agentics/config": "file:../../agentics-platform/artifacts/npm/agentics-config-0.1.0.tgz",
     "@agentics/http": "file:../../agentics-platform/artifacts/npm/agentics-http-0.1.0.tgz",
     "@agentics/i18n": "file:../../agentics-platform/artifacts/npm/agentics-i18n-0.1.0.tgz",
+    "@agentics/identity-tenant": "file:../../agentics-platform/artifacts/npm/agentics-identity-tenant-0.1.0.tgz",
     "@agentics/notify": "file:../../agentics-platform/artifacts/npm/agentics-notify-0.1.0.tgz",
     "@agentics/tenant": "file:../../agentics-platform/artifacts/npm/agentics-tenant-0.1.0.tgz",
     "@angular/cdk": "~21.2.0",

@@ -1,6 +1,6 @@
 import type { Routes } from '@angular/router';
 
-import { featureGuard, permissionGuard } from '../../core/auth/wms-guards';
+import { featureGuard, permissionGuard, roleGuard } from '../../core/auth/wms-guards';
 
 /**
  * `/settings` — ota marshrut guard'siz: profil har kimga ochiq. Ruxsat kodlari
@@ -9,6 +9,12 @@ import { featureGuard, permissionGuard } from '../../core/auth/wms-guards';
  *
  * D5/D7: Foydalanuvchilar ekrani — ro'yxat va WMS rollarini tahrirlash (yaratish,
  * parol tiklash Console/Identity'da); Profil — parol almashtirishsiz.
+ *
+ * F8.1: «Kirish hisoblari» (`access`) — tashkilotning Identity login hisoblari
+ * (qo'shish, rol, parol tiklash). Sahifa TAYYOR holda `@agentics/identity-tenant`
+ * paketidan keladi va Identity `/tenant/v1` ga to'g'ridan-to'g'ri boradi (WMS
+ * API'si emas). Guard — ruxsat kodi emas, Identity `admin` roli: API ham
+ * aynan shuni tekshiradi.
  */
 export const SETTINGS_ROUTES: Routes = [
   { path: '', redirectTo: 'profile', pathMatch: 'full' },
@@ -23,6 +29,12 @@ export const SETTINGS_ROUTES: Routes = [
     canActivate: [permissionGuard('settings.roles')],
     data: { titleKey: 'settings.roles' },
     loadComponent: () => import('./roles/roles.component'),
+  },
+  {
+    path: 'access',
+    canActivate: [roleGuard('admin')],
+    data: { titleKey: 'settings.accessAccounts' },
+    loadComponent: () => import('@agentics/identity-tenant').then((m) => m.AccessAccountsPage),
   },
   {
     path: 'modules',

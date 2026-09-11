@@ -40,6 +40,23 @@ export function permissionGuard(...codes: readonly string[]): WmsGuard {
   };
 }
 
+/**
+ * Identity mahsulot roli talab qilinadi (ruxsat kodi emas — `WmsSession.hasRole`).
+ *
+ * Hozircha faqat «Kirish hisoblari» (`/tenant/v1` faqat `admin` ga ochiq):
+ * boshqa rol bilan sahifa ochilsa ham API 403 berardi, guard esa foydalanuvchini
+ * darhol `/forbidden` ga yo'naltiradi — menyu bilan bir xil qoida.
+ */
+export function roleGuard(...roles: readonly string[]): WmsGuard {
+  return () => {
+    const session = inject(WmsSession);
+    if (roles.some((role) => session.hasRole(role))) {
+      return true;
+    }
+    return inject(Router).createUrlTree([inject(AUTH_ROUTES).forbidden]);
+  };
+}
+
 /** Modul tenantda yoqilgan bo'lishi shart (11 kod — `WMS_MODULES`). */
 export function moduleGuard(code: WmsModuleCode): WmsGuard {
   return () => {

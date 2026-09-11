@@ -18,6 +18,7 @@ import { appRoutes } from './app.routes';
 import { provideWmsHttp } from './core/api/wms-http';
 import { provideBranding } from './core/branding/branding.service';
 import { WMS_ROOT_TRANSLATIONS } from './core/i18n';
+import { provideWmsIdentityTenant } from './core/i18n/identity-tenant';
 import { ThemeService } from './core/theme/theme.service';
 
 /**
@@ -29,6 +30,7 @@ import { ThemeService } from './core/theme/theme.service';
  *     O'RNIGA — sababi `wms-http.ts` da).
  *  3. `provideAuth()` — OIDC PKCE + BFF sessiya, proaktiv refresh, endsession bilan chiqish.
  *  4. `provideI18n()` — uz-Latn / uz-Cyrl (transliteratsiya) / ru, `Accept-Language`.
+ *  5. `provideWmsIdentityTenant()` — «Kirish hisoblari» (`/settings/access`) WMS tilida.
  */
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -47,6 +49,7 @@ export const appConfig: ApplicationConfig = {
     // Sahifa yangilanganda sessiya httpOnly refresh cookie'dan tiklanadi.
     provideSessionRestore(),
     ...provideI18n({ production: !isDevMode(), rootTranslations: WMS_ROOT_TRANSLATIONS }),
+    provideWmsIdentityTenant(),
     provideBranding(),
     provideAppInitializer(() => inject(ThemeService).init()),
     // Eski `wms-ui` bilan bir xil: Aura + `.dark-mode`; palitra `styles.css` dagi

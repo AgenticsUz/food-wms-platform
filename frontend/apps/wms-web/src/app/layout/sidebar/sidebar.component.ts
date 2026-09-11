@@ -69,7 +69,8 @@ export class SidebarComponent {
     return (children ?? []).filter(
       (c) =>
         (!c.featureCode || this.session.isFeatureEnabled(c.featureCode)) &&
-        (!c.permissionCode || this.session.can(c.permissionCode))
+        (!c.permissionCode || this.session.can(c.permissionCode)) &&
+        (!c.roleCode || this.session.hasRole(c.roleCode))
     );
   }
 
