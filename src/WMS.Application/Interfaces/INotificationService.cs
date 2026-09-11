@@ -18,12 +18,11 @@ public interface INotificationService
     Task<bool> MarkAllAsReadAsync(Guid userId);
 
     /// <param name="userId">Qabul qiluvchi profil; <see langword="null"/> — tenantdagi hammaga.</param>
+    /// <remarks>
+    /// Bot yoqilgan bo'lsa ulangan qabul qiluvchilar uchun Telegram navbatiga (<c>telegram_outbox</c>)
+    /// qator ham yoziladi — bildirishnoma bilan bitta <c>SaveChanges</c> da, HTTP so'rov ichida yo'q.
+    /// Ulash/uzish — <see cref="ITelegramLinkService"/>.
+    /// </remarks>
     Task<Notification> CreateAsync(Guid? userId, string title, string message,
         NotificationType type, string? entityType = null, Guid? entityId = null);
-
-    /// <summary>Profilning Telegram chat id'si (<c>GET /api/me/telegram</c>).</summary>
-    Task<TelegramLinkDto> GetTelegramChatAsync(Guid userId);
-
-    /// <summary>Profilga Telegram chat id'sini ulaydi; bo'sh qiymat — uzadi.</summary>
-    Task SetTelegramChatAsync(Guid userId, string? chatId);
 }

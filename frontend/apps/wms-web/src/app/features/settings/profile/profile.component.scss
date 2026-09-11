@@ -26,8 +26,8 @@
   justify-content: flex-start;
 }
 
-/* Bot sozlanmagan — chat ID saqlansa ham xabar kelmaydi, foydalanuvchi buni oldindan bilsin */
-.telegram-warning {
+/* Holat qatorlari: ogohlantirish (bot yo'q / havola eskirdi), kutish (Start bosilishi), ulangan */
+%telegram-status {
   display: flex;
   align-items: flex-start;
   gap: 8px;
@@ -35,8 +35,27 @@
   padding: 10px 12px;
   border-radius: var(--radius-sm);
   font-size: 12px;
+  i { font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+  a { margin-left: 4px; color: inherit; text-decoration: underline; }
+}
+
+.telegram-warning {
+  @extend %telegram-status;
   background: var(--color-caramel-50, var(--bg-inset));
   color: var(--color-caramel-700, var(--text-secondary));
   border-left: 3px solid var(--color-caramel-500, var(--color-blueberry-500));
-  i { font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+}
+
+.telegram-waiting {
+  @extend %telegram-status;
+  background: var(--bg-inset);
+  color: var(--text-secondary);
+  border-left: 3px solid var(--color-blueberry-500);
+}
+
+.telegram-linked {
+  @extend %telegram-status;
+  background: var(--color-pistachio-50, var(--bg-inset));
+  color: var(--color-pistachio-700, var(--text-secondary));
+  border-left: 3px solid var(--color-pistachio-500, var(--color-blueberry-500));
 }

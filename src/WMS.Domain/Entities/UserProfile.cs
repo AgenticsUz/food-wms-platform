@@ -34,8 +34,7 @@ public class UserProfile : TenantEntity
     /// </summary>
     public string? Phone { get; set; }
 
-    /// <summary>Telegram bildirishnomalari uchun (foydalanuvchi o'zi ulaydi).</summary>
-    public string? TelegramChatId { get; set; }
+    // Telegram ulanishi — <see cref="TelegramLink"/> jadvalida (ilgari shu yerda `TelegramChatId` edi).
 
     /// <summary>WMS ichidagi o'chirgich — Identity'dagi bloklashdan mustaqil.</summary>
     public bool IsActive { get; set; } = true;

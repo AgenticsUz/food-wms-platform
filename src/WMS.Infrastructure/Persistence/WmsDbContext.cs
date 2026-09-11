@@ -79,6 +79,10 @@ public sealed class WmsDbContext : DbContext
     public DbSet<Plan> Plans => Set<Plan>();
     public DbSet<Feature> Features => Set<Feature>();
 
+    // Telegram deep-link tokeni va navbat — tenant kontekstisiz o'qiladi (polling, yuboruvchi).
+    public DbSet<TelegramLinkToken> TelegramLinkTokens => Set<TelegramLinkToken>();
+    public DbSet<TelegramOutbox> TelegramOutboxes => Set<TelegramOutbox>();
+
     // ── Tenant jadvallari (RLS) ──
     public DbSet<TenantFeature> TenantFeatures => Set<TenantFeature>();
     public DbSet<PaymentRecord> PaymentRecords => Set<PaymentRecord>();
@@ -88,6 +92,7 @@ public sealed class WmsDbContext : DbContext
     public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
     public DbSet<UserRole> UserRoles => Set<UserRole>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+    public DbSet<TelegramLink> TelegramLinks => Set<TelegramLink>();
 
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<Unit> Units => Set<Unit>();

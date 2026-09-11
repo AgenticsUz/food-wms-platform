@@ -46,6 +46,8 @@ x-dotnet-env: &dotnet-env
   Subscription__StateCacheSeconds: ${SUBSCRIPTION_STATE_CACHE_SECONDS:-60}
   Subscription__WarnBeforeDays: ${SUBSCRIPTION_WARN_BEFORE_DAYS:-7}
   Subscription__LimitWarnPercent: ${SUBSCRIPTION_LIMIT_WARN_PERCENT:-80}
+  # Telegram bot (TG8): @AgenticsWmsBot tokeni `.env` dan; bo'sh — bot o'chiq, xato emas.
+  Telegram__BotToken: ${TELEGRAM_BOT_TOKEN:-}
   Migrations__Mode: none
 
 services:

@@ -9,7 +9,8 @@ import type {
   RoleCreateDto,
   RoleInfo,
   RoleUpdateDto,
-  TelegramLink,
+  TelegramLinkToken,
+  TelegramStatus,
   UserDetail,
   UserUpdateDto,
 } from './settings.model';
@@ -79,11 +80,14 @@ export class SettingsService {
     return this.api.get<string[]>('audit/entity-types');
   }
 
-  getTelegram() {
-    return this.api.get<TelegramLink>('me/telegram');
+  getTelegram(options?: ApiCallOptions) {
+    return this.api.get<TelegramStatus>('me/telegram', undefined, options);
   }
-  /** Bo'sh yoki `null` — ulanishni uzadi. */
-  setTelegram(chatId: string | null) {
-    return this.api.put<void>('me/telegram', { chatId });
+  /** Bir martalik deep-link; oldingi faol havola bekor bo'ladi. */
+  createTelegramLink() {
+    return this.api.post<TelegramLinkToken>('me/telegram/link-token', {});
+  }
+  unlinkTelegram() {
+    return this.api.delete<void>('me/telegram');
   }
 }

@@ -53,6 +53,10 @@ x-dotnet-env: &dotnet-env
   Subscription__WarnBeforeDays: ${SUBSCRIPTION_WARN_BEFORE_DAYS:-7}
   Subscription__LimitWarnPercent: ${SUBSCRIPTION_LIMIT_WARN_PERCENT:-80}
 
+  # Telegram bot (TG8). Bo'sh — bot o'chiq (polling va navbat ishga tushmaydi).
+  # Dev'da O'Z test botingiz: bir tokenni ikki instans polling qilsa Telegram 409 beradi.
+  Telegram__BotToken: ${TELEGRAM_BOT_TOKEN:-}
+
 x-api-build: &api-build
   context: ..
   dockerfile: docker/Dockerfile.api

@@ -6,28 +6,33 @@ using WMS.Application.Interfaces;
 namespace WMS.API.Controllers.Operations;
 
 /// <summary>
-/// Profildagi Telegram ulanishi: <c>GET/PUT /api/me/telegram</c>.
+/// Profildagi Telegram ulanishi: <c>GET /api/me/telegram</c>, <c>POST …/link-token</c>, <c>DELETE</c>.
 /// </summary>
 /// <remarks>
-/// SQLite davrida <c>PUT /api/auth/telegram</c> edi va joriy qiymat login javobida
-/// (<c>telegramChatId</c>) kelardi. O'z login'i o'chdi (D5), <c>/api/me</c> integratorniki —
-/// shuning uchun alohida controller, <c>/api/me</c> ostida. Ruxsat talabi yo'q: har kim faqat
-/// O'Z profilini (<c>UserId</c>) o'zgartiradi.
+/// SQLite davrida <c>PUT /api/auth/telegram</c> + qo'lda chat ID edi; F6 da <c>/api/me</c> ostiga ko'chdi.
+/// TG1: bot foydalanuvchiga u <c>/start</c> bosmaguncha yoza olmaydi (403) — shuning uchun qo'lda
+/// chat ID o'rniga deep-link: bu yerdan bir martalik havola, bot <c>/start</c> da o'zi ulaydi.
+/// Ruxsat talabi yo'q: har kim faqat O'Z profilini (<c>UserId</c>) boshqaradi.
 /// </remarks>
 [Route("api/me/telegram")]
 public sealed class MeTelegramController : BaseController
 {
-    private readonly INotificationService _notifications;
-    public MeTelegramController(INotificationService notifications) => _notifications = notifications;
+    private readonly ITelegramLinkService _links;
+    public MeTelegramController(ITelegramLinkService links) => _links = links;
 
     [HttpGet]
-    public async Task<IActionResult> Get()
-        => Ok(ApiResponse<TelegramLinkDto>.Ok(await _notifications.GetTelegramChatAsync(UserId)));
+    public async Task<IActionResult> Get(CancellationToken cancellationToken)
+        => Ok(ApiResponse<TelegramStatusDto>.Ok(await _links.GetStatusAsync(UserId, cancellationToken)));
 
-    [HttpPut]
-    public async Task<IActionResult> SetTelegram([FromBody] SetTelegramDto dto)
+    /// <summary>Havola 10 daqiqa (sozlama) yashaydi, bir marta ishlaydi; oldingi faol havola bekor bo'ladi.</summary>
+    [HttpPost("link-token")]
+    public async Task<IActionResult> CreateLinkToken(CancellationToken cancellationToken)
+        => Ok(ApiResponse<TelegramLinkTokenDto>.Ok(await _links.CreateLinkTokenAsync(UserId, cancellationToken)));
+
+    [HttpDelete]
+    public async Task<IActionResult> Unlink(CancellationToken cancellationToken)
     {
-        await _notifications.SetTelegramChatAsync(UserId, dto.ChatId);
-        return Ok(ApiResponse<object>.Ok(null!, "Telegram updated"));
+        await _links.UnlinkAsync(UserId, cancellationToken);
+        return Ok(ApiResponse<object>.Ok(null!, "Telegram disconnected"));
     }
 }

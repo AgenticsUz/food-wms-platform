@@ -79,6 +79,10 @@ cd frontend && npx nx run-many -t lint,test,build -p wms-web
 Demo kirish (Identity, parol `Demo@2026!`): `+998901112301` admin, `…02` manager,
 `…03` employee, `…04` viewer — `demo` tenanti.
 
+Telegram bot (`docs/TELEGRAM-BOT-TZ.md`): `docker/.env` da `TELEGRAM_BOT_TOKEN` (bo'sh —
+bot o'chiq), `dotnet run` uchun `Telegram__BotToken` env. Dev'da O'Z test botingiz
+(`@AgenticsWmsDevBot`) — prod tokeni (`@AgenticsWmsBot`) bilan polling talashadi (409).
+
 ⚠️ `dotnet run` bilan ko'tarilgan xizmat `bin/` ni band qiladi — build'dan oldin to'xtating.
 ⚠️ `--no-launch-profile` SHART, aks holda `launchSettings.json` portni bosib ketadi.
 

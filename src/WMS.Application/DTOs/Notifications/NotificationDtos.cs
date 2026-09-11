@@ -20,21 +20,34 @@ public class UnreadCountDto
     public int Count { get; set; }
 }
 
-/// <summary>
-/// <c>PUT /api/me/telegram</c> tanasi. SQLite davrida <c>PUT /api/auth/telegram</c> edi
-/// (<c>DTOs/Auth</c> da) — o'z login'i o'chgach profil yuzasi <c>/api/me</c> ga ko'chdi.
-/// </summary>
-public class SetTelegramDto
+/// <summary><c>GET /api/me/telegram</c>: profil sahifasi ulanish holatini ko'rsatadi.</summary>
+/// <remarks>
+/// SQLite davrida <c>PUT /api/auth/telegram</c> + qo'lda chat ID edi; F6 da <c>/api/me/telegram</c>
+/// ga ko'chdi, Telegram bosqichida (TG1) deep-link'ka o'tdi — chat ID maydoni yo'q.
+/// </remarks>
+public class TelegramStatusDto
 {
-    /// <summary>Bo'sh yoki <see langword="null"/> — ulanishni uzadi.</summary>
-    public string? ChatId { get; set; }
+    /// <summary>Bot sozlanganmi — sozlanmagan bo'lsa ulash tugmasi ko'rsatilmaydi.</summary>
+    public bool Enabled { get; set; }
+
+    /// <summary><c>@</c> siz (<c>AgenticsWmsBot</c>); bot o'chiq bo'lsa <see langword="null"/>.</summary>
+    public string? BotUsername { get; set; }
+
+    public bool Linked { get; set; }
+    public DateTime? LinkedAt { get; set; }
+
+    /// <summary>Ulangan Telegram akkauntining username'i — «qaysi akkaunt» ko'rinsin.</summary>
+    public string? Username { get; set; }
+
+    /// <summary>O'chirilgan bildirishnoma turlari (TG3).</summary>
+    public string[] MutedTypes { get; set; } = [];
 }
 
-/// <summary><c>GET /api/me/telegram</c>: profil sahifasi joriy qiymatni ko'rsatadi.</summary>
-public class TelegramLinkDto
+/// <summary><c>POST /api/me/telegram/link-token</c>: havola va uning muddati.</summary>
+public class TelegramLinkTokenDto
 {
-    public string? ChatId { get; set; }
+    /// <summary><c>https://t.me/&lt;bot&gt;?start=&lt;token&gt;</c>.</summary>
+    public string Url { get; set; } = null!;
 
-    /// <summary>Bot sozlanganmi — sozlanmagan bo'lsa ulash foydasiz, frontend ogohlantiradi.</summary>
-    public bool Enabled { get; set; }
+    public DateTime ExpiresAt { get; set; }
 }

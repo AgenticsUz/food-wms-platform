@@ -26,34 +26,60 @@
 
   <div class="wms-card section-card">
     <h3 class="section-title"><i class="pi pi-telegram"></i> {{ t('settings.telegram') }}</h3>
-    <p class="section-hint">{{ t('settings.telegramHint') }}</p>
-    @if (telegramEnabled() === false) {
-      <div class="telegram-warning">
-        <i class="pi pi-exclamation-triangle"></i>
-        <span>{{ t('settings.telegramDisabled') }}</span>
-      </div>
+
+    @if (telegram(); as tg) {
+      @if (!tg.enabled) {
+        <div class="telegram-warning">
+          <i class="pi pi-exclamation-triangle"></i>
+          <span>{{ t('settings.telegramDisabled') }}</span>
+        </div>
+      } @else if (tg.linked) {
+        <div class="telegram-linked">
+          <i class="pi pi-check-circle"></i>
+          <span>
+            <strong>{{ t('settings.telegramLinked') }}</strong>
+            @if (tg.username) { · &#64;{{ tg.username }} }
+            @if (tg.linkedAt) { · {{ tg.linkedAt | date: 'dd.MM.yyyy HH:mm' }} }
+          </span>
+        </div>
+        <div class="form-actions">
+          <p-button
+            [label]="t('settings.telegramUnlink')"
+            icon="pi pi-times"
+            severity="secondary"
+            [outlined]="true"
+            (onClick)="disconnect()"
+            [loading]="unlinking()"
+          />
+        </div>
+      } @else {
+        <p class="section-hint">{{ t('settings.telegramHint') }}</p>
+
+        @if (pendingLink(); as url) {
+          <div class="telegram-waiting">
+            <i class="pi pi-spin pi-spinner"></i>
+            <span>
+              {{ t('settings.telegramLinkWaiting') }}
+              <a [href]="url" target="_blank" rel="noopener">{{ t('settings.telegramOpenLink') }}</a>
+            </span>
+          </div>
+        } @else {
+          @if (linkExpired()) {
+            <div class="telegram-warning">
+              <i class="pi pi-clock"></i>
+              <span>{{ t('settings.telegramLinkExpired') }}</span>
+            </div>
+          }
+          <div class="form-actions">
+            <p-button
+              [label]="t('settings.telegramConnect')"
+              icon="pi pi-telegram"
+              (onClick)="connect()"
+              [loading]="linking()"
+            />
+          </div>
+        }
+      }
     }
-    <div class="form-grid">
-      <div class="form-field">
-        <label for="telegramChatId">{{ t('settings.telegramChatId') }}</label>
-        <input
-          id="telegramChatId"
-          pInputText
-          [ngModel]="telegramChatId()"
-          (ngModelChange)="telegramChatId.set($event)"
-          class="w-full"
-          placeholder="123456789"
-        />
-      </div>
-    </div>
-    <div class="form-actions">
-      <p-button
-        [label]="t('common.save')"
-        icon="pi pi-check"
-        (onClick)="saveTelegram()"
-        [loading]="savingTelegram()"
-        [outlined]="true"
-      />
-    </div>
   </div>
 </div>

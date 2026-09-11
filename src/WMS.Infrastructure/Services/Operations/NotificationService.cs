@@ -1,12 +1,10 @@
-using System.Net;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using WMS.Application.Common;
 using WMS.Application.DTOs.Notifications;
 using WMS.Application.Interfaces;
 using WMS.Domain.Entities;
 using WMS.Domain.Enums;
 using WMS.Infrastructure.Persistence;
+using WMS.Infrastructure.Services.Operations.Telegram;
 
 namespace WMS.Infrastructure.Services.Operations;
 
@@ -14,15 +12,11 @@ namespace WMS.Infrastructure.Services.Operations;
 // `user_profile.id`. Metod nomlari eski: katalog, trade va ishlab chiqarish modullari shularni chaqiradi.
 public class NotificationService : INotificationService
 {
-    /// <summary><c>user_profile.telegram_chat_id</c> ustunining uzunligi (AccessConfiguration).</summary>
-    private const int TelegramChatIdMaxLength = 64;
-
     private readonly WmsDbContext _db;
     private readonly ITelegramService _telegram;
-    private readonly ILogger<NotificationService> _logger;
 
-    public NotificationService(WmsDbContext db, ITelegramService telegram, ILogger<NotificationService> logger)
-    { _db = db; _telegram = telegram; _logger = logger; }
+    public NotificationService(WmsDbContext db, ITelegramService telegram)
+    { _db = db; _telegram = telegram; }
 
     public async Task<List<NotificationDto>> GetNotificationsAsync(Guid userId, bool unreadOnly = false)
     {
@@ -86,59 +80,38 @@ public class NotificationService : INotificationService
             EntityType = entityType, EntityId = entityId
         };
         _db.Notifications.Add(notification);
-        await _db.SaveChangesAsync();
 
-        // Telegram forward — faqat bot sozlangan bo'lsa (default holatda umuman ishlamaydi)
+        // Telegram — navbatga, bildirishnoma bilan BITTA SaveChanges'da. HTTP so'rov ichida yo'q:
+        // ilgari har ulangan foydalanuvchi uchun ketma-ket (10 s gacha) kutilardi va transfer
+        // tasdig'i shuncha osilardi. Yuborish — TelegramOutboxBackgroundService.
         if (_telegram.IsEnabled)
-            await ForwardToTelegram(userId, title, message);
+            await EnqueueTelegramAsync(notification, userId);
 
+        await _db.SaveChangesAsync();
         return notification;
     }
 
-    public async Task<TelegramLinkDto> GetTelegramChatAsync(Guid userId)
+    /// <summary>Qabul qiluvchilar: faol ulanish + faol profil (+ shu turni o'chirmagan — TG3).</summary>
+    private async Task EnqueueTelegramAsync(Notification notification, Guid? userId)
     {
-        var chatId = await _db.UserProfiles
-            .Where(u => u.Id == userId)
-            .Select(u => new { u.TelegramChatId })
-            .FirstOrDefaultAsync()
-            ?? throw new NotFoundException("User not found");
+        var q = _db.TelegramLinks.AsNoTracking()
+            .Where(l => l.IsActive && l.UserProfileId != null && l.UserProfile!.IsActive);
+        if (userId != null) q = q.Where(l => l.UserProfileId == userId.Value);
 
-        return new TelegramLinkDto { ChatId = chatId.TelegramChatId, Enabled = _telegram.IsEnabled };
-    }
+        var links = await q.Select(l => new { l.Id, l.ChatId, l.MutedTypes }).ToListAsync();
+        if (links.Count == 0) return;
 
-    public async Task SetTelegramChatAsync(Guid userId, string? chatId)
-    {
-        var user = await _db.UserProfiles.FirstOrDefaultAsync(u => u.Id == userId)
-            ?? throw new NotFoundException("User not found");
+        string typeName = notification.Type.ToString();
+        string text = TelegramOutboxComposer.Text(notification.Title, notification.Message);
 
-        var value = chatId?.Trim();
-        // SQLite uzunlikni tekshirmasdi; Postgres varchar(64) dan oshganini 500 bilan rad etardi.
-        if (value is { Length: > TelegramChatIdMaxLength })
-            throw new AppException("Telegram chat id is too long");
-
-        user.TelegramChatId = string.IsNullOrWhiteSpace(value) ? null : value;
-        await _db.SaveChangesAsync();
-    }
-
-    private async Task ForwardToTelegram(Guid? userId, string title, string message)
-    {
-        try
+        foreach (var link in links.DistinctBy(l => l.ChatId))
         {
-            var q = _db.UserProfiles.Where(u => u.IsActive && u.TelegramChatId != null);
-            if (userId != null) q = q.Where(u => u.Id == userId.Value);
-            var chatIds = await q.Select(u => u.TelegramChatId!).Distinct().ToListAsync();
+            if (link.MutedTypes is { } muted
+                && muted.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                    .Contains(typeName, StringComparer.OrdinalIgnoreCase))
+                continue;
 
-            // parse_mode=HTML: matndagi `<` yoki `&` (mahsulot nomi, izoh) kodlanmasa Telegram
-            // butun xabarni 400 bilan rad etadi — SQLite davrida shunday xabarlar jimgina yo'qolardi.
-            var text = $"<b>{WebUtility.HtmlEncode(title)}</b>\n{WebUtility.HtmlEncode(message)}";
-            foreach (var chatId in chatIds)
-                await _telegram.SendMessageAsync(chatId, text);
-        }
-#pragma warning disable CA1031 // Best-effort — bildirishnoma yaratish (va chaqiruvchi oqim) buzilmasin.
-        catch (Exception ex) when (ex is not OperationCanceledException)
-#pragma warning restore CA1031
-        {
-            _logger.LogWarning(ex, "Bildirishnoma Telegram'ga uzatilmadi");
+            _db.TelegramOutboxes.Add(TelegramOutboxComposer.Row(notification, _db.CurrentTenantId, link.Id, link.ChatId, text));
         }
     }
 }

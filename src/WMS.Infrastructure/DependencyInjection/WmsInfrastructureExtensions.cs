@@ -57,6 +57,7 @@ public static class WmsInfrastructureExtensions
 
         services.AddMemoryCache();
         services.Configure<SubscriptionOptions>(configuration.GetSection(SubscriptionOptions.SectionName));
+        services.Configure<TelegramOptions>(configuration.GetSection(TelegramOptions.SectionName));
         services.AddScoped<ITenantStateService, TenantStateService>();
         services.AddScoped<IRequestWarnings, RequestWarnings>();
 

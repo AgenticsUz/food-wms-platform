@@ -33,9 +33,20 @@ public static class Translations
         ["Insufficient stock for input '{0}' (short by {1})"] = [
             "'{0}' xomashyosi yetarli emas ({1} yetishmaydi)",
             "Недостаточно сырья '{0}' (не хватает {1})"],
-        ["Telegram chat id is too long"] = [
-            "Telegram chat ID juda uzun",
-            "Идентификатор чата Telegram слишком длинный"],
+        // ── Telegram bot (TG1): API xabarlari va botning o'z javoblari (HTML) ──
+        ["Telegram bot is not configured"] = [
+            "Telegram bot hali sozlanmagan",
+            "Telegram-бот ещё не настроен"],
+        ["Telegram disconnected"] = ["Telegram uzildi", "Telegram отключён"],
+        ["✅ Connected to <b>{0}</b>. Notifications will arrive here."] = [
+            "✅ <b>{0}</b> ga ulandi. Bildirishnomalar shu yerga keladi.",
+            "✅ Подключено к <b>{0}</b>. Уведомления будут приходить сюда."],
+        ["This link has expired or was already used. Open your WMS profile and request a new one."] = [
+            "Havola eskirgan yoki allaqachon ishlatilgan. WMS profilingizdan yangisini oling.",
+            "Ссылка устарела или уже использована. Получите новую в профиле WMS."],
+        ["To receive notifications, connect this chat from WMS: Settings → Profile → Connect Telegram."] = [
+            "Bildirishnomalarni olish uchun WMS'dan ulang: Sozlamalar → Profil → Telegram'ga ulash.",
+            "Чтобы получать уведомления, подключите чат из WMS: Настройки → Профиль → Подключить Telegram."],
 
         // Transfer/moliya (W1·2): ilgari interpolyatsiya bilan qurilardi va tarjima qilinmasdi.
         ["Insufficient available stock for product {0}"] = [
@@ -387,7 +398,6 @@ public static class Translations
         ["Saved"] = ["Saqlandi", "Сохранено"],
         ["Profile updated"] = ["Profil yangilandi", "Профиль обновлён"],
         ["Password changed"] = ["Parol o'zgartirildi", "Пароль изменён"],
-        ["Telegram updated"] = ["Telegram yangilandi", "Telegram обновлён"],
         ["Roles assigned"] = ["Rollar biriktirildi", "Роли назначены"],
         ["Permissions assigned"] = ["Ruxsatlar biriktirildi", "Права назначены"],
         ["Status updated"] = ["Holat yangilandi", "Статус обновлён"],

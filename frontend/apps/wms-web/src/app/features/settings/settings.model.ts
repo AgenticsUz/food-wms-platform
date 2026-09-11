@@ -108,9 +108,22 @@ export interface AuditLog {
   readonly isPlatformAction: boolean;
 }
 
-/** `GET /api/me/telegram`. */
-export interface TelegramLink {
-  readonly chatId: string | null;
-  /** Bot sozlanganmi — sozlanmagan bo'lsa ulash foydasiz. */
+/** `GET /api/me/telegram` — ulanish holati (TG1: deep-link, chat ID maydoni yo'q). */
+export interface TelegramStatus {
+  /** Bot sozlanganmi — sozlanmagan bo'lsa ulash tugmasi ko'rsatilmaydi. */
   readonly enabled: boolean;
+  /** `@` siz; bot o'chiq bo'lsa `null`. */
+  readonly botUsername: string | null;
+  readonly linked: boolean;
+  readonly linkedAt: string | null;
+  /** Ulangan Telegram akkauntining username'i. */
+  readonly username: string | null;
+  /** O'chirilgan bildirishnoma turlari (TG3). */
+  readonly mutedTypes: readonly string[];
+}
+
+/** `POST /api/me/telegram/link-token` — bir martalik havola. */
+export interface TelegramLinkToken {
+  readonly url: string;
+  readonly expiresAt: string;
 }
