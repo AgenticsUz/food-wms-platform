@@ -23,7 +23,8 @@ namespace WMS.Infrastructure.Services.Operations.Telegram;
 /// (<c>TenantConnectionInterceptor</c>), bitta scope'da tenantni «o'rtada» almashtirish ishonchsiz.
 /// </para>
 /// <para>
-/// Faqat SHAXSIY chat (v1): guruh yangilanishlari e'tiborsiz (TG16 da oshkora <c>/ulash</c> bilan).
+/// Shaxsiy chat — ulash, buyruqlar, tugmalar; guruh (TG16) — faqat <c>/ulash</c>/<c>/sozlash</c>/<c>/uzish</c>
+/// va tugmali bildirishnomalarning tugmalari, qolgan guruh yangilanishlari e'tiborsiz.
 /// Javob darhol, navbatsiz — foydalanuvchining hozirgi bosishiga javob; yetmasa ham ulanish saqlangan.
 /// </para>
 /// </remarks>
@@ -34,11 +35,13 @@ public sealed class TelegramUpdateHandler : ITelegramUpdateHandler
     private readonly TelegramCallbackExecutor _callbacks;
     private readonly TelegramQueryCommands _queries;
     private readonly TelegramWorkCommands _work;
+    private readonly TelegramGroupCommands _groups;
     private readonly TelegramOptions _options;
     private readonly ILogger<TelegramUpdateHandler> _logger;
 
     public TelegramUpdateHandler(IServiceProvider services, ITelegramService telegram, TelegramCallbackExecutor callbacks,
-        TelegramQueryCommands queries, TelegramWorkCommands work, IOptions<TelegramOptions> options, ILogger<TelegramUpdateHandler> logger)
+        TelegramQueryCommands queries, TelegramWorkCommands work, TelegramGroupCommands groups,
+        IOptions<TelegramOptions> options, ILogger<TelegramUpdateHandler> logger)
     {
         ArgumentNullException.ThrowIfNull(options);
         _services = services;
@@ -46,6 +49,7 @@ public sealed class TelegramUpdateHandler : ITelegramUpdateHandler
         _callbacks = callbacks;
         _queries = queries;
         _work = work;
+        _groups = groups;
         _options = options.Value;
         _logger = logger;
     }
@@ -56,11 +60,19 @@ public sealed class TelegramUpdateHandler : ITelegramUpdateHandler
 
         if (update.Kind == TelegramUpdateKind.Blocked)
         {
-            if (update.ChatId != 0) await DeactivateAsync(update.ChatId, cancellationToken);
+            if (update.ChatId == 0) return;
+            if (update.IsPrivate) await DeactivateAsync(update.ChatId, cancellationToken);
+            else await _groups.DeactivateAsync(update.ChatId, cancellationToken);
             return;
         }
 
-        if (!update.IsPrivate || update.ChatId == 0) return;
+        if (update.ChatId == 0) return;
+
+        if (!update.IsPrivate)
+        {
+            await HandleGroupAsync(update, cancellationToken);
+            return;
+        }
 
         if (update.Kind == TelegramUpdateKind.CallbackQuery)
         {
@@ -190,6 +202,32 @@ public sealed class TelegramUpdateHandler : ITelegramUpdateHandler
 
         _logger.LogInformation("Telegram: tenant {TenantCode} profili ulandi", tenantCode);
         await ReplyAsync(update.ChatId, TelegramBotReplies.Linked(tenantName, lang), cancellationToken);
+    }
+
+    /// <summary>
+    /// Guruh (TG16): faqat ulash buyruqlari, sozlash tugmalari va tugmali bildirishnomalarning tugmalari.
+    /// So'rov buyruqlari guruhda YO'Q (v1) — javob hammaga ko'rinadi.
+    /// </summary>
+    private async Task HandleGroupAsync(TelegramUpdate update, CancellationToken cancellationToken)
+    {
+        switch (update.Kind)
+        {
+            case TelegramUpdateKind.Command when update.Command is { } cmd && TelegramGroupCommands.Commands.Contains(cmd):
+                await _groups.HandleCommandAsync(update, cancellationToken);
+                break;
+
+            case TelegramUpdateKind.CallbackQuery:
+                string data = update.CallbackData ?? string.Empty;
+                if (data.StartsWith(TelegramGroupCommands.LinkPrefix, StringComparison.Ordinal)
+                    || data.StartsWith(TelegramGroupCommands.MutePrefix, StringComparison.Ordinal))
+                    await _groups.HandleCallbackAsync(update, cancellationToken);
+                else
+                    await _callbacks.ExecuteAsync(update, cancellationToken);
+                break;
+
+            default:
+                break;
+        }
     }
 
     /// <summary><c>sel:&lt;tenant&gt;:&lt;buyruq&gt;</c> — buyruq xodim buyrug'imi (keldim, hisobot …).</summary>

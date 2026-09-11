@@ -43,6 +43,19 @@ internal sealed class TelegramLinkTokenConfiguration : IEntityTypeConfiguration<
     }
 }
 
+internal sealed class TelegramGroupConfiguration : IEntityTypeConfiguration<TelegramGroup>
+{
+    public void Configure(EntityTypeBuilder<TelegramGroup> builder)
+    {
+        builder.HasAnnotation(RlsAnnotations.Enabled, false);
+        builder.Property(g => g.Title).HasMaxLength(256);
+        builder.Property(g => g.MutedTypes).HasMaxLength(512);
+        builder.HasIndex(g => g.ChatId).IsUnique();
+        builder.HasIndex(g => g.TenantId);
+        builder.HasOne<Tenant>().WithMany().HasForeignKey(g => g.TenantId).OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
 internal sealed class TelegramChatStateConfiguration : IEntityTypeConfiguration<TelegramChatState>
 {
     public void Configure(EntityTypeBuilder<TelegramChatState> builder)

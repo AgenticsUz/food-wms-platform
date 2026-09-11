@@ -118,6 +118,25 @@ public static class Translations
             "Hisobot Telegram uchun juda katta — web ilovadan yuklab oling.",
             "Отчёт слишком большой для Telegram — скачайте его в веб-приложении."],
 
+        // ── Guruh chati (TG16) ──
+        ["Only an administrator with a connected profile can do this (WMS → Settings → Profile → Connect Telegram)."] = [
+            "Buni faqat profili ulangan administrator qila oladi (WMS → Sozlamalar → Profil → Telegram'ga ulash).",
+            "Это может сделать только администратор с подключённым профилем (WMS → Настройки → Профиль → Подключить Telegram)."],
+        ["✅ This group is now connected to <b>{0}</b>. Notifications will arrive here. /sozlash — choose types, /uzish — disconnect."] = [
+            "✅ Guruh <b>{0}</b> ga ulandi. Bildirishnomalar shu yerga keladi. /sozlash — turlarni tanlash, /uzish — uzish.",
+            "✅ Группа подключена к <b>{0}</b>. Уведомления будут приходить сюда. /sozlash — выбрать типы, /uzish — отключить."],
+        ["This group has been disconnected."] = ["Guruh uzildi.", "Группа отключена."],
+        ["This group is not connected. An administrator can connect it with /ulash."] = [
+            "Bu guruh ulanmagan. Administrator /ulash bilan ulaydi.",
+            "Эта группа не подключена. Администратор может подключить её командой /ulash."],
+        ["Which notifications should come to this group?"] = ["Guruhga qaysi bildirishnomalar kelsin?", "Какие уведомления присылать в группу?"],
+        ["Connect your own profile first: WMS → Settings → Profile → Connect Telegram."] = [
+            "Avval o'z profilingizni ulang: WMS → Sozlamalar → Profil → Telegram'ga ulash.",
+            "Сначала подключите свой профиль: WMS → Настройки → Профиль → Подключить Telegram."],
+        ["Stock and batches"] = ["Zaxira va partiyalar", "Склад и партии"],
+        ["Transfers"] = ["Transferlar", "Перемещения"],
+        ["Production"] = ["Ishlab chiqarish", "Производство"],
+
         // ── Kunlik xulosa (TG11) ──
         ["Daily summary — {0}"] = ["Kunlik xulosa — {0}", "Сводка за день — {0}"],
         ["Transfers awaiting confirmation: {0}"] = ["Tasdiq kutayotgan transferlar: {0}", "Перемещений в ожидании подтверждения: {0}"],

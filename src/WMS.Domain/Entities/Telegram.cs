@@ -73,6 +73,28 @@ public class TelegramLinkToken : BaseEntity
 }
 
 /// <summary>
+/// <c>wms.telegram_group</c> — tenantning Telegram guruhi (TG16): umumiy bildirishnomalar shaxsiy chatlarga
+/// QO'SHIMCHA guruhga ham ketadi. PLATFORMA jadvali (RLS yo'q): guruh yangilanishi tenant kontekstisiz keladi.
+/// </summary>
+/// <remarks>
+/// Ulash — admin (<c>settings.modules</c>, shaxsiy ulanishi bor) guruhda <c>/ulash</c> yozadi. Bir guruh — bir
+/// tenant. Guruhdagi tugmani bosgan odamning aktori — uning shu tenantdagi SHAXSIY ulanishi; ulanmagan bo'lsa
+/// «avval profilingizni ulang». Bot guruhdan chiqarilsa <see cref="IsActive"/> = <see langword="false"/>.
+/// </remarks>
+public class TelegramGroup : BaseEntity
+{
+    public long ChatId { get; set; }
+    public Guid TenantId { get; set; }
+    public string? Title { get; set; }
+
+    /// <summary>Guruhga bormaydigan turlar (<c>NotificationType</c> nomlari, vergul bilan) — <c>/sozlash</c>.</summary>
+    public string? MutedTypes { get; set; }
+
+    public Guid? LinkedByProfileId { get; set; }
+    public bool IsActive { get; set; } = true;
+}
+
+/// <summary>
 /// <c>wms.telegram_chat_state</c> — ko'p tenantli chatning bir soatlik tenant tanlovi (TG10). PLATFORMA
 /// jadvali (RLS yo'q): so'rov buyrug'i kelganda tenant hali noma'lum.
 /// </summary>

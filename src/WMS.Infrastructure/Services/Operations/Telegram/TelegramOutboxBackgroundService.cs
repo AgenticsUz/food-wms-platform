@@ -170,6 +170,12 @@ public sealed class TelegramOutboxBackgroundService : BackgroundService
                     row.Status = TelegramOutboxStatus.Skipped;
                     row.LastError = Trim($"{result.StatusCode} {result.Description}");
                     if (link is not null) link.IsActive = false;
+                    else if (row.TelegramLinkId is null && row.TenantId is not null)
+                    {
+                        // Guruh (TG16): bot guruhdan chiqarilgan — guruh uziladi.
+                        await db.TelegramGroups.Where(g => g.ChatId == row.ChatId && g.IsActive)
+                            .ExecuteUpdateAsync(s => s.SetProperty(g => g.IsActive, false), ct);
+                    }
                     skipped++;
                     _logger.LogInformation("Telegram: chat yopiq (HTTP {StatusCode}), ulanish uzildi", result.StatusCode);
                 }

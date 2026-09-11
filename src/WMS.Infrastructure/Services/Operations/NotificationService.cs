@@ -182,6 +182,45 @@ public class NotificationService : INotificationService
             row.NextAttemptAt = TelegramQuietHours.HoldUntil(DateTime.UtcNow, notification.Type, _telegramOptions);
             _db.TelegramOutboxes.Add(row);
         }
+
+        await EnqueueGroupsAsync(notification, tenantId, tenantName, link, typeName);
+    }
+
+    /// <summary>
+    /// Guruh chatlari (TG16): faqat UMUMIY bildirishnoma; shaxsiy (UserId bor) va obuna/limit
+    /// ogohlantirishlari guruhga bormaydi — ular tenant egasining ishi.
+    /// </summary>
+    private async Task EnqueueGroupsAsync(Notification notification, Guid? tenantId, string? tenantName, string? link, string typeName)
+    {
+        if (notification.UserId is not null || tenantId is not { } tid
+            || NotificationRouting.RequiredPermission(notification.Type) == WmsPermissions.SettingsModules)
+            return;
+
+        var groups = await _db.TelegramGroups.AsNoTracking()
+            .Where(g => g.TenantId == tid && g.IsActive)
+            .Select(g => new { g.ChatId, g.MutedTypes })
+            .ToListAsync();
+
+        foreach (var g in groups)
+        {
+            if (g.MutedTypes is { } muted
+                && muted.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                    .Contains(typeName, StringComparer.OrdinalIgnoreCase))
+                continue;
+
+            string lang = _telegramOptions.DefaultLanguage;
+            _db.TelegramOutboxes.Add(new TelegramOutbox
+            {
+                TenantId = tid,
+                TelegramLinkId = null,
+                ChatId = g.ChatId,
+                Text = TelegramOutboxComposer.Text(tenantName, notification, lang, link),
+                ReplyMarkup = TelegramOutboxComposer.ReplyMarkup(notification, lang, link),
+                NotificationId = notification.Id,
+                DedupKey = TelegramOutboxComposer.DedupKey(notification.Id, g.ChatId),
+                NextAttemptAt = TelegramQuietHours.HoldUntil(DateTime.UtcNow, notification.Type, _telegramOptions),
+            });
+        }
     }
 
     /// <summary>

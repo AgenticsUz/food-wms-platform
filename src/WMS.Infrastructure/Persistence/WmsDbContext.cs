@@ -83,6 +83,7 @@ public sealed class WmsDbContext : DbContext
     public DbSet<TelegramLinkToken> TelegramLinkTokens => Set<TelegramLinkToken>();
     public DbSet<TelegramOutbox> TelegramOutboxes => Set<TelegramOutbox>();
     public DbSet<TelegramChatState> TelegramChatStates => Set<TelegramChatState>();
+    public DbSet<TelegramGroup> TelegramGroups => Set<TelegramGroup>();
 
     // ── Tenant jadvallari (RLS) ──
     public DbSet<TenantFeature> TenantFeatures => Set<TenantFeature>();

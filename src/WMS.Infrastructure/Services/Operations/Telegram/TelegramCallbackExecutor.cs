@@ -63,8 +63,8 @@ public sealed class TelegramCallbackExecutor
             return;
         }
 
-        // 1. Navbat qatori (platforma jadvali) — tenant va qaysi ulanish.
-        Guid tenantId; Guid linkId; string tenantCode;
+        // 1. Navbat qatori (platforma jadvali) — tenant va qaysi ulanish (guruh xabarida ulanish yo'q).
+        Guid tenantId; Guid? linkId; string tenantCode;
         await using (AsyncServiceScope lookup = _services.CreateAsyncScope())
         {
             WmsDbContext db = lookup.ServiceProvider.GetRequiredService<WmsDbContext>();
@@ -72,7 +72,7 @@ public sealed class TelegramCallbackExecutor
                 from o in db.TelegramOutboxes.AsNoTracking()
                 join t in db.Tenants.AsNoTracking() on o.TenantId equals t.Id
                 where o.ChatId == update.ChatId && o.MessageId == update.MessageId
-                      && o.Kind == TelegramOutboxKind.Message && o.TelegramLinkId != null && t.IsActive
+                      && o.Kind == TelegramOutboxKind.Message && t.IsActive
                 select new { o.TenantId, o.TelegramLinkId, t.Code })
                 .FirstOrDefaultAsync(ct);
 
@@ -82,22 +82,29 @@ public sealed class TelegramCallbackExecutor
                 return;
             }
 
-            (tenantId, linkId, tenantCode) = (row.TenantId!.Value, row.TelegramLinkId!.Value, row.Code);
+            (tenantId, linkId, tenantCode) = (row.TenantId!.Value, row.TelegramLinkId, row.Code);
         }
 
-        // 2. Tenant scope'i: aktor, ruxsat, amal, audit.
+        // 2. Tenant scope'i: aktor, ruxsat, amal, audit. Guruhda (TG16) aktor — BOSGAN odamning shu
+        // tenantdagi shaxsiy ulanishi; ulanmagan bo'lsa amal yo'q.
         await using AsyncServiceScope scope = _services.CreateAsyncScope();
         scope.ServiceProvider.GetRequiredService<ICurrentTenant>().Set(tenantId, tenantCode);
         IServiceProvider sp = scope.ServiceProvider;
         WmsDbContext tdb = sp.GetRequiredService<WmsDbContext>();
 
-        var actor = await tdb.TelegramLinks.AsNoTracking()
-            .Where(l => l.Id == linkId && l.IsActive && l.UserProfile != null && l.UserProfile.IsActive)
+        IQueryable<TelegramLink> actorQuery = tdb.TelegramLinks.AsNoTracking()
+            .Where(l => l.IsActive && l.UserProfile != null && l.UserProfile.IsActive);
+        actorQuery = linkId is { } id
+            ? actorQuery.Where(l => l.Id == id)
+            : actorQuery.Where(l => l.ChatId == (update.FromId ?? 0));
+
+        var actor = await actorQuery
             .Select(l => new { l.UserProfile!.IdentitySub, l.UserProfile.FullName, l.Lang })
             .FirstOrDefaultAsync(ct);
         if (actor is null)
         {
-            await AnswerAsync(update, Translations.Format(TelegramCallbacks.ExpiredKey, lang), true, ct);
+            string key = linkId is null ? GroupKeys.ConnectProfileFirst : TelegramCallbacks.ExpiredKey;
+            await AnswerAsync(update, Translations.Format(key, lang), true, ct);
             return;
         }
 
