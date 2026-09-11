@@ -93,6 +93,47 @@ public sealed class TelegramService : ITelegramService
         return TelegramSendResult.Success(messageId);
     }
 
+    public async Task<TelegramSendResult> SendDocumentAsync(long chatId, string fileName, byte[] content, string? caption, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(content);
+        if (!IsEnabled || chatId == 0) return new TelegramSendResult(false, 0, null, "not configured");
+
+        try
+        {
+            HttpClient client = _httpFactory.CreateClient(PollingHttpClientName); // katta fayl — uzunroq timeout
+            Uri uri = new($"{client.BaseAddress}bot{_token}/sendDocument");
+
+            using MultipartFormDataContent form = new();
+            form.Add(new StringContent(chatId.ToString(System.Globalization.CultureInfo.InvariantCulture)), "chat_id");
+            if (!string.IsNullOrWhiteSpace(caption))
+            {
+                form.Add(new StringContent(caption), "caption");
+                form.Add(new StringContent("HTML"), "parse_mode");
+            }
+            ByteArrayContent file = new(content);
+            file.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
+            form.Add(file, "document", fileName);
+
+            using HttpResponseMessage response = await client.PostAsync(uri, form, cancellationToken);
+            string raw = await response.Content.ReadAsStringAsync(cancellationToken);
+            ApiCall call = Read(raw, (int)response.StatusCode);
+            return call.Ok
+                ? TelegramSendResult.Success(null)
+                : new TelegramSendResult(false, call.StatusCode, call.RetryAfterSeconds, call.Description);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+#pragma warning disable CA1031 // Best-effort transport.
+        catch (Exception ex)
+#pragma warning restore CA1031
+        {
+            _logger.LogWarning("Telegram 'sendDocument' chaqiruvi yiqildi: {ErrorType}: {Message}", ex.GetType().Name, Redact(ex.GetBaseException().Message));
+            return new TelegramSendResult(false, 0, null, ex.GetType().Name);
+        }
+    }
+
     public async Task<bool> AnswerCallbackQueryAsync(string callbackQueryId, string? text, bool showAlert, CancellationToken cancellationToken)
     {
         if (!IsEnabled) return false;

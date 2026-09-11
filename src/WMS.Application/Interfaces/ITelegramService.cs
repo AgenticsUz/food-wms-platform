@@ -45,6 +45,9 @@ public interface ITelegramService
     /// <param name="replyMarkupJson">Inline tugmalar (<c>reply_markup</c> JSON) yoki <see langword="null"/>.</param>
     Task<TelegramSendResult> SendMessageAsync(long chatId, string text, string? replyMarkupJson, CancellationToken cancellationToken);
 
+    /// <summary>Fayl (Excel/PDF) yuboradi — ≤ 50 MB (Telegram bot chegarasi). Istisno tashlamaydi.</summary>
+    Task<TelegramSendResult> SendDocumentAsync(long chatId, string fileName, byte[] content, string? caption, CancellationToken cancellationToken);
+
     /// <summary>Tugma bosilganiga javob (Telegram 30 s kutadi); <paramref name="showAlert"/> — modal oyna.</summary>
     Task<bool> AnswerCallbackQueryAsync(string callbackQueryId, string? text, bool showAlert, CancellationToken cancellationToken);
 

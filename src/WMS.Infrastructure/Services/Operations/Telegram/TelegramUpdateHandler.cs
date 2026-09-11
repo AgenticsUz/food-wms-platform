@@ -33,17 +33,19 @@ public sealed class TelegramUpdateHandler : ITelegramUpdateHandler
     private readonly ITelegramService _telegram;
     private readonly TelegramCallbackExecutor _callbacks;
     private readonly TelegramQueryCommands _queries;
+    private readonly TelegramWorkCommands _work;
     private readonly TelegramOptions _options;
     private readonly ILogger<TelegramUpdateHandler> _logger;
 
     public TelegramUpdateHandler(IServiceProvider services, ITelegramService telegram, TelegramCallbackExecutor callbacks,
-        TelegramQueryCommands queries, IOptions<TelegramOptions> options, ILogger<TelegramUpdateHandler> logger)
+        TelegramQueryCommands queries, TelegramWorkCommands work, IOptions<TelegramOptions> options, ILogger<TelegramUpdateHandler> logger)
     {
         ArgumentNullException.ThrowIfNull(options);
         _services = services;
         _telegram = telegram;
         _callbacks = callbacks;
         _queries = queries;
+        _work = work;
         _options = options.Value;
         _logger = logger;
     }
@@ -62,17 +64,31 @@ public sealed class TelegramUpdateHandler : ITelegramUpdateHandler
 
         if (update.Kind == TelegramUpdateKind.CallbackQuery)
         {
-            if (update.CallbackData?.StartsWith(TelegramQueryCommands.SelectPrefix, StringComparison.Ordinal) == true)
+            string data = update.CallbackData ?? string.Empty;
+            if (data.StartsWith(TelegramWorkCommands.ShiftPrefix, StringComparison.Ordinal)
+                || data.StartsWith(TelegramWorkCommands.ReportPrefix, StringComparison.Ordinal)
+                || (data.StartsWith(TelegramChatContext.SelectPrefix, StringComparison.Ordinal) && IsWorkSelection(data)))
+                await _work.HandleCallbackAsync(update, cancellationToken);
+            else if (data.StartsWith(TelegramChatContext.SelectPrefix, StringComparison.Ordinal))
                 await _queries.HandleSelectionAsync(update, cancellationToken);
             else
                 await _callbacks.ExecuteAsync(update, cancellationToken);
             return;
         }
 
-        if (update.Kind == TelegramUpdateKind.Command && update.Command is { } cmd && TelegramQueryCommands.Commands.Contains(cmd))
+        if (update.Kind == TelegramUpdateKind.Command && update.Command is { } cmd)
         {
-            await _queries.HandleCommandAsync(update, cancellationToken);
-            return;
+            if (TelegramQueryCommands.Commands.Contains(cmd))
+            {
+                await _queries.HandleCommandAsync(update, cancellationToken);
+                return;
+            }
+
+            if (TelegramWorkCommands.Commands.Contains(cmd))
+            {
+                await _work.HandleCommandAsync(update, cancellationToken);
+                return;
+            }
         }
 
         string lang = TelegramLanguage.Resolve(update.LanguageCode, _options.DefaultLanguage);
@@ -174,6 +190,16 @@ public sealed class TelegramUpdateHandler : ITelegramUpdateHandler
 
         _logger.LogInformation("Telegram: tenant {TenantCode} profili ulandi", tenantCode);
         await ReplyAsync(update.ChatId, TelegramBotReplies.Linked(tenantName, lang), cancellationToken);
+    }
+
+    /// <summary><c>sel:&lt;tenant&gt;:&lt;buyruq&gt;</c> — buyruq xodim buyrug'imi (keldim, hisobot …).</summary>
+    private static bool IsWorkSelection(string data)
+    {
+        string[] parts = data.Split(':', 3);
+        if (parts.Length < 3) return false;
+        int space = parts[2].IndexOf(' ', StringComparison.Ordinal);
+        string command = space < 0 ? parts[2] : parts[2][..space];
+        return TelegramWorkCommands.Commands.Contains(command);
     }
 
     /// <summary><c>/status</c>: chat ulangan tenantlar — har tenantda alohida scope (kam buyruq; N ta scope maqbul).</summary>

@@ -43,6 +43,8 @@ public static class OperationsModule
         services.AddScoped<ITelegramUpdateHandler, TelegramUpdateHandler>();
         services.AddScoped<TelegramCallbackExecutor>();
         services.AddScoped<TelegramQueryCommands>();
+        services.AddScoped<TelegramChatContext>();
+        services.AddScoped<TelegramWorkCommands>();
         services.AddScoped<IOpsNotifier, TelegramOpsNotifier>();
         services.AddHostedService<TelegramDigestBackgroundService>();
 

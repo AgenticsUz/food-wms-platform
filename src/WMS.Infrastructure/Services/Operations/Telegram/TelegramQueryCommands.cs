@@ -35,8 +35,7 @@ namespace WMS.Infrastructure.Services.Operations.Telegram;
 /// </remarks>
 public sealed class TelegramQueryCommands
 {
-    public const string SelectPrefix = "sel:";
-    private static readonly TimeSpan StateTtl = TimeSpan.FromHours(1);
+    public const string SelectPrefix = TelegramChatContext.SelectPrefix;
     private const int MaxRows = 15;
     private const int ExpiringDays = 7;
     private const int PendingButtons = 10;
@@ -46,15 +45,17 @@ public sealed class TelegramQueryCommands
 
     private readonly IServiceProvider _services;
     private readonly ITelegramService _telegram;
+    private readonly TelegramChatContext _chats;
     private readonly TelegramOptions _options;
     private readonly ILogger<TelegramQueryCommands> _logger;
 
-    public TelegramQueryCommands(IServiceProvider services, ITelegramService telegram,
+    public TelegramQueryCommands(IServiceProvider services, ITelegramService telegram, TelegramChatContext chats,
         IOptions<TelegramOptions> options, ILogger<TelegramQueryCommands> logger)
     {
         ArgumentNullException.ThrowIfNull(options);
         _services = services;
         _telegram = telegram;
+        _chats = chats;
         _options = options.Value;
         _logger = logger;
     }
@@ -66,59 +67,38 @@ public sealed class TelegramQueryCommands
         string lang = TelegramLanguage.Resolve(update.LanguageCode, _options.DefaultLanguage);
         string command = update.Command ?? string.Empty;
 
-        List<Connection> connections = await ConnectionsAsync(update.ChatId, ct);
+        List<TelegramConnection> connections = await _chats.ConnectionsAsync(update.ChatId, ct);
         if (connections.Count == 0)
         {
             await SendAsync(update.ChatId, TelegramBotReplies.Status([], lang), ct);
             return;
         }
 
-        Connection? chosen = connections.Count == 1 ? connections[0] : await RememberedAsync(update.ChatId, connections, ct);
-        if (chosen is null)
-        {
-            await AskTenantAsync(update.ChatId, connections, command, update.Payload, lang, ct);
-            return;
-        }
-
-        await ExecuteAsync(update.ChatId, chosen, command, update.Payload, lang, ct);
+        TelegramConnection? chosen = await _chats.ResolveAsync(update.ChatId, connections, command, update.Payload, lang, ct);
+        if (chosen is not null)
+            await ExecuteAsync(update.ChatId, chosen, command, update.Payload, lang, ct);
     }
 
-    /// <summary>Tenant tanlash tugmasi: <c>sel:&lt;tenantN&gt;:&lt;buyruq&gt;</c> (payload — bir martalik, tanlov xotirasi orqali).</summary>
+    /// <summary>Tenant tanlash tugmasi: <c>sel:&lt;tenantN&gt;:&lt;buyruq&gt;</c>.</summary>
     public async Task HandleSelectionAsync(TelegramUpdate update, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(update);
         string lang = TelegramLanguage.Resolve(update.LanguageCode, _options.DefaultLanguage);
-        string[] parts = (update.CallbackData ?? string.Empty).Split(':', 3);
-        if (parts.Length < 3 || !Guid.TryParseExact(parts[1], "N", out Guid tenantId))
-        {
-            await AnswerAsync(update, Translations.Format(TelegramCallbacks.ExpiredKey, lang), ct);
-            return;
-        }
-
-        List<Connection> connections = await ConnectionsAsync(update.ChatId, ct);
-        Connection? chosen = connections.FirstOrDefault(c => c.TenantId == tenantId);
+        (TelegramConnection? chosen, string command, string? payload) = await _chats.SelectAsync(update.ChatId, update.CallbackData, ct);
         if (chosen is null)
         {
             await AnswerAsync(update, Translations.Format(TelegramCallbacks.ExpiredKey, lang), ct);
             return;
         }
 
-        await RememberAsync(update.ChatId, tenantId, ct);
         await AnswerAsync(update, chosen.TenantName, ct);
         if (update.MessageId is { } messageId)
             await _telegram.EditMessageTextAsync(update.ChatId, messageId, "🏭 " + WebUtility.HtmlEncode(chosen.TenantName), ct);
 
-        (string command, string? payload) = SplitCommand(parts[2]);
         await ExecuteAsync(update.ChatId, chosen, command, payload, lang, ct);
     }
 
-    private static (string Command, string? Payload) SplitCommand(string raw)
-    {
-        int space = raw.IndexOf(' ', StringComparison.Ordinal);
-        return space < 0 ? (raw, null) : (raw[..space], raw[(space + 1)..]);
-    }
-
-    private async Task ExecuteAsync(long chatId, Connection c, string command, string? payload, string lang, CancellationToken ct)
+    private async Task ExecuteAsync(long chatId, TelegramConnection c, string command, string? payload, string lang, CancellationToken ct)
     {
         await using AsyncServiceScope scope = _services.CreateAsyncScope();
         IServiceProvider sp = scope.ServiceProvider;
@@ -254,7 +234,7 @@ public sealed class TelegramQueryCommands
     }
 
     // ── /kutilmoqda — har transfer alohida, tugmalar bilan (navbat orqali: callback tenant/aktorni navbat qatoridan oladi) ──
-    private async Task<string> PendingAsync(WmsDbContext db, Connection c, string lang, CancellationToken ct)
+    private async Task<string> PendingAsync(WmsDbContext db, TelegramConnection c, string lang, CancellationToken ct)
     {
         var pending = await db.Transfers.AsNoTracking()
             .Where(t => t.Status == TransferStatus.Pending)
@@ -315,69 +295,6 @@ public sealed class TelegramQueryCommands
 
         await db.SaveChangesAsync(ct);
         return pending.Count > PendingButtons ? Translations.Format(QueryKeys.More, lang, pending.Count - PendingButtons) : string.Empty;
-    }
-
-    // ── Ulanishlar va tenant tanlovi ──
-    private sealed record Connection(Guid TenantId, string TenantCode, string TenantName, Guid LinkId, long ChatId, Guid IdentitySub);
-
-    private async Task<List<Connection>> ConnectionsAsync(long chatId, CancellationToken ct)
-    {
-        List<Connection> result = [];
-        await TenantScopes.ForEachTenantAsync(_services, async (scope, tenantId, token) =>
-        {
-            WmsDbContext db = scope.GetRequiredService<WmsDbContext>();
-            var found = await db.TelegramLinks.AsNoTracking()
-                .Where(l => l.ChatId == chatId && l.IsActive && l.UserProfile != null && l.UserProfile.IsActive)
-                .Select(l => new { l.Id, l.UserProfile!.IdentitySub })
-                .FirstOrDefaultAsync(token);
-            if (found is null) return;
-
-            var tenant = await db.Tenants.AsNoTracking().Where(t => t.Id == tenantId).Select(t => new { t.Code, t.Name }).FirstAsync(token);
-            result.Add(new Connection(tenantId, tenant.Code, tenant.Name, found.Id, chatId, found.IdentitySub));
-        }, _logger, ct);
-        return result;
-    }
-
-    private async Task<Connection?> RememberedAsync(long chatId, List<Connection> connections, CancellationToken ct)
-    {
-        await using AsyncServiceScope scope = _services.CreateAsyncScope();
-        WmsDbContext db = scope.ServiceProvider.GetRequiredService<WmsDbContext>();
-        DateTime now = DateTime.UtcNow;
-        Guid? tenantId = await db.TelegramChatStates.AsNoTracking()
-            .Where(s => s.ChatId == chatId && s.ExpiresAt > now)
-            .Select(s => (Guid?)s.TenantId)
-            .FirstOrDefaultAsync(ct);
-        return tenantId is null ? null : connections.FirstOrDefault(c => c.TenantId == tenantId);
-    }
-
-    private async Task RememberAsync(long chatId, Guid tenantId, CancellationToken ct)
-    {
-        await using AsyncServiceScope scope = _services.CreateAsyncScope();
-        WmsDbContext db = scope.ServiceProvider.GetRequiredService<WmsDbContext>();
-        TelegramChatState? state = await db.TelegramChatStates.FirstOrDefaultAsync(s => s.ChatId == chatId, ct);
-        if (state is null)
-        {
-            state = new TelegramChatState { ChatId = chatId };
-            db.TelegramChatStates.Add(state);
-        }
-
-        state.TenantId = tenantId;
-        state.ExpiresAt = DateTime.UtcNow + StateTtl;
-        await db.SaveChangesAsync(ct);
-    }
-
-    private async Task AskTenantAsync(long chatId, List<Connection> connections, string command, string? payload, string lang, CancellationToken ct)
-    {
-        string suffix = payload is null ? command : $"{command} {payload}";
-        // callback_data ≤ 64 bayt: "sel:" (4) + 32 + ":" (1) = 37 → buyruq+payload 27 belgigacha.
-        if (suffix.Length > 27) suffix = suffix[..27];
-
-        var rows = connections.Select(c => new[]
-        {
-            new { text = c.TenantName, callback_data = $"{SelectPrefix}{c.TenantId:N}:{suffix}" },
-        }).ToArray();
-        string markup = JsonSerializer.Serialize(new { inline_keyboard = rows });
-        await _telegram.SendMessageAsync(chatId, Translations.Format(QueryKeys.WhichTenant, lang), markup, ct);
     }
 
     private async Task SendAsync(long chatId, string text, CancellationToken ct)

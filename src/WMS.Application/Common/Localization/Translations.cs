@@ -97,6 +97,27 @@ public static class Translations
         ["No transfers are waiting for confirmation."] = ["Tasdiq kutayotgan transfer yo'q.", "Перемещений в ожидании подтверждения нет."],
         ["… and {0} more"] = ["… va yana {0}", "… и ещё {0}"],
 
+        // ── Xodim buyruqlari va hisobot fayllari (TG14/TG15) ──
+        ["This feature is not included in your plan."] = ["Bu imkoniyat tarifingizga kirmaydi.", "Эта возможность не входит в ваш тариф."],
+        ["You already checked in at {0}."] = ["Siz allaqachon keldingiz ({0}).", "Вы уже отметились ({0})."],
+        ["You have not checked in yet — send /keldim first."] = ["Hali kelmagansiz — avval /keldim.", "Вы ещё не отметились — сначала /keldim."],
+        ["No shifts are set up yet."] = ["Smenalar hali sozlanmagan.", "Смены ещё не настроены."],
+        ["Which shift?"] = ["Qaysi smena?", "Какая смена?"],
+        ["✅ Checked in: {0}, {1}."] = ["✅ Keldingiz: {0}, {1}.", "✅ Отмечен приход: {0}, {1}."],
+        ["👋 Checked out at {0}. Worked: {1}."] = ["👋 Ketdingiz: {0}. Ishlagan vaqt: {1}.", "👋 Отмечен уход: {0}. Отработано: {1}."],
+        ["No shift plans for today."] = ["Bugunga smena rejasi yo'q.", "На сегодня плана смен нет."],
+        ["Shift plans — {0}"] = ["Smena rejalari — {0}", "План смен — {0}"],
+        ["No efficiency data for this week yet."] = ["Bu hafta samaradorlik ma'lumoti hali yo'q.", "Данных об эффективности за эту неделю пока нет."],
+        ["Efficiency this week"] = ["Shu hafta samaradorlik", "Эффективность за неделю"],
+        ["Which report?"] = ["Qaysi hisobot?", "Какой отчёт?"],
+        ["📦 Stock (Excel)"] = ["📦 Zaxira (Excel)", "📦 Остатки (Excel)"],
+        ["🔄 Transfers — this month (Excel)"] = ["🔄 Transferlar — shu oy (Excel)", "🔄 Перемещения — этот месяц (Excel)"],
+        ["💰 Finance — this month (Excel)"] = ["💰 Moliya — shu oy (Excel)", "💰 Финансы — этот месяц (Excel)"],
+        ["🤝 Counterparties (Excel)"] = ["🤝 Kontragentlar (Excel)", "🤝 Контрагенты (Excel)"],
+        ["The report is too large for Telegram — download it from the web app."] = [
+            "Hisobot Telegram uchun juda katta — web ilovadan yuklab oling.",
+            "Отчёт слишком большой для Telegram — скачайте его в веб-приложении."],
+
         // ── Kunlik xulosa (TG11) ──
         ["Daily summary — {0}"] = ["Kunlik xulosa — {0}", "Сводка за день — {0}"],
         ["Transfers awaiting confirmation: {0}"] = ["Tasdiq kutayotgan transferlar: {0}", "Перемещений в ожидании подтверждения: {0}"],
@@ -144,9 +165,9 @@ public static class Translations
         ["Disconnected from all organizations. To reconnect, open your WMS profile."] = [
             "Barcha tashkilotlardan uzildingiz. Qayta ulash — WMS profilingizdan.",
             "Отключено от всех организаций. Чтобы подключиться снова, откройте профиль WMS."],
-        ["Commands: /bugun — today, /kutilmoqda — pending transfers, /qoldiq <name> — stock, /muddat — expiring batches, /qarz — receivables, /status — where you are connected, /stop — disconnect."] = [
-            "Buyruqlar: /bugun — bugungi holat, /kutilmoqda — tasdiq kutayotgan transferlar, /qoldiq <nom> — qoldiq, /muddat — muddati yaqin partiyalar, /qarz — qarzdorlar, /status — qayerga ulangansiz, /stop — uzish.",
-            "Команды: /bugun — сводка, /kutilmoqda — перемещения в ожидании, /qoldiq <название> — остаток, /muddat — партии с истекающим сроком, /qarz — должники, /status — где вы подключены, /stop — отключить."],
+        ["Commands: /bugun — today, /kutilmoqda — pending transfers, /qoldiq <name> — stock, /muddat — expiring batches, /qarz — receivables, /hisobot — Excel report, /keldim /ketdim — attendance, /smena — shift plans, /kpi — efficiency, /status — where you are connected, /stop — disconnect."] = [
+            "Buyruqlar: /bugun — bugungi holat, /kutilmoqda — tasdiq kutayotgan transferlar, /qoldiq <nom> — qoldiq, /muddat — muddati yaqin partiyalar, /qarz — qarzdorlar, /hisobot — Excel hisobot, /keldim /ketdim — davomat, /smena — smena rejasi, /kpi — samaradorlik, /status — qayerga ulangansiz, /stop — uzish.",
+            "Команды: /bugun — сводка, /kutilmoqda — перемещения в ожидании, /qoldiq <название> — остаток, /muddat — партии с истекающим сроком, /qarz — должники, /hisobot — отчёт Excel, /keldim /ketdim — посещаемость, /smena — план смен, /kpi — эффективность, /status — где вы подключены, /stop — отключить."],
 
         // ── Telegram bot (TG1): API xabarlari va botning o'z javoblari (HTML) ──
         ["Telegram bot is not configured"] = [

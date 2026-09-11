@@ -27,6 +27,7 @@ const METHOD_LABELS: Readonly<Record<number, string>> = {
   [AttendanceMethod.PIN]: 'PIN',
   [AttendanceMethod.FaceID]: 'FaceID',
   [AttendanceMethod.Manual]: 'Manual',
+  [AttendanceMethod.Telegram]: 'Telegram',
 };
 
 /** Qo'lda kiritilgan kirish — tekshirilmagan, shuning uchun «kutilmoqda» rangida. */
@@ -34,6 +35,7 @@ const METHOD_STATUS: Readonly<Record<number, string>> = {
   [AttendanceMethod.PIN]: 'Confirmed',
   [AttendanceMethod.FaceID]: 'Confirmed',
   [AttendanceMethod.Manual]: 'Pending',
+  [AttendanceMethod.Telegram]: 'Confirmed',
 };
 
 @Component({

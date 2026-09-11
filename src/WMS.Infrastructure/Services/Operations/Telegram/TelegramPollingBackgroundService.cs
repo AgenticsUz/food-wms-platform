@@ -113,13 +113,17 @@ public sealed class TelegramPollingBackgroundService : BackgroundService
         [
             new("bugun", "Bugungi holat"), new("kutilmoqda", "Tasdiq kutayotgan transferlar"),
             new("qoldiq", "Mahsulot qoldig'i: /qoldiq nom"), new("muddat", "Muddati yaqin partiyalar"),
-            new("qarz", "Qarzdorlar"), new("status", "Qayerga ulanganman"), new("stop", "Uzish"), new("help", "Yordam"),
+            new("qarz", "Qarzdorlar"), new("hisobot", "Hisobot fayli (Excel)"),
+            new("keldim", "Ishga keldim"), new("ketdim", "Ishdan ketdim"), new("smena", "Bugungi smena rejasi"), new("kpi", "Shu hafta samaradorlik"),
+            new("status", "Qayerga ulanganman"), new("stop", "Uzish"), new("help", "Yordam"),
         ];
         TelegramBotCommand[] ru =
         [
             new("bugun", "Сводка на сегодня"), new("kutilmoqda", "Перемещения в ожидании"),
             new("qoldiq", "Остаток товара: /qoldiq название"), new("muddat", "Партии с истекающим сроком"),
-            new("qarz", "Должники"), new("status", "Где я подключён"), new("stop", "Отключить"), new("help", "Помощь"),
+            new("qarz", "Должники"), new("hisobot", "Файл отчёта (Excel)"),
+            new("keldim", "Пришёл на работу"), new("ketdim", "Ушёл с работы"), new("smena", "План смен на сегодня"), new("kpi", "Эффективность за неделю"),
+            new("status", "Где я подключён"), new("stop", "Отключить"), new("help", "Помощь"),
         ];
         await _telegram.SetMyCommandsAsync(uz, null, cancellationToken);
         await _telegram.SetMyCommandsAsync(uz, "uz", cancellationToken);
