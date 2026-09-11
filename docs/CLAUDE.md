@@ -55,6 +55,9 @@ Console yuzasi), `Reports` (analitika, Excel, PDF brendlash, valyuta).
 
 ## 4. Buyruqlar
 
+**Deploy** — `docs/DEPLOY.md` (F7 usuli: image lokalda quriladi, SSH orqali `docker load`,
+`up --no-build`). Serverda image QURILMAYDI, GitHub `deploy.yml` o'chiq.
+
 ```bash
 # Build (F6 da avtomatlashtirilgan test YO'Q — foydalanuvchi qarori)
 dotnet build AgenticsWms.slnx
