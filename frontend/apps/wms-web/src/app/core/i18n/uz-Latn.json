@@ -395,6 +395,10 @@
     "telegramGroupProduction": "Ishlab chiqarish",
     "telegramGroupSubscription": "Obuna va tarif",
     "telegramDigest": "Kunlik xulosa (har kuni 08:00)",
+    "telegramClientsTitle": "Mijozlarga Telegram xabarlari",
+    "telegramClientsHint": "Ulangan kontragentlar buyurtma tasdiqlandi, yo'lda, yetkazildi va to'lov xabarlarini oladi. Sukut o'chiq — bu sizning qaroringiz.",
+    "telegramDebtReminderDays": "Qarz eslatmasi (kun)",
+    "telegramDebtReminderHint": "Qarzi bor mijozga necha kunda bir eslatma; 0 — o'chiq.",
     "reset": {
       "action": "Parolni tiklash",
       "title": "Parolni tiklash — {{name}}",
@@ -424,6 +428,15 @@
     "lastSeen": "Oxirgi faollik",
     "systemRole": "Tizim roli",
     "telegramDisabled": "Telegram bot hali sozlanmagan — bildirishnomalar yuborilmaydi."
+  },
+  "telegramLink": {
+    "title": "Telegram — {{name}}",
+    "button": "Telegram'ga ulash",
+    "hint": "Havola yarating va uni {{name}} ga yuboring — u botda Start bosadi. Havola bir marta ishlaydi.",
+    "create": "Havola yaratish",
+    "copy": "Nusxa olish",
+    "copied": "Havola nusxalandi",
+    "expires": "Havola 24 soat amal qiladi."
   },
   "dashboard": {
     "goodMorning": "Xayrli tong",

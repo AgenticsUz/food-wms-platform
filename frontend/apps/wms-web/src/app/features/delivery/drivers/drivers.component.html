@@ -26,6 +26,7 @@
             />
           </td>
           <td class="text-center actions-cell">
+            <p-button *hasPermission="'delivery.manage'" icon="pi pi-telegram" [text]="true" size="small" [title]="t('telegramLink.button')" (onClick)="openTelegram(row)" />
             <p-button *hasPermission="'delivery.manage'" icon="pi pi-pencil" [text]="true" size="small" (onClick)="openEdit(row)" />
             <p-button *hasPermission="'delivery.manage'" icon="pi pi-trash" [text]="true" severity="danger" size="small" (onClick)="remove(row)" />
           </td>
@@ -72,4 +73,8 @@
       <p-button [label]="t('common.save')" icon="pi pi-check" [loading]="saving()" (onClick)="save()" />
     </ng-template>
   </p-dialog>
+
+  @if (telegramApi(); as api) {
+    <app-telegram-link-dialog [(visible)]="telegramVisible" [api]="api" [name]="telegramDriver()?.fullName ?? ''" />
+  }
 </div>

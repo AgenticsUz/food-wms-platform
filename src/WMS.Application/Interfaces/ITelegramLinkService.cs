@@ -1,5 +1,6 @@
 using WMS.Application.DTOs.Notifications;
 using WMS.Application.Telegram;
+using WMS.Domain.Enums;
 
 namespace WMS.Application.Interfaces;
 
@@ -26,6 +27,17 @@ public interface ITelegramLinkService
 
     /// <summary>Kunlik xulosa (TG11) yoqish/o'chirish.</summary>
     Task SetDigestAsync(Guid userId, bool enabled, CancellationToken cancellationToken);
+
+    // ── Haydovchi va kontragent (TG12/TG13): kartadan havola, menejer uni o'zi yuboradi ──
+
+    Task<TelegramSubjectLinkDto> GetSubjectLinkAsync(TelegramLinkSubject subject, Guid subjectId, CancellationToken cancellationToken);
+    Task<TelegramLinkTokenDto> CreateSubjectLinkTokenAsync(TelegramLinkSubject subject, Guid subjectId, CancellationToken cancellationToken);
+    Task UnlinkSubjectAsync(TelegramLinkSubject subject, Guid subjectId, CancellationToken cancellationToken);
+
+    // ── Tenant sozlamasi (TG13): mijozlarga xabar yuborish roziligi ──
+
+    Task<TelegramClientSettingsDto> GetClientSettingsAsync(CancellationToken cancellationToken);
+    Task SetClientSettingsAsync(TelegramClientSettingsDto settings, CancellationToken cancellationToken);
 }
 
 /// <summary>

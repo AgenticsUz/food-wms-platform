@@ -7,6 +7,8 @@ import { TranslocoDirective } from '@jsverse/transloco';
 
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
+import { TelegramLinkDialogComponent, type TelegramLinkApi } from '../../../shared/components/telegram-link-dialog/telegram-link-dialog.component';
+import { HasPermissionDirective } from '../../../shared/directives/has-permission.directive';
 import { paymentMethodKey, type PaymentHistory } from '../../finance/finance.model';
 import {
   CounterpartyType,
@@ -27,7 +29,7 @@ import { CounterpartyService } from '../counterparty.service';
  */
 @Component({
   selector: 'app-counterparty-detail',
-  imports: [DecimalPipe, DatePipe, TableModule, Button, TranslocoDirective, PageHeaderComponent, StatusBadgeComponent],
+  imports: [DecimalPipe, DatePipe, TableModule, Button, TranslocoDirective, PageHeaderComponent, StatusBadgeComponent, TelegramLinkDialogComponent, HasPermissionDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './counterparty-detail.component.html',
   styleUrl: './counterparty-detail.component.scss',
@@ -46,6 +48,17 @@ export default class CounterpartyDetailComponent implements OnInit {
   protected readonly methodKey = paymentMethodKey;
 
   readonly counterparty = signal<Counterparty | null>(null);
+
+  /** Telegram ulash (TG13) — havola kartadan, menejer mijozga o'zi yuboradi. */
+  readonly telegramVisible = signal(false);
+  readonly telegramApi = signal<TelegramLinkApi | null>(null);
+
+  openTelegram(): void {
+    const c = this.counterparty();
+    if (!c) return;
+    this.telegramApi.set(this.service.telegram(c.id));
+    this.telegramVisible.set(true);
+  }
   readonly balance = signal<CounterpartyBalance | null>(null);
   readonly transfers = signal<CounterpartyTransfer[]>([]);
   readonly payments = signal<PaymentHistory[]>([]);

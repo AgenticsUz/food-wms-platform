@@ -1,6 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 
 import { ApiService } from '../../core/api/api.service';
+import type { TelegramLinkApi } from '../../shared/components/telegram-link-dialog/telegram-link-dialog.component';
+import type { TelegramLinkToken, TelegramSubjectLink } from '../settings/settings.model';
 import type { PaymentHistory } from '../finance/finance.model';
 import type {
   Counterparty,
@@ -14,6 +16,15 @@ import type {
 @Injectable({ providedIn: 'root' })
 export class CounterpartyService {
   private readonly api = inject(ApiService);
+
+  /** Kontragent Telegram'i (TG13) — kartadan havola; xabarlar tenant sozlamasi yoqiq bo'lsa keladi. */
+  telegram(id: string): TelegramLinkApi {
+    return {
+      get: () => this.api.get<TelegramSubjectLink>(`counterparties/${id}/telegram`),
+      create: () => this.api.post<TelegramLinkToken>(`counterparties/${id}/telegram-link`, {}),
+      unlink: () => this.api.delete<void>(`counterparties/${id}/telegram`),
+    };
+  }
 
   getCounterparties(type?: CounterpartyType) {
     return this.api.get<Counterparty[]>('counterparties', { type });

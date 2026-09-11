@@ -25,6 +25,14 @@ public class TelegramLink : TenantEntity
     public Guid? UserProfileId { get; set; }
     public UserProfile? UserProfile { get; set; }
 
+    /// <summary>Haydovchi (TG12) — foydalanuvchi EMAS, hisobsiz; marshrut va «yetkazildi» tugmalari.</summary>
+    public Guid? DriverId { get; set; }
+    public Driver? Driver { get; set; }
+
+    /// <summary>Kontragent (TG13) — mijozning o'z chati; tenant ruxsat bergandagina xabar oladi.</summary>
+    public Guid? CounterpartyId { get; set; }
+    public Counterparty? Counterparty { get; set; }
+
     /// <summary>Telegram chat identifikatori (int64; shaxsiy chatda foydalanuvchi id'si bilan bir xil).</summary>
     public long ChatId { get; set; }
 

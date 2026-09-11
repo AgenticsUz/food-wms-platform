@@ -9,6 +9,7 @@ import type {
   RoleCreateDto,
   RoleInfo,
   RoleUpdateDto,
+  TelegramClientSettings,
   TelegramLinkToken,
   TelegramStatus,
   UserDetail,
@@ -96,5 +97,13 @@ export class SettingsService {
   }
   setTelegramDigest(enabled: boolean) {
     return this.api.put<void>('me/telegram/digest', { enabled });
+  }
+
+  /** Tenant sozlamasi (TG13): mijozlarga Telegram xabarlari — `settings.modules`. */
+  getTelegramClients() {
+    return this.api.get<TelegramClientSettings>('settings/telegram-clients');
+  }
+  setTelegramClients(dto: TelegramClientSettings) {
+    return this.api.put<void>('settings/telegram-clients', dto);
   }
 }

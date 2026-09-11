@@ -129,6 +129,82 @@ public sealed class TelegramLinkService : ITelegramLinkService
         await _db.SaveChangesAsync(cancellationToken);
     }
 
+    // ── Haydovchi / kontragent (TG12/TG13) ──
+
+    public async Task<TelegramSubjectLinkDto> GetSubjectLinkAsync(TelegramLinkSubject subject, Guid subjectId, CancellationToken cancellationToken)
+    {
+        var link = await SubjectLinks(subject, subjectId).Where(l => l.IsActive)
+            .Select(l => new { l.Username, l.LinkedAt }).FirstOrDefaultAsync(cancellationToken);
+        return new TelegramSubjectLinkDto { Enabled = _telegram.IsEnabled, Linked = link is not null, Username = link?.Username, LinkedAt = link?.LinkedAt };
+    }
+
+    public async Task<TelegramLinkTokenDto> CreateSubjectLinkTokenAsync(TelegramLinkSubject subject, Guid subjectId, CancellationToken cancellationToken)
+    {
+        if (!_telegram.IsEnabled) throw new AppException("Telegram bot is not configured");
+        string? bot = _telegram.BotUsername ?? (await _telegram.GetMeAsync(cancellationToken)).Username;
+        if (string.IsNullOrWhiteSpace(bot)) throw new AppException("Telegram bot is not configured");
+        Guid tenantId = _tenant.TenantId ?? throw new AppException("Tenant is required");
+
+        bool exists = subject switch
+        {
+            TelegramLinkSubject.Driver => await _db.Drivers.AnyAsync(d => d.Id == subjectId && d.IsActive, cancellationToken),
+            TelegramLinkSubject.Counterparty => await _db.Counterparties.AnyAsync(c => c.Id == subjectId, cancellationToken),
+            _ => false,
+        };
+        if (!exists) throw new NotFoundException(subject == TelegramLinkSubject.Driver ? "Driver not found" : "Counterparty not found");
+
+        DateTime now = DateTime.UtcNow;
+        await _db.TelegramLinkTokens
+            .Where(t => t.SubjectType == subject && t.SubjectId == subjectId && t.UsedAt == null)
+            .ExecuteDeleteAsync(cancellationToken);
+
+        // Kartadan beriladigan havola odamga telefon/qog'oz orqali yetadi — uzoqroq (1 kun) yashaydi.
+        TelegramLinkToken token = new()
+        {
+            Token = GenerateToken(), TenantId = tenantId, SubjectType = subject, SubjectId = subjectId,
+            ExpiresAt = now.AddHours(24),
+        };
+        _db.TelegramLinkTokens.Add(token);
+        await _db.SaveChangesAsync(cancellationToken);
+        return new TelegramLinkTokenDto { Url = $"https://t.me/{bot}?start={token.Token}", ExpiresAt = token.ExpiresAt };
+    }
+
+    public async Task UnlinkSubjectAsync(TelegramLinkSubject subject, Guid subjectId, CancellationToken cancellationToken)
+    {
+        TelegramLink? link = await SubjectLinks(subject, subjectId).FirstOrDefaultAsync(l => l.IsActive, cancellationToken);
+        if (link is null) return;
+        link.IsActive = false;
+        await _db.SaveChangesAsync(cancellationToken);
+    }
+
+    private IQueryable<TelegramLink> SubjectLinks(TelegramLinkSubject subject, Guid subjectId) => subject switch
+    {
+        TelegramLinkSubject.Driver => _db.TelegramLinks.Where(l => l.DriverId == subjectId),
+        TelegramLinkSubject.Counterparty => _db.TelegramLinks.Where(l => l.CounterpartyId == subjectId),
+        _ => _db.TelegramLinks.Where(l => l.UserProfileId == subjectId),
+    };
+
+    // ── Tenant sozlamasi (TG13) ──
+
+    public async Task<TelegramClientSettingsDto> GetClientSettingsAsync(CancellationToken cancellationToken)
+    {
+        Guid tenantId = _tenant.TenantId ?? throw new AppException("Tenant is required");
+        var t = await _db.Tenants.AsNoTracking().Where(x => x.Id == tenantId)
+            .Select(x => new { x.ClientTelegramEnabled, x.DebtReminderDays }).FirstAsync(cancellationToken);
+        return new TelegramClientSettingsDto { Enabled = t.ClientTelegramEnabled, DebtReminderDays = t.DebtReminderDays };
+    }
+
+    public async Task SetClientSettingsAsync(TelegramClientSettingsDto settings, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(settings);
+        if (settings.DebtReminderDays is < 0 or > 90) throw new AppException("Debt reminder interval must be between 0 and 90 days");
+        Guid tenantId = _tenant.TenantId ?? throw new AppException("Tenant is required");
+        Tenant tenant = await _db.Tenants.FirstAsync(x => x.Id == tenantId, cancellationToken);
+        tenant.ClientTelegramEnabled = settings.Enabled;
+        tenant.DebtReminderDays = settings.Enabled ? settings.DebtReminderDays : 0;
+        await _db.SaveChangesAsync(cancellationToken);
+    }
+
     private static string GenerateToken()
     {
         Span<byte> bytes = stackalloc byte[TokenBytes];

@@ -395,6 +395,10 @@
     "telegramGroupProduction": "Производство",
     "telegramGroupSubscription": "Подписка и тариф",
     "telegramDigest": "Ежедневная сводка (в 08:00)",
+    "telegramClientsTitle": "Telegram-уведомления клиентам",
+    "telegramClientsHint": "Подключённые контрагенты получают сообщения: заказ подтверждён, в пути, доставлен, оплата. По умолчанию выключено — это ваше решение.",
+    "telegramDebtReminderDays": "Напоминание о долге (дней)",
+    "telegramDebtReminderHint": "Раз в сколько дней напоминать должникам; 0 — выключено.",
     "reset": {
       "action": "Сбросить пароль",
       "title": "Сброс пароля — {{name}}",
@@ -424,6 +428,15 @@
     "lastSeen": "Последняя активность",
     "systemRole": "Системная роль",
     "telegramDisabled": "Telegram-бот ещё не настроен — уведомления не отправляются."
+  },
+  "telegramLink": {
+    "title": "Telegram — {{name}}",
+    "button": "Подключить Telegram",
+    "hint": "Создайте ссылку и отправьте её {{name}} — он нажмёт Start в боте. Ссылка одноразовая.",
+    "create": "Создать ссылку",
+    "copy": "Копировать",
+    "copied": "Ссылка скопирована",
+    "expires": "Ссылка действует 24 часа."
   },
   "dashboard": {
     "goodMorning": "Доброе утро",

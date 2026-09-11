@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Platform.Infrastructure.Tenancy;
 using WMS.Application.Common;
+using WMS.Application.Common.Localization;
 using WMS.Application.Interfaces;
 using WMS.Application.Telegram;
 using WMS.Domain.Entities;
@@ -36,11 +37,12 @@ public sealed class TelegramUpdateHandler : ITelegramUpdateHandler
     private readonly TelegramQueryCommands _queries;
     private readonly TelegramWorkCommands _work;
     private readonly TelegramGroupCommands _groups;
+    private readonly TelegramPartnerBot _partners;
     private readonly TelegramOptions _options;
     private readonly ILogger<TelegramUpdateHandler> _logger;
 
     public TelegramUpdateHandler(IServiceProvider services, ITelegramService telegram, TelegramCallbackExecutor callbacks,
-        TelegramQueryCommands queries, TelegramWorkCommands work, TelegramGroupCommands groups,
+        TelegramQueryCommands queries, TelegramWorkCommands work, TelegramGroupCommands groups, TelegramPartnerBot partners,
         IOptions<TelegramOptions> options, ILogger<TelegramUpdateHandler> logger)
     {
         ArgumentNullException.ThrowIfNull(options);
@@ -50,6 +52,7 @@ public sealed class TelegramUpdateHandler : ITelegramUpdateHandler
         _queries = queries;
         _work = work;
         _groups = groups;
+        _partners = partners;
         _options = options.Value;
         _logger = logger;
     }
@@ -77,7 +80,11 @@ public sealed class TelegramUpdateHandler : ITelegramUpdateHandler
         if (update.Kind == TelegramUpdateKind.CallbackQuery)
         {
             string data = update.CallbackData ?? string.Empty;
-            if (data.StartsWith(TelegramWorkCommands.ShiftPrefix, StringComparison.Ordinal)
+            if (data.StartsWith(TelegramPartnerBot.DeliveredPrefix, StringComparison.Ordinal)
+                || data.StartsWith(TelegramPartnerBot.FailedPrefix, StringComparison.Ordinal)
+                || data.StartsWith(TelegramPartnerBot.WaybillPrefix, StringComparison.Ordinal))
+                await _partners.HandleCallbackAsync(update, cancellationToken);
+            else if (data.StartsWith(TelegramWorkCommands.ShiftPrefix, StringComparison.Ordinal)
                 || data.StartsWith(TelegramWorkCommands.ReportPrefix, StringComparison.Ordinal)
                 || (data.StartsWith(TelegramChatContext.SelectPrefix, StringComparison.Ordinal) && IsWorkSelection(data)))
                 await _work.HandleCallbackAsync(update, cancellationToken);
@@ -101,6 +108,9 @@ public sealed class TelegramUpdateHandler : ITelegramUpdateHandler
                 await _work.HandleCommandAsync(update, cancellationToken);
                 return;
             }
+
+            if (TelegramPartnerBot.Commands.Contains(cmd) && await _partners.HandleCommandAsync(update, cancellationToken))
+                return;
         }
 
         string lang = TelegramLanguage.Resolve(update.LanguageCode, _options.DefaultLanguage);
@@ -153,9 +163,8 @@ public sealed class TelegramUpdateHandler : ITelegramUpdateHandler
                 select new { t.Id, t.TenantId, tenant.Code, tenant.Name, t.SubjectType, t.SubjectId })
                 .FirstOrDefaultAsync(cancellationToken);
 
-            if (found is null || found.SubjectType != TelegramLinkSubject.UserProfile)
+            if (found is null)
             {
-                // Haydovchi/kontragent tokenlari — TG12/TG13; hozircha ular ham «eskirgan» deb javob oladi.
                 await ReplyAsync(update.ChatId, TelegramBotReplies.LinkExpired(lang), cancellationToken);
                 return;
             }
@@ -170,8 +179,13 @@ public sealed class TelegramUpdateHandler : ITelegramUpdateHandler
             scope.ServiceProvider.GetRequiredService<ICurrentTenant>().Set(tenantId, tenantCode);
             WmsDbContext db = scope.ServiceProvider.GetRequiredService<WmsDbContext>();
 
-            bool profileActive = await db.UserProfiles.AnyAsync(p => p.Id == subjectId && p.IsActive, cancellationToken);
-            if (!profileActive)
+            bool subjectActive = subjectType switch
+            {
+                TelegramLinkSubject.Driver => await db.Drivers.AnyAsync(d => d.Id == subjectId && d.IsActive, cancellationToken),
+                TelegramLinkSubject.Counterparty => await db.Counterparties.AnyAsync(c => c.Id == subjectId, cancellationToken),
+                _ => await db.UserProfiles.AnyAsync(p => p.Id == subjectId && p.IsActive, cancellationToken),
+            };
+            if (!subjectActive)
             {
                 await ReplyAsync(update.ChatId, TelegramBotReplies.LinkExpired(lang), cancellationToken);
                 return;
@@ -180,11 +194,21 @@ public sealed class TelegramUpdateHandler : ITelegramUpdateHandler
             TelegramLinkToken token = await db.TelegramLinkTokens.FirstAsync(t => t.Id == tokenId, cancellationToken);
             token.UsedAt = now;
 
-            // Bir profil — bitta yozuv: boshqa akkauntdan qayta ulansa chat ALMASHADI (Wash `Reconnect`).
-            TelegramLink? link = await db.TelegramLinks.FirstOrDefaultAsync(l => l.UserProfileId == subjectId, cancellationToken);
+            // Bir ega — bitta yozuv: boshqa akkauntdan qayta ulansa chat ALMASHADI (Wash `Reconnect`).
+            TelegramLink? link = subjectType switch
+            {
+                TelegramLinkSubject.Driver => await db.TelegramLinks.FirstOrDefaultAsync(l => l.DriverId == subjectId, cancellationToken),
+                TelegramLinkSubject.Counterparty => await db.TelegramLinks.FirstOrDefaultAsync(l => l.CounterpartyId == subjectId, cancellationToken),
+                _ => await db.TelegramLinks.FirstOrDefaultAsync(l => l.UserProfileId == subjectId, cancellationToken),
+            };
             if (link is null)
             {
-                link = new TelegramLink { UserProfileId = subjectId };
+                link = subjectType switch
+                {
+                    TelegramLinkSubject.Driver => new TelegramLink { DriverId = subjectId, Digest = false },
+                    TelegramLinkSubject.Counterparty => new TelegramLink { CounterpartyId = subjectId, Digest = false },
+                    _ => new TelegramLink { UserProfileId = subjectId },
+                };
                 db.TelegramLinks.Add(link);
             }
 
@@ -197,11 +221,16 @@ public sealed class TelegramUpdateHandler : ITelegramUpdateHandler
             link.LinkedAt = now;
 
             await db.SaveChangesAsync(cancellationToken);
-            _ = subjectType; // faqat UserProfile (yuqorida tekshirildi); TG12/TG13 shu yerda tarmoqlanadi
         }
 
-        _logger.LogInformation("Telegram: tenant {TenantCode} profili ulandi", tenantCode);
-        await ReplyAsync(update.ChatId, TelegramBotReplies.Linked(tenantName, lang), cancellationToken);
+        _logger.LogInformation("Telegram: tenant {TenantCode} {Subject} ulandi", tenantCode, subjectType);
+        string reply = subjectType switch
+        {
+            TelegramLinkSubject.Driver => Translations.Format(PartnerKeys.DriverLinked, lang, System.Net.WebUtility.HtmlEncode(tenantName)),
+            TelegramLinkSubject.Counterparty => Translations.Format(PartnerKeys.ClientLinked, lang, System.Net.WebUtility.HtmlEncode(tenantName)),
+            _ => TelegramBotReplies.Linked(tenantName, lang),
+        };
+        await ReplyAsync(update.ChatId, reply, cancellationToken);
     }
 
     /// <summary>

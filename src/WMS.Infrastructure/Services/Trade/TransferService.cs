@@ -21,14 +21,16 @@ public class TransferService : ITransferService
     private readonly ILogger<TransferService> _logger;
     private readonly IStockAllocator _stock;
 
+    private readonly ITelegramPartnerNotifier _partners;
+
     public TransferService(WmsDbContext db, INotificationService notifications,
         ITenantStateService tenantState, IRequestWarnings warnings,
         IOptions<SubscriptionOptions> subscription, ILogger<TransferService> logger,
-        IStockAllocator stock)
+        IStockAllocator stock, ITelegramPartnerNotifier partners)
     {
         _db = db; _notifications = notifications; _tenantState = tenantState;
         _warnings = warnings; _subscription = subscription.Value; _logger = logger;
-        _stock = stock;
+        _stock = stock; _partners = partners;
     }
 
     public async Task<List<TransferDto>> GetAllAsync(TransferType? type,
@@ -207,6 +209,11 @@ public class TransferService : ITransferService
         };
 
         await NotifySafelyAsync(transfer.Id, () => _notifications.NotifyAsync(null, title, template, args, type, "Transfer", transfer.Id));
+
+        // Mijozga (TG13): sotuv tasdiqlandi — tenant ruxsat bergan va kontragent ulangan bo'lsa.
+        if (transfer.Type == TransferType.Outgoing && transfer.CounterpartyId is { } clientId)
+            await NotifySafelyAsync(transfer.Id, () => _partners.NotifyClientAsync(clientId, NotificationMessages.ClientOrderConfirmed,
+                [date, amount], $"client:confirmed:{transfer.Id:N}"));
 
         return MapToDto(transfer);
     }

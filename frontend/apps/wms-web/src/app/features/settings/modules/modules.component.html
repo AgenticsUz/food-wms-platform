@@ -27,4 +27,29 @@
       </div>
     }
   </div>
+
+  @if (canManage() && clientSettings(); as cs) {
+    <div class="wms-card module-list">
+      <div class="module-row">
+        <div class="module-info">
+          <div class="module-name"><i class="pi pi-telegram"></i> {{ t('settings.telegramClientsTitle') }}</div>
+          <div class="module-code">{{ t('settings.telegramClientsHint') }}</div>
+        </div>
+        <p-toggleswitch inputId="tgClients" [ngModel]="cs.enabled" (ngModelChange)="updateClients({ enabled: $event })" />
+      </div>
+      @if (cs.enabled) {
+        <div class="module-row">
+          <div class="module-info">
+            <div class="module-name">{{ t('settings.telegramDebtReminderDays') }}</div>
+            <div class="module-code">{{ t('settings.telegramDebtReminderHint') }}</div>
+          </div>
+          <p-inputnumber inputId="tgDebtDays" [ngModel]="cs.debtReminderDays" (ngModelChange)="updateClients({ debtReminderDays: $event ?? 0 })" [min]="0" [max]="90" [showButtons]="true" [style]="{ width: '140px' }" />
+        </div>
+      }
+      <div class="module-row">
+        <div class="module-info"></div>
+        <p-button [label]="t('common.save')" icon="pi pi-check" [loading]="savingClients()" (onClick)="saveClients()" />
+      </div>
+    </div>
+  }
 </div>

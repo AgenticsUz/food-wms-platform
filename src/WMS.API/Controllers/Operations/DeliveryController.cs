@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using WMS.API.Middleware;
 using WMS.Application.Common;
 using WMS.Application.DTOs.Delivery;
+using WMS.Application.DTOs.Notifications;
 using WMS.Application.Interfaces;
 using WMS.Domain.Enums;
 
@@ -66,6 +67,26 @@ public class DeliveryController : BaseController
     [RequirePermission(WmsPermissions.DeliveryManage)]
     public async Task<IActionResult> DeleteDriver(Guid id)
     { await _delivery.DeleteDriverAsync(id); return Ok(ApiResponse<object>.Ok(null!, "Deleted")); }
+
+    // ── Haydovchi Telegram'i (TG12): kartadan havola, menejer haydovchiga o'zi yuboradi ──
+
+    [HttpGet("drivers/{id:guid}/telegram")]
+    [RequireFeature(FeatureCodes.DeliveryFleet)]
+    [RequirePermission(WmsPermissions.DeliveryManage)]
+    public async Task<IActionResult> GetDriverTelegram(Guid id, [FromServices] ITelegramLinkService links, CancellationToken ct)
+        => Ok(ApiResponse<TelegramSubjectLinkDto>.Ok(await links.GetSubjectLinkAsync(TelegramLinkSubject.Driver, id, ct)));
+
+    [HttpPost("drivers/{id:guid}/telegram-link")]
+    [RequireFeature(FeatureCodes.DeliveryFleet)]
+    [RequirePermission(WmsPermissions.DeliveryManage)]
+    public async Task<IActionResult> CreateDriverTelegramLink(Guid id, [FromServices] ITelegramLinkService links, CancellationToken ct)
+        => Ok(ApiResponse<TelegramLinkTokenDto>.Ok(await links.CreateSubjectLinkTokenAsync(TelegramLinkSubject.Driver, id, ct)));
+
+    [HttpDelete("drivers/{id:guid}/telegram")]
+    [RequireFeature(FeatureCodes.DeliveryFleet)]
+    [RequirePermission(WmsPermissions.DeliveryManage)]
+    public async Task<IActionResult> UnlinkDriverTelegram(Guid id, [FromServices] ITelegramLinkService links, CancellationToken ct)
+    { await links.UnlinkSubjectAsync(TelegramLinkSubject.Driver, id, ct); return Ok(ApiResponse<object>.Ok(null!, "Telegram disconnected")); }
 
     // ── Deliveries ──
 

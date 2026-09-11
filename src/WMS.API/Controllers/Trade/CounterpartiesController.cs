@@ -3,6 +3,7 @@ using WMS.API.Middleware;
 using WMS.Application.Common;
 using WMS.Application.DTOs.Counterparties;
 using WMS.Application.DTOs.Finance;
+using WMS.Application.DTOs.Notifications;
 using WMS.Application.Interfaces;
 using WMS.Domain.Enums;
 
@@ -39,6 +40,23 @@ public class CounterpartiesController : BaseController
     [RequirePermission(WmsPermissions.PartnersManage)]
     public async Task<IActionResult> Delete(Guid id)
     { await _counterparties.DeleteAsync(id); return Ok(ApiResponse<object>.Ok(null!, "Deleted")); }
+
+    // ── Mijoz Telegram'i (TG13): kartadan havola; xabarlar tenant sozlamasi (settings) yoqiq bo'lsagina ──
+
+    [HttpGet("{id:guid}/telegram")]
+    [RequirePermission(WmsPermissions.PartnersManage)]
+    public async Task<IActionResult> GetTelegram(Guid id, [FromServices] ITelegramLinkService links, CancellationToken ct)
+        => Ok(ApiResponse<TelegramSubjectLinkDto>.Ok(await links.GetSubjectLinkAsync(TelegramLinkSubject.Counterparty, id, ct)));
+
+    [HttpPost("{id:guid}/telegram-link")]
+    [RequirePermission(WmsPermissions.PartnersManage)]
+    public async Task<IActionResult> CreateTelegramLink(Guid id, [FromServices] ITelegramLinkService links, CancellationToken ct)
+        => Ok(ApiResponse<TelegramLinkTokenDto>.Ok(await links.CreateSubjectLinkTokenAsync(TelegramLinkSubject.Counterparty, id, ct)));
+
+    [HttpDelete("{id:guid}/telegram")]
+    [RequirePermission(WmsPermissions.PartnersManage)]
+    public async Task<IActionResult> UnlinkTelegram(Guid id, [FromServices] ITelegramLinkService links, CancellationToken ct)
+    { await links.UnlinkSubjectAsync(TelegramLinkSubject.Counterparty, id, ct); return Ok(ApiResponse<object>.Ok(null!, "Telegram disconnected")); }
 
     [HttpGet("{id}/balance")]
     public async Task<IActionResult> GetBalance(Guid id)

@@ -21,6 +21,7 @@ public static class NotificationRouting
         // Tugmali xabarlar — faqat amalni bajara oladiganlarga (TG9).
         NotificationType.TransferPending => WmsPermissions.TransfersConfirm,
         NotificationType.ProductionPending => WmsPermissions.ProductionManage,
+        NotificationType.DeliveryStopFailed => WmsPermissions.DeliveryManage,
         // Obuna va limit — tenant egasining ishi (amalda admin).
         NotificationType.SubscriptionWarning or NotificationType.SubscriptionSuspended or NotificationType.LimitWarning
             => WmsPermissions.SettingsModules,
@@ -35,6 +36,7 @@ public static class NotificationRouting
     {
         NotificationType.TransferPending or NotificationType.LowStock or NotificationType.BatchExpired
             or NotificationType.SubscriptionWarning or NotificationType.SubscriptionSuspended
+            or NotificationType.DeliveryStopFailed
             or NotificationType.Error or NotificationType.Warning => true,
         _ => false,
     };
@@ -44,7 +46,7 @@ public static class NotificationRouting
         NotificationType.LowStock or NotificationType.BatchExpiring => "⚠️",
         NotificationType.BatchExpired => "⛔",
         NotificationType.TransferConfirmed or NotificationType.ProductionCompleted => "✅",
-        NotificationType.TransferRejected => "❌",
+        NotificationType.TransferRejected or NotificationType.DeliveryStopFailed => "❌",
         NotificationType.ProductionStarted => "▶️",
         NotificationType.TransferPending or NotificationType.ProductionPending => "🕓",
         NotificationType.ReturnReceived => "↩️",
@@ -67,6 +69,7 @@ public static class NotificationRouting
             "ProductionOrder" when id is not null => $"production/orders/{id}",
             "Product" => "products",
             "Batch" => "warehouse/batches",
+            "Delivery" when id is not null => $"delivery/{id}",
             "Tenant" or "Plan" => "settings/subscription",
             _ => null,
         };

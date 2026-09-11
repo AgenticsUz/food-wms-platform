@@ -18,10 +18,20 @@ internal sealed class TelegramLinkConfiguration : IEntityTypeConfiguration<Teleg
         builder.Property(l => l.MutedTypes).HasMaxLength(512);
 
         builder.HasOne(l => l.UserProfile).WithMany().HasForeignKey(l => l.UserProfileId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne(l => l.Driver).WithMany().HasForeignKey(l => l.DriverId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne(l => l.Counterparty).WithMany().HasForeignKey(l => l.CounterpartyId).OnDelete(DeleteBehavior.Cascade);
 
-        // Bir profil — bitta yozuv (qayta ulanishda chat almashadi, qator ko'paymaydi).
+        // Bir ega — bitta yozuv (qayta ulanishda chat almashadi, qator ko'paymaydi).
         builder.HasIndex(l => new { l.TenantId, l.UserProfileId }).IsUnique()
             .HasFilter("\"user_profile_id\" IS NOT NULL AND \"is_deleted\" = false");
+        builder.HasIndex(l => new { l.TenantId, l.DriverId }).IsUnique()
+            .HasFilter("\"driver_id\" IS NOT NULL AND \"is_deleted\" = false");
+        builder.HasIndex(l => new { l.TenantId, l.CounterpartyId }).IsUnique()
+            .HasFilter("\"counterparty_id\" IS NOT NULL AND \"is_deleted\" = false");
+
+        // Aynan bittasi to'la — uch ega bir yozuvda aralashmasin.
+        builder.ToTable(t => t.HasCheckConstraint("ck_telegram_link_one_subject",
+            "(CASE WHEN \"user_profile_id\" IS NULL THEN 0 ELSE 1 END + CASE WHEN \"driver_id\" IS NULL THEN 0 ELSE 1 END + CASE WHEN \"counterparty_id\" IS NULL THEN 0 ELSE 1 END) = 1"));
 
         // Bloklash va /status — chat bo'yicha (tenant scope'i ichida).
         builder.HasIndex(l => l.ChatId);

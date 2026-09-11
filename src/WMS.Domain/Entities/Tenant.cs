@@ -78,6 +78,15 @@ public class Tenant : BaseEntity
     /// <summary>Asosiy rang (#RRGGBB); palitrani mijoz o'zi yasaydi.</summary>
     public string? BrandColor { get; set; }
 
+    /// <summary>
+    /// Mijozlarga (kontragent) Telegram xabarlari (TG13): buyurtma tasdiqlandi, yetkazildi, to'lov, qarz
+    /// eslatmasi. Sukut O'CHIQ — mijozning mijoziga xabar yuborish tenant qarori.
+    /// </summary>
+    public bool ClientTelegramEnabled { get; set; }
+
+    /// <summary>Qarz eslatmasi necha kunda bir (0 — o'chiq). Faqat <see cref="ClientTelegramEnabled"/> bilan.</summary>
+    public int DebtReminderDays { get; set; }
+
     /// <summary>Modul kodlari ro'yxat ko'rinishida.</summary>
     public IReadOnlyList<string> ModuleCodes =>
         Modules.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);

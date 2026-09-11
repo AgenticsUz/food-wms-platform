@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using WMS.Application.Common;
 using WMS.Application.DTOs.Delivery;
+using WMS.Application.Common.Localization;
 using WMS.Application.Interfaces;
 using WMS.Domain.Entities;
 using WMS.Domain.Enums;
@@ -13,7 +14,13 @@ namespace WMS.Infrastructure.Services.Operations;
 public class DeliveryService : IDeliveryService
 {
     private readonly WmsDbContext _db;
-    public DeliveryService(WmsDbContext db) => _db = db;
+    private readonly ITelegramPartnerNotifier _partners;
+
+    public DeliveryService(WmsDbContext db, ITelegramPartnerNotifier partners)
+    {
+        _db = db;
+        _partners = partners;
+    }
 
     // ── Vehicles ──
 
@@ -184,6 +191,9 @@ public class DeliveryService : IDeliveryService
         _db.Deliveries.Add(delivery);
         await _db.SaveChangesAsync();
 
+        // Haydovchiga marshrut — Telegram'i ulangan bo'lsa (TG12); yetmasa ham yetkazish yaratilgan.
+        await NotifySafelyAsync(() => _partners.SendRouteAsync(delivery.Id));
+
         return await GetDeliveryByIdAsync(delivery.Id);
     }
 
@@ -192,7 +202,31 @@ public class DeliveryService : IDeliveryService
         var delivery = await GetDeliveryEntity(id);
         delivery.Status = dto.Status;
         await _db.SaveChangesAsync();
+
+        if (dto.Status == DeliveryStatus.InProgress)
+        {
+            // Yo'lga chiqdi: haydovchiga marshrut, mijozlarga «bugun yo'lda» (tenant ruxsat bergan bo'lsa) — TG12/TG13.
+            await NotifySafelyAsync(() => _partners.SendRouteAsync(delivery.Id));
+            foreach (var stop in delivery.Stops.Where(s => s.Status == DeliveryStopStatus.Pending))
+            {
+                Guid counterpartyId = stop.CounterpartyId;
+                int order = stop.SequenceOrder;
+                await NotifySafelyAsync(() => _partners.NotifyClientAsync(counterpartyId, NotificationMessages.ClientOnTheWay,
+                    [$"#{order}"], $"client:onway:{stop.Id:N}"));
+            }
+        }
+
         return MapDelivery(delivery);
+    }
+
+    /// <summary>Telegram — best-effort: xabar yiqilsa yetkazish holati baribir saqlangan.</summary>
+    private static async Task NotifySafelyAsync(Func<Task> send)
+    {
+        try { await send(); }
+#pragma warning disable CA1031 // Best-effort.
+        catch (Exception ex) when (ex is not OperationCanceledException)
+#pragma warning restore CA1031
+        { Console.Error.WriteLine($"[Delivery] telegram notify failed: {ex.GetType().Name}"); }
     }
 
     public async Task DeleteDeliveryAsync(Guid id)
@@ -221,6 +255,10 @@ public class DeliveryService : IDeliveryService
 
         // To'xtash va yetkazish holati BITTA SaveChanges'da — yarim yozilgan holat qolmasin.
         await _db.SaveChangesAsync();
+
+        // Mijozga «yetkazildi» (TG13) — web'dan belgilanganda ham (bot o'zi alohida yuboradi, dedup bir xil).
+        Guid counterpartyId = stop.CounterpartyId;
+        await NotifySafelyAsync(() => _partners.NotifyClientAsync(counterpartyId, NotificationMessages.ClientDelivered, [], $"client:delivered:{stopId:N}"));
         return MapDelivery(delivery);
     }
 

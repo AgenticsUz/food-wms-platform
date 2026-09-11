@@ -12,6 +12,7 @@ import { NotificationService } from '../../../core/notify/notification.service';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { HasPermissionDirective } from '../../../shared/directives/has-permission.directive';
+import { TelegramLinkDialogComponent, type TelegramLinkApi } from '../../../shared/components/telegram-link-dialog/telegram-link-dialog.component';
 import type { Driver } from '../delivery.model';
 import { DeliveryService } from '../delivery.service';
 
@@ -37,6 +38,7 @@ const EMPTY_FORM: DriverForm = { fullName: '', phone: null, licenseNumber: null,
     PageHeaderComponent,
     StatusBadgeComponent,
     HasPermissionDirective,
+    TelegramLinkDialogComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './drivers.component.html',
@@ -53,6 +55,17 @@ export default class DriversComponent implements OnInit {
   readonly dialogVisible = signal(false);
   readonly editingId = signal<string | null>(null);
   readonly form = signal<DriverForm>(EMPTY_FORM);
+
+  /** Telegram ulash dialogi (TG12): tanlangan haydovchi va uning API'si. */
+  readonly telegramVisible = signal(false);
+  readonly telegramDriver = signal<Driver | null>(null);
+  readonly telegramApi = signal<TelegramLinkApi | null>(null);
+
+  openTelegram(d: Driver): void {
+    this.telegramDriver.set(d);
+    this.telegramApi.set(this.service.driverTelegram(d.id));
+    this.telegramVisible.set(true);
+  }
 
   ngOnInit(): void {
     this.load();

@@ -1,5 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 
+import type { TelegramLinkApi } from '../../shared/components/telegram-link-dialog/telegram-link-dialog.component';
+import type { TelegramLinkToken, TelegramSubjectLink } from '../settings/settings.model';
 import { ApiService } from '../../core/api/api.service';
 import type {
   ClientOption,
@@ -35,6 +37,14 @@ export class DeliveryService {
   }
   createDriver(dto: CreateDriverDto) {
     return this.api.post<Driver>('delivery/drivers', dto);
+  }
+  /** Haydovchi Telegram'i (TG12) — kartadan havola, menejer haydovchiga o'zi yuboradi. */
+  driverTelegram(id: string): TelegramLinkApi {
+    return {
+      get: () => this.api.get<TelegramSubjectLink>(`delivery/drivers/${id}/telegram`),
+      create: () => this.api.post<TelegramLinkToken>(`delivery/drivers/${id}/telegram-link`, {}),
+      unlink: () => this.api.delete<void>(`delivery/drivers/${id}/telegram`),
+    };
   }
   updateDriver(id: string, dto: CreateDriverDto) {
     return this.api.put<Driver>(`delivery/drivers/${id}`, dto);

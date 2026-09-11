@@ -49,6 +49,21 @@ public static class NotificationMessages
     /// <summary>{0} mahsulot, {1} sana, {2} miqdor, {3} birlik.</summary>
     public const string ProductionPending = "Order {0} ({1}) is planned. Quantity: {2} {3}";
 
+    // ── Yetkazish (TG12) ──
+    public const string DeliveryStopFailedTitle = "Delivery Stop Failed";
+    /// <summary>{0} haydovchi, {1} kontragent, {2} sana.</summary>
+    public const string DeliveryStopFailed = "{0} could not deliver to {1} ({2})";
+
+    // ── Mijoz xabarlari (TG13): {0} — zavod nomi ──
+    public const string ClientOrderConfirmed = "Your order from {0} ({1}) is confirmed. Amount: {2}";
+    public const string ClientOnTheWay = "Your order from {0} is on the way today ({1}).";
+    public const string ClientDelivered = "Your order from {0} has been delivered. Thank you!";
+    /// <summary>{0} zavod, {1} summa, {2} qoldiq balans.</summary>
+    public const string ClientPaymentReceived = "{0}: payment of {1} received. Your balance: {2}";
+    public const string ClientDebtReminder = "Reminder from {0}: your outstanding balance is {1}. Please settle it.";
+    public const string ClientBalance = "Your balance with {0}: {1}";
+    public const string ClientNoDebt = "You have no outstanding balance with {0}.";
+
     // ── Obuna va tarif (TG5) ──
     public const string SubscriptionExpiringTitle = "Subscription Expiring";
     public const string SubscriptionSuspendedTitle = "Account Suspended";

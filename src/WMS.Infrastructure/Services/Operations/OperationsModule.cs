@@ -46,6 +46,8 @@ public static class OperationsModule
         services.AddScoped<TelegramChatContext>();
         services.AddScoped<TelegramWorkCommands>();
         services.AddScoped<TelegramGroupCommands>();
+        services.AddScoped<TelegramPartnerBot>();
+        services.AddScoped<ITelegramPartnerNotifier>(sp => sp.GetRequiredService<TelegramPartnerBot>());
         services.AddScoped<IOpsNotifier, TelegramOpsNotifier>();
         services.AddHostedService<TelegramDigestBackgroundService>();
 

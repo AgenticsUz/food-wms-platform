@@ -30,4 +30,7 @@ public enum NotificationType
 
     /// <summary>Yangi ishlab chiqarish buyurtmasi — «Boshlash» tugmasi (TG9).</summary>
     ProductionPending = 16,
+
+    /// <summary>Haydovchi to'xtashni «yetkazilmadi» deb belgiladi (TG12) — menejerga.</summary>
+    DeliveryStopFailed = 17,
 }

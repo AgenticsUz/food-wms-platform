@@ -118,6 +118,36 @@ public static class Translations
             "Hisobot Telegram uchun juda katta — web ilovadan yuklab oling.",
             "Отчёт слишком большой для Telegram — скачайте его в веб-приложении."],
 
+        // ── Haydovchi va mijoz (TG12/TG13) ──
+        ["Delivery Stop Failed"] = ["Yetkazish amalga oshmadi", "Доставка не выполнена"],
+        ["{0} could not deliver to {1} ({2})"] = ["{0} {1} ga yetkaza olmadi ({2})", "{0} не смог(ла) доставить {1} ({2})"],
+        ["Your order from {0} ({1}) is confirmed. Amount: {2}"] = [
+            "{0} dan buyurtmangiz ({1}) tasdiqlandi. Summa: {2}",
+            "Ваш заказ от {0} ({1}) подтверждён. Сумма: {2}"],
+        ["Your order from {0} is on the way today ({1})."] = ["{0} dan buyurtmangiz bugun yo'lda ({1}).", "Ваш заказ от {0} сегодня в пути ({1})."],
+        ["Your order from {0} has been delivered. Thank you!"] = ["{0} dan buyurtmangiz yetkazildi. Rahmat!", "Ваш заказ от {0} доставлен. Спасибо!"],
+        ["{0}: payment of {1} received. Your balance: {2}"] = ["{0}: {1} to'lov qabul qilindi. Balansingiz: {2}", "{0}: получена оплата {1}. Ваш баланс: {2}"],
+        ["Reminder from {0}: your outstanding balance is {1}. Please settle it."] = [
+            "{0} eslatmasi: qarzingiz {1}. Iltimos, to'lang.",
+            "Напоминание от {0}: ваша задолженность {1}. Пожалуйста, оплатите."],
+        ["Your balance with {0}: {1}"] = ["{0} oldidagi qarzingiz: {1}", "Ваша задолженность перед {0}: {1}"],
+        ["You have no outstanding balance with {0}."] = ["{0} oldida qarzingiz yo'q.", "У вас нет задолженности перед {0}."],
+        ["Route — {0}"] = ["Marshrut — {0}", "Маршрут — {0}"],
+        ["📄 Waybill (PDF)"] = ["📄 Yuk xati (PDF)", "📄 Накладная (PDF)"],
+        ["No deliveries planned for you today."] = ["Bugun sizga yetkazish rejalashtirilmagan.", "На сегодня доставок для вас не запланировано."],
+        ["✅ Delivered: {0}"] = ["✅ Yetkazildi: {0}", "✅ Доставлено: {0}"],
+        ["❌ Not delivered: {0}"] = ["❌ Yetkazilmadi: {0}", "❌ Не доставлено: {0}"],
+        ["Recent payments:"] = ["Oxirgi to'lovlar:", "Последние оплаты:"],
+        ["✅ Connected as a driver of <b>{0}</b>. Your routes will arrive here; /marshrut — today's route."] = [
+            "✅ <b>{0}</b> haydovchisi sifatida ulandingiz. Marshrutlar shu yerga keladi; /marshrut — bugungi marshrut.",
+            "✅ Вы подключены как водитель <b>{0}</b>. Маршруты будут приходить сюда; /marshrut — маршрут на сегодня."],
+        ["✅ Connected to <b>{0}</b>. You will receive order and delivery updates here; /qarzim — your balance."] = [
+            "✅ <b>{0}</b> ga ulandingiz. Buyurtma va yetkazish xabarlari shu yerga keladi; /qarzim — balansingiz.",
+            "✅ Вы подключены к <b>{0}</b>. Уведомления о заказах и доставке будут приходить сюда; /qarzim — ваш баланс."],
+        ["Telegram is not connected"] = ["Telegram ulanmagan", "Telegram не подключён"],
+        ["Debt reminder interval must be between 0 and 90 days"] = [
+            "Qarz eslatmasi oralig'i 0–90 kun bo'lishi kerak", "Интервал напоминания о долге должен быть от 0 до 90 дней"],
+
         // ── Guruh chati (TG16) ──
         ["Only an administrator with a connected profile can do this (WMS → Settings → Profile → Connect Telegram)."] = [
             "Buni faqat profili ulangan administrator qila oladi (WMS → Sozlamalar → Profil → Telegram'ga ulash).",

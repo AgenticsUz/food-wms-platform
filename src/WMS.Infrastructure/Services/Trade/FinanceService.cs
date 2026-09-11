@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using WMS.Application.Common;
 using WMS.Application.DTOs.Finance;
+using WMS.Application.Common.Localization;
 using WMS.Application.Interfaces;
 using WMS.Domain.Entities;
 using WMS.Domain.Enums;
@@ -11,7 +12,13 @@ namespace WMS.Infrastructure.Services.Trade;
 public class FinanceService : IFinanceService
 {
     private readonly WmsDbContext _db;
-    public FinanceService(WmsDbContext db) => _db = db;
+    private readonly ITelegramPartnerNotifier _partners;
+
+    public FinanceService(WmsDbContext db, ITelegramPartnerNotifier partners)
+    {
+        _db = db;
+        _partners = partners;
+    }
 
     public async Task<List<TransactionDto>> GetTransactionsAsync(TransactionType? type,
         DateTime? from, DateTime? to, int page, int pageSize)
@@ -112,6 +119,20 @@ public class FinanceService : IFinanceService
         debt.Amount += direction == PaymentDirection.In ? -dto.Amount : dto.Amount;
 
         await _db.SaveChangesAsync();
+
+        // Mijozga (TG13): to'lov qabul qilindi va qoldiq balans — tenant ruxsat bergan bo'lsa.
+        if (direction == PaymentDirection.In)
+        {
+            try
+            {
+                await _partners.NotifyClientAsync(dto.CounterpartyId, NotificationMessages.ClientPaymentReceived,
+                    [NotificationMessages.Amount(dto.Amount), NotificationMessages.Amount(Math.Max(debt.Amount, 0))]);
+            }
+#pragma warning disable CA1031 // Best-effort — to'lov saqlangan.
+            catch (Exception ex) when (ex is not OperationCanceledException)
+#pragma warning restore CA1031
+            { Console.Error.WriteLine($"[Finance] telegram notify failed: {ex.GetType().Name}"); }
+        }
 
         var result = await _db.PaymentHistories.AsNoTracking()
             .Include(p => p.Counterparty).Include(p => p.RecordedByUser)

@@ -58,6 +58,25 @@ public class SetTelegramMutedDto
     public string[]? Types { get; set; }
 }
 
+/// <summary>Haydovchi/kontragent kartasi: ulanganmi (TG12/TG13).</summary>
+public class TelegramSubjectLinkDto
+{
+    public bool Enabled { get; set; }
+    public bool Linked { get; set; }
+    public string? Username { get; set; }
+    public DateTime? LinkedAt { get; set; }
+}
+
+/// <summary><c>GET/PUT /api/settings/telegram-clients</c> (TG13).</summary>
+public class TelegramClientSettingsDto
+{
+    /// <summary>Mijozlarga xabar yuborish yoqiqmi (sukut o'chiq).</summary>
+    public bool Enabled { get; set; }
+
+    /// <summary>Qarz eslatmasi necha kunda bir; 0 — o'chiq. 1–90.</summary>
+    public int DebtReminderDays { get; set; }
+}
+
 /// <summary><c>POST /api/me/telegram/link-token</c>: havola va uning muddati.</summary>
 public class TelegramLinkTokenDto
 {

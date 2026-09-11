@@ -124,6 +124,20 @@ export interface TelegramStatus {
   readonly digest: boolean;
 }
 
+/** Haydovchi/kontragent kartasi (TG12/TG13): `GET …/telegram`. */
+export interface TelegramSubjectLink {
+  readonly enabled: boolean;
+  readonly linked: boolean;
+  readonly username: string | null;
+  readonly linkedAt: string | null;
+}
+
+/** `GET/PUT /api/settings/telegram-clients` (TG13). */
+export interface TelegramClientSettings {
+  readonly enabled: boolean;
+  readonly debtReminderDays: number;
+}
+
 /** `POST /api/me/telegram/link-token` — bir martalik havola. */
 export interface TelegramLinkToken {
   readonly url: string;

@@ -39,6 +39,7 @@ public sealed class TelegramDigestBackgroundService : BackgroundService
     private readonly ILogger<TelegramDigestBackgroundService> _logger;
     private DateOnly? _lastDigestDate;
     private DateOnly? _lastOpsDate;
+    private DateOnly? _lastReminderDate;
 
     public TelegramDigestBackgroundService(IServiceProvider services, ITelegramService telegram,
         IOptions<TelegramOptions> options, ILogger<TelegramDigestBackgroundService> logger)
@@ -70,6 +71,12 @@ public sealed class TelegramDigestBackgroundService : BackgroundService
                 {
                     _lastOpsDate = DateOnly.FromDateTime(TelegramQuietHours.ToTashkent(now));
                     await RunOpsLineAsync(stoppingToken);
+                }
+
+                if (TelegramQuietHours.IsDue(now, _options.DigestHour + 2, _lastReminderDate))
+                {
+                    _lastReminderDate = DateOnly.FromDateTime(TelegramQuietHours.ToTashkent(now));
+                    await RunDebtRemindersAsync(stoppingToken);
                 }
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
@@ -157,6 +164,44 @@ public sealed class TelegramDigestBackgroundService : BackgroundService
         }
 
         return sb.ToString();
+    }
+
+    /// <summary>
+    /// Qarz eslatmasi (TG13): tenant yoqqan bo'lsa (<c>DebtReminderDays</c> &gt; 0), qarzi bor va ulangan har
+    /// kontragentga N kunda bir. Dedupe — oxirgi eslatma navbat qatori bo'yicha.
+    /// </summary>
+    private async Task RunDebtRemindersAsync(CancellationToken ct)
+    {
+        int sent = 0;
+        await TenantScopes.ForEachTenantAsync(_services, async (scope, tenantId, token) =>
+        {
+            WmsDbContext db = scope.GetRequiredService<WmsDbContext>();
+            var tenant = await db.Tenants.AsNoTracking().Where(t => t.Id == tenantId)
+                .Select(t => new { t.ClientTelegramEnabled, t.DebtReminderDays }).FirstAsync(token);
+            if (!tenant.ClientTelegramEnabled || tenant.DebtReminderDays <= 0) return;
+
+            var debtors = await db.TelegramLinks.AsNoTracking()
+                .Where(l => l.IsActive && l.CounterpartyId != null)
+                .Select(l => new { l.CounterpartyId, Debt = db.Debts.Where(d => d.CounterpartyId == l.CounterpartyId).Select(d => d.Amount).FirstOrDefault() })
+                .Where(x => x.Debt > 0)
+                .ToListAsync(token);
+            if (debtors.Count == 0) return;
+
+            DateTime since = DateTime.UtcNow.AddDays(-tenant.DebtReminderDays);
+            ITelegramPartnerNotifier notifier = scope.GetRequiredService<ITelegramPartnerNotifier>();
+            foreach (var d in debtors)
+            {
+                string prefix = $"client:debt:{d.CounterpartyId:N}:";
+                bool recent = await db.TelegramOutboxes.AnyAsync(o => o.DedupKey != null && o.DedupKey.StartsWith(prefix) && o.CreatedAt >= since, token);
+                if (recent) continue;
+
+                await notifier.NotifyClientAsync(d.CounterpartyId!.Value, NotificationMessages.ClientDebtReminder,
+                    [NotificationMessages.Amount(d.Debt)], prefix + DateTime.UtcNow.ToString("yyyyMMdd", CultureInfo.InvariantCulture), token);
+                sent++;
+            }
+        }, _logger, ct);
+
+        if (sent > 0) _logger.LogInformation("Telegram qarz eslatmasi: {Count} xabar navbatga yozildi", sent);
     }
 
     /// <summary>Platforma egasiga kunlik qator (TG17): tenant ma'lumotisiz, faqat sonlar.</summary>
