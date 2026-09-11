@@ -83,6 +83,20 @@ public static class Translations
             "{0} buyurtmasi ({1}) rejalashtirildi. Miqdor: {2} {3}",
             "Заказ {0} ({1}) запланирован. Количество: {2} {3}"],
 
+        // ── So'rov buyruqlari (TG10) ──
+        ["Which organization?"] = ["Qaysi tashkilot?", "Какая организация?"],
+        ["Type the product name: /qoldiq plombir"] = ["Mahsulot nomini yozing: /qoldiq plombir", "Введите название товара: /qoldiq пломбир"],
+        ["Stock"] = ["Qoldiq", "Остаток"],
+        ["Nothing found for \"{0}\"."] = ["«{0}» bo'yicha hech narsa topilmadi.", "По запросу «{0}» ничего не найдено."],
+        ["Batches expiring within {0} days"] = ["{0} kun ichida muddati tugaydigan partiyalar", "Партии с истекающим сроком ({0} дн.)"],
+        ["No batches expire within {0} days."] = ["{0} kun ichida muddati tugaydigan partiya yo'q.", "Партий с истекающим сроком ({0} дн.) нет."],
+        ["Receivables"] = ["Qarzdorlar", "Должники"],
+        ["No outstanding receivables."] = ["Qarzdorlik yo'q.", "Задолженности нет."],
+        ["Today"] = ["Bugun", "Сегодня"],
+        ["Transfers created today: {0}"] = ["Bugun yaratilgan transferlar: {0}", "Перемещений создано сегодня: {0}"],
+        ["No transfers are waiting for confirmation."] = ["Tasdiq kutayotgan transfer yo'q.", "Перемещений в ожидании подтверждения нет."],
+        ["… and {0} more"] = ["… va yana {0}", "… и ещё {0}"],
+
         // ── Kunlik xulosa (TG11) ──
         ["Daily summary — {0}"] = ["Kunlik xulosa — {0}", "Сводка за день — {0}"],
         ["Transfers awaiting confirmation: {0}"] = ["Tasdiq kutayotgan transferlar: {0}", "Перемещений в ожидании подтверждения: {0}"],
@@ -130,9 +144,9 @@ public static class Translations
         ["Disconnected from all organizations. To reconnect, open your WMS profile."] = [
             "Barcha tashkilotlardan uzildingiz. Qayta ulash — WMS profilingizdan.",
             "Отключено от всех организаций. Чтобы подключиться снова, откройте профиль WMS."],
-        ["Commands: /status — where you are connected, /stop — disconnect, /help — this message."] = [
-            "Buyruqlar: /status — qayerga ulangansiz, /stop — uzish, /help — shu xabar.",
-            "Команды: /status — где вы подключены, /stop — отключить, /help — это сообщение."],
+        ["Commands: /bugun — today, /kutilmoqda — pending transfers, /qoldiq <name> — stock, /muddat — expiring batches, /qarz — receivables, /status — where you are connected, /stop — disconnect."] = [
+            "Buyruqlar: /bugun — bugungi holat, /kutilmoqda — tasdiq kutayotgan transferlar, /qoldiq <nom> — qoldiq, /muddat — muddati yaqin partiyalar, /qarz — qarzdorlar, /status — qayerga ulangansiz, /stop — uzish.",
+            "Команды: /bugun — сводка, /kutilmoqda — перемещения в ожидании, /qoldiq <название> — остаток, /muddat — партии с истекающим сроком, /qarz — должники, /status — где вы подключены, /stop — отключить."],
 
         // ── Telegram bot (TG1): API xabarlari va botning o'z javoblari (HTML) ──
         ["Telegram bot is not configured"] = [

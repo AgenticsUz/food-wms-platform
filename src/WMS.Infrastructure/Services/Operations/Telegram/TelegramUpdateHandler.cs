@@ -32,16 +32,18 @@ public sealed class TelegramUpdateHandler : ITelegramUpdateHandler
     private readonly IServiceProvider _services;
     private readonly ITelegramService _telegram;
     private readonly TelegramCallbackExecutor _callbacks;
+    private readonly TelegramQueryCommands _queries;
     private readonly TelegramOptions _options;
     private readonly ILogger<TelegramUpdateHandler> _logger;
 
     public TelegramUpdateHandler(IServiceProvider services, ITelegramService telegram, TelegramCallbackExecutor callbacks,
-        IOptions<TelegramOptions> options, ILogger<TelegramUpdateHandler> logger)
+        TelegramQueryCommands queries, IOptions<TelegramOptions> options, ILogger<TelegramUpdateHandler> logger)
     {
         ArgumentNullException.ThrowIfNull(options);
         _services = services;
         _telegram = telegram;
         _callbacks = callbacks;
+        _queries = queries;
         _options = options.Value;
         _logger = logger;
     }
@@ -60,7 +62,16 @@ public sealed class TelegramUpdateHandler : ITelegramUpdateHandler
 
         if (update.Kind == TelegramUpdateKind.CallbackQuery)
         {
-            await _callbacks.ExecuteAsync(update, cancellationToken);
+            if (update.CallbackData?.StartsWith(TelegramQueryCommands.SelectPrefix, StringComparison.Ordinal) == true)
+                await _queries.HandleSelectionAsync(update, cancellationToken);
+            else
+                await _callbacks.ExecuteAsync(update, cancellationToken);
+            return;
+        }
+
+        if (update.Kind == TelegramUpdateKind.Command && update.Command is { } cmd && TelegramQueryCommands.Commands.Contains(cmd))
+        {
+            await _queries.HandleCommandAsync(update, cancellationToken);
             return;
         }
 

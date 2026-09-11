@@ -73,6 +73,17 @@ public class TelegramLinkToken : BaseEntity
 }
 
 /// <summary>
+/// <c>wms.telegram_chat_state</c> — ko'p tenantli chatning bir soatlik tenant tanlovi (TG10). PLATFORMA
+/// jadvali (RLS yo'q): so'rov buyrug'i kelganda tenant hali noma'lum.
+/// </summary>
+public class TelegramChatState : BaseEntity
+{
+    public long ChatId { get; set; }
+    public Guid TenantId { get; set; }
+    public DateTime ExpiresAt { get; set; }
+}
+
+/// <summary>
 /// <c>wms.telegram_outbox</c> — yuboriladigan Telegram xabari. PLATFORMA jadvali (RLS yo'q):
 /// yuboruvchi fon xizmati bitta scope'da hamma tenantning navbatini o'qiydi.
 /// </summary>

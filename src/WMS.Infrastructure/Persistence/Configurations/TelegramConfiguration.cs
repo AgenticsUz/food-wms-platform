@@ -43,6 +43,15 @@ internal sealed class TelegramLinkTokenConfiguration : IEntityTypeConfiguration<
     }
 }
 
+internal sealed class TelegramChatStateConfiguration : IEntityTypeConfiguration<TelegramChatState>
+{
+    public void Configure(EntityTypeBuilder<TelegramChatState> builder)
+    {
+        builder.HasAnnotation(RlsAnnotations.Enabled, false);
+        builder.HasIndex(s => s.ChatId).IsUnique();
+    }
+}
+
 internal sealed class TelegramOutboxConfiguration : IEntityTypeConfiguration<TelegramOutbox>
 {
     public void Configure(EntityTypeBuilder<TelegramOutbox> builder)

@@ -109,8 +109,18 @@ public sealed class TelegramPollingBackgroundService : BackgroundService
 
         // Buyruqlar menyusi KODDAN (BotFather'da qo'lda qo'yilmaydi — ikki manba bo'lardi). Tilsiz
         // ro'yxat — sukut (uz); Telegram foydalanuvchining tiliga qarab tanlaydi.
-        TelegramBotCommand[] uz = [new("start", "Ulash"), new("status", "Qayerga ulanganman"), new("stop", "Uzish"), new("help", "Yordam")];
-        TelegramBotCommand[] ru = [new("start", "Подключить"), new("status", "Где я подключён"), new("stop", "Отключить"), new("help", "Помощь")];
+        TelegramBotCommand[] uz =
+        [
+            new("bugun", "Bugungi holat"), new("kutilmoqda", "Tasdiq kutayotgan transferlar"),
+            new("qoldiq", "Mahsulot qoldig'i: /qoldiq nom"), new("muddat", "Muddati yaqin partiyalar"),
+            new("qarz", "Qarzdorlar"), new("status", "Qayerga ulanganman"), new("stop", "Uzish"), new("help", "Yordam"),
+        ];
+        TelegramBotCommand[] ru =
+        [
+            new("bugun", "Сводка на сегодня"), new("kutilmoqda", "Перемещения в ожидании"),
+            new("qoldiq", "Остаток товара: /qoldiq название"), new("muddat", "Партии с истекающим сроком"),
+            new("qarz", "Должники"), new("status", "Где я подключён"), new("stop", "Отключить"), new("help", "Помощь"),
+        ];
         await _telegram.SetMyCommandsAsync(uz, null, cancellationToken);
         await _telegram.SetMyCommandsAsync(uz, "uz", cancellationToken);
         await _telegram.SetMyCommandsAsync(ru, "ru", cancellationToken);

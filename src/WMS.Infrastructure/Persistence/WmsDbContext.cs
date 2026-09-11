@@ -82,6 +82,7 @@ public sealed class WmsDbContext : DbContext
     // Telegram deep-link tokeni va navbat — tenant kontekstisiz o'qiladi (polling, yuboruvchi).
     public DbSet<TelegramLinkToken> TelegramLinkTokens => Set<TelegramLinkToken>();
     public DbSet<TelegramOutbox> TelegramOutboxes => Set<TelegramOutbox>();
+    public DbSet<TelegramChatState> TelegramChatStates => Set<TelegramChatState>();
 
     // ── Tenant jadvallari (RLS) ──
     public DbSet<TenantFeature> TenantFeatures => Set<TenantFeature>();
