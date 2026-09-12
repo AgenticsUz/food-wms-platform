@@ -214,9 +214,10 @@ public static class Translations
         ["Disconnected from all organizations. To reconnect, open your WMS profile."] = [
             "Barcha tashkilotlardan uzildingiz. Qayta ulash — WMS profilingizdan.",
             "Отключено от всех организаций. Чтобы подключиться снова, откройте профиль WMS."],
-        ["Commands: /bugun — today, /kutilmoqda — pending transfers, /qoldiq <name> — stock, /muddat — expiring batches, /qarz — receivables, /hisobot — Excel report, /keldim /ketdim — attendance, /smena — shift plans, /kpi — efficiency, /status — where you are connected, /stop — disconnect."] = [
-            "Buyruqlar: /bugun — bugungi holat, /kutilmoqda — tasdiq kutayotgan transferlar, /qoldiq <nom> — qoldiq, /muddat — muddati yaqin partiyalar, /qarz — qarzdorlar, /hisobot — Excel hisobot, /keldim /ketdim — davomat, /smena — smena rejasi, /kpi — samaradorlik, /status — qayerga ulangansiz, /stop — uzish.",
-            "Команды: /bugun — сводка, /kutilmoqda — перемещения в ожидании, /qoldiq <название> — остаток, /muddat — партии с истекающим сроком, /qarz — должники, /hisobot — отчёт Excel, /keldim /ketdim — посещаемость, /smena — план смен, /kpi — эффективность, /status — где вы подключены, /stop — отключить."],
+        // Qavslar KVADRAT: javob HTML rejimida ketadi, `<nom>` Telegram uchun noma'lum teg (HTTP 400).
+        ["Commands: /bugun — today, /kutilmoqda — pending transfers, /qoldiq [name] — stock, /muddat — expiring batches, /qarz — receivables, /hisobot — Excel report, /keldim /ketdim — attendance, /smena — shift plans, /kpi — efficiency, /status — where you are connected, /stop — disconnect."] = [
+            "Buyruqlar: /bugun — bugungi holat, /kutilmoqda — tasdiq kutayotgan transferlar, /qoldiq [nom] — qoldiq, /muddat — muddati yaqin partiyalar, /qarz — qarzdorlar, /hisobot — Excel hisobot, /keldim /ketdim — davomat, /smena — smena rejasi, /kpi — samaradorlik, /status — qayerga ulangansiz, /stop — uzish.",
+            "Команды: /bugun — сводка, /kutilmoqda — перемещения в ожидании, /qoldiq [название] — остаток, /muddat — партии с истекающим сроком, /qarz — должники, /hisobot — отчёт Excel, /keldim /ketdim — посещаемость, /smena — план смен, /kpi — эффективность, /status — где вы подключены, /stop — отключить."],
 
         // ── Telegram bot (TG1): API xabarlari va botning o'z javoblari (HTML) ──
         ["Telegram bot is not configured"] = [

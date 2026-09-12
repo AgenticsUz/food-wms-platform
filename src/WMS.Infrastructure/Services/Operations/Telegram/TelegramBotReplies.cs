@@ -22,7 +22,9 @@ public static class TelegramBotReplies
     public static string Help(string lang) =>
         Translations.Format(HelpKey, lang) + "\n\n" + Translations.Format(CommandsKey, lang);
 
-    public const string CommandsKey = "Commands: /bugun — today, /kutilmoqda — pending transfers, /qoldiq <name> — stock, /muddat — expiring batches, /qarz — receivables, /hisobot — Excel report, /keldim /ketdim — attendance, /smena — shift plans, /kpi — efficiency, /status — where you are connected, /stop — disconnect.";
+    // O'rin egasi KVADRAT qavsda: xabar HTML rejimida ketadi, `<name>` ni Telegram
+    // noma'lum teg deb butun javobni rad etadi (prod, 2026-09-12: «Unsupported start tag "nom"»).
+    public const string CommandsKey = "Commands: /bugun — today, /kutilmoqda — pending transfers, /qoldiq [name] — stock, /muddat — expiring batches, /qarz — receivables, /hisobot — Excel report, /keldim /ketdim — attendance, /smena — shift plans, /kpi — efficiency, /status — where you are connected, /stop — disconnect.";
     public const string NotConnectedKey = "You are not connected to any organization. Open your WMS profile → Connect Telegram.";
     public const string ConnectedListKey = "Connected organizations:";
     public const string MutedCountKey = "{0} notification type(s) muted";
