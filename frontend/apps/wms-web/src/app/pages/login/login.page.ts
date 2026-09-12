@@ -4,6 +4,7 @@ import { TranslocoDirective } from '@jsverse/transloco';
 import { AuthService } from '@agentics/auth';
 import { LanguageService, SUPPORTED_LANGUAGES, type AppLanguage } from '@agentics/i18n';
 import { ThemeService } from '../../core/theme/theme.service';
+import { BrandMarkComponent } from '../../shared/components/brand-mark/brand-mark.component';
 
 const LANGUAGE_SHORT: Readonly<Record<AppLanguage, string>> = {
   'uz-Latn': 'UZ',
@@ -45,9 +46,11 @@ const LOGIN_HIGHLIGHTS: readonly { readonly key: string; readonly icon: string }
  * kiritadi. Registratsiya ham, parol almashtirish ham, `mustChangePassword`
  * ham bu ilovada yo'q — hammasi Identity'da.
  *
- * Sahifa ikki qismdan iborat: chapda tizim haqida ma'lumot (modullar,
- * afzalliklar — faqat statik i18n matn, backend so'rovi YO'Q, chunki
- * foydalanuvchi hali autentifikatsiyadan o'tmagan), o'ngda kirish kartochkasi.
+ * Tuzilishi Agentics oilasiniki (Wash/HRM login, Identity `LoginPage`): chapda
+ * to'q brend paneli — tizim haqida ma'lumot (modullar, afzalliklar — faqat
+ * statik i18n matn, backend so'rovi YO'Q, chunki foydalanuvchi hali
+ * autentifikatsiyadan o'tmagan), o'ngda aurora fonidagi kirish kartochkasi.
+ * 980px dan tor ekranda panel yashiriladi.
  *
  * ⚠️ Nega sahifa umuman bor (darhol yo'naltirilmaydi) — Wash `login.page.ts`
  * izohidagi to'rt sabab: chiqishdan keyin qayta kirish sikliga tushmaslik,
@@ -56,10 +59,10 @@ const LOGIN_HIGHLIGHTS: readonly { readonly key: string; readonly icon: string }
  */
 @Component({
   selector: 'app-login-page',
-  imports: [TranslocoDirective, Button],
+  imports: [TranslocoDirective, Button, BrandMarkComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './login.page.html',
-  styleUrl: './login.page.scss',
+  styleUrls: ['./login.page.scss', './login-panel.scss'],
 })
 export class LoginPage {
   private readonly auth = inject(AuthService);

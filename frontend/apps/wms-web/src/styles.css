@@ -183,6 +183,187 @@ h3 {
 }
 
 /* ============================================================
+   Agentics oilasi brend qatlami (Wash / HRM / Identity bilan umumiy).
+   Belgi, orbita halqasi va kirish panelining to'q navy ranglari shu yerda.
+   Aksent — WMS'niki (tenant rangi, bo'lmasa pistachio), ikkinchi to'xtash — ko'k,
+   xuddi Wash/HRM'dagi `primary → chart-2` gradienti kabi. Kabinet palitrasi
+   (cream + cocoa) o'zgarmaydi.
+   ============================================================ */
+:root {
+  --ag-brand: var(--brand-primary, var(--color-pistachio-500));
+  --ag-brand-2: #4a7de0;
+  --ag-glow: color-mix(in srgb, var(--ag-brand) 42%, transparent);
+  --ag-glow-soft: color-mix(in srgb, var(--ag-brand) 14%, transparent);
+  --ag-gradient-brand: linear-gradient(135deg, var(--ag-brand) 0%, var(--ag-brand-2) 100%);
+
+  /* To'q brend paneli (Agentics sidebar/Identity paneli) — ikkala rejimda ham to'q. */
+  --ag-panel-bg: #111c30;
+  --ag-panel-bg-2: #0c1425;
+  --ag-panel-border: #223050;
+  --ag-panel-text: #e6ecf7;
+  --ag-panel-text-2: #aab6cc;
+  --ag-panel-text-3: #7d8ba6;
+  --ag-panel-tile: rgba(255, 255, 255, 0.08);
+  --ag-panel-accent: color-mix(in srgb, var(--ag-brand) 62%, #ffffff);
+}
+
+.dark-mode,
+.dark {
+  --ag-brand-2: #7ca1f2;
+  --ag-glow: color-mix(in srgb, var(--ag-brand) 50%, transparent);
+  --ag-glow-soft: color-mix(in srgb, var(--ag-brand) 18%, transparent);
+  --ag-panel-bg: #0b1220;
+  --ag-panel-bg-2: #070c17;
+  --ag-panel-border: #1b2740;
+}
+
+/* Brend belgisi: ochiq halqa ichidagi «A» gradient plitkada. Geometriya —
+   `shared/components/brand-mark` (Wash `hr-brand-mark` bilan bir xil). */
+.ag-brand-mark {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  overflow: hidden;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  color: #ffffff;
+  background: var(--ag-gradient-brand);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+    0 6px 16px -6px var(--ag-glow);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.28) 0%, transparent 55%);
+  }
+
+  svg {
+    position: relative;
+    width: 80%;
+    height: 80%;
+    stroke-linecap: butt;
+    stroke-linejoin: miter;
+    overflow: visible;
+  }
+}
+
+.ag-brand-mark--md {
+  width: 40px;
+  height: 40px;
+}
+
+.ag-brand-mark--lg {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+}
+
+.ag-brand-mark__ring {
+  opacity: 0.92;
+}
+
+/* «Yonish»: halqa chiziladi, oyoqlar paydo bo'ladi, keyin plitka sekin «nafas oladi». */
+.ag-brand-mark--ignite {
+  animation: ag-mark-breathe 3.2s ease-in-out 1.2s infinite alternate;
+
+  .ag-brand-mark__ring {
+    stroke-dasharray: 66;
+    stroke-dashoffset: 66;
+    animation: ag-mark-draw 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) 0.15s forwards;
+  }
+
+  .ag-brand-mark__leg,
+  .ag-brand-mark__bar {
+    opacity: 0;
+    animation: ag-mark-fade 0.45s ease 0.6s forwards;
+  }
+}
+
+/* Belgi atrofidagi aylanuvchi «kometa» halqasi + ichki punktir halqa. */
+.ag-orbit {
+  position: relative;
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: var(--ag-orbit-size, 92px);
+  height: var(--ag-orbit-size, 92px);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    background: conic-gradient(
+      from 0deg,
+      transparent 0 58%,
+      var(--ag-orbit-accent, var(--ag-brand)) 80%,
+      var(--ag-brand-2) 94%,
+      transparent 100%
+    );
+    mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1px));
+    animation: ag-spin 5.5s linear infinite;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: var(--ag-orbit-inset, 9px);
+    border: 1px dashed color-mix(in srgb, var(--ag-orbit-accent, var(--ag-brand)) 40%, transparent);
+    border-radius: 999px;
+    animation: ag-spin 16s linear infinite reverse;
+  }
+}
+
+@keyframes ag-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes ag-mark-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes ag-mark-fade {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes ag-mark-breathe {
+  from {
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+      0 6px 16px -6px var(--ag-glow);
+  }
+  to {
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+      0 8px 26px -4px var(--ag-glow);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ag-brand-mark--ignite,
+  .ag-brand-mark--ignite .ag-brand-mark__ring,
+  .ag-brand-mark--ignite .ag-brand-mark__leg,
+  .ag-brand-mark--ignite .ag-brand-mark__bar,
+  .ag-orbit::before,
+  .ag-orbit::after {
+    animation: none;
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+/* ============================================================
    PrimeNG override — palitra. Tenant rangi (`BrandingService`) `--p-primary-*` ni
    `documentElement` inline uslubi bilan USTIGA yozadi.
    ============================================================ */

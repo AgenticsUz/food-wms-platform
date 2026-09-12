@@ -1,285 +1,213 @@
-// Kirish sahifasi — ikki ustunli: chapda tizim haqida ma'lumot (hero), o'ngda
-// kirish kartochkasi. Palitra `styles.css` dagi cream + pistachio + caramel,
-// tenant rangi bo'lsa `--brand-*`. Boshqa holat sahifalari `../state-card.scss`
-// da qoladi — bu fayl faqat login uchun.
+// Kirish sahifasi — Agentics oilasi tuzilishi (Wash/HRM `login.page.css` +
+// `auth-panel.css`, Identity `LoginPage`): chapda to'q brend paneli, o'ngda
+// aurora fonidagi shisha kartochka. Aksent `--ag-brand` (tenant rangi yoki
+// pistachio), fon — kabinetning cream `--bg-app`. Belgi va orbita — global
+// `styles.css` (`.ag-brand-mark`, `.ag-orbit`).
 
 :host {
   display: block;
 }
 
-.login-scene {
+.auth {
   position: relative;
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-  padding: 24px;
   overflow: hidden;
-  background:
-    radial-gradient(circle at 12% 18%, rgba(94, 149, 64, 0.12), transparent 42%),
-    radial-gradient(circle at 88% 82%, rgba(200, 144, 47, 0.12), transparent 42%),
-    var(--bg-app);
+  isolation: isolate;
+  min-height: 100dvh;
+  background: var(--bg-app);
 }
 
-// Fon shari — dekorativ, hodisalarni ushlamaydi.
-.login-orb {
+// ---- Aurora fon ----
+.auth__scene {
   position: absolute;
-  border-radius: 50%;
-  filter: blur(70px);
-  opacity: 0.55;
+  inset: 0;
+  z-index: -1;
   pointer-events: none;
 }
 
-.login-orb--a {
-  width: 420px;
-  height: 420px;
-  top: -120px;
-  left: -100px;
-  background: var(--brand-primary-soft, var(--color-pistachio-200));
-}
-
-.login-orb--b {
-  width: 360px;
-  height: 360px;
-  right: -120px;
-  bottom: -140px;
-  background: var(--color-caramel-100);
-}
-
-.login-frame {
-  position: relative;
-  width: min(1080px, 100%);
-  display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-  gap: 48px;
-  align-items: center;
-  animation: loginFadeIn 0.35s ease-out;
-}
-
-// ---------------------------------------------------------------- hero
-
-.login-hero {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  padding: 12px 0;
-}
-
-.login-brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.login-brand__mark,
-.login-card__mark {
-  width: 48px;
-  height: 48px;
-  flex-shrink: 0;
-  border-radius: 14px;
-  display: grid;
-  place-items: center;
-  background: linear-gradient(
-    140deg,
-    var(--brand-primary-soft, var(--color-pistachio-200)),
-    var(--brand-primary, var(--color-pistachio-500))
-  );
-  box-shadow: 0 6px 18px rgba(94, 149, 64, 0.25);
-
-  i {
-    font-size: 22px;
-    color: #ffffff;
-  }
-}
-
-.login-brand__text,
-.login-card__brand {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.25;
-}
-
-.login-brand__product,
-.login-card__product {
-  font-size: 17px;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.login-brand__app,
-.login-card__app {
-  font-size: 12.5px;
-  color: var(--text-muted);
-}
-
-.login-badge {
-  align-self: flex-start;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
+.auth__glow {
+  position: absolute;
   border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  color: var(--brand-primary, var(--color-pistachio-600));
-  background: var(--brand-primary-soft, var(--color-pistachio-50));
-  border: 1px solid rgba(94, 149, 64, 0.18);
-
-  i {
-    font-size: 12px;
-  }
+  background: radial-gradient(circle, var(--ag-glow) 0%, transparent 68%);
+  filter: blur(48px);
+  opacity: 0.7;
 }
 
-.login-hero__title {
-  margin: 0;
-  font-size: clamp(30px, 3.6vw, 42px);
-  line-height: 1.12;
-  color: var(--text-primary);
-  max-width: 16ch;
+.auth__glow--1 {
+  top: -22vmax;
+  right: -12vmax;
+  width: 58vmax;
+  height: 58vmax;
+  animation: auth-drift-1 24s ease-in-out infinite alternate;
 }
 
-.login-hero__lead {
-  margin: 0;
-  font-size: 15px;
-  line-height: 1.65;
-  color: var(--text-secondary);
-  max-width: 52ch;
+.auth__glow--2 {
+  right: 10vmax;
+  bottom: -26vmax;
+  width: 52vmax;
+  height: 52vmax;
+  background: radial-gradient(circle, color-mix(in srgb, var(--ag-brand-2) 34%, transparent) 0%, transparent 68%);
+  animation: auth-drift-2 30s ease-in-out infinite alternate;
 }
 
-.login-modules {
-  list-style: none;
-  margin: 8px 0 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+.auth__grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--border-default) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border-default) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(ellipse 72% 64% at 50% 46%, #000 0%, transparent 100%);
+  opacity: 0.6;
 }
 
-.login-module {
+// ---- Tartib: ≥980px da ikki ustun ----
+.auth__panel {
+  display: none;
+}
+
+.auth__stage {
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 11px 12px;
-  border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--bg-surface) 72%, transparent);
-  border: 1px solid var(--border-subtle);
-  backdrop-filter: blur(6px);
-  transition:
-    transform 0.18s ease,
-    box-shadow 0.18s ease,
-    border-color 0.18s ease;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 100dvh;
+  padding: 16px;
+  box-sizing: border-box;
+}
 
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-card);
-    border-color: var(--border-default);
+@media (min-width: 980px) {
+  .auth {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  .auth__panel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 32px;
+    overflow: hidden;
+    padding: 32px clamp(40px, 4.5vw, 80px);
+    color: var(--ag-panel-text);
+    background: linear-gradient(160deg, var(--ag-panel-bg) 0%, var(--ag-panel-bg-2) 100%);
+    border-right: 1px solid var(--ag-panel-border);
   }
 }
 
-.login-module__icon {
-  width: 34px;
-  height: 34px;
-  flex-shrink: 0;
-  border-radius: 10px;
-  display: grid;
-  place-items: center;
-  background: var(--brand-primary-soft, var(--color-pistachio-50));
-  color: var(--brand-primary, var(--color-pistachio-600));
+// To'q brend panelining ichki qismlari — `login-panel.scss`.
 
-  i {
-    font-size: 15px;
-  }
-}
-
-.login-module__body {
+// ---- Kirish kartochkasi (shisha) ----
+.auth__card {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 1px;
-  min-width: 0;
-}
+  gap: 16px;
+  width: 100%;
+  max-width: 440px;
+  box-sizing: border-box;
+  padding: 32px;
+  text-align: center;
+  background: color-mix(in srgb, var(--bg-surface) 86%, transparent);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  box-shadow:
+    var(--shadow-card),
+    0 0 0 1px color-mix(in srgb, var(--ag-brand) 10%, transparent),
+    0 32px 80px -40px var(--ag-glow);
+  animation: auth-rise 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 
-.login-module__name {
-  font-size: 13.5px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.login-module__desc {
-  font-size: 12px;
-  line-height: 1.45;
-  color: var(--text-muted);
-}
-
-.login-highlights {
-  list-style: none;
-  margin: 4px 0 0;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 16px;
-
-  li {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12.5px;
-    color: var(--text-secondary);
-  }
-
-  i {
-    font-size: 12px;
-    color: var(--color-caramel-500);
+  // Yuqori chetdagi gradient chiziq.
+  &::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    right: 14%;
+    left: 14%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--ag-brand) 40%, var(--ag-brand-2) 60%, transparent);
   }
 }
 
-// ---------------------------------------------------------------- panel
-
-.login-panel {
+.auth__hero {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
+  padding-top: 8px;
 }
 
-.login-card {
-  width: min(430px, 100%);
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-2xl, 28px);
-  box-shadow: var(--shadow-pop);
-  padding: 30px 28px 24px;
+.auth__names {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-}
-
-.login-card__top {
-  display: none; // faqat mobil — hero pastga tushganda brend kartochkaga ko'chadi
   align-items: center;
-  gap: 12px;
+  gap: 4px;
+  line-height: 1.15;
 }
 
-.login-card__title {
-  margin: 0;
+.auth__product {
   font-size: 22px;
   font-weight: 700;
+  letter-spacing: -0.01em;
   color: var(--text-primary);
 }
 
-.login-card__subtitle {
-  margin: -8px 0 0;
-  font-size: 14px;
+.auth__app {
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--brand-primary-strong, var(--color-pistachio-600));
+}
+
+.auth__tagline {
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+  gap: 8px;
+  margin: 0;
+  padding: 4px 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--brand-primary-strong, var(--color-pistachio-600));
+  background: var(--brand-primary-soft, var(--color-pistachio-50));
+  border: 1px solid color-mix(in srgb, var(--ag-brand) 28%, transparent);
+  border-radius: 999px;
+}
+
+.auth__pulse {
+  position: relative;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--ag-brand);
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--ag-brand);
+    animation: auth-pulse 1.9s ease-out infinite;
+  }
+}
+
+.auth__subtitle {
+  margin: 0;
   color: var(--text-secondary);
 }
 
-.login-notice {
+.auth__notice {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
+  gap: 10px;
   margin: 0;
-  padding: 10px 12px;
-  border-radius: var(--radius-sm);
+  padding: 11px 14px;
+  border: 1px solid color-mix(in srgb, var(--color-blueberry-500) 40%, transparent);
+  border-radius: 10px;
   font-size: 13px;
+  font-weight: 500;
   text-align: left;
   background: var(--color-blueberry-100);
   color: var(--color-blueberry-600);
@@ -289,108 +217,73 @@
   }
 }
 
-.login-notice--warn {
+.auth__notice--warn {
+  border-color: var(--color-caramel-300);
   background: var(--color-caramel-50);
   color: var(--color-caramel-600);
 }
 
-.login-notice--danger {
+.auth__notice--danger {
+  border-color: var(--color-berry-300);
   background: var(--color-berry-50);
   color: var(--color-berry-700);
 }
 
-.login-sso {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 14px;
-  border-radius: var(--radius-lg);
-  background: var(--bg-muted);
-  border: 1px solid var(--border-subtle);
-}
-
-.login-sso__head {
+.auth__sso {
   display: flex;
   align-items: center;
-  gap: 10px;
-
-  > div {
-    display: flex;
-    flex-direction: column;
-    line-height: 1.3;
-  }
+  gap: 12px;
+  padding: 12px 14px;
+  text-align: left;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--bg-muted) 70%, transparent);
 }
 
-.login-sso__logo {
+.auth__sso-logo {
+  display: grid;
+  flex: none;
+  place-items: center;
   width: 36px;
   height: 36px;
-  flex-shrink: 0;
-  border-radius: 10px;
-  display: grid;
-  place-items: center;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-default);
-  color: var(--brand-primary, var(--color-pistachio-600));
-
-  i {
-    font-size: 16px;
-  }
+  border-radius: 8px;
+  color: #ffffff;
+  background: var(--ag-gradient-brand);
+  box-shadow: 0 6px 14px -6px var(--ag-glow);
 }
 
-.login-sso__name {
+.auth__sso-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.35;
+}
+
+.auth__sso-name {
   font-size: 13.5px;
   font-weight: 700;
   color: var(--text-primary);
 }
 
-.login-sso__desc {
+.auth__sso-desc {
   font-size: 12px;
   color: var(--text-muted);
 }
 
-.login-steps {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-
-  li {
-    display: flex;
-    align-items: flex-start;
-    gap: 9px;
-    font-size: 12.5px;
-    line-height: 1.45;
-    color: var(--text-secondary);
-  }
+:host ::ng-deep .auth__action {
+  min-height: 40px;
+  border-radius: 8px;
+  font-weight: 600;
+  filter: drop-shadow(0 10px 18px var(--ag-glow-soft));
 }
 
-.login-steps__num {
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-size: 11px;
-  font-weight: 700;
-  color: #ffffff;
-  background: var(--brand-primary, var(--color-pistachio-500));
-}
-
-.login-actions {
-  width: 100%;
-  margin-top: 2px;
-}
-
-.login-hint,
-.login-help {
+.auth__hint,
+.auth__help {
   display: flex;
   align-items: flex-start;
+  justify-content: center;
   gap: 6px;
   margin: 0;
-  font-size: 12px;
+  font-size: 12.5px;
   line-height: 1.45;
   color: var(--text-muted);
 
@@ -400,59 +293,56 @@
   }
 }
 
-.login-divider {
-  height: 1px;
-  background: var(--border-subtle);
-  margin: 2px 0;
-}
-
-.login-prefs {
+.auth__foot {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 4px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-subtle);
 }
 
-.login-lang {
-  display: flex;
+// Segmentli til tanlagich (Agentics `.ag-segmented`).
+.auth__lang {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 9px;
   background: var(--bg-muted);
-  border-radius: 8px;
-  padding: 2px;
-
-  button {
-    background: none;
-    border: none;
-    padding: 6px 10px;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-muted);
-    cursor: pointer;
-    border-radius: 6px;
-  }
-
-  .active {
-    background: var(--bg-surface);
-    color: var(--brand-primary, var(--primary-500));
-    box-shadow: var(--shadow-sm);
-  }
 }
 
-.login-theme {
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
-  border: 1px solid var(--border-subtle);
-  background: var(--bg-muted);
+.auth__lang-item {
+  padding: 6px 14px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
   color: var(--text-secondary);
   cursor: pointer;
+}
+
+.auth__lang-item--on {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+}
+
+.auth__icon-btn {
   display: grid;
   place-items: center;
-  transition:
-    background 0.15s ease,
-    color 0.15s ease;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  cursor: pointer;
 
   &:hover {
-    background: var(--bg-surface);
+    background: var(--bg-muted);
     color: var(--text-primary);
   }
 
@@ -461,82 +351,44 @@
   }
 }
 
-.login-footer {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 6px;
-  font-size: 12px;
-  color: var(--text-muted);
-  text-align: center;
+.auth__lang-item:focus-visible,
+.auth__icon-btn:focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 3px var(--ag-glow-soft);
 }
 
-.login-footer__dot {
-  opacity: 0.6;
-}
-
-// ---------------------------------------------------------------- moslashuv
-
-@media (max-width: 900px) {
-  .login-scene {
-    place-items: start center;
-    padding: 20px 16px 28px;
+// ---- Qorong'i rejim ----
+:host-context(.dark-mode) {
+  .auth__notice {
+    background: rgba(74, 111, 181, 0.2);
+    color: #b9c9ea;
   }
 
-  .login-frame {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 24px;
+  .auth__notice--warn {
+    background: rgba(200, 144, 47, 0.18);
+    color: #e8b964;
   }
 
-  .login-hero {
-    order: 2;
-    padding: 0;
+  .auth__notice--danger {
+    background: rgba(217, 76, 102, 0.18);
+    color: #f0a3b1;
   }
 
-  // Mobilda kartochka birinchi, brend kartochka ichida; hero'dagi brend takrorlanmasin.
-  .login-brand,
-  .login-badge {
-    display: none;
+  .auth__app,
+  .auth__tagline {
+    color: var(--ag-panel-accent);
   }
 
-  .login-card__top {
-    display: flex;
-  }
-
-  .login-hero__title {
-    font-size: 24px;
-    max-width: none;
-  }
-
-  .login-panel {
-    order: 1;
-  }
-
-  .login-card {
-    padding: 24px 20px 20px;
+  .auth__tagline {
+    background: var(--ag-glow-soft);
   }
 }
 
-@media (max-width: 520px) {
-  .login-modules {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .login-frame {
-    animation: none;
-  }
-
-  .login-module {
-    transition: none;
-  }
-}
-
-@keyframes loginFadeIn {
+// ---- Animatsiyalar ----
+@keyframes auth-rise {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(14px) scale(0.98);
   }
   to {
     opacity: 1;
@@ -544,40 +396,37 @@
   }
 }
 
-// ---------------------------------------------------------------- qorong'i rejim
+@keyframes auth-pulse {
+  from {
+    opacity: 0.6;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 0;
+    transform: scale(2.4);
+  }
+}
 
-:host-context(.dark-mode) {
-  .login-orb {
-    opacity: 0.22;
+@keyframes auth-drift-1 {
+  to {
+    transform: translate(-6vmax, 5vmax) scale(1.08);
+  }
+}
+
+@keyframes auth-drift-2 {
+  to {
+    transform: translate(5vmax, -4vmax) scale(1.1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth__card,
+  .auth__glow,
+  .auth__pulse::after {
+    animation: none;
   }
 
-  .login-badge {
-    background: rgba(94, 149, 64, 0.16);
-    border-color: rgba(94, 149, 64, 0.3);
-    color: #b8d99c;
-  }
-
-  .login-module__icon {
-    background: rgba(94, 149, 64, 0.18);
-    color: #b8d99c;
-  }
-
-  .login-sso__logo {
-    color: #b8d99c;
-  }
-
-  .login-notice {
-    background: rgba(74, 111, 181, 0.2);
-    color: #b9c9ea;
-  }
-
-  .login-notice--warn {
-    background: rgba(200, 144, 47, 0.18);
-    color: #e8b964;
-  }
-
-  .login-notice--danger {
-    background: rgba(217, 76, 102, 0.18);
-    color: #f0a3b1;
+  .auth__point {
+    transition: none;
   }
 }

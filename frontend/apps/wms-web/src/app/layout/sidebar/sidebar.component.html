@@ -1,6 +1,6 @@
 <aside class="sidebar" [class.collapsed]="collapsed()" *transloco="let t">
   <!-- Yig'ilganda kvadrat logo, yoyilganda keng logo. Mijozda logo bo'lmasa —
-       standart belgi va kompaniya nomi (bo'sh joy qolmaydi). -->
+       Agentics brend belgisi + «Agentics / WMS» so'z belgisi (Wash/HRM kabi). -->
   <div class="sidebar-header">
     <div class="logo-area">
       @if (!collapsed() && wideLogo(); as wide) {
@@ -8,16 +8,30 @@
       } @else {
         @if (squareLogo(); as square) {
           <img class="logo-mark logo-image" [src]="square" [alt]="tenantName()" />
+          @if (!collapsed()) {
+            <div class="logo-text">
+              <span class="brand">{{ tenantName() || t('shell.product') }}</span>
+              <span class="tenant-name">{{ t('shell.appName') }}</span>
+            </div>
+          }
         } @else {
-          <div class="logo-mark">
-            <i class="pi pi-warehouse"></i>
-          </div>
-        }
-        @if (!collapsed()) {
-          <div class="logo-text">
-            <span class="brand">{{ tenantName() || t('shell.product') }}</span>
-            <span class="tenant-name">{{ t('shell.appName') }}</span>
-          </div>
+          <!-- Geometriya: shared/components/brand-mark (BRAND_MARK_GEOMETRY). -->
+          <span class="logo-orbit" [class.ag-orbit]="!collapsed()">
+            <span class="ag-brand-mark logo-brand-mark" aria-hidden="true">
+              <svg viewBox="0 0 32 32" fill="none" stroke="currentColor">
+                <path class="ag-brand-mark__ring" d="M9.75 26.8A12.5 12.5 0 1 1 26.2 23.2" stroke-width="2.3" />
+                <path d="M10.6 24.6 16.4 9" stroke-width="1.8" />
+                <path d="M16.4 9 23.6 27.6" stroke-width="3.4" />
+                <path d="M12.9 19.6H24.4" stroke-width="1.8" />
+              </svg>
+            </span>
+          </span>
+          @if (!collapsed()) {
+            <div class="logo-text">
+              <span class="wordmark">{{ t('shell.product') }}</span>
+              <span class="wordmark-accent">{{ t('shell.appName') }}</span>
+            </div>
+          }
         }
       }
     </div>

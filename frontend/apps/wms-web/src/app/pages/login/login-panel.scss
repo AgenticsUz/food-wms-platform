@@ -1,0 +1,177 @@
+// Kirish sahifasining to'q brend paneli (chap ustun, ≥980px) — Wash/HRM
+// `auth-panel.css` analogi. Tartib va ko'rinish qoidasi `login.page.scss` da.
+
+.auth__panel-glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(60% 50% at 100% 0%, color-mix(in srgb, var(--ag-panel-accent) 30%, transparent) 0%, transparent 70%),
+    radial-gradient(55% 45% at 0% 100%, color-mix(in srgb, var(--ag-brand-2) 30%, transparent) 0%, transparent 70%);
+}
+
+.auth__panel-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--ag-panel-border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--ag-panel-border) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(ellipse 80% 70% at 30% 40%, #000 0%, transparent 100%);
+  opacity: 0.55;
+}
+
+.auth__panel-brand,
+.auth__panel-body,
+.auth__panel-foot {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 580px;
+}
+
+.auth__panel-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.auth__panel-name {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.auth__panel-product {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.auth__panel-app {
+  margin-top: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ag-panel-accent);
+}
+
+.auth__panel-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.auth__panel-headline {
+  margin: 0;
+  max-width: 20ch;
+  font-size: clamp(26px, 2.6vw, 36px);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--ag-panel-text);
+}
+
+.auth__panel-lede {
+  margin: 0;
+  max-width: 48ch;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--ag-panel-text-2);
+}
+
+.auth__points {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.auth__point {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--ag-panel-border);
+  border-radius: 12px;
+  background: var(--ag-panel-tile);
+  backdrop-filter: blur(6px);
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--ag-panel-accent) 40%, var(--ag-panel-border));
+  }
+}
+
+.auth__point-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  color: var(--ag-panel-bg);
+  background: linear-gradient(135deg, var(--ag-panel-accent) 0%, var(--ag-brand-2) 100%);
+  box-shadow: 0 6px 14px -6px color-mix(in srgb, var(--ag-panel-accent) 60%, transparent);
+
+  i {
+    font-size: 15px;
+  }
+}
+
+.auth__point-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.auth__point-title {
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.auth__point-sub {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--ag-panel-text-2);
+}
+
+.auth__highlights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12.5px;
+    color: var(--ag-panel-text-2);
+  }
+
+  i {
+    font-size: 12px;
+    color: var(--ag-panel-accent);
+  }
+}
+
+.auth__panel-foot {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ag-panel-text-3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth__point {
+    transition: none;
+  }
+}

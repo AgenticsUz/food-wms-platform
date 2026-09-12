@@ -47,33 +47,59 @@
   overflow: hidden;
 }
 
-.logo-mark {
+/* Mijoz logotipi — o'z nisbatini saqlaydi, kesilmaydi; shaffof PNG panel foniga tushadi. */
+.logo-mark.logo-image {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 11px;
+  object-fit: contain;
+}
+
+/* Agentics brend belgisi (global `.ag-brand-mark` / `.ag-orbit`). Yoyilganda —
+   aylanuvchi orbita ichida dumaloq belgi (Wash/HRM topbar'i kabi). */
+.logo-orbit {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  --ag-orbit-size: 46px;
+  --ag-orbit-inset: 4px;
+}
+
+.logo-brand-mark {
   width: 38px;
   height: 38px;
   border-radius: 11px;
-  background: linear-gradient(
-    140deg,
-    var(--brand-primary-soft, var(--color-pistachio-200)),
-    var(--brand-primary, var(--color-pistachio-500))
-  );
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  box-shadow:
-    0 4px 12px rgba(94, 149, 64, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4);
-
-  i {
-    font-size: 17px;
-    color: #ffffff;
-  }
 }
 
-/* Mijoz logotipi — o'z nisbatini saqlaydi, kesilmaydi; shaffof PNG panel foniga tushadi. */
-.logo-mark.logo-image {
-  background: none;
-  box-shadow: none;
-  object-fit: contain;
+.logo-orbit.ag-orbit .logo-brand-mark {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+}
+
+.wordmark {
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+// Ilova nomi (uz/ru uzunligi har xil) — sig'masa ellipsis.
+.wordmark-accent {
+  max-width: 150px;
+  margin-top: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background: var(--ag-gradient-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .logo-wide {
@@ -149,8 +175,8 @@
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 11px;
-  padding: 8px 10px;
+  gap: 10px;
+  padding: 5px 8px;
   border-radius: 8px;
   font-size: 13.5px;
   font-weight: 500;
@@ -169,13 +195,22 @@
     background 0.12s ease,
     color 0.12s ease;
 
+  // Ikonka plitkasi (Agentics sidebar `__icon`): faol/ochiq guruhda — brend gradienti.
   .nav-icon {
-    font-size: 16px;
-    width: 20px;
-    text-align: center;
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
     flex-shrink: 0;
+    border-radius: 7px;
+    background: var(--color-cream-100);
+    font-size: 14px;
     color: var(--text-muted);
-    transition: color 0.12s ease;
+    transition:
+      background 0.15s ease,
+      color 0.15s ease,
+      box-shadow 0.15s ease,
+      transform 0.15s ease;
   }
 
   &:hover {
@@ -183,7 +218,8 @@
     color: var(--color-cocoa-700);
 
     .nav-icon {
-      color: var(--color-cocoa-500);
+      color: var(--color-cocoa-600);
+      transform: translateY(-1px);
     }
   }
 
@@ -191,22 +227,20 @@
     background: var(--color-cream-100);
     color: var(--color-cocoa-700);
     font-weight: 600;
-
-    .nav-icon {
-      color: var(--brand-primary-strong, var(--color-pistachio-600));
-    }
-
-    &::before {
-      content: '';
-      position: absolute;
-      left: -10px;
-      top: 8px;
-      bottom: 8px;
-      width: 3px;
-      background: var(--brand-primary, var(--color-pistachio-500));
-      border-radius: 0 3px 3px 0;
-    }
   }
+}
+
+.nav-item.active .nav-icon,
+.nav-group.group-active > .nav-group-toggle .nav-icon,
+.nav-group.expanded > .nav-group-toggle .nav-icon {
+  background: var(--ag-gradient-brand);
+  color: #ffffff;
+  box-shadow: 0 4px 12px -4px var(--ag-glow);
+  transform: none;
+}
+
+:host-context(.dark-mode) .nav-item .nav-icon {
+  background: rgba(255, 255, 255, 0.06);
 }
 
 :host-context(.dark-mode) .nav-item {
@@ -229,10 +263,6 @@
   &.group-active > .nav-group-toggle {
     color: var(--color-cocoa-700);
     font-weight: 600;
-
-    .nav-icon {
-      color: var(--brand-primary-strong, var(--color-pistachio-600));
-    }
   }
 }
 
@@ -256,8 +286,12 @@
   }
 }
 
+// Bolalar — ikonka markazidan tushuvchi yo'naltiruvchi chiziq ustida (Agentics `__kids`).
 .nav-children {
-  padding: 2px 0 6px 14px;
+  position: relative;
+  margin: 2px 0 6px 22px;
+  padding-left: 12px;
+  border-left: 1px solid var(--border-default);
   display: flex;
   flex-direction: column;
   gap: 1px;
@@ -276,10 +310,10 @@
 }
 
 .nav-child {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 6px 10px 6px 26px;
+  padding: 6px 10px;
   border-radius: 6px;
   color: var(--text-secondary);
   text-decoration: none;
@@ -289,40 +323,51 @@
   cursor: pointer;
   transition:
     background 0.12s ease,
-    color 0.12s ease;
+    color 0.12s ease,
+    transform 0.15s ease;
 
   &:hover {
     color: var(--text-primary);
     background: var(--color-cream-50);
-
-    .child-dot {
-      background: var(--color-cocoa-300);
-    }
+    transform: translateX(2px);
   }
 
   &.child-active {
     color: var(--brand-primary-strong, var(--color-pistachio-600));
+    background: var(--brand-primary-soft, var(--color-pistachio-50));
     font-weight: 600;
 
     .child-dot {
-      background: var(--brand-primary, var(--color-pistachio-500));
-      box-shadow: 0 0 8px rgba(94, 149, 64, 0.3);
-      transform: scale(1.2);
+      background: var(--ag-brand);
+      box-shadow: 0 0 0 3px var(--ag-glow-soft);
     }
   }
 }
 
-:host-context(.dark-mode) .nav-child:hover {
-  background: rgba(255, 255, 255, 0.04);
+:host-context(.dark-mode) .nav-child {
+  &:hover {
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  &.child-active {
+    color: var(--ag-panel-accent);
+    background: var(--ag-glow-soft);
+  }
 }
 
+// Faol bolaning nuqtasi — yo'naltiruvchi chiziq ustida.
 .child-dot {
-  width: 5px;
-  height: 5px;
+  position: absolute;
+  top: 50%;
+  left: -16.5px;
+  width: 7px;
+  height: 7px;
+  margin-top: -3.5px;
   border-radius: 999px;
-  background: var(--color-cocoa-200);
-  flex-shrink: 0;
-  transition: all 0.15s ease;
+  background: transparent;
+  transition:
+    background 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 // ---- Footer ----
@@ -343,11 +388,13 @@
   width: 34px;
   height: 34px;
   border-radius: 999px;
-  background: linear-gradient(135deg, var(--color-berry-300), var(--color-berry-500));
+  background: var(--ag-gradient-brand);
   display: grid;
   place-items: center;
   flex-shrink: 0;
-  box-shadow: 0 3px 8px rgba(217, 76, 102, 0.2);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+    0 4px 10px -4px var(--ag-glow);
 }
 
 .user-initials {

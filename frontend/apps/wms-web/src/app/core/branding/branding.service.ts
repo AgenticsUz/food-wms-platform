@@ -25,7 +25,8 @@ interface StoredBranding {
 
 const EMPTY: StoredBranding = { logoUrl: null, logoSquareUrl: null, brandColor: null, tenantName: null };
 const DEFAULT_TITLE = 'Agentics WMS';
-const DEFAULT_FAVICON = 'favicon.ico';
+/** Agentics brend belgisi (Wash/HRM bilan bir xil geometriya, WMS aksenti). */
+const DEFAULT_FAVICON = 'favicon.svg';
 
 /**
  * Tenant brendi: logo (keng/kvadrat), firma rangi → palitra, favicon, sarlavha (D14).
@@ -139,7 +140,7 @@ export class BrandingService {
     if (href) {
       link.removeAttribute('type');
     } else {
-      link.type = 'image/x-icon';
+      link.type = 'image/svg+xml';
     }
     if (link.getAttribute('href') !== next) {
       link.setAttribute('href', next);

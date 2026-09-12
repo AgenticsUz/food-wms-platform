@@ -7,9 +7,12 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
   template: `
     <div class="flex items-center justify-between mb-6 gap-4 flex-wrap">
       <div>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white m-0 leading-tight">{{ title() }}</h1>
+        <!-- Agentics \`ag-pagehead\` o'lchamlari (21px/700), ranglar — WMS tokenlari. -->
+        <h1 class="m-0 text-[21px] font-bold leading-tight tracking-[-0.01em] text-[var(--text-primary)]">
+          {{ title() }}
+        </h1>
         @if (subtitle()) {
-          <p class="text-sm text-gray-500 mt-0.5 m-0">{{ subtitle() }}</p>
+          <p class="m-0 mt-1 text-[13px] text-[var(--text-secondary)]">{{ subtitle() }}</p>
         }
       </div>
       <div class="flex items-center gap-3">

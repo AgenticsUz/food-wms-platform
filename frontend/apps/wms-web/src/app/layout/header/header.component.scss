@@ -118,15 +118,27 @@
   }
 }
 
+// Agentics avatari: brend gradienti + aksent halqa (Wash/HRM `app-user__trigger`).
 .avatar {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: var(--brand-primary-soft, var(--primary-50));
-  color: var(--brand-primary, var(--primary-500));
+  background: var(--ag-gradient-brand);
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow:
+    0 0 0 2px var(--bg-surface),
+    0 0 0 3px var(--ag-brand);
+  transition: box-shadow 0.15s ease;
+
+  .user-badge:hover & {
+    box-shadow:
+      0 0 0 2px var(--bg-surface),
+      0 0 0 3px var(--ag-brand),
+      0 6px 14px -6px var(--ag-glow);
+  }
 
   i {
     font-size: 14px;

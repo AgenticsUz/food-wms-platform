@@ -1,41 +1,41 @@
-<main class="login-scene" *transloco="let t">
-  <div class="login-orb login-orb--a" aria-hidden="true"></div>
-  <div class="login-orb login-orb--b" aria-hidden="true"></div>
+<main class="auth" *transloco="let t">
+  <!-- Aurora fon: ikki suzuvchi yorug'lik va chetlari so'nadigan to'r. -->
+  <div class="auth__scene" aria-hidden="true">
+    <span class="auth__glow auth__glow--1"></span>
+    <span class="auth__glow auth__glow--2"></span>
+    <span class="auth__grid"></span>
+  </div>
 
-  <div class="login-frame">
-    <!-- ==================== Chap: tizim haqida ==================== -->
-    <section class="login-hero" aria-labelledby="login-hero-title">
-      <div class="login-brand">
-        <div class="login-brand__mark">
-          <i class="pi pi-warehouse"></i>
-        </div>
-        <div class="login-brand__text">
-          <span class="login-brand__product">{{ t('shell.product') }}</span>
-          <span class="login-brand__app">{{ t('shell.appName') }}</span>
-        </div>
-      </div>
+  <!-- ==================== Chap: to'q brend paneli (≥980px) ==================== -->
+  <aside class="auth__panel" aria-labelledby="login-hero-title">
+    <div class="auth__panel-glow" aria-hidden="true"></div>
+    <div class="auth__panel-grid" aria-hidden="true"></div>
 
-      <span class="login-badge">
-        <i class="pi pi-sparkles"></i>
-        {{ t('shell.login.badge') }}
+    <div class="auth__panel-brand">
+      <app-brand-mark size="md" />
+      <span class="auth__panel-name">
+        <span class="auth__panel-product">{{ t('shell.product') }}</span>
+        <span class="auth__panel-app">{{ t('shell.appName') }}</span>
       </span>
+    </div>
 
-      <h1 id="login-hero-title" class="login-hero__title display">{{ t('shell.login.heroTitle') }}</h1>
-      <p class="login-hero__lead">{{ t('shell.login.heroLead') }}</p>
+    <div class="auth__panel-body">
+      <h1 id="login-hero-title" class="auth__panel-headline">{{ t('shell.login.heroTitle') }}</h1>
+      <p class="auth__panel-lede">{{ t('shell.login.heroLead') }}</p>
 
-      <ul class="login-modules" [attr.aria-label]="t('shell.login.modulesLabel')">
+      <ul class="auth__points" [attr.aria-label]="t('shell.login.modulesLabel')">
         @for (module of modules; track module.key) {
-          <li class="login-module">
-            <span class="login-module__icon"><i [class]="module.icon"></i></span>
-            <span class="login-module__body">
-              <span class="login-module__name">{{ t(module.key) }}</span>
-              <span class="login-module__desc">{{ t(module.desc) }}</span>
+          <li class="auth__point">
+            <span class="auth__point-icon" aria-hidden="true"><i [class]="module.icon"></i></span>
+            <span class="auth__point-text">
+              <span class="auth__point-title">{{ t(module.key) }}</span>
+              <span class="auth__point-sub">{{ t(module.desc) }}</span>
             </span>
           </li>
         }
       </ul>
 
-      <ul class="login-highlights">
+      <ul class="auth__highlights">
         @for (item of highlights; track item.key) {
           <li>
             <i [class]="item.icon"></i>
@@ -43,119 +43,95 @@
           </li>
         }
       </ul>
-    </section>
+    </div>
 
-    <!-- ==================== O'ng: kirish kartochkasi ==================== -->
-    <section class="login-panel" aria-labelledby="login-panel-title">
-      <div class="login-card">
-        <div class="login-card__top">
-          <div class="login-card__mark">
-            <i class="pi pi-warehouse"></i>
-          </div>
-          <div class="login-card__brand">
-            <span class="login-card__product">{{ t('shell.product') }}</span>
-            <span class="login-card__app">{{ t('shell.appName') }}</span>
-          </div>
-        </div>
+    <p class="auth__panel-foot">
+      {{ t('shell.login.copyright', { year: year }) }} · {{ t('shell.login.footer') }}
+    </p>
+  </aside>
 
-        <h2 id="login-panel-title" class="login-card__title">{{ t('shell.login.welcome') }}</h2>
-        <p class="login-card__subtitle">{{ t('auth.login.subtitle') }}</p>
-
-        @if (error(); as message) {
-          <p class="login-notice login-notice--danger" role="alert">
-            <i class="pi pi-times-circle"></i>
-            <span>{{ t(message) }}</span>
-          </p>
-        } @else if (reasonKey(); as key) {
-          <p class="login-notice" [class.login-notice--warn]="isWarning()" role="status">
-            <i class="pi" [class.pi-exclamation-triangle]="isWarning()" [class.pi-info-circle]="!isWarning()"></i>
-            <span>{{ t(key) }}</span>
-          </p>
-        }
-
-        <div class="login-sso">
-          <div class="login-sso__head">
-            <span class="login-sso__logo">
-              <i class="pi pi-id-card"></i>
-            </span>
-            <div>
-              <span class="login-sso__name">{{ t('shell.login.ssoName') }}</span>
-              <span class="login-sso__desc">{{ t('shell.login.ssoDesc') }}</span>
-            </div>
-          </div>
-
-          <ol class="login-steps">
-            <li>
-              <span class="login-steps__num">1</span>
-              <span>{{ t('shell.login.step1') }}</span>
-            </li>
-            <li>
-              <span class="login-steps__num">2</span>
-              <span>{{ t('shell.login.step2') }}</span>
-            </li>
-            <li>
-              <span class="login-steps__num">3</span>
-              <span>{{ t('shell.login.step3') }}</span>
-            </li>
-          </ol>
-        </div>
-
-        <div class="login-actions">
-          <p-button
-            [label]="t('auth.login.action')"
-            icon="pi pi-sign-in"
-            size="large"
-            [loading]="busy()"
-            [disabled]="busy()"
-            styleClass="w-full login-button"
-            (onClick)="signIn()"
-          />
-        </div>
-
-        <p class="login-hint">
-          <i class="pi pi-lock"></i>
-          <span>{{ t('shell.login.hint') }}</span>
-        </p>
-
-        <div class="login-divider" role="presentation"></div>
-
-        <div class="login-prefs">
-          <div class="login-lang" role="group" [attr.aria-label]="t('common.language.label')">
-            @for (lang of languages; track lang) {
-              <button
-                type="button"
-                [class.active]="lang === activeLanguage()"
-                [attr.aria-pressed]="lang === activeLanguage()"
-                [title]="t('common.language.' + lang)"
-                (click)="onLanguage(lang)"
-              >
-                {{ shortLabel[lang] }}
-              </button>
-            }
-          </div>
-
-          <button
-            type="button"
-            class="login-theme"
-            [title]="t(isDark() ? 'shell.login.themeLight' : 'shell.login.themeDark')"
-            [attr.aria-label]="t(isDark() ? 'shell.login.themeLight' : 'shell.login.themeDark')"
-            (click)="toggleTheme()"
-          >
-            <i class="pi" [class.pi-sun]="isDark()" [class.pi-moon]="!isDark()"></i>
-          </button>
-        </div>
-
-        <p class="login-help">
-          <i class="pi pi-question-circle"></i>
-          <span>{{ t('shell.login.help') }}</span>
-        </p>
+  <!-- ==================== O'ng: kirish kartochkasi ==================== -->
+  <div class="auth__stage">
+    <section class="auth__card" aria-labelledby="login-card-title">
+      <div class="auth__hero">
+        <span class="ag-orbit"><app-brand-mark size="lg" [ignite]="true" /></span>
+        <span class="auth__names">
+          <span id="login-card-title" class="auth__product">{{ t('shell.product') }}</span>
+          <span class="auth__app">{{ t('shell.appName') }}</span>
+        </span>
       </div>
 
-      <footer class="login-footer">
-        <span>{{ t('shell.login.copyright', { year: year }) }}</span>
-        <span class="login-footer__dot" aria-hidden="true">·</span>
-        <span>{{ t('shell.login.footer') }}</span>
-      </footer>
+      <p class="auth__tagline">
+        <span class="auth__pulse" aria-hidden="true"></span>
+        <span>{{ t('shell.login.badge') }}</span>
+      </p>
+      <p class="auth__subtitle">{{ t('auth.login.subtitle') }}</p>
+
+      @if (error(); as message) {
+        <p class="auth__notice auth__notice--danger" role="alert">
+          <i class="pi pi-times-circle"></i>
+          <span>{{ t(message) }}</span>
+        </p>
+      } @else if (reasonKey(); as key) {
+        <p class="auth__notice" [class.auth__notice--warn]="isWarning()" role="status">
+          <i class="pi" [class.pi-exclamation-triangle]="isWarning()" [class.pi-info-circle]="!isWarning()"></i>
+          <span>{{ t(key) }}</span>
+        </p>
+      }
+
+      <div class="auth__sso">
+        <span class="auth__sso-logo" aria-hidden="true"><i class="pi pi-id-card"></i></span>
+        <span class="auth__sso-text">
+          <span class="auth__sso-name">{{ t('shell.login.ssoName') }}</span>
+          <span class="auth__sso-desc">{{ t('shell.login.ssoDesc') }}</span>
+        </span>
+      </div>
+
+      <p-button
+        [label]="t('auth.login.action')"
+        icon="pi pi-sign-in"
+        [loading]="busy()"
+        [disabled]="busy()"
+        styleClass="w-full auth__action"
+        (onClick)="signIn()"
+      />
+
+      <p class="auth__hint">
+        <i class="pi pi-lock"></i>
+        <span>{{ t('shell.login.hint') }}</span>
+      </p>
+
+      <div class="auth__foot">
+        <div class="auth__lang" role="group" [attr.aria-label]="t('common.language.label')">
+          @for (lang of languages; track lang) {
+            <button
+              type="button"
+              class="auth__lang-item"
+              [class.auth__lang-item--on]="lang === activeLanguage()"
+              [attr.aria-pressed]="lang === activeLanguage()"
+              [title]="t('common.language.' + lang)"
+              (click)="onLanguage(lang)"
+            >
+              {{ shortLabel[lang] }}
+            </button>
+          }
+        </div>
+
+        <button
+          type="button"
+          class="auth__icon-btn"
+          [title]="t(isDark() ? 'shell.login.themeLight' : 'shell.login.themeDark')"
+          [attr.aria-label]="t(isDark() ? 'shell.login.themeLight' : 'shell.login.themeDark')"
+          (click)="toggleTheme()"
+        >
+          <i class="pi" [class.pi-sun]="isDark()" [class.pi-moon]="!isDark()"></i>
+        </button>
+      </div>
+
+      <p class="auth__help">
+        <i class="pi pi-question-circle"></i>
+        <span>{{ t('shell.login.help') }}</span>
+      </p>
     </section>
   </div>
 </main>
