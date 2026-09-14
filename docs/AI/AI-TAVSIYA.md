@@ -9,7 +9,10 @@
 > `docs/CLAUDE.md` (arxitektura, qat'iy qoidalar), `../agentics-platform/docs/PLATFORMA-TZ.md`
 > (D-qarorlar, F0–F8), `../agentics-platform/docs/HOLAT.md` (platforma holati),
 > `docs/TELEGRAM-BOT-TZ.md` (TG1–TG17), `docs/XATOLAR-2026-09-14.md` (oxirgi deploy),
-> `docs/CUSTOM_FEATURES.md`, `docs/DEPLOY.md`.
+> `docs/CUSTOM_FEATURES.md`, `docs/DEPLOY.md`. Yo'llar wms repo ildizidan.
+>
+> ⚠️ **Bu — tahlil hujjati. Amaldagi reja — shu papkadagi `WMS-AI-REJA.md` (F10):**
+> bosqichlar, qarorlar va qabul mezonlari o'sha yerda; ikkalasi farq qilsa REJA ustun.
 
 ---
 
@@ -80,11 +83,11 @@ function calling ishi).
 
 ## 5. Bosqichlar (tartib bo'yicha, muddatsiz)
 
-### A0 — AI'dan oldingi dumlar
-- T2 (XATOLAR §9.3) — Foydalanuvchilar ekranida `identityRole` bo'sh bo'lsa
-  fallback qoidasi.
-- Platforma repo'sida push (`f8-tenant-self-service`, 4 commit kutmoqda).
-- XATOLAR §3 dagi ikki SQL so'rovi (prod, faqat o'qish) → FEFO/partiya qarori.
+### A0 — AI'dan oldingi dumlar (holat 2026-09-14 kechqurun)
+- ✅ T2 (XATOLAR §9.3) — tuzatildi (`096f2be`), prod deploy qoldi.
+- ✅ Platforma repo push — bajarildi (`8fea6fe`); WMS ham origin bilan teng.
+- ⏳ XATOLAR §3 dagi ikki SQL so'rovi (prod, faqat o'qish) → FEFO/partiya qarori.
+  To'liq ro'yxat va davomi — `WMS-AI-REJA.md` §P0.
 
 ### A1 — Telegram botda birinchi sinov (eng arzon yo'l)
 **Nima:** buyruq bo'lmagan erkin matn `TelegramUpdateHandler` da AI'ga
@@ -135,11 +138,11 @@ bog'lanmagan qismlar (sikl, SSE, audit shakli) ajratiladigan qilib.
 - **Provayder/SDK:** Claude API, rasmiy Anthropic C# SDK (server tomonda,
   `WMS.Infrastructure` yoki `WMS.Ai` ichida). Tool-use sikli uchun SDK'ning
   tool runner'i yoki qo'lda sikl — gateway'da bitta joyda.
-- **Model:** standart tavsiya `claude-opus-5` ($5/$25 1M token). Trafik oshsa
-  arzonlashtirish nomzodlari: `claude-sonnet-5` ($2/$10), `claude-haiku-4-5`
-  ($1/$5) — oddiy tool-routing (qoldiq/qarz so'rovlari) uchun haiku ko'pincha
-  yetarli. Tanlov konfigda (`Ai__Model`), kodga qotirilmaydi — sinovda
-  solishtiramiz.
+- **Model:** narxlar — `claude-opus-5` $5/$25, `claude-sonnet-5` $2/$10,
+  `claude-haiku-4-5` $1/$5 (1M token, kirish/chiqish). REJA'dagi amaldagi
+  tanlov — **`claude-sonnet-5`** (chat-tool routing uchun sifat/narx muvozanati);
+  A5 da Haiku bilan, kerak bo'lsa Opus bilan eval to'plamida solishtiriladi.
+  Tanlov konfigda (`Ai__Model`), kodga qotirilmaydi.
 - **Thinking:** `thinking: { type: "adaptive" }` (hozirgi API'da `budget_tokens`
   eskirgan); oddiy so'rovlarda effort past bo'lishi mumkin.
 - **Prompt caching:** system prompt + tool ta'riflari barqaror prefiks qilib
@@ -175,7 +178,8 @@ bog'lanmagan qismlar (sikl, SSE, audit shakli) ajratiladigan qilib.
 
 ---
 
-*Hujjat foydalanuvchi tasdig'idan keyin REJAga aylantiriladi (F8-REJA uslubida:
-har bosqich — ishlar + qabul mezoni). Ochiq savollar: (1) A1 uchun bot yetarlimi
-yoki web bilan parallel boshlaymizmi? (2) `ai.chat` birinchi qaysi tenantlarda
-yoqiladi? (3) model uchun kunlik byudjet chegarasi qancha?*
+*REJA yozildi — `WMS-AI-REJA.md` (F10). Bu yerdagi ochiq savollar o'sha yerda
+javob oldi: A1 — avval Telegram, A2 — web; `ai.chat` — demo tenant; kunlik
+chegara — `Ai__DailyUsdCap` (sukut $10). Farqlar: REJA RAG'ni pgvector'siz
+boshlaydi (`pg_trgm` qidiruv, K bo'limi) va asosiy model sifatida
+`claude-sonnet-5` ni tanladi — REJA ustun.*
