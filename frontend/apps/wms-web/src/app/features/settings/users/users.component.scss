@@ -5,7 +5,7 @@
   color: var(--text-secondary);
 }
 
-/* D7: yangi odamni Agentics administratori qo'shadi — sabab ekranning o'zida */
+/* F8.1: hisobni tenant adminining o'zi ochadi — sabab va yo'l ekranning o'zida */
 .readonly-notice {
   display: flex;
   align-items: flex-start;
@@ -36,6 +36,11 @@
   color: var(--text-muted);
 
   &.full-width { grid-column: 1 / -1; }
+}
+
+/* Rol dialogidagi izoh ro'yxatdan ajralib tursin. */
+.p-dialog .field-hint {
+  margin-bottom: 12px;
 }
 
 .role-checkbox-list {

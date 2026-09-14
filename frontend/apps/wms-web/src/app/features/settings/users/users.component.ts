@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal, type OnInit } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { LanguageService } from '@agentics/i18n';
 import { Button } from 'primeng/button';
@@ -22,10 +23,14 @@ import { SettingsService } from '../settings.service';
 /**
  * Foydalanuvchilar — WMS'dagi qismi (D7).
  *
- * O'CHGAN: yaratish, o'chirish, parol tiklash, Excel import — hisobni Console
- * Identity'da ochadi va zavodga biriktiradi, profil birinchi kirishda JIT
- * yoziladi. Ism va telefon Identity'niki (JIT ularni har tokenda qayta yozadi) —
- * shuning uchun tahrirlash dialogida faqat WMS o'chirgichi (`isActive`) va rollar.
+ * O'CHGAN: yaratish, o'chirish, parol tiklash, Excel import — hisob Identity'da
+ * ochiladi, profil birinchi kirishda JIT yoziladi. Ism va telefon Identity'niki
+ * (JIT ularni har tokenda qayta yozadi) — shuning uchun tahrirlash dialogida
+ * faqat WMS o'chirgichi (`isActive`) va rollar.
+ *
+ * F8.1 dan keyin hisobni Agentics EMAS, tenant adminining O'ZI ochadi
+ * («Kirish hisoblari», `/settings/access`) — shuning uchun sarlavhada o'sha
+ * ekranga tugma bor va ogohlantirish matni ham shuni aytadi.
  */
 @Component({
   selector: 'app-users',
@@ -52,6 +57,7 @@ export default class UsersComponent implements OnInit {
   private readonly notify = inject(NotificationService);
   private readonly language = inject(LanguageService);
   private readonly session = inject(WmsSession);
+  private readonly router = inject(Router);
 
   readonly users = signal<UserDetail[]>([]);
   readonly roles = signal<RoleInfo[]>([]);
@@ -66,6 +72,13 @@ export default class UsersComponent implements OnInit {
   readonly roleTarget = signal<UserDetail | null>(null);
   readonly selectedRoleIds = signal<string[]>([]);
   readonly roleDialogVisible = computed(() => this.roleTarget() !== null);
+
+  /**
+   * «Kirish hisoblari» Identity yuzasi va u faqat `admin` rolini tan oladi
+   * (`settings.routes.ts` dagi `roleGuard('admin')` bilan bir xil shart) —
+   * ruxsat kodi emas.
+   */
+  readonly isAdmin = computed(() => this.session.hasRole('admin'));
 
   /** O'zini o'chirib qo'ysa, keyingi so'rovdan WMS'ga kira olmay qoladi. */
   readonly editingSelf = computed(() => this.editTarget()?.id === this.session.me()?.profileId);
@@ -98,6 +111,10 @@ export default class UsersComponent implements OnInit {
     });
   }
 
+  goToAccessAccounts(): void {
+    void this.router.navigate(['/settings/access']);
+  }
+
   openEdit(user: UserDetail): void {
     this.editActive.set(user.isActive);
     this.editTarget.set(user);
@@ -123,7 +140,9 @@ export default class UsersComponent implements OnInit {
   }
 
   openRoleDialog(user: UserDetail): void {
-    this.selectedRoleIds.set(user.roles.map((r) => r.id));
+    // Tizim roli ro'yxatda ko'rinmaydi — uni belgilab ham qo'ymaymiz, aks holda
+    // «saqlash» uni yo'q rol sifatida yuborardi (server baribir saqlab qoladi).
+    this.selectedRoleIds.set(user.roles.filter((r) => r.code !== user.identityRole).map((r) => r.id));
     this.roleTarget.set(user);
   }
 
@@ -150,8 +169,26 @@ export default class UsersComponent implements OnInit {
     });
   }
 
-  roleNames(user: UserDetail): string {
-    return user.roles.map((r) => r.name).join(', ') || '-';
+  /**
+   * Ekranda ikki toifa ajratiladi: Identity bergan TIZIM roli (o'qish uchun) va
+   * tenant admini qo'shgan qo'shimcha rollar. Ilgari ikkalasi bitta ustunda
+   * turardi va «Kirish hisoblari» da rol o'zgargach eskisi qolib ketardi.
+   */
+  customRoleNames(user: UserDetail): string {
+    const names = user.roles.filter((r) => r.code !== user.identityRole).map((r) => r.name);
+    return names.join(', ') || '—';
+  }
+
+  /** Tizim roli yorlig'i — token roli kodidan (`shell.roles.*`). */
+  identityRoleLabel(user: UserDetail): string {
+    return user.identityRole
+      ? this.language.translate('shell.roles.' + user.identityRole)
+      : this.language.translate('settings.identityRoleNone');
+  }
+
+  /** Rol dialogida tanlanadigan rollar — tizim roli bundan mustasno. */
+  assignableRoles(user: UserDetail | null): readonly RoleInfo[] {
+    return this.roles().filter((r) => !user || r.code !== user.identityRole);
   }
 
   parse(value: string | null): Date | null {

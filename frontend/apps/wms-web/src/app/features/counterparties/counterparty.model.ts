@@ -73,12 +73,34 @@ export enum TransferStatus {
   Cancelled = 4,
 }
 
+/**
+ * Kontragent kartasidagi o'tkazma qatori — manba umumiy `GET /api/transfers`
+ * javobi (`TransferDto`), shuning uchun tovar qatorlari (`items`) ham shu yerda:
+ * «mijozga aynan nima yuborilgan» savoli qo'shimcha so'rovsiz yopiladi.
+ */
 export interface CounterpartyTransfer {
   readonly id: string;
   readonly type: TransferType;
   readonly status: TransferStatus;
   readonly totalAmount: number;
   readonly createdAt: string;
+  /** Tasdiqlangan payt; tasdiqlanmagan hujjatda `null` — u holda `createdAt`. */
+  readonly confirmedAt: string | null;
+  readonly fromWarehouseName: string | null;
+  readonly toWarehouseName: string | null;
+  readonly note: string | null;
+  readonly items: readonly CounterpartyTransferItem[];
+}
+
+/** `TransferItemDto` ning kartada ko'rsatiladigan qismi. */
+export interface CounterpartyTransferItem {
+  readonly id: string;
+  readonly productName: string;
+  readonly unitShortName: string;
+  readonly lotNumber: string | null;
+  readonly quantity: number;
+  readonly unitPrice: number;
+  readonly totalPrice: number;
 }
 
 /** `StatusBadgeComponent` CSS kaliti (eski `transfer-enums.ts`). */

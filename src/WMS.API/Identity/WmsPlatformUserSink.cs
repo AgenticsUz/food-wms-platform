@@ -25,12 +25,14 @@ namespace WMS.API.Identity;
 ///   <item><c>wms.tenant</c> nusxasi (+ yangi tenantga sukut plani va trial);</item>
 ///   <item>tenant YANGI bo'lsa — <see cref="TenantBaseline"/> (tizim rollari, birliklar);</item>
 ///   <item><c>wms.user_profile</c> — <c>identity_sub</c> bo'yicha ism va telefon;</item>
-///   <item>profilda HALI rol yo'q bo'lsa — yirik roldan tizim roli.</item>
+///   <item>yirik rol ↔ tizim roli sinxronizatsiyasi.</item>
 /// </list>
 /// <para>
-/// ⚠️ 4-qadam FAQAT bo'sh holatda: aks holda tenant admini bergan rolni Identity tokeni har
-/// 15 daqiqada bosib ketardi. ⚠️ Tenant konteksti QO'LDA va TOKENDAGI tenantga qo'yiladi
-/// (<c>X-Tenant-Id</c> ga emas): sink <c>TenantResolutionMiddleware</c> dan oldin turadi.
+/// ⚠️ 4-qadam FAQAT O'ZI bergan tizim rolini almashtiradi (<c>user_profile.identity_role</c>
+/// esda tutadi): Identity'da <c>admin → manager</c> qilingani WMS'da ham ko'rinsin, lekin
+/// tenant admini qo'shgan MAXSUS rollarni token har 15 daqiqada bosib ketmasin.
+/// ⚠️ Tenant konteksti QO'LDA va TOKENDAGI tenantga qo'yiladi (<c>X-Tenant-Id</c> ga emas):
+/// sink <c>TenantResolutionMiddleware</c> dan oldin turadi.
 /// </para>
 /// </remarks>
 internal sealed partial class WmsPlatformUserSink : IPlatformUserSink
@@ -93,7 +95,7 @@ internal sealed partial class WmsPlatformUserSink : IPlatformUserSink
         }
 
         UserProfile stored = await SyncProfileAsync(profile, cancellationToken);
-        await SeedRoleAsync(tenantId, profile, stored, cancellationToken);
+        await SyncRoleAsync(tenantId, profile, stored, cancellationToken);
     }
 
     /// <returns><see langword="true"/> — shu chaqiruvda yaratildi; <see langword="null"/> — yozib bo'lmadi (fail-closed).</returns>
@@ -189,19 +191,51 @@ internal sealed partial class WmsPlatformUserSink : IPlatformUserSink
         return stored;
     }
 
-    private async Task SeedRoleAsync(Guid tenantId, PlatformUserProfile profile, UserProfile stored, CancellationToken cancellationToken)
+    /// <summary>
+    /// Tokendagi yirik rolni WMS tizim roliga o'giradi va farq bo'lsa ALMASHTIRADI.
+    /// </summary>
+    /// <remarks>
+    /// Uch holat: (1) <c>identity_role</c> bo'sh va rol yo'q — birinchi kirish, biriktiriladi;
+    /// (2) <c>identity_role</c> bo'sh, lekin profilda AYNAN bitta tizim roli bor — eski
+    /// ma'lumot, o'sha rol «JIT bergan» deb qabul qilinadi; (3) farq bor — eski tizim roli
+    /// olib tashlanadi, yangisi qo'shiladi, maxsus rollar joyida qoladi.
+    /// </remarks>
+    private async Task SyncRoleAsync(Guid tenantId, PlatformUserProfile profile, UserProfile stored, CancellationToken cancellationToken)
     {
-        if (await _db.UserRoles.AnyAsync(ur => ur.UserId == stored.Id, cancellationToken))
-        {
-            return;
-        }
-
         string? systemRole = WmsSystemRoles.FromTokenRoles(profile.Roles);
         if (systemRole is null)
         {
             _logger.LogWarning(
-                "Foydalanuvchi {UserId} tokenidagi yirik rollar WMS xaritasida yo'q — rol biriktirilmadi (fail-closed)",
+                "Foydalanuvchi {UserId} tokenidagi yirik rollar WMS xaritasida yo'q — rol o'zgartirilmadi (fail-closed)",
                 profile.UserId);
+            return;
+        }
+
+        List<UserRole> current = await _db.UserRoles
+            .Include(ur => ur.Role)
+            .Where(ur => ur.UserId == stored.Id)
+            .ToListAsync(cancellationToken);
+
+        // Eski profil (ustun F8 dan oldin yozilgan): bitta tizim roli bo'lsa, uni JIT
+        // bergan deb qabul qilamiz — aks holda birinchi sinxronizatsiya ikkinchi tizim
+        // rolini qo'shib yuborardi.
+        string? previous = stored.IdentityRole;
+        if (previous is null)
+        {
+            List<UserRole> systemRoles = [.. current.Where(ur => IsSystemRole(ur.Role))];
+            previous = systemRoles.Count == 1 ? systemRoles[0].Role!.Code : null;
+        }
+
+        if (string.Equals(previous, systemRole, StringComparison.Ordinal)
+            && current.Any(ur => string.Equals(ur.Role?.Code, systemRole, StringComparison.Ordinal)))
+        {
+            // Ustun hali to'ldirilmagan bo'lsa — shu yerda yoziladi (keyingi solishtiruv arzon).
+            if (stored.IdentityRole is null)
+            {
+                stored.IdentityRole = systemRole;
+                await _db.SaveChangesAsync(cancellationToken);
+            }
+
             return;
         }
 
@@ -216,18 +250,40 @@ internal sealed partial class WmsPlatformUserSink : IPlatformUserSink
 
         if (roleId is not { } granted)
         {
-            _logger.LogWarning("Tenant {TenantId} da '{RoleCode}' tizim roli yo'q — foydalanuvchi rolsiz qoldi", tenantId, systemRole);
+            _logger.LogWarning("Tenant {TenantId} da '{RoleCode}' tizim roli yo'q — rol o'zgartirilmadi", tenantId, systemRole);
             return;
         }
 
-        _db.UserRoles.Add(new UserRole { UserId = stored.Id, RoleId = granted });
+        // Faqat AVVAL JIT bergan tizim roli olib tashlanadi: admin qo'shgan boshqa rollar
+        // (tizim roli bo'lsa ham — bu uning ongli qarori) joyida qoladi.
+        if (previous is not null)
+        {
+            List<UserRole> stale = [.. current.Where(ur => string.Equals(ur.Role?.Code, previous, StringComparison.Ordinal))];
+            if (stale.Count > 0)
+            {
+                _db.UserRoles.RemoveRange(stale);
+            }
+        }
+
+        if (!current.Any(ur => ur.RoleId == granted))
+        {
+            _db.UserRoles.Add(new UserRole { UserId = stored.Id, RoleId = granted });
+        }
+
+        stored.IdentityRole = systemRole;
         await _db.SaveChangesAsync(cancellationToken);
 
-        // Kesh «rol yo'q» javobini allaqachon yozgan bo'lishi mumkin — usiz yangi odam 5 daqiqa 403 ko'rardi.
+        // Kesh eski ruxsatlarni allaqachon yozgan bo'lishi mumkin — usiz rolni pasaytirish
+        // 5 daqiqa kuchga kirmasdi (yoki yangi odam 5 daqiqa 403 ko'rardi).
         _access.Invalidate(profile.UserId, tenantId);
 
-        _logger.LogInformation("Foydalanuvchi {UserId} birinchi kirishida '{RoleCode}' tizim roliga biriktirildi (JIT)", profile.UserId, systemRole);
+        _logger.LogInformation(
+            "Foydalanuvchi {UserId} tizim roli '{Previous}' → '{RoleCode}' (Identity roli o'zgardi)",
+            profile.UserId, previous ?? "—", systemRole);
     }
+
+    private static bool IsSystemRole(Role? role) =>
+        role?.Code is { } code && WmsSystemRoles.Ordered.Contains(code, StringComparer.Ordinal);
 
     private Task<Guid?> FindRoleAsync(string code, CancellationToken cancellationToken) =>
         _db.Roles.Where(r => r.Code == code).Select(r => (Guid?)r.Id).FirstOrDefaultAsync(cancellationToken);

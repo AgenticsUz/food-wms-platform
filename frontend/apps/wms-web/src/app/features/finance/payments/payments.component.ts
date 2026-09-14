@@ -17,6 +17,7 @@ import { HasPermissionDirective } from '../../../shared/directives/has-permissio
 import type { Counterparty } from '../../counterparties/counterparty.model';
 import { PaymentMethod, paymentMethodKey, type PaymentHistory } from '../finance.model';
 import { FinanceService } from '../finance.service';
+import { parseUtc } from '../../../core/utils/date.util';
 
 interface PaymentForm {
   /** Eskisida `0` edi (son id); Guid'da «tanlanmagan» — `null`. */
@@ -129,4 +130,13 @@ export default class PaymentsComponent implements OnInit {
   private emptyForm(): PaymentForm {
     return { counterpartyId: null, amount: 0, method: PaymentMethod.Cash, note: null };
   }
+
+  /**
+   * Serverdagi vaqt UTC'da keladi va `Z` siz kelishi mumkin — `new Date` uni
+   * mahalliy deb o'qib 5 soat siljitardi (`core/utils/date.util`).
+   */
+  parse(value: string | null | undefined): Date | null {
+    return parseUtc(value);
+  }
+
 }

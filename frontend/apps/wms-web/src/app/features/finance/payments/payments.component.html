@@ -20,7 +20,7 @@
           <td><span class="item-name">{{ p.counterpartyName }}</span></td>
           <td class="text-right"><span class="number payment-amount">{{ p.amount | number: '1.0-2' }}</span></td>
           <td><app-status-badge [status]="methodStatus(p.method)" [label]="t(methodKey(p.method))" /></td>
-          <td>{{ p.paidAt | date: 'MMM d, yyyy HH:mm' }}</td>
+          <td>{{ (parse(p.paidAt) | date: 'dd.MM.yyyy HH:mm') || '—' }}</td>
           <td>{{ p.note || '—' }}</td>
         </tr>
       </ng-template>

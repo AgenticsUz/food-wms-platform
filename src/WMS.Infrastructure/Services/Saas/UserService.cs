@@ -49,7 +49,7 @@ public class UserService : IUserService
         .Select(u => new UserDto
         {
             Id = u.Id, IdentitySub = u.IdentitySub, FullName = u.FullName, Phone = u.Phone,
-            IsActive = u.IsActive, LastSeenAt = u.LastSeenAt,
+            IsActive = u.IsActive, LastSeenAt = u.LastSeenAt, IdentityRole = u.IdentityRole,
             Roles = u.UserRoles.Select(ur => new UserRoleDto { Id = ur.Role.Id, Code = ur.Role.Code, Name = ur.Role.Name }).ToList()
         });
 
@@ -82,6 +82,19 @@ public class UserService : IUserService
         var validCount = await _db.Roles.CountAsync(r => roleIds.Contains(r.Id), ct);
         if (validCount != roleIds.Count)
             throw new NotFoundException("Role not found");
+
+        // Yirik rol — Identity'niki (TZ Q4): JIT bergan tizim roli shu ekrandan olib
+        // tashlanmaydi ham, qo'shilmaydi ham. Aks holda ikki manba bir-birini bosib
+        // ketardi: bu yerda o'chirilgan rolni keyingi token 15 daqiqada qaytarardi.
+        Guid? managedRoleId = user.IdentityRole is { } code
+            ? await _db.Roles.Where(r => r.Code == code).Select(r => (Guid?)r.Id).FirstOrDefaultAsync(ct)
+            : null;
+
+        if (managedRoleId is { } managed)
+        {
+            roleIds.Remove(managed);
+            roleIds.Add(managed);
+        }
 
         // Farq bo'yicha: faqat olib tashlanganlari o'chadi, faqat yangilari qo'shiladi — (user, role)
         // noyob indeksi bir SaveChanges ichidagi «o'chir-qayta qo'sh» bilan to'qnashmasin.

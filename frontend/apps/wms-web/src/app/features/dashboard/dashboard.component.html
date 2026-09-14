@@ -227,7 +227,7 @@
           <td class="text-right"><span class="number">{{ transfer.totalAmount | number:'1.0-2' }}</span></td>
           <td class="text-right"><span class="number">{{ transfer.items.length }}</span></td>
           <td><app-status-badge [status]="transferStatusClass(transfer.status)" [label]="t(transferStatusKey(transfer.status))" /></td>
-          <td>{{ transfer.createdAt | date:'MMM d, HH:mm' }}</td>
+          <td>{{ (parse(transfer.createdAt) | date:'dd.MM HH:mm') || '—' }}</td>
         </tr>
       </ng-template>
       <ng-template #emptymessage>

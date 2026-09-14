@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal, type OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal, type OnInit } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslocoDirective } from '@jsverse/transloco';
@@ -15,9 +15,15 @@ import { WarehouseService } from '../warehouse.service';
 interface MovementRow {
   readonly productName: string;
   readonly unitShortName: string;
-  readonly warehouseName: string;
+  /** Tovar kimdan keldi (kirim/qaytarishda kontragent, ichkida manba ombor). */
+  readonly fromName: string;
+  /** Tovar kimga ketdi (chiqimda kontragent, aks holda qabul qilgan ombor). */
+  readonly toName: string;
   readonly type: TransferType;
   readonly quantity: number;
+  readonly unitPrice: number;
+  /** Qator summasi — `quantity * unitPrice` (javobdagi `totalPrice`). */
+  readonly amount: number;
   readonly date: Date | null;
   readonly note: string | null;
 }
@@ -37,6 +43,9 @@ export default class MovementsComponent implements OnInit {
   protected readonly transferTypeKey = transferTypeKey;
 
   readonly movements = signal<MovementRow[]>([]);
+
+  /** Jadval ostidagi jami — filtr o'zgarganda o'zi qayta hisoblanadi. */
+  readonly totalAmount = computed(() => this.movements().reduce((sum, row) => sum + row.amount, 0));
   readonly loading = signal(true);
   readonly dateFrom = signal<Date | null>(null);
   readonly dateTo = signal<Date | null>(null);
@@ -82,27 +91,41 @@ export default class MovementsComponent implements OnInit {
 /** Har transferni mahsulot qatorlariga yoyadi. */
 function flatten(transfers: readonly Transfer[]): MovementRow[] {
   return transfers.flatMap((tr) => {
-    const warehouseName = warehouseFor(tr);
     const date = parseUtc(tr.confirmedAt ?? tr.createdAt);
+    const [fromName, toName] = partiesFor(tr);
     return tr.items.map((item) => ({
       productName: item.productName,
       unitShortName: item.unitShortName,
-      warehouseName,
+      fromName,
+      toName,
       type: tr.type,
       quantity: item.quantity,
+      unitPrice: item.unitPrice,
+      amount: item.totalPrice,
       date,
       note: tr.note,
     }));
   });
 }
 
-function warehouseFor(tr: Transfer): string {
+/**
+ * «Kimdan → kimga». Kontragent tomoni turga bog'liq: kirim va qaytarishda u
+ * BERUVCHI, chiqimda OLUVCHI. Ichki o'tkazma va ishlab chiqarish chiqimida
+ * kontragent yo'q — ikki tomon ham ombor (ishlab chiqarishda manba — sex).
+ */
+function partiesFor(tr: Transfer): readonly [string, string] {
+  const dash = '—';
+  const from = tr.fromWarehouseName ?? dash;
+  const to = tr.toWarehouseName ?? dash;
+  const party = tr.counterpartyName ?? dash;
+
   switch (tr.type) {
     case TransferType.Outgoing:
-      return tr.fromWarehouseName ?? '—';
-    case TransferType.Internal:
-      return `${tr.fromWarehouseName ?? '—'} → ${tr.toWarehouseName ?? '—'}`;
-    default: // Kirim, qaytarish, ishlab chiqarish chiqimi — qabul qilgan ombor
-      return tr.toWarehouseName ?? '—';
+      return [from, party];
+    case TransferType.Incoming:
+    case TransferType.Return:
+      return [party, to];
+    default: // Ichki, ishlab chiqarish chiqimi
+      return [from, to];
   }
 }

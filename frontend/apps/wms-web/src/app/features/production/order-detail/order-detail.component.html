@@ -53,7 +53,7 @@
         }
         <div class="info-item">
           <span class="info-label">{{ t('common.date') }}</span>
-          <span class="info-value">{{ o.createdAt | date: 'medium' }}</span>
+          <span class="info-value">{{ (parse(o.createdAt) | date: 'dd.MM.yyyy HH:mm') || '—' }}</span>
         </div>
       </div>
       @if (o.note) {

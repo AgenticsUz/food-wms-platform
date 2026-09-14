@@ -8,7 +8,7 @@
     <div class="form-grid">
       <div class="form-field full-width">
         <label for="transfer-type">{{ t('transfer.selectType') }} *</label>
-        <p-select inputId="transfer-type" [options]="typeOptions()" [ngModel]="transferType()" (ngModelChange)="transferType.set($event)"
+        <p-select inputId="transfer-type" [options]="typeOptions()" [ngModel]="transferType()" (ngModelChange)="onTypeChange($event)"
           optionLabel="label" optionValue="value" [style]="{ width: '100%' }" />
       </div>
 
@@ -44,7 +44,7 @@
       @if (isOutgoing()) {
         <div class="form-field">
           <label for="transfer-from">{{ t('transfer.sourceWarehouse') }} *</label>
-          <p-select inputId="transfer-from" [options]="warehouses()" [ngModel]="fromWarehouseId()" (ngModelChange)="fromWarehouseId.set($event)"
+          <p-select inputId="transfer-from" [options]="warehouses()" [ngModel]="fromWarehouseId()" (ngModelChange)="onFromWarehouseChange($event)"
             optionLabel="name" optionValue="id" [placeholder]="t('transfer.selectWarehouse')" [style]="{ width: '100%' }" />
         </div>
       }
@@ -72,7 +72,7 @@
       @if (isInternal()) {
         <div class="form-field">
           <label for="transfer-internal-from">{{ t('transfer.fromWarehouse') }} *</label>
-          <p-select inputId="transfer-internal-from" [options]="warehouses()" [ngModel]="fromWarehouseId()" (ngModelChange)="fromWarehouseId.set($event)"
+          <p-select inputId="transfer-internal-from" [options]="warehouses()" [ngModel]="fromWarehouseId()" (ngModelChange)="onFromWarehouseChange($event)"
             optionLabel="name" optionValue="id" [placeholder]="t('transfer.sourceWarehouse')" [style]="{ width: '100%' }" />
         </div>
         <div class="form-field">
@@ -140,6 +140,12 @@
       <div class="add-item-field small">
         <p-inputNumber [ngModel]="itemQuantity()" (ngModelChange)="itemQuantity.set($event ?? 0)"
           [placeholder]="t('common.quantity')" [min]="0" [minFractionDigits]="0" [maxFractionDigits]="2" [style]="{ width: '100%' }" />
+        <!-- Qoldiq AYNAN manba ombor kesimida: «boshqa omborda bor» eng ko'p uchragan sabab. -->
+        @if (selectedAvailable() !== null) {
+          <small class="stock-hint" [class.stock-hint-empty]="selectedAvailable() === 0">
+            {{ t('warehouse.available') }}: {{ selectedAvailable() | number: '1.0-2' }}
+          </small>
+        }
       </div>
       <div class="add-item-field small">
         <p-inputNumber [ngModel]="itemUnitPrice()" (ngModelChange)="itemUnitPrice.set($event ?? 0)"
@@ -183,6 +189,20 @@
       </div>
     }
   </div>
+
+  @if (shortages().length > 0) {
+    <div class="stock-warning">
+      <i class="pi pi-exclamation-triangle"></i>
+      <div>
+        @for (short of shortages(); track short.name) {
+          <p class="m-0">
+            {{ t('transfer.stockShort', { name: short.name, available: short.available }) }}
+            ({{ t('common.quantity') }}: {{ short.requested | number: '1.0-2' }})
+          </p>
+        }
+      </div>
+    </div>
+  }
 
   <!-- Yuborish -->
   <div class="action-bar">

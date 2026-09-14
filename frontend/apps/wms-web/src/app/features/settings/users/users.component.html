@@ -1,5 +1,15 @@
 <div class="page-enter" *transloco="let t">
-  <app-page-header [title]="t('settings.users')" [subtitle]="t('settings.manageUsers')" />
+  <app-page-header [title]="t('settings.users')" [subtitle]="t('settings.manageUsers')">
+    <!-- Hisobni tenant admini O'ZI ochadi (F8.1) — ekranlar bir-birini ko'rsatib tursin. -->
+    @if (isAdmin()) {
+      <p-button
+        icon="pi pi-user-plus"
+        [label]="t('settings.accessAccounts')"
+        [outlined]="true"
+        (onClick)="goToAccessAccounts()"
+      />
+    }
+  </app-page-header>
 
   <div class="readonly-notice">
     <i class="pi pi-info-circle"></i>
@@ -20,7 +30,8 @@
           <th pSortableColumn="fullName">{{ t('settings.fullName') }} <p-sortIcon field="fullName" /></th>
           <th>{{ t('common.phone') }}</th>
           <th class="text-center">{{ t('common.active') }}</th>
-          <th>{{ t('settings.roles') }}</th>
+          <th>{{ t('settings.systemRole') }}</th>
+          <th>{{ t('settings.customRoles') }}</th>
           <th>{{ t('settings.lastSeen') }}</th>
           <th class="text-center">{{ t('common.actions') }}</th>
         </tr>
@@ -40,7 +51,11 @@
             />
           </td>
           <td>
-            <span class="roles-text">{{ roleNames(user) }}</span>
+            <!-- Manba «Kirish hisoblari» — bu yerda faqat ko'rsatiladi (TZ Q4). -->
+            <span class="badge-neutral" [pTooltip]="t('settings.identityRoleHint')">{{ identityRoleLabel(user) }}</span>
+          </td>
+          <td>
+            <span class="roles-text">{{ customRoleNames(user) }}</span>
           </td>
           <td>
             <span class="text-muted">{{ (parse(user.lastSeenAt) | date: 'MMM d, y HH:mm') || '—' }}</span>
@@ -60,7 +75,7 @@
       </ng-template>
       <ng-template #emptymessage>
         <tr>
-          <td colspan="6">
+          <td colspan="7">
             <div class="empty-state">
               <i class="pi pi-users"></i>
               <p>{{ t('common.noData') }}</p>
@@ -117,8 +132,14 @@
     [style]="{ width: '450px' }"
     [draggable]="false"
   >
+    @if (roleTarget(); as target) {
+      <p class="field-hint">
+        {{ t('settings.systemRole') }}: <strong>{{ identityRoleLabel(target) }}</strong> —
+        {{ t('settings.identityRoleHint') }}
+      </p>
+    }
     <div class="role-checkbox-list">
-      @for (role of roles(); track role.id) {
+      @for (role of assignableRoles(roleTarget()); track role.id) {
         <label class="role-checkbox-item" [for]="'role-' + role.id">
           <p-checkbox
             [inputId]="'role-' + role.id"

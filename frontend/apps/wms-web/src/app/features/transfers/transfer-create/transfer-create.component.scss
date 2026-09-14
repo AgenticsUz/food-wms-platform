@@ -54,3 +54,35 @@
   gap: 12px;
   padding-top: 8px;
 }
+
+/* Qoldiq ishoralari — server tekshiruvidan OLDIN ko'rinadi (§3, XATOLAR-2026-09-14). */
+.stock-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.stock-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 16px 0 0;
+  padding: 12px 16px;
+  border: 1px solid var(--warning, #d9a406);
+  border-radius: var(--radius-md);
+  background: var(--bg-muted);
+  font-size: 13px;
+  color: var(--text-secondary);
+
+  > i {
+    margin-top: 2px;
+    color: var(--warning, #d9a406);
+  }
+}
+
+/* Qoldiq nol — ishora e'tiborni tortsin. */
+.stock-hint-empty {
+  color: var(--danger, #c0392b);
+  font-weight: 600;
+}

@@ -22,6 +22,7 @@ import {
 } from '../production.model';
 import { ProductionService } from '../production.service';
 import { orderStatusClass, orderStatusKey, stageStatusClass, stageStatusKey } from '../production-status';
+import { parseUtc } from '../../../core/utils/date.util';
 
 interface ExecuteForm {
   readonly actualQuantity: number;
@@ -202,4 +203,13 @@ export default class OrderDetailComponent implements OnInit {
     }
     return false;
   }
+
+  /**
+   * Serverdagi vaqt UTC'da keladi va `Z` siz kelishi mumkin — `new Date` uni
+   * mahalliy deb o'qib 5 soat siljitardi (`core/utils/date.util`).
+   */
+  parse(value: string | null | undefined): Date | null {
+    return parseUtc(value);
+  }
+
 }

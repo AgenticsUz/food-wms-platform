@@ -16,6 +16,14 @@ public class UserDto
     public string? Phone { get; set; }
     public bool IsActive { get; set; }
     public DateTime? LastSeenAt { get; set; }
+
+    /// <summary>
+    /// Identity'dagi yirik rol (<c>admin</c>/<c>manager</c>/…) — JIT shu bo'yicha tizim
+    /// rolini biriktiradi va uni shu ekrandan O'ZGARTIRIB BO'LMAYDI: manba «Kirish
+    /// hisoblari». <see langword="null"/> — odam hali bir marta ham kirmagan.
+    /// </summary>
+    public string? IdentityRole { get; set; }
+
     public List<UserRoleDto> Roles { get; set; } = new();
 }
 

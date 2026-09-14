@@ -45,6 +45,23 @@ public interface IStockAllocator
         Guid? warehouseId = null,
         bool reduceBatchRemaining = true,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Berilgan mahsulotlar bo'yicha MAVJUD miqdor (zaxiradagisi ayrilgan holda).
+    /// </summary>
+    /// <remarks>
+    /// ⚠️ Shart va ko'rinish <see cref="DeductFefoAsync"/> BILAN BIR XIL bo'lishi shart:
+    /// tekshiruv «yetadi» deb ruxsat bergan hujjat tasdiqda «yetmadi» deb yiqilmasin.
+    /// Shuning uchun ikkalasi bitta so'rov shaklidan quriladi.
+    /// </remarks>
+    /// <param name="productIds">Mahsulotlar; bo'sh bo'lsa bo'sh lug'at qaytadi.</param>
+    /// <param name="warehouseId">Ombor; <see langword="null"/> — hamma ombor.</param>
+    /// <param name="cancellationToken">Bekor qilish.</param>
+    /// <returns>Mahsulot → mavjud miqdor. Qatori yo'q mahsulot lug'atda ham YO'Q.</returns>
+    Task<Dictionary<Guid, decimal>> GetAvailableAsync(
+        IReadOnlyCollection<Guid> productIds,
+        Guid? warehouseId = null,
+        CancellationToken cancellationToken = default);
 }
 
 /// <summary>FEFO bo'yicha bitta zaxira qatoridan olingan miqdor.</summary>

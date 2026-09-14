@@ -87,7 +87,7 @@
           <td class="text-center">
             <app-status-badge [status]="statusLabel(rec.status)" [label]="t('agent.status' + statusLabel(rec.status))" />
           </td>
-          <td><span class="number">{{ rec.createdAt | date: 'dd.MM.yyyy' }}</span></td>
+          <td><span class="number">{{ (parse(rec.createdAt) | date: 'dd.MM.yyyy HH:mm') || '—' }}</span></td>
           <td class="text-center">
             <p-select *hasPermission="'agents.manage'" [options]="statusOptions()" [ngModel]="rec.status"
               (ngModelChange)="changeStatus(rec, $event)" optionLabel="label" optionValue="value"

@@ -36,6 +36,19 @@ public class UserProfile : TenantEntity
 
     // Telegram ulanishi — <see cref="TelegramLink"/> jadvalida (ilgari shu yerda `TelegramChatId` edi).
 
+    /// <summary>
+    /// Tokendagi YIRIK rol (<c>admin</c>/<c>manager</c>/<c>employee</c>/<c>viewer</c>),
+    /// oxirgi marta JIT shu profilga qaysi tizim rolini bergan bo'lsa — o'sha.
+    /// </summary>
+    /// <remarks>
+    /// ⚠️ Nega alohida ustun kerak: JIT tokendagi rolni WMS rollari bilan taqqoslay
+    /// olmaydi — tenant admini tizim rolini boshqa rol bilan almashtirgan bo'lishi
+    /// mumkin. Bu ustun «JIT nima berganini» eslab turadi, shunda Identity'da rol
+    /// o'zgarganda AYNAN o'sha rol almashtiriladi va admin qo'shgan maxsus rollarga
+    /// tegilmaydi. <see langword="null"/> — hali sinxronlanmagan (eski profil).
+    /// </remarks>
+    public string? IdentityRole { get; set; }
+
     /// <summary>WMS ichidagi o'chirgich — Identity'dagi bloklashdan mustaqil.</summary>
     public bool IsActive { get; set; } = true;
 

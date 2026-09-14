@@ -35,6 +35,7 @@ import {
   type PayCommissionDto,
 } from '../agent.model';
 import { AgentService } from '../agent.service';
+import { parseUtc } from '../../../core/utils/date.util';
 
 interface LineChart {
   readonly series: ApexAxisChartSeries;
@@ -190,4 +191,13 @@ export default class AgentDetailComponent implements OnInit {
   updatePayForm<K extends keyof PayCommissionDto>(field: K, value: PayCommissionDto[K]): void {
     this.payForm.update((f) => ({ ...f, [field]: value }));
   }
+
+  /**
+   * Serverdagi vaqt UTC'da keladi va `Z` siz kelishi mumkin — `new Date` uni
+   * mahalliy deb o'qib 5 soat siljitardi (`core/utils/date.util`).
+   */
+  parse(value: string | null | undefined): Date | null {
+    return parseUtc(value);
+  }
+
 }

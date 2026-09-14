@@ -23,6 +23,11 @@ export interface UserDetail {
   readonly phone: string | null;
   readonly isActive: boolean;
   readonly lastSeenAt: string | null;
+  /**
+   * Identity'dagi yirik rol kodi (`admin`/`manager`/…). Manba — «Kirish hisoblari»,
+   * shu ekrandan o'zgartirilmaydi; `null` — odam hali kirmagan.
+   */
+  readonly identityRole: string | null;
   readonly roles: readonly UserRole[];
 }
 

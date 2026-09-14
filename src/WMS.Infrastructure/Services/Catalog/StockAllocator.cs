@@ -18,6 +18,51 @@ public sealed class StockAllocator : IStockAllocator
 
     public StockAllocator(WmsDbContext db) => _db = db;
 
+    /// <inheritdoc />
+    public async Task<Dictionary<Guid, decimal>> GetAvailableAsync(
+        IReadOnlyCollection<Guid> productIds,
+        Guid? warehouseId = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (productIds.Count == 0)
+        {
+            return [];
+        }
+
+        // Guruhlash SQL'da: transferda 50 qator bo'lsa ham bitta so'rov.
+        return await AvailableRows(warehouseId)
+            .Where(s => productIds.Contains(s.ProductId))
+            .GroupBy(s => s.ProductId)
+            .Select(g => new { ProductId = g.Key, Available = g.Sum(s => s.Quantity - s.ReservedQuantity) })
+            .ToDictionaryAsync(x => x.ProductId, x => x.Available, cancellationToken);
+    }
+
+    /// <summary>
+    /// Yechishga YAROQLI qatorlar — mavjudlik sharti, ombor filtri va partiya sharti.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Yechish ham, «qancha bor» tekshiruvi ham SHU manbadan quriladi: ikki joyda ikki
+    /// xil shart bo'lsa, tekshiruvdan o'tgan hujjat tasdiqda yiqilardi.
+    /// </para>
+    /// <para>
+    /// ⚠️ Partiya sharti (<c>EXISTS</c>) ATAYLAB: FEFO tartibi partiya maydonlari bo'yicha
+    /// va bog'lanish majburiy, ya'ni SQL'da INNER JOIN — yumshoq o'chirilgan partiyali
+    /// qatorni yechish ko'rmaydi. Tekshiruv ham AYNAN shuni ko'rmasligi kerak, aks holda
+    /// u «yetadi» der edi, tasdiq esa «yetmadi». ⚠️ Bunday qator qoldiq ekranida (partiyaga
+    /// tegmaydigan <c>GetStockAsync</c>) KO'RINADI — «bor, lekin chiqmaydi» holati;
+    /// `docs/XATOLAR-2026-09-14.md` §3 ga qarang.
+    /// </para>
+    /// </remarks>
+    private IQueryable<WarehouseStock> AvailableRows(Guid? warehouseId)
+    {
+        IQueryable<WarehouseStock> query = _db.WarehouseStocks
+            .Where(s => s.Quantity - s.ReservedQuantity > 0)
+            .Where(s => _db.Batches.Any(b => b.Id == s.BatchId));
+
+        return warehouseId is Guid id ? query.Where(s => s.WarehouseId == id) : query;
+    }
+
     public async Task<FefoAllocation> DeductFefoAsync(
         Guid productId,
         decimal quantity,
@@ -34,16 +79,9 @@ public sealed class StockAllocator : IStockAllocator
         // partiya OXIRIDA: `expiry_date IS NULL` false < true. SQLite davridagi
         // `?? DateTime.MaxValue` Postgres'da timestamptz chegarasidan tashqari qiymat bo'lardi.
         // Bir xil muddatda — avval ishlab chiqarilgani, keyin kalit: tartib har safar bir xil bo'lsin.
-        IQueryable<WarehouseStock> query = _db.WarehouseStocks
+        IOrderedQueryable<WarehouseStock> ordered = AvailableRows(warehouseId)
             .Include(s => s.Batch)
-            .Where(s => s.ProductId == productId && s.Quantity - s.ReservedQuantity > 0);
-
-        if (warehouseId is Guid sourceWarehouseId)
-        {
-            query = query.Where(s => s.WarehouseId == sourceWarehouseId);
-        }
-
-        IOrderedQueryable<WarehouseStock> ordered = query
+            .Where(s => s.ProductId == productId)
             .OrderBy(s => s.Batch.ExpiryDate == null)
             .ThenBy(s => s.Batch.ExpiryDate)
             .ThenBy(s => s.Batch.ManufacturedDate)

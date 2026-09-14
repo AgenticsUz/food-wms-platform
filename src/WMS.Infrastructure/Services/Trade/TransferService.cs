@@ -331,6 +331,53 @@ public class TransferService : ITransferService
         if (dto.Type == TransferType.Return && dto.OriginalTransferId.HasValue)
             await ValidateReturnAgainstOriginal(dto.OriginalTransferId.Value,
                 dto.CounterpartyId, dto.Items.Select(i => (i.ProductId, i.Quantity)).ToList());
+
+        await EnsureStockAvailableAsync(dto);
+    }
+
+    /// <summary>
+    /// Omborga chiqim beradigan hujjatda zaxira YARATISHDA tekshiriladi.
+    /// </summary>
+    /// <remarks>
+    /// ⚠️ Bu KAFOLAT emas, ERTA XABAR: hujjat yaratilgandan tasdiqlangangacha boshqa
+    /// hujjat o'sha qoldiqni olib ketishi mumkin, shuning uchun tasdiqdagi tekshiruv
+    /// (FEFO yechuvchining `Shortfall` i) JOYIDA QOLADI. Ilgari bu yerda tekshiruv umuman
+    /// yo'q edi: menejer hujjatni yaratib, mijozga aytib bo'lgach, tasdiqda «qoldiq yo'q»
+    /// xabarini olardi va sabab qayerdaligini bilmasdi.
+    /// </remarks>
+    private async Task EnsureStockAvailableAsync(CreateTransferDto dto)
+    {
+        // Kirim, qaytarish va ishlab chiqarish chiqimi omborga QO'SHADI — tekshirmaymiz.
+        if (dto.Type is not (TransferType.Outgoing or TransferType.Internal)
+            || dto.FromWarehouseId is not { } fromWarehouseId)
+        {
+            return;
+        }
+
+        // Bir mahsulot bir necha qatorda kelishi mumkin — talab qatorlar bo'yicha yig'iladi.
+        Dictionary<Guid, decimal> required = dto.Items
+            .GroupBy(i => i.ProductId)
+            .ToDictionary(g => g.Key, g => g.Sum(i => i.Quantity));
+
+        Dictionary<Guid, decimal> available =
+            await _stock.GetAvailableAsync(required.Keys, fromWarehouseId);
+
+        List<Guid> shortIds = [.. required.Where(r => available.GetValueOrDefault(r.Key) < r.Value).Select(r => r.Key)];
+        if (shortIds.Count == 0)
+        {
+            return;
+        }
+
+        // Nom xabar uchun: birinchi yetmagan mahsulot — menejer bitta aniq qatorni tuzatadi.
+        Dictionary<Guid, string> names = await _db.Products.AsNoTracking()
+            .Where(p => shortIds.Contains(p.Id))
+            .ToDictionaryAsync(p => p.Id, p => p.Name);
+
+        Guid productId = shortIds[0];
+        throw new AppException("Insufficient available stock for product {0}: need {1:N2}, available {2:N2}",
+            names.GetValueOrDefault(productId) ?? productId.ToString(),
+            required[productId],
+            available.GetValueOrDefault(productId));
     }
 
     /// <returns>Asl sotuv (kuzatiladi) — tasdiq uni ish birligiga qo'shadi.</returns>
@@ -447,7 +494,10 @@ public class TransferService : ITransferService
                 fromWarehouseId, reduceBatchRemaining);
 
             if (!allocation.IsSatisfied)
-                throw new AppException("Insufficient available stock for product {0}", item.Product?.Name ?? item.ProductId.ToString());
+                throw new AppException("Insufficient available stock for product {0}: need {1:N2}, available {2:N2}",
+                    item.Product?.Name ?? item.ProductId.ToString(),
+                    item.Quantity,
+                    item.Quantity - allocation.Shortfall);
 
             deductions.AddRange(allocation.Lines.Select(l => (item, l.Stock, l.Quantity)));
         }

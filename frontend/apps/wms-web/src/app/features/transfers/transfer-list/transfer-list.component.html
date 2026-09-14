@@ -65,7 +65,7 @@
           <td>
             <app-status-badge [status]="transferStatusClass(row.status)" [label]="t(transferStatusKey(row.status))" />
           </td>
-          <td>{{ row.createdAt | date:'MMM d, yyyy HH:mm' }}</td>
+          <td>{{ (parse(row.createdAt) | date:'dd.MM.yyyy HH:mm') || '—' }}</td>
           <td class="text-center actions-cell">
             <p-button icon="pi pi-eye" [rounded]="true" [text]="true" severity="secondary" (onClick)="viewDetail(row)" />
           </td>

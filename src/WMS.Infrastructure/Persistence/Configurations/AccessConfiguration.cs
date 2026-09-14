@@ -12,6 +12,7 @@ internal sealed class UserProfileConfiguration : IEntityTypeConfiguration<UserPr
     {
         builder.Property(u => u.FullName).HasMaxLength(200).IsRequired();
         builder.Property(u => u.Phone).HasMaxLength(20);
+        builder.Property(u => u.IdentityRole).HasMaxLength(32);
 
         // JIT profilni `sub` bo'yicha topadi; ikki parallel birinchi so'rov ikki profil
         // yozmasin — ikkinchisi noyoblik xatosi bilan yiqiladi va keyingi so'rovda o'tadi.

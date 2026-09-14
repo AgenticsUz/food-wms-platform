@@ -78,6 +78,15 @@ export default class TransferCreateComponent implements OnInit {
   readonly itemQuantity = signal(0);
   readonly itemUnitPrice = signal(0);
 
+  /**
+   * Manba ombordagi mavjud qoldiq (mahsulot → miqdor).
+   *
+   * Nega kerak: ilgari forma qoldiqni umuman bilmasdi — menejer yo'q tovarga hujjat
+   * yozar, xato esa faqat TASDIQDA chiqardi. Server tekshiruvi qoladi (bu yerda
+   * ko'rsatilgan raqam eskirgan bo'lishi mumkin), bu — erta ogohlantirish.
+   */
+  readonly sourceStock = signal<ReadonlyMap<string, number>>(new Map());
+
   readonly counterparties = signal<CounterpartyOption[]>([]);
   readonly warehouses = signal<Warehouse[]>([]);
   readonly products = signal<Product[]>([]);
@@ -153,6 +162,31 @@ export default class TransferCreateComponent implements OnInit {
 
   readonly totalAmount = computed(() => this.items().reduce((sum, i) => sum + i.quantity * i.unitPrice, 0));
 
+  /** Qoldiq faqat ombordan CHIQADIGAN hujjatlarda ma'noli. */
+  readonly checksStock = computed(() => this.isOutgoing() || this.isInternal());
+
+  /** Qatorlar bo'yicha yig'ilgan talab — bitta mahsulot ikki qatorda bo'lishi mumkin. */
+  private readonly requested = computed(() => {
+    const map = new Map<string, number>();
+    for (const item of this.items()) {
+      map.set(item.productId, (map.get(item.productId) ?? 0) + item.quantity);
+    }
+    return map;
+  });
+
+  /** Qoldig'i yetmaydigan mahsulot nomlari — tugma ostidagi ogohlantirish uchun. */
+  readonly shortages = computed(() => {
+    if (!this.checksStock() || !this.fromWarehouseId()) return [];
+    const stock = this.sourceStock();
+    return [...this.requested()]
+      .filter(([productId, quantity]) => quantity > (stock.get(productId) ?? 0))
+      .map(([productId, quantity]) => ({
+        name: this.products().find((p) => p.id === productId)?.name ?? productId,
+        requested: quantity,
+        available: stock.get(productId) ?? 0,
+      }));
+  });
+
   ngOnInit(): void {
     this.loadCounterparties();
     this.loadWarehouses();
@@ -194,6 +228,47 @@ export default class TransferCreateComponent implements OnInit {
     });
   }
 
+  /** Manba ombor tanlangach qoldiq qayta so'raladi (tanlov o'chsa — tozalanadi). */
+  onFromWarehouseChange(id: string | null): void {
+    this.fromWarehouseId.set(id);
+    this.loadSourceStock();
+  }
+
+  /** Tur o'zgarsa manba ombor ham, qoldiq ham ma'nosini yo'qotishi mumkin. */
+  onTypeChange(type: TransferType): void {
+    this.transferType.set(type);
+    this.loadSourceStock();
+  }
+
+  private loadSourceStock(): void {
+    const warehouseId = this.fromWarehouseId();
+    if (!warehouseId || !this.checksStock()) {
+      this.sourceStock.set(new Map());
+      return;
+    }
+
+    // Ruxsat bo'lmasa toast chiqmaydi: qoldiq — yordamchi ma'lumot, forma usiz ham ishlaydi.
+    this.warehouseService.getStock(warehouseId).subscribe({
+      next: (res) => {
+        const rows = res.success && res.data ? res.data : [];
+        this.sourceStock.set(new Map(rows.map((r) => [r.productId, r.availableQuantity])));
+      },
+      error: () => this.sourceStock.set(new Map()),
+    });
+  }
+
+  /** Tanlangan mahsulotning manba omboridagi qoldig'i — qo'shish qatorining yonida. */
+  availableFor(productId: string | null): number | null {
+    if (!productId || !this.checksStock() || !this.fromWarehouseId()) return null;
+    return this.sourceStock().get(productId) ?? 0;
+  }
+
+  /**
+   * Qo'shish qatoridagi ishora uchun. ⚠️ Signal sifatida: shablonda `@if (x; as y)`
+   * bilan olinsa NOL qiymat «yo'q» deb yashirilardi — aynan eng muhim holat.
+   */
+  readonly selectedAvailable = computed(() => this.availableFor(this.itemProductId()));
+
   onAgentChange(id: string | null): void {
     this.agentId.set(id);
     const agent = this.agents().find((a) => a.id === id);
@@ -228,6 +303,19 @@ export default class TransferCreateComponent implements OnInit {
       return;
     }
     const product = this.products().find((p) => p.id === pid);
+
+    // To'sib qo'yilmaydi — menejer bilib turib yozishi mumkin (kirim yo'lda); lekin
+    // ogohlantirish TASDIQGACHA ko'rinsin.
+    const available = this.availableFor(pid);
+    if (available !== null && qty + (this.requested().get(pid) ?? 0) > available) {
+      this.notify.warn(
+        this.language.translate('transfer.stockShort', {
+          name: product?.name ?? '',
+          available,
+        })
+      );
+    }
+
     this.items.update((list) => [
       ...list,
       { productId: pid, productName: product?.name ?? '', batchId: null, quantity: qty, unitPrice: price },

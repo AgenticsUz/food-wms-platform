@@ -19,6 +19,7 @@ import type { Transfer } from '../transfers/transfer.model';
 import type { DashboardSummaryDto, ExtendedDashboardSummaryDto } from './analytics.model';
 import { AnalyticsService } from './analytics.service';
 import { axisSeries, type ChartConfig } from './chart-config';
+import { parseUtc } from '../../core/utils/date.util';
 
 type ReportKind = 'finance' | 'stock' | 'transfers' | 'debtors';
 type QuickRange = 'today' | 'thisWeek' | 'thisMonth' | 'lastMonth' | 'thisYear';
@@ -367,4 +368,13 @@ export default class DashboardComponent implements OnInit {
       toDate: to ? localDayRangeToUtc(to, to).to : undefined,
     };
   }
+
+  /**
+   * Serverdagi vaqt UTC'da keladi va `Z` siz kelishi mumkin — `new Date` uni
+   * mahalliy deb o'qib 5 soat siljitardi (`core/utils/date.util`).
+   */
+  parse(value: string | null | undefined): Date | null {
+    return parseUtc(value);
+  }
+
 }

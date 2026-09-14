@@ -25,6 +25,7 @@ import {
 } from '../transfer-enums';
 import { TransferStatus, TransferType, type Transfer } from '../transfer.model';
 import { TransferService } from '../transfer.service';
+import { parseUtc } from '../../../core/utils/date.util';
 
 /** Transferlar ro'yxati (eski `transfers/transfer-list`). */
 @Component({
@@ -159,4 +160,13 @@ export default class TransferListComponent implements OnInit {
       to: to ? localDayRangeToUtc(to, to).to : undefined,
     };
   }
+
+  /**
+   * Serverdagi vaqt UTC'da keladi va `Z` siz kelishi mumkin — `new Date` uni
+   * mahalliy deb o'qib 5 soat siljitardi (`core/utils/date.util`).
+   */
+  parse(value: string | null | undefined): Date | null {
+    return parseUtc(value);
+  }
+
 }

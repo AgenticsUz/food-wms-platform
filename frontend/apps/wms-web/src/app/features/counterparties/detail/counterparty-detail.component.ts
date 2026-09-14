@@ -5,6 +5,7 @@ import { TableModule } from 'primeng/table';
 import { Button } from 'primeng/button';
 import { TranslocoDirective } from '@jsverse/transloco';
 
+import { parseUtc } from '../../../core/utils/date.util';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { TelegramLinkDialogComponent, type TelegramLinkApi } from '../../../shared/components/telegram-link-dialog/telegram-link-dialog.component';
@@ -88,6 +89,24 @@ export default class CounterpartyDetailComponent implements OnInit {
     this.service.getPayments(id).subscribe({
       next: (res) => this.payments.set(res.data ?? []),
     });
+  }
+
+  /**
+   * Serverdagi vaqt UTC'da keladi — `Z` siz satrni `new Date` mahalliy deb
+   * o'qib 5 soat siljitardi (`date.util` izohi). Tasdiqlangan payt bo'lsa u,
+   * aks holda yaratilgan payt ko'rsatiladi.
+   */
+  transferMoment(row: CounterpartyTransfer): Date | null {
+    return parseUtc(row.confirmedAt ?? row.createdAt);
+  }
+
+  parse(value: string | null | undefined): Date | null {
+    return parseUtc(value);
+  }
+
+  /** Yoyilgan qatordagi sarlavha uchun — necha tur tovar. */
+  itemCount(row: CounterpartyTransfer): number {
+    return row.items?.length ?? 0;
   }
 
   goBack(): void {

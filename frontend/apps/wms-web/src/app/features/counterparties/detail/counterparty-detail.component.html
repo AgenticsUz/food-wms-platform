@@ -69,25 +69,90 @@
 
     <div class="wms-card section-card">
       <h3 class="section-title">{{ t('partners.transferHistory') }}</h3>
-      <p-table [value]="transfers()" [paginator]="true" [rows]="10" [scrollable]="true" styleClass="p-datatable-sm p-datatable-striped">
+      <!-- Qatorni yoyish: «mijozga aynan nima yuborilgan» javobi shu yerda (tovar, miqdor, narx). -->
+      <p-table
+        [value]="transfers()"
+        [paginator]="true"
+        [rows]="10"
+        [scrollable]="true"
+        dataKey="id"
+        styleClass="p-datatable-sm p-datatable-striped"
+      >
         <ng-template #header>
           <tr>
+            <th style="width: 3rem"></th>
             <th>{{ t('common.type') }}</th>
+            <th>{{ t('transfer.items') }}</th>
             <th class="text-right">{{ t('common.amount') }}</th>
             <th>{{ t('common.status.label') }}</th>
             <th>{{ t('common.date') }}</th>
           </tr>
         </ng-template>
-        <ng-template #body let-row>
+        <ng-template #body let-row let-expanded="expanded">
           <tr>
+            <td>
+              @if (itemCount(row) > 0) {
+                <p-button
+                  type="button"
+                  [pRowToggler]="row"
+                  [text]="true"
+                  [rounded]="true"
+                  severity="secondary"
+                  [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+                />
+              }
+            </td>
             <td><app-status-badge [status]="transferTypeClass(row.type)" [label]="t(transferTypeKey(row.type))" /></td>
+            <td>
+              @if (itemCount(row) > 0) {
+                <span class="text-muted">{{ row.items[0].productName }}</span>
+                @if (itemCount(row) > 1) {
+                  <span class="text-muted"> +{{ itemCount(row) - 1 }}</span>
+                }
+              } @else {
+                <span class="text-muted">—</span>
+              }
+            </td>
             <td class="text-right"><span class="number">{{ row.totalAmount | number: '1.0-2' }}</span></td>
             <td><app-status-badge [status]="transferStatusClass(row.status)" [label]="t(transferStatusKey(row.status))" /></td>
-            <td>{{ row.createdAt | date: 'MMM d, yyyy' }}</td>
+            <td>{{ (transferMoment(row) | date: 'dd.MM.yyyy HH:mm') || '—' }}</td>
+          </tr>
+        </ng-template>
+        <ng-template #expandedrow let-row>
+          <tr>
+            <td colspan="6">
+              <table class="inner-items">
+                <thead>
+                  <tr>
+                    <th>{{ t('common.name') }}</th>
+                    <th>{{ t('warehouse.lotNumber') }}</th>
+                    <th class="text-right">{{ t('common.quantity') }}</th>
+                    <th>{{ t('common.unit') }}</th>
+                    <th class="text-right">{{ t('common.price') }}</th>
+                    <th class="text-right">{{ t('common.amount') }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (item of row.items; track item.id) {
+                    <tr>
+                      <td><span class="item-name">{{ item.productName }}</span></td>
+                      <td><span class="text-muted">{{ item.lotNumber || '—' }}</span></td>
+                      <td class="text-right"><span class="number">{{ item.quantity | number: '1.0-2' }}</span></td>
+                      <td>{{ item.unitShortName }}</td>
+                      <td class="text-right"><span class="number">{{ item.unitPrice | number: '1.0-2' }}</span></td>
+                      <td class="text-right"><span class="number">{{ item.totalPrice | number: '1.0-2' }}</span></td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+              @if (row.note) {
+                <p class="inner-note"><strong>{{ t('common.note') }}:</strong> {{ row.note }}</p>
+              }
+            </td>
           </tr>
         </ng-template>
         <ng-template #emptymessage>
-          <tr><td colspan="4"><div class="empty-state"><i class="pi pi-arrow-right-arrow-left"></i><p>{{ t('partners.noTransfers') }}</p></div></td></tr>
+          <tr><td colspan="6"><div class="empty-state"><i class="pi pi-arrow-right-arrow-left"></i><p>{{ t('partners.noTransfers') }}</p></div></td></tr>
         </ng-template>
       </p-table>
     </div>
@@ -107,7 +172,7 @@
           <tr>
             <td class="text-right"><span class="number">{{ p.amount | number: '1.0-2' }}</span></td>
             <td>{{ t(methodKey(p.method)) }}</td>
-            <td>{{ p.paidAt | date: 'MMM d, yyyy HH:mm' }}</td>
+            <td>{{ (parse(p.paidAt) | date: 'dd.MM.yyyy HH:mm') || '—' }}</td>
             <td>{{ p.note || '—' }}</td>
           </tr>
         </ng-template>

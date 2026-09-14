@@ -15,6 +15,7 @@ import { HasPermissionDirective } from '../../../shared/directives/has-permissio
 import { shortTransferId, transferStatusClass, transferStatusKey, transferTypeKey } from '../transfer-enums';
 import { TransferStatus, type Transfer } from '../transfer.model';
 import { TransferService } from '../transfer.service';
+import { parseUtc } from '../../../core/utils/date.util';
 
 /** Transfer tafsiloti, tasdiqlash/rad etish, PDF (eski `transfers/transfer-detail`). */
 @Component({
@@ -122,4 +123,13 @@ export default class TransferDetailComponent implements OnInit {
   goBack(): void {
     void this.router.navigate(['/transfers']);
   }
+
+  /**
+   * Serverdagi vaqt UTC'da keladi va `Z` siz kelishi mumkin — `new Date` uni
+   * mahalliy deb o'qib 5 soat siljitardi (`core/utils/date.util`).
+   */
+  parse(value: string | null | undefined): Date | null {
+    return parseUtc(value);
+  }
+
 }

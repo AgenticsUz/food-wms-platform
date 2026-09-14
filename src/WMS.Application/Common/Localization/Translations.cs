@@ -235,9 +235,11 @@ public static class Translations
             "Чтобы получать уведомления, подключите чат из WMS: Настройки → Профиль → Подключить Telegram."],
 
         // Transfer/moliya (W1·2): ilgari interpolyatsiya bilan qurilardi va tarjima qilinmasdi.
-        ["Insufficient available stock for product {0}"] = [
-            "'{0}' mahsulotidan omborda yetarli qoldiq yo'q",
-            "Недостаточно доступного остатка товара '{0}'"],
+        // Raqamsiz xabar («qoldiq yo'q») menejerga hech narsa aytmasdi: u ekranda
+        // qoldiqni ko'rib turardi va nima yetmaganini bilmasdi.
+        ["Insufficient available stock for product {0}: need {1:N2}, available {2:N2}"] = [
+            "'{0}' mahsulotidan omborda yetarli qoldiq yo'q: kerak {1:N2}, mavjud {2:N2}",
+            "Недостаточно доступного остатка товара '{0}': нужно {1:N2}, доступно {2:N2}"],
         ["Product {0} was not part of the original sale"] = [
             "'{0}' mahsuloti asl sotuvda bo'lmagan",
             "Товар '{0}' не входил в исходную продажу"],
