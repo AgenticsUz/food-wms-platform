@@ -16,8 +16,9 @@ namespace WMS.API.Identity;
 /// tizim rolining boshlang'ich ruxsatlari bilan bir manba.
 /// </para>
 /// <para>
-/// Identity reyestrida <c>wms</c> mahsulotining rollari AYNAN shu to'rtta bo'lishi SHART
-/// (<see cref="WmsSystemRoles"/> izohi).
+/// Identity reyestrida <c>wms</c> mahsulotining rollari AYNAN <c>WmsSystemRoles.All</c>
+/// bilan bir xil bo'lishi SHART (<see cref="WmsSystemRoles"/> izohi): xodim rollari va
+/// kabinet rollari (<c>client</c>, <c>agent</c>) — oxirgilarining ruxsat to'plami bo'sh.
 /// </para>
 /// </remarks>
 public static class WmsRoleMap
@@ -27,7 +28,9 @@ public static class WmsRoleMap
         RoleMap map = RoleMap.Declare()
             .For(WmsSystemRoles.Admin, [RoleMap.AllPermissions, .. WmsSystemRoles.PermissionsFor(WmsSystemRoles.Admin)]);
 
-        foreach (string role in new[] { WmsSystemRoles.Manager, WmsSystemRoles.Employee, WmsSystemRoles.Viewer })
+        // `Admin` yuqorida e'lon qilindi; qolgan hammasi (kabinet rollari ham — ularning
+        // to'plami bo'sh) bir xil qoidada.
+        foreach (string role in WmsSystemRoles.All.Where(r => r != WmsSystemRoles.Admin))
         {
             map.For(role, WmsSystemRoles.PermissionsFor(role), DataScope.All);
         }

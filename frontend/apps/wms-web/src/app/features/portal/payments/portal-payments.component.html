@@ -1,0 +1,32 @@
+<div class="page-enter" *transloco="let t">
+  <h1 class="portal-title">{{ t('portal.payments') }}</h1>
+
+  <div class="wms-card">
+    <p-table [value]="payments()" [loading]="loading()" [paginator]="true" [rows]="15"
+      styleClass="p-datatable-sm p-datatable-striped">
+      <ng-template #header>
+        <tr>
+          <th class="text-right">{{ t('common.amount') }}</th>
+          <th>{{ t('finance.paymentMethod') }}</th>
+          <th>{{ t('common.date') }}</th>
+          <th>{{ t('common.note') }}</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-p>
+        <tr>
+          <td class="text-right"><span class="number">{{ p.amount | number: '1.0-2' }}</span></td>
+          <td>{{ t(methodKey(p.method)) }}</td>
+          <td>{{ (parse(p.paidAt) | date: 'dd.MM.yyyy HH:mm') || '—' }}</td>
+          <td>{{ p.note || '—' }}</td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="4">
+            <div class="portal-empty"><i class="pi pi-wallet"></i><p>{{ t('common.noData') }}</p></div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>

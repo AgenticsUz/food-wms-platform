@@ -14,6 +14,11 @@ import { LanguageService } from '@agentics/i18n';
  * sahifa darhol yangilanadi.
  *
  * WMS tillari paketnikiga aynan mos (`uz-Latn` | `uz-Cyrl` | `ru`), moslash kerak emas.
+ *
+ * F9: WMS `client` va `agent` rollarini ham e'lon qiladi (kabinet). Paketning sukut
+ * yorliqlarida ular yo'q va ro'yxatda xom kod ko'rinardi — shuning uchun yorliq
+ * shu yerda beriladi. Matn «(kabinet)» bilan: bu ro'yxat XODIMLAR ro'yxati ham,
+ * ya'ni admin ikkisini adashtirmasin.
  */
 export function provideWmsIdentityTenant(): EnvironmentProviders {
   return makeEnvironmentProviders([
@@ -21,8 +26,22 @@ export function provideWmsIdentityTenant(): EnvironmentProviders {
       provide: IDENTITY_TENANT_OPTIONS,
       useFactory: (): IdentityTenantOptions => {
         const language = inject(LanguageService).language;
-        return { language: () => language() };
+        return { language: () => language(), roleLabels: WMS_ROLE_LABELS };
       },
     },
   ]);
 }
+
+/** Kabinet rollari — `WmsSystemRoles.DisplayName` bilan bir xil ma'no. */
+const WMS_ROLE_LABELS = {
+  client: {
+    'uz-Latn': 'Mijoz (kabinet)',
+    'uz-Cyrl': 'Мижоз (кабинет)',
+    ru: 'Клиент (кабинет)',
+  },
+  agent: {
+    'uz-Latn': 'Agent (kabinet)',
+    'uz-Cyrl': 'Агент (кабинет)',
+    ru: 'Агент (кабинет)',
+  },
+} as const;

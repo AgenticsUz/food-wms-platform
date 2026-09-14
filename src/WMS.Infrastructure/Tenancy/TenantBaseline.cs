@@ -8,7 +8,7 @@ using WMS.Infrastructure.Persistence;
 namespace WMS.Infrastructure.Tenancy;
 
 /// <summary>
-/// Yangi tenantning bazaviy mazmuni: to'rt TIZIM roli (ruxsatlari bilan) va o'lchov birliklari.
+/// Yangi tenantning bazaviy mazmuni: TIZIM rollari (ruxsatlari bilan) va o'lchov birliklari.
 /// IDEMPOTENT — yetishmaganini qo'shadi, mavjudiga tegmaydi.
 /// </summary>
 /// <remarks>
@@ -58,7 +58,7 @@ public sealed class TenantBaseline
             await _db.Roles.Where(r => r.Code != null).Select(r => r.Code!).ToListAsync(cancellationToken),
             StringComparer.OrdinalIgnoreCase);
 
-        foreach (string code in WmsSystemRoles.Ordered.Where(c => !existing.Contains(c)))
+        foreach (string code in WmsSystemRoles.All.Where(c => !existing.Contains(c)))
         {
             Role role = new()
             {

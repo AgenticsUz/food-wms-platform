@@ -30,6 +30,31 @@ import { WmsSession } from './wms-session';
  */
 type WmsGuard = CanActivateFn & CanMatchFn;
 
+/**
+ * Kabinet (F9) va ilova qobig'i bir-birini almashtiradi.
+ *
+ * `portalGuard` — kabinet marshrutida: ilova foydalanuvchisi u yerga tushmasin.
+ * `appShellGuard` — qobiqda: kabinet foydalanuvchisi bo'sh menyuli ilovani
+ * ko'rmasin (uning WMS ruxsati ATAYLAB bo'sh, ya'ni har ekran 403 berardi).
+ */
+export function portalGuard(): WmsGuard {
+  return () => {
+    if (inject(WmsSession).isPortalUser()) {
+      return true;
+    }
+    return inject(Router).createUrlTree(['/']);
+  };
+}
+
+export function appShellGuard(): WmsGuard {
+  return () => {
+    if (!inject(WmsSession).isPortalUser()) {
+      return true;
+    }
+    return inject(Router).createUrlTree(['/portal']);
+  };
+}
+
 /** Kamida bitta ruxsat kodi talab qilinadi. */
 export function permissionGuard(...codes: readonly string[]): WmsGuard {
   return () => {

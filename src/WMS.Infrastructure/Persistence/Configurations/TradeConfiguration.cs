@@ -42,6 +42,18 @@ internal sealed class CounterpartyConfiguration : IEntityTypeConfiguration<Count
         builder.Property(c => c.Note).HasMaxLength(1000);
         builder.Property(c => c.Inn).HasMaxLength(20);
         builder.HasOne(c => c.Agent).WithMany().HasForeignKey(c => c.AgentId).OnDelete(DeleteBehavior.Restrict);
+
+        // ⚠️ `tenant_id` indeksi OSHKORA: EF uni tashqi kalit uchun o'zi yaratardi, lekin
+        // quyidagi (tenant_id, identity_sub) indeksi shu ustundan boshlangani uchun uni
+        // ORTIQCHA deb tashlab yuboradi. U esa QISMAN (filtrli) — RLS ning oddiy
+        // `tenant_id = ?` so'rovlariga yaramaydi.
+        builder.HasIndex(c => c.TenantId);
+
+        // Bitta kabinet hisobi bitta kontragentga: aks holda odam ikki kontragentning
+        // oldi-berdisini ko'rar, kabinet so'rovi esa «qaysi biri» degan savolga
+        // javobsiz qolardi (fail-closed o'rniga tasodifiy tanlov).
+        builder.HasIndex(c => new { c.TenantId, c.IdentitySub }).IsUnique()
+            .HasFilter("\"identity_sub\" IS NOT NULL AND \"is_deleted\" = false");
     }
 }
 
@@ -52,6 +64,13 @@ internal sealed class AgentConfiguration : IEntityTypeConfiguration<Agent>
         builder.Property(a => a.Name).HasMaxLength(200).IsRequired();
         builder.Property(a => a.Phone).HasMaxLength(20);
         builder.HasOne(a => a.User).WithMany().HasForeignKey(a => a.UserId).OnDelete(DeleteBehavior.SetNull);
+
+        // Kontragentdagi bilan bir xil sabab (EF FK indeksini tashlab yubormasin).
+        builder.HasIndex(a => a.TenantId);
+
+        // Kontragentdagi bilan bir xil sabab.
+        builder.HasIndex(a => new { a.TenantId, a.IdentitySub }).IsUnique()
+            .HasFilter("\"identity_sub\" IS NOT NULL AND \"is_deleted\" = false");
     }
 }
 

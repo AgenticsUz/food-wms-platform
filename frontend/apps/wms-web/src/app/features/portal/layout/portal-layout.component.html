@@ -1,0 +1,52 @@
+<div class="portal-shell" *transloco="let t">
+  <header class="portal-header">
+    <div class="portal-brand">
+      <app-brand-mark size="sm" />
+      <div class="portal-brand-text">
+        <span class="portal-tenant">{{ store.tenantName() || t('portal.title') }}</span>
+        <span class="portal-name">{{ store.name() }}</span>
+      </div>
+    </div>
+
+    <nav class="portal-nav" [class.open]="menuOpen()">
+      <a routerLink="/portal" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">
+        {{ t('portal.overview') }}
+      </a>
+      <a routerLink="/portal/transfers" routerLinkActive="active" (click)="closeMenu()">{{ t('portal.transfers') }}</a>
+      @if (isAgent()) {
+        <a routerLink="/portal/clients" routerLinkActive="active" (click)="closeMenu()">{{ t('portal.clients') }}</a>
+      } @else {
+        <a routerLink="/portal/payments" routerLinkActive="active" (click)="closeMenu()">{{ t('portal.payments') }}</a>
+      }
+    </nav>
+
+    <div class="portal-actions">
+      @for (code of languages; track code) {
+        <button
+          type="button"
+          class="portal-lang"
+          [class.active]="currentLanguage() === code"
+          (click)="setLanguage(code)"
+        >
+          {{ shortLanguage(code) }}
+        </button>
+      }
+      <p-button
+        [icon]="theme.isDark() ? 'pi pi-sun' : 'pi pi-moon'"
+        [rounded]="true"
+        [text]="true"
+        severity="secondary"
+        (onClick)="theme.toggle()"
+      />
+      <p-button icon="pi pi-sign-out" [rounded]="true" [text]="true" severity="secondary"
+        [label]="t('auth.logout')" (onClick)="logout()" />
+      <button type="button" class="portal-burger" (click)="toggleMenu()" [attr.aria-label]="t('portal.menu')">
+        <i class="pi pi-bars"></i>
+      </button>
+    </div>
+  </header>
+
+  <main class="portal-main">
+    <router-outlet />
+  </main>
+</div>

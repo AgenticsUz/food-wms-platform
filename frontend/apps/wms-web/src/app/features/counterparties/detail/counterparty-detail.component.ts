@@ -9,6 +9,7 @@ import { parseUtc } from '../../../core/utils/date.util';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { TelegramLinkDialogComponent, type TelegramLinkApi } from '../../../shared/components/telegram-link-dialog/telegram-link-dialog.component';
+import { PortalAccountCardComponent } from '../../../shared/components/portal-account/portal-account-card.component';
 import { HasPermissionDirective } from '../../../shared/directives/has-permission.directive';
 import { paymentMethodKey, type PaymentHistory } from '../../finance/finance.model';
 import {
@@ -30,7 +31,7 @@ import { CounterpartyService } from '../counterparty.service';
  */
 @Component({
   selector: 'app-counterparty-detail',
-  imports: [DecimalPipe, DatePipe, TableModule, Button, TranslocoDirective, PageHeaderComponent, StatusBadgeComponent, TelegramLinkDialogComponent, HasPermissionDirective],
+  imports: [DecimalPipe, DatePipe, TableModule, Button, TranslocoDirective, PageHeaderComponent, StatusBadgeComponent, TelegramLinkDialogComponent, HasPermissionDirective, PortalAccountCardComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './counterparty-detail.component.html',
   styleUrl: './counterparty-detail.component.scss',

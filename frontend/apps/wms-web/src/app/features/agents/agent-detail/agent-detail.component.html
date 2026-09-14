@@ -3,6 +3,18 @@
     <p-button *hasPermission="'agents.manage'" icon="pi pi-wallet" [label]="t('agent.payCommission')" (onClick)="openPay()" />
   </app-page-header>
 
+  <!-- Kabinet (F9): agent o'z komissiyasi va mijozlarini ko'radi. -->
+  @if (agent(); as a) {
+    <app-portal-account-card
+      *hasPermission="'agents.manage'"
+      resource="agents"
+      role="agent"
+      [entityId]="a.id"
+      [name]="a.name"
+      [phone]="a.phone"
+    />
+  }
+
   <div class="detail-grid">
     <div class="wms-card summary-card">
       <div class="card-icon icon-blue"><i class="pi pi-shopping-cart"></i></div>

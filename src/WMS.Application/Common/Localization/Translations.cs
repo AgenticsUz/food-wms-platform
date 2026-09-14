@@ -580,6 +580,25 @@ public static class Translations
 
         // ── Success messages returned in ApiResponse.Message ──
         ["Deleted"] = ["O'chirildi", "Удалено"],
+
+        // Kabinet (F9) — mijoz/ta'minotchi/agent o'z oldi-berdisini ko'radi.
+        ["This account has no portal access in this organization"] = [
+            "Bu hisobga shu tashkilotda kabinet ochilmagan",
+            "Для этой учётной записи в этой организации кабинет не открыт"],
+        ["This section is for clients and suppliers only"] = [
+            "Bu bo'lim faqat mijoz va ta'minotchilar uchun",
+            "Этот раздел только для клиентов и поставщиков"],
+        ["This section is for sales agents only"] = [
+            "Bu bo'lim faqat savdo agentlari uchun",
+            "Этот раздел только для торговых агентов"],
+        ["Portal account is required"] = [
+            "Kabinet hisobi ko'rsatilishi shart",
+            "Нужно указать учётную запись кабинета"],
+        ["This login account is already linked to {0}"] = [
+            "Bu kirish hisobi allaqachon '{0}' ga biriktirilgan",
+            "Эта учётная запись уже привязана к '{0}'"],
+        ["Portal access granted"] = ["Kabinet ochildi", "Кабинет открыт"],
+        ["Portal access revoked"] = ["Kabinet yopildi", "Кабинет закрыт"],
         ["Updated"] = ["Yangilandi", "Обновлено"],
         ["Cancelled"] = ["Bekor qilindi", "Отменено"],
         ["Created"] = ["Yaratildi", "Создано"],

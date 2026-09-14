@@ -37,6 +37,19 @@ export class WmsSession {
     return ROLE_ORDER.find((role) => roles.includes(role)) ?? roles[0] ?? null;
   });
 
+  /**
+   * Kabinet foydalanuvchisi (mijoz, ta'minotchi yoki agent) — ilova qobig'ini
+   * KO'RMAYDI.
+   *
+   * ⚠️ Xodim roli ustun: bir odam ham zavod xodimi, ham o'z do'koni bilan mijoz
+   * bo'lsa, u ilovada qoladi (backenddagi `WmsSystemRoles.FromTokenRoles` bilan
+   * bir xil qoida).
+   */
+  readonly isPortalUser = computed(() => {
+    const roles = this.roles();
+    return !ROLE_ORDER.some((role) => roles.includes(role)) && PORTAL_ROLES.some((role) => roles.includes(role));
+  });
+
   readonly tenant = computed(() => this.me()?.tenant ?? null);
   readonly subscription = computed(() => this.me()?.subscription ?? null);
 
@@ -112,3 +125,6 @@ export class WmsSession {
 
 /** Identity `wms` mahsuloti rollari, kattasidan boshlab (D5). */
 const ROLE_ORDER: readonly string[] = ['admin', 'manager', 'employee', 'viewer'];
+
+/** Kabinet rollari — ilovada ruxsati YO'Q, faqat `/portal` ochiladi (F9). */
+const PORTAL_ROLES: readonly string[] = ['agent', 'client'];

@@ -1,7 +1,7 @@
 import type { Route } from '@angular/router';
 import { authGuard, tenantGuard } from '@agentics/auth';
 
-import { moduleGuard, permissionGuard } from './core/auth/wms-guards';
+import { appShellGuard, moduleGuard, permissionGuard, portalGuard } from './core/auth/wms-guards';
 
 /**
  * Ilova marshrutlari.
@@ -18,7 +18,12 @@ import { moduleGuard, permissionGuard } from './core/auth/wms-guards';
  * ekran ko'chiruvchi agent faqat O'Z faylini o'zgartiradi.
  *
  * O'CHGAN (PLATFORMA-TZ §7·F6.2): `auth/login|register|request-demo` (D5, D9 —
- * login Identity'da), `portal/*` va `agent-portal/*` (D8).
+ * login Identity'da).
+ *
+ * QAYTDI (F9): `portal/*` — mijoz, ta'minotchi va agent kabineti. D8 uni «o'z
+ * parol xeshi ikkinchi reyestr» sababi bilan olib tashlagan edi; endi hisob
+ * Identity'da (`client`/`agent` roli), ya'ni sabab yo'q. Kabinet qobiqning
+ * ICHIDA emas, YONIDA: uning menyusi, ruxsatlari va ekranlari boshqa.
  */
 export const appRoutes: Route[] = [
   {
@@ -46,8 +51,13 @@ export const appRoutes: Route[] = [
       import('./pages/tenant-state/tenant-state.page').then((m) => m.TenantStatePage),
   },
   {
+    path: 'portal',
+    canActivate: [authGuard, tenantGuard, portalGuard()],
+    loadChildren: () => import('./features/portal/portal.routes').then((m) => m.PORTAL_ROUTES),
+  },
+  {
     path: '',
-    canActivate: [authGuard, tenantGuard],
+    canActivate: [authGuard, tenantGuard, appShellGuard()],
     loadComponent: () =>
       import('./layout/shell/main-layout.component').then((m) => m.MainLayout),
     children: [

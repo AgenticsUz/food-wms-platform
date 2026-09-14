@@ -1,0 +1,27 @@
+/* Kartochka kontragent/agent detal sahifasidagi boshqa kartalar bilan bir o'lchamda. */
+.portal-account {
+  padding: 18px 20px;
+}
+
+.portal-account-title {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+
+  > i { margin-right: 6px; }
+}
+
+.portal-account-state {
+  margin: 6px 0 10px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-muted);
+
+  &.on { color: var(--success); }
+}
+
+.portal-account-hint {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}

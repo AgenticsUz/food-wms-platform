@@ -4,6 +4,7 @@ using WMS.Application.Common;
 using WMS.Application.DTOs.Counterparties;
 using WMS.Application.DTOs.Finance;
 using WMS.Application.DTOs.Notifications;
+using WMS.Application.DTOs.Portal;
 using WMS.Application.Interfaces;
 using WMS.Domain.Enums;
 
@@ -57,6 +58,25 @@ public class CounterpartiesController : BaseController
     [RequirePermission(WmsPermissions.PartnersManage)]
     public async Task<IActionResult> UnlinkTelegram(Guid id, [FromServices] ITelegramLinkService links, CancellationToken ct)
     { await links.UnlinkSubjectAsync(TelegramLinkSubject.Counterparty, id, ct); return Ok(ApiResponse<object>.Ok(null!, "Telegram disconnected")); }
+
+    // ── Kabinet hisobi (F9): hisobni Identity'da SPA ochadi, bu yerda bog'lanish yoziladi ──
+
+    [HttpGet("{id:guid}/portal-account")]
+    [RequirePermission(WmsPermissions.PartnersManage)]
+    public async Task<IActionResult> GetPortalAccount(Guid id, [FromServices] IPortalAccountService portal, CancellationToken ct)
+        => Ok(ApiResponse<PortalAccountDto>.Ok(await portal.GetCounterpartyAccountAsync(id, ct)));
+
+    /// <summary><c>{ identitySub }</c> — «Kirish hisoblari» qaytargan <c>userId</c>.</summary>
+    [HttpPut("{id:guid}/portal-account")]
+    [RequirePermission(WmsPermissions.PartnersManage)]
+    public async Task<IActionResult> LinkPortalAccount(Guid id, [FromBody] LinkPortalAccountDto dto,
+        [FromServices] IPortalAccountService portal, CancellationToken ct)
+        => Ok(ApiResponse<PortalAccountDto>.Ok(await portal.LinkCounterpartyAsync(id, dto.IdentitySub, ct), "Portal access granted"));
+
+    [HttpDelete("{id:guid}/portal-account")]
+    [RequirePermission(WmsPermissions.PartnersManage)]
+    public async Task<IActionResult> UnlinkPortalAccount(Guid id, [FromServices] IPortalAccountService portal, CancellationToken ct)
+        => Ok(ApiResponse<PortalAccountDto>.Ok(await portal.UnlinkCounterpartyAsync(id, ct), "Portal access revoked"));
 
     [HttpGet("{id}/balance")]
     public async Task<IActionResult> GetBalance(Guid id)

@@ -25,11 +25,13 @@ import { LanguageService } from '@agentics/i18n';
 import { APEX_DEFAULTS } from '../../../core/config/apex-defaults';
 import { NotificationService } from '../../../core/notify/notification.service';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
+import { PortalAccountCardComponent } from '../../../shared/components/portal-account/portal-account-card.component';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { HasPermissionDirective } from '../../../shared/directives/has-permission.directive';
 import { shortId } from '../../production/production.model';
 import {
   CommissionStatus,
+  type Agent,
   type AgentSalesReport,
   type CommissionRecord,
   type PayCommissionDto,
@@ -66,6 +68,7 @@ function statusLabel(status: CommissionStatus): 'Pending' | 'Confirmed' | 'Cance
     DecimalPipe, DatePipe, FormsModule, RouterLink, ChartComponent,
     TableModule, Button, InputText, InputNumber, Dialog, ToggleSwitch, Select,
     PageHeaderComponent, StatusBadgeComponent, HasPermissionDirective, TranslocoDirective,
+    PortalAccountCardComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './agent-detail.component.html',
@@ -100,6 +103,9 @@ export default class AgentDetailComponent implements OnInit {
     }));
   });
 
+  /** Agent yozuvi (telefon uchun) — hisobot DTO'sida telefon yo'q. */
+  readonly agent = signal<Agent | null>(null);
+
   ngOnInit(): void {
     this.agentId.set(this.route.snapshot.paramMap.get('id') ?? '');
     this.loadData();
@@ -119,6 +125,11 @@ export default class AgentDetailComponent implements OnInit {
       },
       // Xato toastini qobiq chiqaradi (eskisidagi ikkinchi toast olib tashlandi).
       error: () => this.loading.set(false),
+    });
+    // Kabinet kartochkasiga telefon kerak — hisob AYNAN shu raqam bilan ochiladi.
+    this.agentService.getAgent(id).subscribe({
+      next: (res) => this.agent.set(res.data ?? null),
+      error: () => undefined,
     });
     this.agentService.getCommissions(id).subscribe({
       next: (res) => this.commissions.set(res.data ?? []),

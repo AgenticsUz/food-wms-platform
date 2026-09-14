@@ -41,6 +41,17 @@
         <p class="detail-card-title"><i class="pi pi-telegram"></i> {{ t('settings.telegram') }}</p>
         <p-button [label]="t('telegramLink.button')" icon="pi pi-link" [outlined]="true" size="small" (onClick)="openTelegram()" />
       </div>
+      <!-- Kabinet (F9): hisob Identity'da ochiladi, bu yerda kartaga biriktiriladi. -->
+      @if (counterparty(); as c) {
+        <app-portal-account-card
+          *hasPermission="'partners.manage'"
+          resource="counterparties"
+          role="client"
+          [entityId]="c.id"
+          [name]="c.name"
+          [phone]="c.phone"
+        />
+      }
     </div>
 
     @if (telegramApi(); as api) {

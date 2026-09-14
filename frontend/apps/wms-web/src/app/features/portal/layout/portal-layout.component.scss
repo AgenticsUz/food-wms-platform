@@ -1,0 +1,126 @@
+/* Kabinet qobig'i — ilova qobig'idan mustaqil (sidebar yo'q, menyu tepada). */
+.portal-shell {
+  min-height: 100vh;
+  background: var(--bg-page, var(--bg-muted));
+  display: flex;
+  flex-direction: column;
+}
+
+.portal-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 12px 24px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.portal-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.portal-brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  min-width: 0;
+}
+
+.portal-tenant {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.portal-name {
+  font-size: 12px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.portal-nav {
+  display: flex;
+  gap: 4px;
+  margin-left: 12px;
+
+  a {
+    padding: 8px 14px;
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-decoration: none;
+
+    &:hover { background: var(--bg-muted); }
+
+    &.active {
+      color: var(--primary-600, var(--text-primary));
+      background: var(--bg-muted);
+    }
+  }
+}
+
+.portal-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.portal-lang {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm, 6px);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+
+  &.active { color: var(--text-primary); background: var(--bg-muted); }
+}
+
+.portal-burger {
+  display: none;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 18px;
+}
+
+.portal-main {
+  flex: 1;
+  padding: 24px;
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Telefonda menyu burger ostiga tushadi: kabinetga do'kondan kiriladi. */
+@media (max-width: 720px) {
+  .portal-header { flex-wrap: wrap; gap: 12px; padding: 12px 16px; }
+  .portal-burger { display: block; }
+
+  .portal-nav {
+    display: none;
+    width: 100%;
+    margin-left: 0;
+    flex-direction: column;
+
+    &.open { display: flex; }
+  }
+
+  .portal-main { padding: 16px; }
+}

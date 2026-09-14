@@ -89,8 +89,17 @@ public static class WmsPermissions
 /// <remarks>
 /// <para>
 /// ⚠️ Identity reyestrida <c>wms</c> mahsulotining <c>product.roles</c> ro'yxati
-/// AYNAN shu to'rtta bo'lishi SHART. Beshinchi nom Console'da tanlanadigan, lekin
-/// WMS'da hech qanday eshik ochmaydigan rol bo'lardi (Wash F4 darsi).
+/// AYNAN <see cref="All"/> bilan bir xil bo'lishi SHART. Ro'yxatda bor, lekin bu
+/// yerda yo'q nom Console'da tanlanadigan, lekin WMS'da hech qanday eshik
+/// ochmaydigan rol bo'lardi (Wash F4 darsi).
+/// </para>
+/// <para>
+/// Rollar IKKI toifa: <see cref="Ordered"/> — zavod XODIMLARI (ruxsat ladder'i,
+/// kattasi yutadi) va <see cref="Portal"/> — tizim foydalanuvchisi bo'lmagan
+/// TASHQI odam (mijoz, ta'minotchi, agent). Portal rollarining WMS ruxsati BO'SH:
+/// ular ilovaning hech bir ekranini ochmaydi, faqat o'z kabinetini
+/// (<c>/api/portal/*</c>) ko'radi. Shunday qilinganining sababi — yangi endpoint
+/// qo'shilganda uni portal roliga YOPISHNI unutib bo'lmaydi: u sukut bo'yicha yopiq.
 /// </para>
 /// <para>
 /// To'plamlar — BOSHLANG'ICH qiymat: JIT odamni tizim roliga biriktiradi, keyin
@@ -104,8 +113,24 @@ public static class WmsSystemRoles
     public const string Employee = "employee";
     public const string Viewer = "viewer";
 
-    /// <summary>Kattadan kichikka — bir odamda bir nechta rol bo'lsa ENG KATTASI yutadi.</summary>
+    /// <summary>Kontragent kabineti (mijoz yoki ta'minotchi) — F9, D8 ning ikkinchi bosqichi.</summary>
+    public const string Client = "client";
+
+    /// <summary>Savdo agenti kabineti — o'z mijozlari va komissiyasi.</summary>
+    public const string Agent = "agent";
+
+    /// <summary>Xodim rollari, kattadan kichikka — bir odamda bir nechta bo'lsa ENG KATTASI yutadi.</summary>
     public static readonly IReadOnlyList<string> Ordered = [Admin, Manager, Employee, Viewer];
+
+    /// <summary>Kabinet rollari — ilovaga kirmaydi, ruxsat to'plami BO'SH.</summary>
+    public static readonly IReadOnlyList<string> Portal = [Agent, Client];
+
+    /// <summary>Tenantda yaratiladigan HAMMA tizim roli.</summary>
+    public static readonly IReadOnlyList<string> All = [.. Ordered, .. Portal];
+
+    /// <summary>Kabinet roli (ilova ekranlari yopiq)mi.</summary>
+    public static bool IsPortal(string? code) =>
+        code is not null && Portal.Contains(code, StringComparer.Ordinal);
 
     /// <summary>Ko'rsatiladigan nom (tenant o'zgartira oladi).</summary>
     public static string DisplayName(string code) => code switch
@@ -114,6 +139,8 @@ public static class WmsSystemRoles
         Manager => "Menejer",
         Employee => "Xodim",
         Viewer => "Kuzatuvchi",
+        Client => "Mijoz (kabinet)",
+        Agent => "Agent (kabinet)",
         _ => code,
     };
 
@@ -151,6 +178,9 @@ public static class WmsSystemRoles
 
         Viewer => [.. WmsPermissions.All.Select(p => p.Code).Where(c => c.EndsWith(".view", StringComparison.Ordinal))],
 
+        // Kabinet rollari (`client`, `agent`) — ATAYLAB bo'sh: ilovaning har bir
+        // endpoint'i ruxsat so'raydi, ya'ni ular avtomatik 403 oladi. Kabinet o'z
+        // yuzasida (`/api/portal/*`) rol bo'yicha ochiladi.
         _ => [],
     };
 
@@ -158,6 +188,10 @@ public static class WmsSystemRoles
     /// Tokendagi yirik rollardan tizim rolini tanlaydi; tanilmasa <see langword="null"/>
     /// (fail-closed — hech qanday rol biriktirilmaydi).
     /// </summary>
+    /// <remarks>
+    /// Xodim roli kabinet rolidan USTUN: bir odam ham zavod xodimi, ham o'z do'koni
+    /// bilan mijoz bo'lsa, u ilovani ko'rishda davom etadi.
+    /// </remarks>
     public static string? FromTokenRoles(IEnumerable<string>? roles)
     {
         if (roles is null)
@@ -166,6 +200,6 @@ public static class WmsSystemRoles
         }
 
         HashSet<string> set = new(roles, StringComparer.OrdinalIgnoreCase);
-        return Ordered.FirstOrDefault(set.Contains);
+        return Ordered.FirstOrDefault(set.Contains) ?? Portal.FirstOrDefault(set.Contains);
     }
 }

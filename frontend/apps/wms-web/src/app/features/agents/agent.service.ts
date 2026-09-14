@@ -19,6 +19,10 @@ export class AgentService {
   getAgents(options?: ApiCallOptions) {
     return this.api.get<Agent[]>('agents', undefined, options);
   }
+  /** Bitta agent — detal sahifasida telefon kerak (hisobot DTO'sida u yo'q). */
+  getAgent(id: string) {
+    return this.api.get<Agent>(`agents/${id}`);
+  }
   createAgent(dto: AgentSaveDto) {
     return this.api.post<Agent>('agents', dto);
   }

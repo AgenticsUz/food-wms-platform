@@ -4,7 +4,7 @@ using WMS.Application.Interfaces;
 namespace WMS.Infrastructure.Services.Trade;
 
 /// <summary>
-/// W1·2 moduli — transfer, kontragent, agent, moliya (va transfer PDF'i).
+/// W1·2 moduli — transfer, kontragent, agent, moliya (transfer PDF'i va kabinet yuzasi).
 /// </summary>
 /// <remarks>
 /// Hammasi scoped: servislar so'rovning <c>WmsDbContext</c> iga (va u orqali tenant kontekstiga)
@@ -21,6 +21,10 @@ public static class TradeModule
         services.AddScoped<ICounterpartyService, CounterpartyService>();
         services.AddScoped<IAgentService, AgentService>();
         services.AddScoped<IFinanceService, FinanceService>();
+
+        // Kabinet (F9): kontragent/agent o'z oldi-berdisini ko'radi; hisobni admin biriktiradi.
+        services.AddScoped<IPortalService, PortalService>();
+        services.AddScoped<IPortalAccountService, PortalAccountService>();
 
         return services;
     }

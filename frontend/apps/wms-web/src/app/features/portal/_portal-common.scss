@@ -1,0 +1,77 @@
+/* Kabinet sahifalarining umumiy uslublari (ilova modullaridagi `_module-common` naqshi). */
+.portal-title {
+  margin: 0 0 20px;
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
+.portal-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.portal-card {
+  padding: 18px 20px;
+}
+
+.portal-card-title {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.portal-card-value {
+  margin: 6px 0 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.portal-card-hint {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.portal-empty {
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--text-muted);
+
+  > i { font-size: 28px; display: block; margin-bottom: 12px; }
+  > p { margin: 0; font-size: 14px; }
+}
+
+.text-danger { color: var(--danger); }
+.text-success { color: var(--success); }
+
+/* Yoyilgan qatordagi tovarlar (mijoz kartasidagi bilan bir xil naqsh). */
+.portal-items {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+
+  th {
+    text-align: left;
+    padding: 6px 10px;
+    color: var(--text-secondary);
+    font-weight: 600;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  td { padding: 6px 10px; border-bottom: 1px solid var(--border-subtle); }
+  tr:last-child td { border-bottom: 0; }
+  .text-right { text-align: right; }
+}
+
+.portal-note {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+  strong { color: var(--text-primary); }
+}

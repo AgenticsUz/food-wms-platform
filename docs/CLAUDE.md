@@ -28,9 +28,14 @@ Identity (OIDC)** ga ko'chirildi. Ma'lumot ko'chirilmagan — demo seed.
 
 Modullar (har biri `Add<Modul>Module()`, ulash — `src/WMS.API/Hosting/WmsModules.cs`):
 `Catalog` (mahsulot, ombor, zaxira, FEFO), `Trade` (transfer, kontragent, agent,
-moliya), `Production` (ishlab chiqarish, QC), `Operations` (yetkazish, KPI,
+moliya, kabinet), `Production` (ishlab chiqarish, QC), `Operations` (yetkazish, KPI,
 bildirishnoma, audit, Telegram), `Saas` (plan, feature, obuna, foydalanuvchi/rol,
 Console yuzasi), `Reports` (analitika, Excel, PDF brendlash, valyuta).
+
+Kabinet (F9, `docs/XATOLAR-2026-09-14.md` §6): mijoz, ta'minotchi va agent o'z
+oldi-berdisini ko'radi — `/api/portal/*` (`PortalService`) va `frontend` dagi
+`/portal`. Hisob Identity'da (`client`/`agent` roli), kartaga `identity_sub`
+bilan biriktiriladi; parol WMS'ga hech qachon kelmaydi.
 
 ## 3. Qat'iy qoidalar
 
@@ -41,8 +46,15 @@ Console yuzasi), `Reports` (analitika, Excel, PDF brendlash, valyuta).
    Console (`wms-admin-api`, `wms.admin` yoki platforma admini). Admin yuzasida
    tenant OSHKORA tanlanadi (`UseTenant(id)`).
 3. **Foydalanuvchi va parol Identity'da.** WMS profilni JIT yozadi
-   (`WmsPlatformUserSink`), odamni tenantga Console biriktiradi. Yirik rol
-   (`admin/manager/employee/viewer`) → tizim roli; nozik ruxsatlar WMS'da.
+   (`WmsPlatformUserSink`). Yirik rol → tizim roli, nozik ruxsatlar WMS'da.
+   Xodimni tenant adminining O'ZI qo'shadi (F8.1 — «Kirish hisoblari»,
+   `/settings/access`). ⚠️ Yirik rol o'zgarsa JIT uni SINXRONLAYDI
+   (`user_profile.identity_role` — u faqat o'zi bergan tizim rolini almashtiradi,
+   admin qo'shgan maxsus rollarga tegmaydi).
+   Rollar: `admin/manager/employee/viewer` — xodim; `client`/`agent` — KABINET
+   (F9): WMS ruxsati bo'sh, faqat `/api/portal/*` va `/portal` ochiladi.
+   ⚠️ Identity'da `wms` mahsulotining `product.roles` ro'yxati `WmsSystemRoles.All`
+   bilan 1:1 bo'lishi shart (prod'da — Console → Mahsulotlar).
 4. **Modul — Identity obunasidan** (token `modules`); plan — narx, limit, feature.
 5. **Parallel yozuv:** `xmin` (`WarehouseStock`, `Batch`, `Debt`, `Transfer`,
    `ProductionOrder`, `StageExecution`, `CommissionRecord`) — yutqazgan so'rov 409.

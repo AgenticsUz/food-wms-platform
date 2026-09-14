@@ -1,0 +1,35 @@
+<div class="wms-card portal-account" *transloco="let t">
+  <p class="portal-account-title"><i class="pi pi-id-card"></i> {{ t('portal.account') }}</p>
+
+  <p class="portal-account-state" [class.on]="enabled()">
+    {{ enabled() ? t('portal.accountOpened') : t('portal.accountClosed') }}
+  </p>
+
+  @if (canManage()) {
+    @if (enabled()) {
+      <p-button
+        [label]="t('portal.accountRevoke')"
+        icon="pi pi-times"
+        severity="danger"
+        [text]="true"
+        size="small"
+        [loading]="busy()"
+        (onClick)="revoke()"
+      />
+    } @else {
+      <p-button
+        [label]="t('portal.accountOpen')"
+        icon="pi pi-key"
+        [outlined]="true"
+        size="small"
+        [loading]="busy()"
+        (onClick)="open()"
+      />
+      <p class="portal-account-hint">{{ t('portal.accountHint') }}</p>
+    }
+  }
+</div>
+
+@if (credentials(); as creds) {
+  <agx-temporary-password-dialog [credentials]="creds" (dismissed)="dismiss()" />
+}

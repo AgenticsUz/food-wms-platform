@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using WMS.API.Middleware;
 using WMS.Application.Common;
 using WMS.Application.DTOs.Agents;
+using WMS.Application.DTOs.Portal;
 using WMS.Application.Interfaces;
 
 namespace WMS.API.Controllers.Trade;
@@ -36,6 +37,24 @@ public class AgentsController : BaseController
     [RequirePermission(WmsPermissions.AgentsManage)]
     public async Task<IActionResult> Delete(Guid id)
     { await _agents.DeleteAsync(id); return Ok(ApiResponse<object>.Ok(null!, "Deleted")); }
+
+    // ── Kabinet hisobi (F9) — kontragentdagi bilan bir xil naqsh ──
+
+    [HttpGet("{id:guid}/portal-account")]
+    [RequirePermission(WmsPermissions.AgentsManage)]
+    public async Task<IActionResult> GetPortalAccount(Guid id, [FromServices] IPortalAccountService portal, CancellationToken ct)
+        => Ok(ApiResponse<PortalAccountDto>.Ok(await portal.GetAgentAccountAsync(id, ct)));
+
+    [HttpPut("{id:guid}/portal-account")]
+    [RequirePermission(WmsPermissions.AgentsManage)]
+    public async Task<IActionResult> LinkPortalAccount(Guid id, [FromBody] LinkPortalAccountDto dto,
+        [FromServices] IPortalAccountService portal, CancellationToken ct)
+        => Ok(ApiResponse<PortalAccountDto>.Ok(await portal.LinkAgentAsync(id, dto.IdentitySub, ct), "Portal access granted"));
+
+    [HttpDelete("{id:guid}/portal-account")]
+    [RequirePermission(WmsPermissions.AgentsManage)]
+    public async Task<IActionResult> UnlinkPortalAccount(Guid id, [FromServices] IPortalAccountService portal, CancellationToken ct)
+        => Ok(ApiResponse<PortalAccountDto>.Ok(await portal.UnlinkAgentAsync(id, ct), "Portal access revoked"));
 
     [HttpGet("{id}/sales")]
     public async Task<IActionResult> GetSales(Guid id, [FromQuery] DateTime? from, [FromQuery] DateTime? to)

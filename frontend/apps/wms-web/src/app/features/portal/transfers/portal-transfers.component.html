@@ -1,0 +1,93 @@
+<div class="page-enter" *transloco="let t">
+  <h1 class="portal-title">{{ t('portal.transfers') }}</h1>
+
+  <div class="wms-card">
+    <p-table
+      [value]="transfers()"
+      [loading]="loading()"
+      [paginator]="true"
+      [rows]="15"
+      dataKey="id"
+      styleClass="p-datatable-sm p-datatable-striped"
+    >
+      <ng-template #header>
+        <tr>
+          <th style="width: 3rem"></th>
+          <th>{{ t('common.type') }}</th>
+          <th>{{ t('transfer.items') }}</th>
+          <th class="text-right">{{ t('common.amount') }}</th>
+          <th>{{ t('common.status.label') }}</th>
+          <th>{{ t('common.date') }}</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-row let-expanded="expanded">
+        <tr>
+          <td>
+            @if (itemCount(row) > 0) {
+              <p-button
+                type="button"
+                [pRowToggler]="row"
+                [text]="true"
+                [rounded]="true"
+                severity="secondary"
+                [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+              />
+            }
+          </td>
+          <td><app-status-badge [status]="transferTypeClass(row.type)" [label]="t(transferTypeKey(row.type))" /></td>
+          <td>
+            @if (itemCount(row) > 0) {
+              <span class="text-muted">{{ row.items[0].productName }}</span>
+              @if (itemCount(row) > 1) {
+                <span class="text-muted"> +{{ itemCount(row) - 1 }}</span>
+              }
+            } @else {
+              <span class="text-muted">—</span>
+            }
+          </td>
+          <td class="text-right"><span class="number">{{ row.totalAmount | number: '1.0-2' }}</span></td>
+          <td><app-status-badge [status]="transferStatusClass(row.status)" [label]="t(transferStatusKey(row.status))" /></td>
+          <td>{{ (moment(row) | date: 'dd.MM.yyyy HH:mm') || '—' }}</td>
+        </tr>
+      </ng-template>
+      <ng-template #expandedrow let-row>
+        <tr>
+          <td colspan="6">
+            <table class="portal-items">
+              <thead>
+                <tr>
+                  <th>{{ t('common.name') }}</th>
+                  <th class="text-right">{{ t('common.quantity') }}</th>
+                  <th>{{ t('common.unit') }}</th>
+                  <th class="text-right">{{ t('common.price') }}</th>
+                  <th class="text-right">{{ t('common.amount') }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of row.items; track item.id) {
+                  <tr>
+                    <td>{{ item.productName }}</td>
+                    <td class="text-right"><span class="number">{{ item.quantity | number: '1.0-2' }}</span></td>
+                    <td>{{ item.unitShortName }}</td>
+                    <td class="text-right"><span class="number">{{ item.unitPrice | number: '1.0-2' }}</span></td>
+                    <td class="text-right"><span class="number">{{ item.totalPrice | number: '1.0-2' }}</span></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+            @if (row.note) {
+              <p class="portal-note"><strong>{{ t('common.note') }}:</strong> {{ row.note }}</p>
+            }
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="6">
+            <div class="portal-empty"><i class="pi pi-inbox"></i><p>{{ t('common.noData') }}</p></div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>

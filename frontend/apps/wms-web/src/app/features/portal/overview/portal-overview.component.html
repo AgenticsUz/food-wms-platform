@@ -1,0 +1,67 @@
+<div class="page-enter" *transloco="let t">
+  <h1 class="portal-title">{{ t('portal.overview') }}</h1>
+
+  @if (loading()) {
+    <div class="portal-cards">
+      @for (i of [1, 2, 3]; track i) {
+        <div class="wms-card portal-card"><div class="skeleton" style="height: 56px"></div></div>
+      }
+    </div>
+  } @else if (isAgent()) {
+    @if (agent(); as a) {
+      <div class="portal-cards">
+        <div class="wms-card portal-card">
+          <p class="portal-card-title">{{ t('portal.commissionPending') }}</p>
+          <p class="portal-card-value">{{ a.commissionPending | number: '1.0-2' }}</p>
+          <p class="portal-card-hint">{{ t('portal.commissionPercent') }}: {{ a.commissionPercent | number: '1.0-2' }}%</p>
+        </div>
+        <div class="wms-card portal-card">
+          <p class="portal-card-title">{{ t('portal.totalSales') }}</p>
+          <p class="portal-card-value">{{ a.totalSales | number: '1.0-2' }}</p>
+          <p class="portal-card-hint">{{ t('portal.clients') }}: {{ a.clientCount }}</p>
+        </div>
+        <div class="wms-card portal-card">
+          <p class="portal-card-title">{{ t('portal.commissionPaid') }}</p>
+          <p class="portal-card-value">{{ a.commissionPaid | number: '1.0-2' }}</p>
+          <p class="portal-card-hint">{{ t('portal.commissionEarned') }}: {{ a.commissionEarned | number: '1.0-2' }}</p>
+        </div>
+      </div>
+    }
+  } @else if (finance(); as f) {
+    <div class="portal-cards">
+      <div class="wms-card portal-card">
+        <p class="portal-card-title">{{ t('portal.balance') }}</p>
+        <p class="portal-card-value" [class.text-danger]="debt() > 0" [class.text-success]="debt() < 0">
+          {{ debt() | number: '1.0-2' }}
+        </p>
+        <p class="portal-card-hint">
+          @if (debt() > 0) {
+            {{ t('portal.youOwe') }}
+          } @else if (debt() < 0) {
+            {{ t('portal.weOwe') }}
+          } @else {
+            {{ t('finance.noDebt') }}
+          }
+        </p>
+      </div>
+      <div class="wms-card portal-card">
+        <p class="portal-card-title">{{ t('portal.turnover') }}</p>
+        <p class="portal-card-value">{{ f.totalTurnover | number: '1.0-2' }}</p>
+        <p class="portal-card-hint">{{ t('portal.turnoverHint') }}</p>
+      </div>
+      <div class="wms-card portal-card">
+        <p class="portal-card-title">{{ t('portal.totalPaid') }}</p>
+        <p class="portal-card-value">{{ f.totalPaid | number: '1.0-2' }}</p>
+        <p class="portal-card-hint">
+          {{ t('portal.lastPayment') }}: {{ (parse(f.lastPaymentAt) | date: 'dd.MM.yyyy HH:mm') || '—' }}
+        </p>
+      </div>
+    </div>
+  } @else {
+    <!-- 403: rol bor, lekin karta biriktirilmagan — sabab ko'rinsin, bo'sh ekran emas. -->
+    <div class="wms-card portal-empty">
+      <i class="pi pi-lock"></i>
+      <p>{{ t('portal.noAccess') }}</p>
+    </div>
+  }
+</div>
