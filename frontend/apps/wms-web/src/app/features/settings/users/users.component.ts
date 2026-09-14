@@ -142,8 +142,21 @@ export default class UsersComponent implements OnInit {
   openRoleDialog(user: UserDetail): void {
     // Tizim roli ro'yxatda ko'rinmaydi — uni belgilab ham qo'ymaymiz, aks holda
     // «saqlash» uni yo'q rol sifatida yuborardi (server baribir saqlab qoladi).
-    this.selectedRoleIds.set(user.roles.filter((r) => r.code !== user.identityRole).map((r) => r.id));
+    const sys = this.effectiveSystemRole(user);
+    this.selectedRoleIds.set(user.roles.filter((r) => r.code === null || r.code !== sys).map((r) => r.id));
     this.roleTarget.set(user);
+  }
+
+  /**
+   * Amaldagi tizim roli kodi. `identityRole` bo'sh — odam F8.1 dan keyin hali
+   * kirmagan (T2, `docs/XATOLAR-2026-09-14.md` §9.3) — bo'lsa serverdagi
+   * qoidani takrorlaymiz: profilda AYNAN bitta tizim roli (kodi `null` emas)
+   * bo'lsa, o'sha amaldagi rol; aks holda noma'lum qoladi.
+   */
+  private effectiveSystemRole(user: UserDetail): string | null {
+    if (user.identityRole) return user.identityRole;
+    const systemCodes = user.roles.map((r) => r.code).filter((code): code is string => code !== null);
+    return systemCodes.length === 1 ? systemCodes[0] : null;
   }
 
   closeRoleDialog(): void {
@@ -175,20 +188,23 @@ export default class UsersComponent implements OnInit {
    * turardi va «Kirish hisoblari» da rol o'zgargach eskisi qolib ketardi.
    */
   customRoleNames(user: UserDetail): string {
-    const names = user.roles.filter((r) => r.code !== user.identityRole).map((r) => r.name);
+    const sys = this.effectiveSystemRole(user);
+    const names = user.roles.filter((r) => r.code === null || r.code !== sys).map((r) => r.name);
     return names.join(', ') || '—';
   }
 
   /** Tizim roli yorlig'i — token roli kodidan (`shell.roles.*`). */
   identityRoleLabel(user: UserDetail): string {
-    return user.identityRole
-      ? this.language.translate('shell.roles.' + user.identityRole)
+    const sys = this.effectiveSystemRole(user);
+    return sys
+      ? this.language.translate('shell.roles.' + sys)
       : this.language.translate('settings.identityRoleNone');
   }
 
   /** Rol dialogida tanlanadigan rollar — tizim roli bundan mustasno. */
   assignableRoles(user: UserDetail | null): readonly RoleInfo[] {
-    return this.roles().filter((r) => !user || r.code !== user.identityRole);
+    const sys = user ? this.effectiveSystemRole(user) : null;
+    return this.roles().filter((r) => !user || r.code === null || r.code !== sys);
   }
 
   parse(value: string | null): Date | null {
