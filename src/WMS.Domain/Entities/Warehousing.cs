@@ -6,6 +6,12 @@ namespace WMS.Domain.Entities;
 public class Warehouse : TenantEntity
 {
     public string Name { get; set; } = null!;
+
+    /// <summary>
+    /// <see cref="Name"/> ning qidiruv shakli (P2.1) — <c>Product.NameSearch</c> bilan bir xil qoida.
+    /// </summary>
+    public string NameSearch { get; set; } = string.Empty;
+
     public WarehouseType Type { get; set; }
     public string? Description { get; set; }
     public ICollection<Location> Locations { get; set; } = new List<Location>();

@@ -17,7 +17,7 @@
   </div>
 
   <div class="wms-card table-wrapper">
-    <p-table [value]="filtered()" [loading]="loading()" [paginator]="true" [rows]="15"
+    <p-table [value]="items()" [loading]="loading()" [paginator]="true" [rows]="15"
       [rowsPerPageOptions]="[10, 15, 25, 50]" [scrollable]="true" styleClass="p-datatable-sm p-datatable-striped">
       <ng-template #header>
         <tr>

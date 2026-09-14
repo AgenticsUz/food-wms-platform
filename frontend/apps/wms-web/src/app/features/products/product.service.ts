@@ -12,20 +12,42 @@ import type {
 
 /**
  * Backend `GET products` sukut bo'yicha 20 ta qaytaradi. Ro'yxat ekrani va
- * tanlov ro'yxatlari filtr/sahifalashni mijozda qiladi — shuning uchun hammasi
+ * tanlov ro'yxatlari sahifalashni mijozda qiladi — shuning uchun hammasi
  * bitta so'rovda olinadi (eski ekran ham shunday qilardi). Transfer yaratish
  * esa eskisida parametrsiz chaqirilib, 21-mahsulotdan boshlab tanlovda
  * ko'rinmasdi — endi u ham shu parametrni ishlatadi.
+ *
+ * QIDIRUV endi bu ro'yxat ustida emas: `productSearch()` ni qarang.
  */
 export const ALL_PRODUCTS: QueryParams = { page: 1, pageSize: 1000 };
+
+/**
+ * Qidiruv so'rovi parametrlari.
+ *
+ * NEGA server: mijozdagi `name.includes(q)` alifboni bilmaydi — «Сникерс» yozgan
+ * odam «Snikers» ni topa olmasdi. Backend `search` ni pg_trgm va lotin↔kirill
+ * transliteratsiya bilan bajaradi.
+ *
+ * `pageSize` ro'yxat ekranida ALL_PRODUCTS bilan bir xil qoladi: server
+ * allaqachon FILTRLAB beradi, ya'ni qaytadigan hajm qidiruv natijasi qadar —
+ * mijoz tomonda hech bir moslik yo'qolmasin.
+ */
+export function productSearch(query: string, pageSize = 1000): QueryParams {
+  return { page: 1, pageSize, search: query };
+}
 
 /** Mahsulot, kategoriya va birliklar (eski `core/services/product.service`). */
 @Injectable({ providedIn: 'root' })
 export class ProductService {
   private readonly api = inject(ApiService);
 
-  getProducts(params: QueryParams = ALL_PRODUCTS) {
-    return this.api.get<Product[]>('products', params);
+  /**
+   * `params` da `search` bo'lsa — server qidiruvi; bo'lmasa eski xatti-harakat
+   * (sahifalangan ro'yxat). `options` — qidiruv fon so'rovi bo'lgani uchun
+   * (`SEARCH_CALL`: `skipLoading`).
+   */
+  getProducts(params: QueryParams = ALL_PRODUCTS, options?: ApiCallOptions) {
+    return this.api.get<Product[]>('products', params, options);
   }
 
   getProduct(id: string) {

@@ -52,11 +52,6 @@ export function isInnInvalid(inn: string | null): boolean {
   return !!value && !/^\d{9}$/.test(value);
 }
 
-/** Ro'yxat qidiruvi — nom, telefon yoki INN bo'yicha. */
-export function matchesCounterparty(c: Counterparty, query: string): boolean {
-  return (
-    c.name.toLowerCase().includes(query) ||
-    (c.phone ?? '').includes(query) ||
-    (c.inn ?? '').includes(query)
-  );
-}
+// `matchesCounterparty` (mijozdagi nom/telefon/INN filtri) OLIB TASHLANDI:
+// qidiruv endi serverda (`CounterpartyService.getCounterparties(type, search)`).
+// Mijozdagi `includes` alifboni bilmasdi — «Алишер» yozgan «Alisher» ni topmasdi.

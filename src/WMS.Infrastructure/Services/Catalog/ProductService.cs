@@ -9,11 +9,25 @@ namespace WMS.Infrastructure.Services.Catalog;
 
 public class ProductService : IProductService
 {
-    private readonly WmsDbContext _db;
-    public ProductService(WmsDbContext db) => _db = db;
+    /// <summary>Qidiruvda bir so'rovda qaytariladigan eng ko'p qator.</summary>
+    /// <remarks>
+    /// Qidiruv natijasi «eng yaqin nomzodlar» — undan kattasi foydalanuvchiga ham,
+    /// AI qatlamiga ham ma'nosiz (REJA: ko'p bo'lsa «toraytiring» deyiladi).
+    /// </remarks>
+    private const int SearchPageLimit = 100;
 
-    public async Task<List<ProductDto>> GetAllAsync(int page = 1, int pageSize = 20)
+    private readonly WmsDbContext _db;
+    private readonly ISearchService _search;
+    public ProductService(WmsDbContext db, ISearchService search)
+    { _db = db; _search = search; }
+
+    public async Task<List<ProductDto>> GetAllAsync(int page = 1, int pageSize = 20, string? search = null)
     {
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            return await SearchAsync(search, page, pageSize);
+        }
+
         return await _db.Products
             // Kalit ikkinchi tartib: StampEntries bitta SaveChanges'dagi hamma yozuvga BIR XIL
             // CreatedAt qo'yadi (Excel importi), faqat vaqt bo'yicha sahifalash qatorlarni
@@ -22,6 +36,27 @@ public class ProductService : IProductService
             .Skip((page - 1) * pageSize).Take(pageSize)
             .Select(ToDto)
             .ToListAsync();
+    }
+
+    /// <summary>
+    /// Nom bo'yicha qidiruv: nomzodlarni <c>ISearchService</c> beradi, DTO shakli esa
+    /// oddiy ro'yxatniki bilan AYNAN bir xil qoladi (frontend javobni farqlamaydi).
+    /// </summary>
+    private async Task<List<ProductDto>> SearchAsync(string search, int page, int pageSize)
+    {
+        int take = Math.Clamp(pageSize, 1, SearchPageLimit);
+        int skip = Math.Max(page - 1, 0) * take;
+
+        // Sahifalash nomzodlar RO'YXATI ustida: `skip + take` tasini so'rab, keraklisini kesamiz.
+        IReadOnlyList<ProductSearchCandidate> candidates = await _search.FindProductsAsync(search, skip + take);
+        List<Guid> ids = candidates.Skip(skip).Select(c => c.Id).ToList();
+        if (ids.Count == 0) return [];
+
+        List<ProductDto> rows = await _db.Products.Where(p => ids.Contains(p.Id)).Select(ToDto).ToListAsync();
+
+        // `IN (...)` tartibni SAQLAMAYDI — bal bo'yicha tartibni qaytarib qo'yamiz.
+        Dictionary<Guid, int> rank = ids.Index().ToDictionary(x => x.Item, x => x.Index);
+        return rows.OrderBy(r => rank[r.Id]).ToList();
     }
 
     public async Task<ProductDto> GetByIdAsync(Guid id)
@@ -53,7 +88,9 @@ public class ProductService : IProductService
 
         var product = new Product
         {
-            Name = dto.Name, CategoryId = dto.CategoryId,
+            // Qidiruv ustuni nom bilan BIRGA yoziladi (P2.1): hisoblanadigan ustun bo'lolmaydi,
+            // chunki kirill→lotin o'girish C# da.
+            Name = dto.Name, NameSearch = SearchNormalizer.Normalize(dto.Name), CategoryId = dto.CategoryId,
             UnitId = dto.UnitId, Type = dto.Type, MinStock = dto.MinStock,
             ShelfLifeDays = dto.ShelfLifeDays, Barcode = dto.Barcode, CostPrice = dto.CostPrice
         };
@@ -73,7 +110,8 @@ public class ProductService : IProductService
 
         await ValidateCategoryAndUnitAsync(dto.CategoryId, dto.UnitId);
 
-        p.Name = dto.Name; p.CategoryId = dto.CategoryId; p.UnitId = dto.UnitId;
+        p.Name = dto.Name; p.NameSearch = SearchNormalizer.Normalize(dto.Name);
+        p.CategoryId = dto.CategoryId; p.UnitId = dto.UnitId;
         p.Type = dto.Type; p.MinStock = dto.MinStock; p.ShelfLifeDays = dto.ShelfLifeDays;
         p.Barcode = dto.Barcode; p.CostPrice = dto.CostPrice;
         await _db.SaveChangesAsync();

@@ -14,6 +14,7 @@ import { WmsSession } from '../../../core/auth/wms-session';
 import { NotificationService } from '../../../core/notify/notification.service';
 import { ExportService } from '../../../core/services/export.service';
 import { toLocalDateString } from '../../../core/utils/date.util';
+import { SEARCH_CALL, onSearchChange } from '../../../core/utils/search.util';
 import { ImportButtonComponent } from '../../../shared/components/import-button/import-button.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { PhoneInputComponent } from '../../../shared/components/phone-input/phone-input.component';
@@ -25,7 +26,6 @@ import {
   counterpartySaveDtoOf,
   emptyCounterpartyForm,
   isInnInvalid,
-  matchesCounterparty,
   type CounterpartyForm,
 } from '../counterparty-form';
 import { CounterpartyType, type Counterparty } from '../counterparty.model';
@@ -60,12 +60,13 @@ export default class ClientListComponent implements OnInit {
 
   readonly form = signal<CounterpartyForm>(emptyCounterpartyForm(CounterpartyType.Client));
 
-  readonly filtered = computed(() => {
-    const q = this.search().toLowerCase();
-    return q ? this.items().filter((c) => matchesCounterparty(c, q)) : this.items();
-  });
-
   readonly innInvalid = computed(() => isInnInvalid(this.form().inn));
+
+  constructor() {
+    // Qidiruv endi SERVERDA (nom/telefon/INN) — mijozdagi `includes` alifboni
+    // bilmasdi. 300 ms kutish: har harfga so'rov ketmasin (search.util.ts).
+    onSearchChange(this.search, () => this.loadData());
+  }
 
   ngOnInit(): void {
     this.loadData();
@@ -86,14 +87,19 @@ export default class ClientListComponent implements OnInit {
   }
 
   loadData(): void {
+    const query = this.search().trim();
     this.loading.set(true);
-    this.service.getCounterparties(CounterpartyType.Client).subscribe({
-      next: (res) => {
-        this.items.set(res.success && res.data ? res.data : []);
-        this.loading.set(false);
-      },
-      error: () => this.loading.set(false),
-    });
+    // Qidiruvda global progress chizig'i chaqnamasin (`SEARCH_CALL`) — jadvalning
+    // o'z `loading` i yetarli.
+    this.service
+      .getCounterparties(CounterpartyType.Client, query, query ? SEARCH_CALL : undefined)
+      .subscribe({
+        next: (res) => {
+          this.items.set(res.success && res.data ? res.data : []);
+          this.loading.set(false);
+        },
+        error: () => this.loading.set(false),
+      });
   }
 
   openNew(): void {

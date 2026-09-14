@@ -16,6 +16,11 @@ public static class CatalogModule
         services.AddScoped<IProductService, ProductService>();
         services.AddScoped<IWarehouseService, WarehouseService>();
         services.AddScoped<IStockAllocator, StockAllocator>();
+
+        // Nom qidiruvi (P2.1) katalog modulida turadi, lekin kontragent/ombor uchun ham
+        // ishlaydi: uchala nom bitta normalizator va bitta `pg_trgm` qoidasiga bo'ysunadi,
+        // ya'ni uni bo'lib yuborish uch xil qidiruv xatti-harakatini keltirib chiqarardi.
+        services.AddScoped<ISearchService, SearchService>();
         services.AddScoped<IBatchExpiryService, BatchExpiryService>();
 
         // Sutkalik partiya muddati tekshiruvi API jarayoni ichida (D12): ikki kichik fon vazifasi

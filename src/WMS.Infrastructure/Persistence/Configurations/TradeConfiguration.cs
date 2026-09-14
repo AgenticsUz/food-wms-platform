@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using WMS.Application.Common;
 using WMS.Domain.Entities;
 
 namespace WMS.Infrastructure.Persistence.Configurations;
@@ -37,6 +38,7 @@ internal sealed class CounterpartyConfiguration : IEntityTypeConfiguration<Count
     public void Configure(EntityTypeBuilder<Counterparty> builder)
     {
         builder.Property(c => c.Name).HasMaxLength(200).IsRequired();
+        builder.Property(c => c.NameSearch).HasMaxLength(SearchNormalizer.MaxLength).IsRequired();
         builder.Property(c => c.Phone).HasMaxLength(20);
         builder.Property(c => c.Address).HasMaxLength(500);
         builder.Property(c => c.Note).HasMaxLength(1000);
@@ -54,6 +56,9 @@ internal sealed class CounterpartyConfiguration : IEntityTypeConfiguration<Count
         // javobsiz qolardi (fail-closed o'rniga tasodifiy tanlov).
         builder.HasIndex(c => new { c.TenantId, c.IdentitySub }).IsUnique()
             .HasFilter("\"identity_sub\" IS NOT NULL AND \"is_deleted\" = false");
+
+        // Nom bo'yicha taxminiy qidiruv (P2.1) — sabab va cheklovlar `ProductConfiguration` da.
+        builder.HasIndex(c => c.NameSearch).HasMethod("gin").HasOperators("gin_trgm_ops");
     }
 }
 

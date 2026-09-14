@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using WMS.Application.Common;
 using WMS.Domain.Entities;
 
 namespace WMS.Infrastructure.Persistence.Configurations;
@@ -11,7 +12,11 @@ internal sealed class WarehouseConfiguration : IEntityTypeConfiguration<Warehous
     public void Configure(EntityTypeBuilder<Warehouse> builder)
     {
         builder.Property(w => w.Name).HasMaxLength(200).IsRequired();
+        builder.Property(w => w.NameSearch).HasMaxLength(SearchNormalizer.MaxLength).IsRequired();
         builder.Property(w => w.Description).HasMaxLength(500);
+
+        // Nom bo'yicha taxminiy qidiruv (P2.1) — sabab va cheklovlar `ProductConfiguration` da.
+        builder.HasIndex(w => w.NameSearch).HasMethod("gin").HasOperators("gin_trgm_ops");
     }
 }
 

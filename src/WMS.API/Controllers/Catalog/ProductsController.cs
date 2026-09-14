@@ -12,9 +12,15 @@ public class ProductsController : BaseController
     private readonly IProductService _products;
     public ProductsController(IProductService products) => _products = products;
 
+    /// <remarks>
+    /// `search` — nom bo'yicha TAXMINIY qidiruv (P2.1): «Snikers», «snickers» va «Сникерс»
+    /// bir xil natija beradi. Bo'sh bo'lsa — eski xatti-harakat (sana bo'yicha ro'yxat).
+    /// Javob shakli ikkala holatda ham bir xil, faqat tartib o'xshashlik bali bo'yicha.
+    /// </remarks>
     [HttpGet]
-    public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
-        => Ok(ApiResponse<List<ProductDto>>.Ok(await _products.GetAllAsync(page, pageSize)));
+    public async Task<IActionResult> GetAll(
+        [FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] string? search = null)
+        => Ok(ApiResponse<List<ProductDto>>.Ok(await _products.GetAllAsync(page, pageSize, search)));
 
     /// Skaner (klaviatura) kodni `Enter` bilan yuboradi (D1). Kod so'rov satrida, yo'lda emas:
     /// shtrix-kodda `/` kabi belgilar bo'lishi mumkin. `{id:guid}` dan OLDIN e'lon qilingani

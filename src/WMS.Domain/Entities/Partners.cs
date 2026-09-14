@@ -22,6 +22,12 @@ namespace WMS.Domain.Entities;
 public class Counterparty : TenantEntity
 {
     public string Name { get; set; } = null!;
+
+    /// <summary>
+    /// <see cref="Name"/> ning qidiruv shakli (P2.1) — <c>Product.NameSearch</c> bilan bir xil qoida.
+    /// </summary>
+    public string NameSearch { get; set; } = string.Empty;
+
     public CounterpartyType Type { get; set; }
     public string? Phone { get; set; }
     public string? Address { get; set; }

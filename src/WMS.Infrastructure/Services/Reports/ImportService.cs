@@ -1,6 +1,7 @@
 using System.Globalization;
 using ClosedXML.Excel;
 using Microsoft.EntityFrameworkCore;
+using WMS.Application.Common;
 using WMS.Application.DTOs.Import;
 using WMS.Application.Interfaces;
 using WMS.Domain.Entities;
@@ -109,6 +110,9 @@ public class ImportService : IImportService
                 _db.Products.Add(new Product
                 {
                     Name = name,
+                    // Qidiruv ustuni nom bilan BIRGA (P2.1): importdan kelgan mahsulot ham
+                    // birinchi kunidan qidiruvda topilsin.
+                    NameSearch = SearchNormalizer.Normalize(name),
                     CategoryId = category!.Id,
                     Type = productType,
                     UnitId = unit!.Id,
@@ -188,6 +192,8 @@ public class ImportService : IImportService
             _db.Counterparties.Add(new Counterparty
             {
                 Name = name,
+                // Qidiruv ustuni nom bilan BIRGA (P2.1).
+                NameSearch = SearchNormalizer.Normalize(name),
                 Type = cpType,
                 Phone = string.IsNullOrEmpty(phone) ? null : phone,
                 Address = string.IsNullOrEmpty(address) ? null : address,

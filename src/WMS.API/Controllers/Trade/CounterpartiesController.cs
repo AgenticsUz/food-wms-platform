@@ -17,11 +17,15 @@ public class CounterpartiesController : BaseController
     private readonly ICounterpartyService _counterparties;
     public CounterpartiesController(ICounterpartyService counterparties) => _counterparties = counterparties;
 
-    /// <remarks>Yetkazish yaratishda mijoz tanlanadi — `delivery.manage` ham yetadi (faqat ro'yxat).</remarks>
+    /// <remarks>
+    /// Yetkazish yaratishda mijoz tanlanadi — `delivery.manage` ham yetadi (faqat ro'yxat).
+    /// `search` — nom bo'yicha TAXMINIY qidiruv (P2.1, kirill↔lotin farqsiz); bo'sh bo'lsa
+    /// eski xatti-harakat (nom bo'yicha to'liq ro'yxat).
+    /// </remarks>
     [HttpGet]
     [RequireAnyPermission(WmsPermissions.PartnersView, WmsPermissions.DeliveryManage)]
-    public async Task<IActionResult> GetAll([FromQuery] CounterpartyType? type)
-        => Ok(ApiResponse<List<CounterpartyDto>>.Ok(await _counterparties.GetAllAsync(type)));
+    public async Task<IActionResult> GetAll([FromQuery] CounterpartyType? type, [FromQuery] string? search = null)
+        => Ok(ApiResponse<List<CounterpartyDto>>.Ok(await _counterparties.GetAllAsync(type, search)));
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)

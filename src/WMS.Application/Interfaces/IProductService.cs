@@ -4,7 +4,15 @@ namespace WMS.Application.Interfaces;
 
 public interface IProductService
 {
-    Task<List<ProductDto>> GetAllAsync(int page = 1, int pageSize = 20);
+    /// <summary>
+    /// Mahsulotlar ro'yxati; <paramref name="search"/> berilsa — nom bo'yicha taxminiy
+    /// qidiruv (P2.1, <c>ISearchService</c>), tartib o'xshashlik bali bo'yicha.
+    /// </summary>
+    /// <param name="page">Sahifa (1 dan).</param>
+    /// <param name="pageSize">Sahifa hajmi.</param>
+    /// <param name="search">Qidiruv matni; bo'sh bo'lsa — oddiy ro'yxat (eski xatti-harakat).</param>
+    /// <returns>Mahsulotlar.</returns>
+    Task<List<ProductDto>> GetAllAsync(int page = 1, int pageSize = 20, string? search = null);
     Task<ProductDto> GetByIdAsync(Guid id);
 
     /// <summary>

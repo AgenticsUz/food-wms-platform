@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 
-import { ApiService } from '../../core/api/api.service';
+import { ApiService, type ApiCallOptions } from '../../core/api/api.service';
 import type { TelegramLinkApi } from '../../shared/components/telegram-link-dialog/telegram-link-dialog.component';
 import type { TelegramLinkToken, TelegramSubjectLink } from '../settings/settings.model';
 import type { PaymentHistory } from '../finance/finance.model';
@@ -26,8 +26,18 @@ export class CounterpartyService {
     };
   }
 
-  getCounterparties(type?: CounterpartyType) {
-    return this.api.get<Counterparty[]>('counterparties', { type });
+  /**
+   * `search` — SERVER qidiruvi (pg_trgm + lotin↔kirill transliteratsiya). Nega
+   * mijozda emas: `name.includes(q)` alifboni bilmaydi — «Алишер» yozgan odam
+   * «Alisher» ni topa olmasdi. Bo'sh qidiruvda parametr umuman yuborilmaydi va
+   * server eski xatti-harakatini (to'liq ro'yxat) beradi.
+   */
+  getCounterparties(type?: CounterpartyType, search?: string, options?: ApiCallOptions) {
+    return this.api.get<Counterparty[]>(
+      'counterparties',
+      { type, search: search?.trim() || undefined },
+      options
+    );
   }
   getCounterparty(id: string) {
     return this.api.get<Counterparty>(`counterparties/${id}`);

@@ -17,7 +17,7 @@ import { WmsSession } from '../../../core/auth/wms-session';
 import { NotificationService } from '../../../core/notify/notification.service';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import type { Product } from '../../products/product.model';
-import { ProductService } from '../../products/product.service';
+import { ProductService, productSearch } from '../../products/product.service';
 import { injectTranslationTick } from '../../warehouse/translation-tick';
 import type { Warehouse } from '../../warehouse/warehouse.model';
 import { WarehouseService } from '../../warehouse/warehouse.service';
@@ -36,6 +36,9 @@ interface DraftItem extends TransferItemDto {
 
 /** Guid (`xxxxxxxx-xxxx-…`) — asl transfer id'si shu shaklda bo'lmasa backend 400 beradi. */
 const GUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Shtrix-kod maydonida nom yozilganda ko'rsatiladigan takliflar soni. */
+const BARCODE_SEARCH_LIMIT = 5;
 
 /**
  * Yangi transfer (eski `transfers/transfer-create`).
@@ -338,7 +341,7 @@ export default class TransferCreateComponent implements OnInit {
    * Skaner kodni yozib Enter bosadi. Avval SERVERDAN aniq shtrix-kod bo'yicha
    * (`products/by-barcode`): tanlov ro'yxati birinchi sahifa bilan cheklangan
    * bo'lishi mumkin, server esa butun katalogni biladi. 404 — kod emas, balki
-   * nom yozilgan bo'lishi mumkin: yuklangan ro'yxatdan nomi bo'yicha qidiramiz.
+   * nom yozilgan bo'lishi mumkin: nomni ham SERVERDAN qidiramiz.
    *
    * Toast o'chirilgan (`skipErrorNotify`): nom bo'yicha qidiruvda 404 — kutilgan
    * holat, u «topilmadi» xatosi bo'lib chiqmasligi kerak. Boshqa xatoni o'zimiz
@@ -351,19 +354,19 @@ export default class TransferCreateComponent implements OnInit {
 
     this.productService.getByBarcode(query, { skipErrorNotify: true, skipLoading: true }).subscribe({
       next: (res) => {
-        this.barcodeBusy = false;
         if (res.success && res.data) {
+          this.barcodeBusy = false;
           this.acceptProduct(res.data);
         } else {
-          this.searchLocally(query);
+          this.searchOnServer(query);
         }
       },
       error: (err: unknown) => {
-        this.barcodeBusy = false;
         if (isWmsApiError(err) && err.status === 404) {
-          this.searchLocally(query);
+          this.searchOnServer(query);
           return;
         }
+        this.barcodeBusy = false;
         const message = isWmsApiError(err) ? err.message : null;
         this.notify.error(message ?? this.language.translate('errors.unknown'));
       },
@@ -374,19 +377,37 @@ export default class TransferCreateComponent implements OnInit {
     this.acceptProduct(product);
   }
 
-  private searchLocally(query: string): void {
-    const q = query.toLowerCase();
-    const matches = this.products().filter(
-      (p) => p.name.toLowerCase().includes(q) || (p.barcode?.toLowerCase().includes(q) ?? false)
-    );
-    if (matches.length === 1) {
-      this.acceptProduct(matches[0]);
-    } else if (matches.length > 1) {
-      this.barcodeResults.set(matches.slice(0, 5));
-    } else {
-      this.notify.warn('Product not found');
-      this.barcodeResults.set([]);
-    }
+  /**
+   * Nom bo'yicha qidiruv SERVERDA (pg_trgm + lotin↔kirill): mijozdagi
+   * `includes` alifboni bilmasdi — «Сникерс» yozgan «Snikers» ni topa olmasdi,
+   * ustiga yuklangan ro'yxat bilan ham cheklanardi. `pageSize` kichik: bu
+   * tanlov ro'yxati, butun katalog emas.
+   */
+  private searchOnServer(query: string): void {
+    this.productService
+      .getProducts(productSearch(query, BARCODE_SEARCH_LIMIT), {
+        skipErrorNotify: true,
+        skipLoading: true,
+      })
+      .subscribe({
+        next: (res) => {
+          this.barcodeBusy = false;
+          const matches = res.success && res.data ? res.data : [];
+          if (matches.length === 1) {
+            this.acceptProduct(matches[0]);
+          } else if (matches.length > 1) {
+            this.barcodeResults.set(matches);
+          } else {
+            this.notify.warn('Product not found');
+            this.barcodeResults.set([]);
+          }
+        },
+        error: () => {
+          this.barcodeBusy = false;
+          this.notify.warn('Product not found');
+          this.barcodeResults.set([]);
+        },
+      });
   }
 
   private acceptProduct(product: Product): void {

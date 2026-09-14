@@ -14,13 +14,14 @@ import { WmsSession } from '../../../core/auth/wms-session';
 import { NotificationService } from '../../../core/notify/notification.service';
 import { ExportService } from '../../../core/services/export.service';
 import { toLocalDateString } from '../../../core/utils/date.util';
+import { SEARCH_CALL, onSearchChange } from '../../../core/utils/search.util';
 import { ImportButtonComponent } from '../../../shared/components/import-button/import-button.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { HasPermissionDirective } from '../../../shared/directives/has-permission.directive';
 import { injectTranslationTick } from '../../warehouse/translation-tick';
 import { ProductType, type Category, type Product, type ProductCreateDto, type Unit } from '../product.model';
-import { ProductService } from '../product.service';
+import { ALL_PRODUCTS, ProductService, productSearch } from '../product.service';
 
 interface ProductForm {
   readonly id: string | null;
@@ -106,18 +107,20 @@ export default class ProductListComponent implements OnInit {
   readonly formTypeOptions = computed(() => this.typeOptions().slice(1));
 
   /**
-   * Qidiruv va tur filtri MIJOZDA: backend `GET products` faqat sahifalashni
-   * biladi (eski ekran `type` ni ham yuborardi — server uni e'tiborsiz qoldirardi).
+   * Tur filtri MIJOZDA QOLDI: backend `GET products` `type` ni bilmaydi (eski
+   * ekran uni yuborardi — server e'tiborsiz qoldirardi). Qidiruv esa endi
+   * SERVERDA, shuning uchun bu yerda `name.includes(q)` yo'q: u alifboni
+   * bilmasdi va «Сникерс» yozgan odam «Snikers» ni topa olmasdi.
    */
   readonly filteredProducts = computed(() => {
-    const q = this.search().toLowerCase();
     const type = this.typeFilter();
-    return this.products().filter(
-      (p) =>
-        (!q || p.name.toLowerCase().includes(q) || (p.barcode?.toLowerCase().includes(q) ?? false)) &&
-        (type === null || p.type === type)
-    );
+    return type === null ? this.products() : this.products().filter((p) => p.type === type);
   });
+
+  constructor() {
+    // Har harfga so'rov ketmasin — `onSearchChange` 300 ms kutadi (search.util.ts).
+    onSearchChange(this.search, () => this.loadProducts());
+  }
 
   ngOnInit(): void {
     this.loadProducts();
@@ -126,15 +129,20 @@ export default class ProductListComponent implements OnInit {
   }
 
   loadProducts(): void {
+    const query = this.search().trim();
     this.loading.set(true);
-    this.productService.getProducts().subscribe({
-      next: (res) => {
-        this.products.set(res.success && res.data ? res.data : []);
-        this.loading.set(false);
-      },
-      // Xato toastini `WmsErrorNotifier` allaqachon chiqardi.
-      error: () => this.loading.set(false),
-    });
+    // Qidiruvda global progress chizig'i chaqnamasin (`SEARCH_CALL`) — kutish
+    // holati jadvalning o'z `loading` i bilan ko'rsatiladi.
+    this.productService
+      .getProducts(query ? productSearch(query) : ALL_PRODUCTS, query ? SEARCH_CALL : undefined)
+      .subscribe({
+        next: (res) => {
+          this.products.set(res.success && res.data ? res.data : []);
+          this.loading.set(false);
+        },
+        // Xato toastini `WmsErrorNotifier` allaqachon chiqardi.
+        error: () => this.loading.set(false),
+      });
   }
 
   private loadCategories(): void {

@@ -39,7 +39,9 @@ public class WarehouseService : IWarehouseService
 
         var w = new Warehouse
         {
-            Name = dto.Name, Type = dto.Type, Description = dto.Description
+            // Qidiruv ustuni nom bilan BIRGA (P2.1) — sabab `SearchNormalizer` izohida.
+            Name = dto.Name, NameSearch = SearchNormalizer.Normalize(dto.Name),
+            Type = dto.Type, Description = dto.Description
         };
         _db.Warehouses.Add(w);
         await _db.SaveChangesAsync();
@@ -53,7 +55,8 @@ public class WarehouseService : IWarehouseService
     {
         var w = await _db.Warehouses.FirstOrDefaultAsync(x => x.Id == id)
             ?? throw new NotFoundException("Warehouse not found");
-        w.Name = dto.Name; w.Type = dto.Type; w.Description = dto.Description;
+        w.Name = dto.Name; w.NameSearch = SearchNormalizer.Normalize(dto.Name);
+        w.Type = dto.Type; w.Description = dto.Description;
         await _db.SaveChangesAsync();
         return new WarehouseDto { Id = w.Id, Name = w.Name, Type = w.Type, Description = w.Description };
     }

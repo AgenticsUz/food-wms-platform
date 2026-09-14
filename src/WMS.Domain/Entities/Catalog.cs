@@ -20,6 +20,17 @@ public class Unit : TenantEntity
 public class Product : TenantEntity
 {
     public string Name { get; set; } = null!;
+
+    /// <summary>
+    /// <see cref="Name"/> ning qidiruv shakli (P2.1) — GIN trigram indeks shu ustunda.
+    /// </summary>
+    /// <remarks>
+    /// ⚠️ Hisoblanadigan ustun EMAS: kirill→lotin o'girish C# da
+    /// (<c>SearchNormalizer.Normalize</c>), shuning uchun nomni o'zgartirgan HAR joy
+    /// (servis, import, seed) buni ham yangilaydi.
+    /// </remarks>
+    public string NameSearch { get; set; } = string.Empty;
+
     public Guid CategoryId { get; set; }
     public Category Category { get; set; } = null!;
     public Guid UnitId { get; set; }

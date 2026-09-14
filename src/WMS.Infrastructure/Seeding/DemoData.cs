@@ -1,5 +1,6 @@
 using System.Globalization;
 using Microsoft.EntityFrameworkCore;
+using WMS.Application.Common;
 using WMS.Domain.Common;
 using WMS.Domain.Entities;
 using WMS.Domain.Enums;
@@ -209,6 +210,23 @@ internal sealed partial class DemoData
     private T Add<T>(T entity, DateTime? at = null)
         where T : BaseEntity
     {
+        // Qidiruv ustuni (P2.1) — YAGONA joyda: demo yuzlab qator yasaydi va har
+        // chaqiruvda `NameSearch` yozib o'tirish bittasini unutish bilan tugardi.
+        switch (entity)
+        {
+            case Product product:
+                product.NameSearch = SearchNormalizer.Normalize(product.Name);
+                break;
+            case Counterparty counterparty:
+                counterparty.NameSearch = SearchNormalizer.Normalize(counterparty.Name);
+                break;
+            case Warehouse warehouse:
+                warehouse.NameSearch = SearchNormalizer.Normalize(warehouse.Name);
+                break;
+            default:
+                break;
+        }
+
         _db.Add(entity);
         _created.Add((entity, at ?? _start));
         return entity;

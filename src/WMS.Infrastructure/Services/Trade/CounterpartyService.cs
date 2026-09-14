@@ -13,25 +13,48 @@ namespace WMS.Infrastructure.Services.Trade;
 // belgisi) va kontragent portali o'chdi (D10, D8). INN kontragentning o'zida, faqat tekshiriladi.
 public class CounterpartyService : ICounterpartyService
 {
+    /// <summary>Qidiruvda ko'pi bilan shuncha nomzod (ro'yxat sahifalanmaydi).</summary>
+    private const int SearchLimit = 50;
+
     private readonly WmsDbContext _db;
     private readonly ITenantStateService _tenantState;
-    public CounterpartyService(WmsDbContext db, ITenantStateService tenantState)
-    { _db = db; _tenantState = tenantState; }
+    private readonly ISearchService _search;
+    public CounterpartyService(WmsDbContext db, ITenantStateService tenantState, ISearchService search)
+    { _db = db; _tenantState = tenantState; _search = search; }
 
-    public async Task<List<CounterpartyDto>> GetAllAsync(CounterpartyType? type = null)
+    public async Task<List<CounterpartyDto>> GetAllAsync(CounterpartyType? type = null, string? search = null)
     {
         await EnsureCounterpartyTypeAllowedAsync(type);
 
         var q = _db.Counterparties.AsQueryable();
         if (type.HasValue) q = q.Where(c => c.Type == type.Value);
 
-        return await q.OrderBy(c => c.Name).Select(c => new CounterpartyDto
+        // Qidiruv: nomzodlarni `ISearchService` beradi, tur filtri esa baribir SHU YERDA
+        // qoladi — feature tekshiruvi bilan bitta joyda tursin.
+        List<Guid> ranked = [];
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            IReadOnlyList<CounterpartySearchCandidate> candidates =
+                await _search.FindCounterpartiesAsync(search, SearchLimit);
+            ranked = candidates.Select(c => c.Id).ToList();
+            if (ranked.Count == 0) return [];
+
+            q = q.Where(c => ranked.Contains(c.Id));
+        }
+
+        List<CounterpartyDto> rows = await q.OrderBy(c => c.Name).Select(c => new CounterpartyDto
         {
             Id = c.Id, Name = c.Name, Type = c.Type, Phone = c.Phone,
             Address = c.Address, Note = c.Note, AgentId = c.AgentId,
             AgentName = c.Agent != null ? c.Agent.Name : null,
             Inn = c.Inn
         }).ToListAsync();
+
+        if (ranked.Count == 0) return rows;
+
+        // `IN (...)` tartibni SAQLAMAYDI — o'xshashlik bali tartibini qaytarib qo'yamiz.
+        Dictionary<Guid, int> rank = ranked.Index().ToDictionary(x => x.Item, x => x.Index);
+        return rows.OrderBy(r => rank[r.Id]).ToList();
     }
 
     /// <summary>
@@ -81,7 +104,9 @@ public class CounterpartyService : ICounterpartyService
 
         var c = new Counterparty
         {
-            Name = dto.Name, Type = dto.Type, Phone = PhoneHelper.Normalize(dto.Phone),
+            // Qidiruv ustuni nom bilan BIRGA (P2.1) — sabab `SearchNormalizer` izohida.
+            Name = dto.Name, NameSearch = SearchNormalizer.Normalize(dto.Name),
+            Type = dto.Type, Phone = PhoneHelper.Normalize(dto.Phone),
             Inn = NormalizeInn(dto.Inn),
             Address = dto.Address, Note = dto.Note, AgentId = dto.AgentId
         };
@@ -98,7 +123,8 @@ public class CounterpartyService : ICounterpartyService
 
         // Bo'sh INN — bog'lanishni tozalaydi; noto'g'ri INN — xato (SQLite davridagi qoida).
         c.Inn = NormalizeInn(dto.Inn);
-        c.Name = dto.Name; c.Type = dto.Type; c.Phone = PhoneHelper.Normalize(dto.Phone);
+        c.Name = dto.Name; c.NameSearch = SearchNormalizer.Normalize(dto.Name);
+        c.Type = dto.Type; c.Phone = PhoneHelper.Normalize(dto.Phone);
         c.Address = dto.Address; c.Note = dto.Note; c.AgentId = dto.AgentId;
         await _db.SaveChangesAsync();
         return await GetByIdAsync(c.Id);
