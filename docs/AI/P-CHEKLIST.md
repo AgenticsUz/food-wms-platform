@@ -18,22 +18,24 @@
 | # | Ish | Holat |
 |---|---|---|
 | 1 | T2 (`096f2be`) prod'ga deploy — F7 usuli, `docs/DEPLOY.md` (baza zaxirasi + image teglari shart) | ⏳ |
-| 2 | §3 SQL tekshiruvi (quyida tayyor buyruqlar) → `01a0964f-…` sababi aniqlanadi | ⏳ |
-| 3 | FEFO/o'chirilgan partiya tuzatishi (SQL natijasiga qarab, REJA §P1 oxiri va XATOLAR §3.4; darvoza testi: «o'chirilgan partiyali qator FEFO'da ko'rinadi») | ⏳ |
-| 4 | Bot tokenini BotFather'da `/revoke`, yangi token prod `wms.env` ga (token suhbatlarda ko'ringan — xavfsizlik) | ⏳ |
+| 2 | ~~§3 SQL tekshiruvi~~ | ✅ 2026-09-14 — sabab aniqlandi (quyida) |
+| 3 | ~~FEFO/o'chirilgan partiya tuzatishi~~ | ✅ 2026-09-14 (`StockAllocator`, darvoza testlari bilan) |
+| 4 | Bot tokenini BotFather'da `/revoke`, yangi token prod `wms.env` ga (token suhbatlarda ko'ringan — xavfsizlik) | ⏳ **foydalanuvchida** |
 | 5 | ~~Platforma + WMS push~~ | ✅ 2026-09-14 (`8fea6fe`, `096f2be`) |
 | 6 | ~~T2 kod tuzatishi~~ | ✅ 2026-09-14 (`096f2be`) |
 
-§3 SQL — foydalanuvchi `!` bilan yuboradi (Claude'ga prod o'qish ruxsati yo'q);
-⚠️ hujjatdagi eski `-U wms -d wms` NOTO'G'RI, to'g'risi:
+**§3 natijasi (prod, faqat o'qish):** hujjat — Pending chiqim, manba **Sklad1**,
+mahsulot **Snikers**, 34 dona. O'sha mahsulot bo'yicha qoldiq qatori **0 ta**,
+Sklad1 da umuman qoldiq yo'q, butun bazada o'chirilgan partiyali qator ham **0 ta**.
+Ya'ni ikkala gumon ham tasdiqlanmadi: tovar hech qachon kirim qilinmagan va xato
+MAZMUNAN to'g'ri edi; nuqson faqat UX'da bo'lgan (T2 da tuzatilgan). Batafsil —
+`docs/F10-HISOBOT.md`.
 
-```
-! ssh -i ~/.ssh/agentics-demo deploy@45.138.158.200 "docker exec -i \$(docker ps -qf name=wms-postgres) psql -U postgres -d agentics_wms -c \"SELECT t.type, t.status, t.from_warehouse_id, i.product_id, i.quantity FROM wms.transfer t JOIN wms.transfer_item i ON i.transfer_id=t.id WHERE t.id='01a0964f-b5ea-724d-9791-86c8d4cce9b8';\""
-```
-
-```
-! ssh -i ~/.ssh/agentics-demo deploy@45.138.158.200 "docker exec -i \$(docker ps -qf name=wms-postgres) psql -U postgres -d agentics_wms -c \"SELECT s.warehouse_id, s.batch_id, s.quantity, s.reserved_quantity, b.is_deleted FROM wms.warehouse_stock s LEFT JOIN wms.batch b ON b.id=s.batch_id WHERE s.product_id IN (SELECT product_id FROM wms.transfer_item WHERE transfer_id='01a0964f-b5ea-724d-9791-86c8d4cce9b8');\""
-```
+**O'chirilgan partiya qarori:** prod'da bunday qator yo'q, lekin nuqson latent
+turardi (`GetStockAsync` ko'rsatadi, `StockAllocator` yashirardi). Haqiqat — qoldiq
+qatorining o'zi; `AvailableRows` endi yumshoq-o'chirish filtrini o'chiradi va faqat
+qoldiq qatorining O'Z `is_deleted` ini tekshiradi. Darvoza:
+`tests/WMS.Tests/Catalog/StockAllocatorTests.cs`.
 
 ### 1.2 P1 — Backend test poydevori (REJA §P1) — ENG KATTA BO'SHLIQ
 
@@ -71,7 +73,7 @@ Qabul: «Snikers»/«snickers»/«Сникерс» — bitta mahsulot birinchi o
 | 3 | P2.4 Qisqa hujjat raqami (tenant hisoblagichi) | A3/UI qulayligi | ⏳ |
 | 4 | P2.5 Partiya tannarxi (`Batch.UnitCost`) | A4 foyda hisoboti | ⏳ |
 | 5 | P2.6 Standart ombor | AI qayta so'rashini kamaytiradi | ⏳ |
-| 6 | P2.7 Qadoq — **FOYDALANUVCHI QARORI kerak** (A: `PackSize` maydoni / B: qilinmaydi) | A3 «50 quti» | ❓ qaror |
+| 6 | P2.7 Qadoq — **qaror: VARIANT A** (`Product.PackSize` + `PackUnit`, 1 quti = N dona; formada ham, AI'da ham konversiya) | A3 «50 quti» | ⏳ (qaror 2026-09-14) |
 
 ---
 

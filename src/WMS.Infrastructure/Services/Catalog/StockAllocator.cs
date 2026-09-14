@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Platform.Infrastructure.Persistence;
 using WMS.Application.Interfaces;
 using WMS.Domain.Entities;
 using WMS.Infrastructure.Persistence;
@@ -38,7 +39,7 @@ public sealed class StockAllocator : IStockAllocator
     }
 
     /// <summary>
-    /// Yechishga YAROQLI qatorlar — mavjudlik sharti, ombor filtri va partiya sharti.
+    /// Yechishga YAROQLI qatorlar — mavjudlik sharti va ombor filtri.
     /// </summary>
     /// <remarks>
     /// <para>
@@ -46,19 +47,27 @@ public sealed class StockAllocator : IStockAllocator
     /// xil shart bo'lsa, tekshiruvdan o'tgan hujjat tasdiqda yiqilardi.
     /// </para>
     /// <para>
-    /// ⚠️ Partiya sharti (<c>EXISTS</c>) ATAYLAB: FEFO tartibi partiya maydonlari bo'yicha
-    /// va bog'lanish majburiy, ya'ni SQL'da INNER JOIN — yumshoq o'chirilgan partiyali
-    /// qatorni yechish ko'rmaydi. Tekshiruv ham AYNAN shuni ko'rmasligi kerak, aks holda
-    /// u «yetadi» der edi, tasdiq esa «yetmadi». ⚠️ Bunday qator qoldiq ekranida (partiyaga
-    /// tegmaydigan <c>GetStockAsync</c>) KO'RINADI — «bor, lekin chiqmaydi» holati;
-    /// `docs/XATOLAR-2026-09-14.md` §3 ga qarang.
+    /// ⚠️ <b>Yumshoq o'chirilgan partiya qoldiqni YASHIRMAYDI</b> (2026-09-14 qarori,
+    /// `docs/XATOLAR-2026-09-14.md` §3). Ilgari bu yerda <c>EXISTS(Batches)</c> sharti
+    /// turardi va u o'chirilgan partiyali qatorni ikkala yo'ldan ham olib tashlardi —
+    /// holbuki qoldiq ekrani (<c>WarehouseService.GetStockAsync</c>, partiyaga umuman
+    /// tegmaydi) o'sha qatorni KO'RSATARDI: «ekranda bor, chiqimga chiqmaydi». Haqiqat —
+    /// qoldiq qatorining o'zi; partiya faqat FEFO tartibi uchun metama'lumot, uni o'chirish
+    /// tovarni omborda yo'q qilmaydi.
+    /// </para>
+    /// <para>
+    /// Nomli yumshoq-o'chirish filtri BUTUN so'rov uchun o'chiriladi (partiya bog'lanishi
+    /// ham shu filtrga tushardi), shuning uchun qoldiq qatorining O'Z <c>is_deleted</c> i
+    /// qo'lda tekshiriladi — aks holda o'chirilgan qoldiq qatori ham qaytib kelardi.
+    /// Tenant filtri esa JOYIDA qoladi (nomli filtrlar alohida o'chiriladi).
     /// </para>
     /// </remarks>
     private IQueryable<WarehouseStock> AvailableRows(Guid? warehouseId)
     {
         IQueryable<WarehouseStock> query = _db.WarehouseStocks
-            .Where(s => s.Quantity - s.ReservedQuantity > 0)
-            .Where(s => _db.Batches.Any(b => b.Id == s.BatchId));
+            .IgnoreQueryFilters([AppQueryFilters.SoftDelete])
+            .Where(s => !s.IsDeleted)
+            .Where(s => s.Quantity - s.ReservedQuantity > 0);
 
         return warehouseId is Guid id ? query.Where(s => s.WarehouseId == id) : query;
     }

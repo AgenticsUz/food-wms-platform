@@ -105,7 +105,11 @@ public sealed class WmsDatabaseFixture : IAsyncLifetime
     public async Task<TestTenant> CreateTenantAsync(string? code = null)
     {
         Guid tenantId = Guid.CreateVersion7();
-        string tenantCode = code ?? $"t-{tenantId.ToString("N")[..10]}";
+
+        // ⚠️ Kod TASODIFIY v4 dan olinadi, `tenantId` (v7) dan EMAS: v7 ning bosh belgilari —
+        // vaqt tamg'asi, ya'ni bir vaqtda tenant yaratgan ikki test bir xil kod olib
+        // `tenant.code` noyobligini buzardi (23505).
+        string tenantCode = code ?? $"t-{Guid.NewGuid().ToString("N")[..12]}";
 
         await using AsyncServiceScope scope = Services.CreateAsyncScope();
         WmsDbContext db = scope.ServiceProvider.GetRequiredService<WmsDbContext>();
