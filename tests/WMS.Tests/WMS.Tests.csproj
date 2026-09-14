@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- CA1707: test nomlarida pastki chiziq ATAYLAB (o'qiladigan holat nomlari). -->
+  <PropertyGroup>
+    <!-- xunit.v3 to'plami o'z-o'zini yurituvchi EXE (MTP v2 xosti) — shart. -->
+    <OutputType>Exe</OutputType>
+    <NoWarn>$(NoWarn);CA1707</NoWarn>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <!--
+    WMS INTEGRATSIYA TESTLARI — HAQIQIY Postgres (Testcontainers), InMemory EMAS.
+
+    Sabab: tekshiriladigan da'volarning hammasi bazaning O'ZIGA tayanadi —
+    RLS siyosati (`tenant_isolation`), `xmin` optimistik versiya (parallel 409),
+    `numeric(18,3)` yaxlitlash, filtrli noyob indekslar (komissiya) va
+    `app_user` rolining NOBYPASSRLS bo'lishi. InMemory provayderida bularning
+    birortasi ham yo'q, ya'ni testlar hech narsa o'lchamasdi.
+  -->
+  <ItemGroup>
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="Microsoft.Testing.Platform.MSBuild" />
+    <PackageReference Include="Testcontainers.PostgreSql" />
+    <PackageReference Include="Shouldly" />
+    <PackageReference Include="coverlet.collector" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/WMS.API/WMS.API.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+    <Using Include="Shouldly" />
+  </ItemGroup>
+
+</Project>

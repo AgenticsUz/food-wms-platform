@@ -61,4 +61,19 @@
     <PackageVersion Include="Scalar.AspNetCore" Version="2.16.20" />
   </ItemGroup>
 
+  <!-- ==================== Testlar ==================== -->
+  <!--
+    Versiyalar `agentics-platform` bilan bir xil ushlab turiladi: ikki repo bitta
+    test naqshini (xunit.v3 + MTP v2 + Testcontainers) baham ko'radi va versiya
+    ajralsa `run-tests.sh` ning «0 test» darvozasi ikki joyda boshqacha yurardi.
+  -->
+  <ItemGroup Label="Tests">
+    <PackageVersion Include="xunit.v3" Version="4.0.0" />
+    <!-- `dotnet test` <-> Microsoft.Testing.Platform ko'prigi (xunit.v3 MTP v2 ustida ishlaydi) -->
+    <PackageVersion Include="Microsoft.Testing.Platform.MSBuild" Version="2.3.3" />
+    <PackageVersion Include="Shouldly" Version="4.3.0" />
+    <PackageVersion Include="Testcontainers.PostgreSql" Version="4.14.0" />
+    <PackageVersion Include="coverlet.collector" Version="10.0.1" />
+  </ItemGroup>
+
 </Project>

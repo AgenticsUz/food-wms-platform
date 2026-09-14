@@ -5,4 +5,7 @@
     <Project Path="src/WMS.Infrastructure/WMS.Infrastructure.csproj" />
     <Project Path="src/WMS.API/WMS.API.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/WMS.Tests/WMS.Tests.csproj" />
+  </Folder>
 </Solution>
