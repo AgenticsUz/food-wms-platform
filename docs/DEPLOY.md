@@ -103,6 +103,19 @@ ssh -i ~/.ssh/agentics-demo deploy@45.138.158.200 'set -e
   cd /opt/agentics/wms/docker && docker compose -f docker-compose.prod.yml up -d --no-build --no-deps wms-web'
 ```
 
+## 5.1 Saboqlar (deploy amalda topgan)
+
+📌 **Migratsiya tenant jadvaliga MA'LUMOT yoza olmaydi** (2026-09-14). `wms.*`
+tenant jadvallarida RLS `FORCE` rejimida, migratsiya esa `app_migrator` roli bilan
+ketadi (`rolbypassrls = false`) — tenant konteksti qo'yilmagan `UPDATE`/`INSERT`
+**0 qatorga tegadi va XATO BERMAYDI**. `AddIdentityRoleToProfile` dagi backfill
+aynan shunday jim yo'qolgan. Ma'lumotni to'ldirish kerak bo'lsa — servis qatlamida
+(tenant konteksti bilan) yoki JIT/fon vazifada qiling, migratsiyada emas.
+
+📌 **Kabinet (F9) prod'da Identity sozlamasini talab qiladi:** `identity.product`
+da `wms` rollari ro'yxatida `client` va `agent` bo'lishi shart (Console →
+Mahsulotlar), aks holda «Kabinet ochish» `IDN-TEN-003` beradi.
+
 ## 6. Tekshiruv
 
 - `docker ps` — konteyner `(healthy)`.
