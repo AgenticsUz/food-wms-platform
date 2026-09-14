@@ -18,24 +18,17 @@ namespace WMS.Infrastructure.Persistence.Migrations
                 maxLength: 32,
                 nullable: true);
 
-            // Mavjud profillar: JIT ularga birinchi kirishda AYNAN BITTA tizim rolini
-            // bergan edi. Ustunni o'sha rol bilan to'ldiramiz — aks holda birinchi
-            // sinxronizatsiya «avvalgisi noma'lum» deb ikkinchi tizim rolini qo'shib
-            // yuborardi. Bir nechta tizim roli bo'lsa (admin qo'shgan) — tegilmaydi,
-            // sink ularni ongli qaror deb hisoblaydi.
-            migrationBuilder.Sql("""
-                UPDATE wms.user_profile p
-                SET identity_role = s.code
-                FROM (
-                    SELECT ur.user_id, MIN(r.code) AS code, COUNT(*) AS cnt
-                    FROM wms.user_role ur
-                    JOIN wms.role r ON r.id = ur.role_id
-                    WHERE r.code IN ('admin', 'manager', 'employee', 'viewer')
-                      AND r.is_deleted = false
-                    GROUP BY ur.user_id
-                ) s
-                WHERE s.user_id = p.id AND s.cnt = 1;
-                """);
+
+            // ⚠️ Bu yerda backfill YO'Q va bu ataylab. Birinchi urinishda shu ustunni
+            // mavjud tizim rolidan to'ldiradigan UPDATE yozilgan edi — u PROD'DA JIM
+            // 0 QATORGA tegdi: `user_profile` va `user_role` da RLS `FORCE` rejimida,
+            // migratsiya esa `app_migrator` roli bilan ketadi (`rolbypassrls = false`),
+            // ya'ni tenant konteksti qo'yilmagan so'rov hech narsa ko'rmaydi.
+            //
+            // To'ldirishning HOJATI ham yo'q: `WmsPlatformUserSink.SyncRoleAsync`
+            // `identity_role` bo'sh bo'lsa va profilda AYNAN bitta tizim roli bo'lsa,
+            // o'shani «JIT bergan» deb qabul qiladi — eski profillar birinchi
+            // kirishdayoq to'g'rilanadi va ustun o'sha yerda yoziladi.
         }
 
         /// <inheritdoc />

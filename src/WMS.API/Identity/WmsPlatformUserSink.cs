@@ -216,9 +216,12 @@ internal sealed partial class WmsPlatformUserSink : IPlatformUserSink
             .Where(ur => ur.UserId == stored.Id)
             .ToListAsync(cancellationToken);
 
-        // Eski profil (ustun F8 dan oldin yozilgan): bitta tizim roli bo'lsa, uni JIT
-        // bergan deb qabul qilamiz — aks holda birinchi sinxronizatsiya ikkinchi tizim
-        // rolini qo'shib yuborardi.
+        // Eski profil (ustun bu o'zgarishdan oldin yozilgan): bitta tizim roli bo'lsa,
+        // uni JIT bergan deb qabul qilamiz — aks holda birinchi sinxronizatsiya ikkinchi
+        // tizim rolini qo'shib yuborardi.
+        //
+        // ⚠️ Bu YAGONA to'ldirish yo'li: migratsiyadagi backfill RLS tufayli ishlamaydi
+        // (`AddIdentityRoleToProfile` izohi), shuning uchun shu shart olib tashlanmasin.
         string? previous = stored.IdentityRole;
         if (previous is null)
         {
