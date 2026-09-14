@@ -109,5 +109,7 @@ bot o'chiq), `dotnet run` uchun `Telegram__BotToken` env. Dev'da O'Z test boting
 ## 6. AI qatlami (F10 — rejalashtirilgan)
 
 Amaldagi reja — `docs/AI/WMS-AI-REJA.md` (P poydevor → A AI qatlami → K kelajak;
-har bosqich alohida sessiya, hisobot `docs/F10-HISOBOT.md` ga). Tahlil —
-`docs/AI/AI-TAVSIYA.md` (farq bo'lsa REJA ustun). Branch: `f10-ai`.
+har bosqich alohida sessiya, hisobot `docs/F10-HISOBOT.md` ga). AI'dan oldingi
+ishlar va ularning holati — `docs/AI/P-CHEKLIST.md` (ish varag'i, shu yerdan
+boshlanadi). Tahlil — `docs/AI/AI-TAVSIYA.md` (farq bo'lsa REJA ustun).
+Branch: `f10-ai`.

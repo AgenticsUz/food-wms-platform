@@ -39,6 +39,10 @@
 
 ## P — POYDEVOR (AI'dan oldin)
 
+> **Ish varag'i — `docs/AI/P-CHEKLIST.md`:** P ishlarining tartibi, ustuvorligi
+> (nima AI'ni bloklaydi, nima parallel) va joriy holati o'sha yerda yuritiladi;
+> bu bo'limda — tavsif va qabul mezonlari.
+
 ### P0 — Ochiq bandlarni yopish
 
 **Ishlar**
