@@ -44,23 +44,38 @@ Hozir backend'da 0 ta test (faqat 5 frontend spec). AI hujjat yozishidan oldin
 
 | # | Ish | Holat |
 |---|---|---|
-| 1 | `tests/WMS.Tests` (xUnit + Testcontainers PostgreSQL, RLS haqiqiy bazada) + `AgenticsWms.slnx` ga ulash | ⏳ |
-| 2 | Tenant konteksti test-yordamchisi | ⏳ |
-| 3 | `TransferService` testlari (REJA'dagi 7 stsenariy: FEFO, «kerak N, mavjud M», kirim partiyasi, parallel 409, rad etish, komissiya, ruxsat 403) | ⏳ |
-| 4 | `GetAvailableAsync` = `DeductFefoAsync` shart bir xilligi testi | ⏳ |
-| 5 | `scripts/run-tests.sh` | ⏳ |
+| 1 | `tests/WMS.Tests` (xUnit v3 + Testcontainers PostgreSQL, RLS haqiqiy bazada) + `AgenticsWms.slnx` ga ulash | ✅ 2026-09-14 (`17217a6`) |
+| 2 | Tenant konteksti test-yordamchisi (`WmsTenantScope`, `TestData`) | ✅ (`17217a6`) |
+| 3 | `TransferService` testlari (7 stsenariy) | ✅ (`a490f42`) |
+| 4 | `GetAvailableAsync` = `DeductFefoAsync` shart bir xilligi testi | ✅ (`a490f42`) |
+| 5 | `scripts/run-tests.sh` + CI `integration` job'i | ✅ |
 
-Qabul: ≥ 15 test yashil; kamida 3 tasi tuzatishsiz qizil berishi tekshirilgan.
+Qabul: **44 test yashil** (≥ 15 talab qilingan edi); **3 darvoza tuzatishsiz qizil
+berishi tekshirilgan** — vaqtinchalik `git worktree` da eski kodga qarshi yurgizib:
+«o'chirilgan partiyali qator FEFO'da ko'rinadi», «ikki yuza bir xil javob beradi»
+(ikkalasi FEFO tuzatishidan oldingi kodda qizil) va «qoldiq yetmasa YARATISHDA
+xato» (yaratishdagi tekshiruv olib tashlanganda qizil).
+
+⚠️ Ruxsat (§P1 №7) servis darajasida EMAS, controllerda tekshiriladi — shuning
+uchun 403 testi o'rniga statik darvoza: `WmsSystemRoles` to'plamlari va
+`[RequirePermission]` atributlari refleksiya bilan qo'riqlanadi.
 
 ### 1.3 P2.1 — Nom qidiruvi (REJA §P2.1) — A1 tool'lari uchun shart
 
 | # | Ish | Holat |
 |---|---|---|
-| 1 | Migratsiya: `pg_trgm` extension, `name_search` ustunlari (C# transliteratsiya bilan to'ldiriladi — `unaccent` kirillni QILMAYDI), GIN trigram indeks | ⏳ |
-| 2 | `ISearchService` (product/counterparty/warehouse, o'xshashlik bali bilan nomzodlar) | ⏳ |
-| 3 | Mavjud UI qidiruvlari shu servisga o'tadi | ⏳ |
+| 1 | Migratsiya `F10_NameSearch`: `pg_trgm`, `name_search` ustunlari, GIN trigram indeks, backfill | ✅ 2026-09-14 (`cc51818`) |
+| 2 | `ISearchService` (product/counterparty/warehouse, o'xshashlik bali bilan nomzodlar) | ✅ (`cc51818`) |
+| 3 | UI qidiruvlari serverga o'tdi (300 ms debounce; mijozdagi `includes` o'chdi) | ✅ (`cc51818`) |
 
-Qabul: «Snikers»/«snickers»/«Сникерс» — bitta mahsulot birinchi o'rinda.
+Qabul: ✅ «Snikers»/«snickers»/«Сникерс» — bitta mahsulot birinchi o'rinda;
+«Plombir» — 3 nomzod (testlar bilan qo'riqlanadi). Lokal stendda migratsiya
+qo'llandi va backfill hamma qatorni to'ldirdi (bo'sh `name_search` — 0 ta).
+
+⚠️ GIN indeks so'rovda ATAYLAB ishlatilmayapti (indeksli `<%` seans chegarasiga
+bo'ysunadi va «snikers»↔«snickers» ni kesardi) — katalog o'sganda
+`SET LOCAL pg_trgm.word_similarity_threshold` bilan indeksga o'tiladi.
+⚠️ Transliteratsiya o'zbekcha (ж→j); ruscha `zh` yozilsa bal past bo'lishi mumkin.
 
 ---
 
@@ -89,10 +104,16 @@ Qabul: «Snikers»/«snickers»/«Сникерс» — bitta mahsulot birinchi o
 
 ## Yakuniy darvoza (A0 ga o'tishdan oldin)
 
-- [ ] 1-BLOK to'liq ✅ (P0 №1–4, P1, P2.1)
-- [ ] `dotnet build` 0/0, `run-tests.sh` yashil, `wms-web` lint/test/build yashil
-- [ ] Prod deploy qilingan va brauzerda ko'rilgan
-- [ ] P2.7 qadoq qarori yozilgan (A yoki B)
-- [ ] Shu fayl va `docs/F10-HISOBOT.md` yangilangan
+- [x] 1-BLOK: P0 №2–3, P1, P2.1 ✅ — qolgani: **№1 deploy** (ertalab) va
+      **№4 bot tokeni** (BotFather'da faqat foydalanuvchi qila oladi)
+- [x] `dotnet build` 0/0, `run-tests.sh` — **44 test yashil**, `wms-web`
+      lint/test/build yashil (kesh'siz tekshirildi)
+- [ ] Prod deploy qilingan va brauzerda ko'rilgan — **2026-09-15 ertalab**
+- [x] P2.7 qadoq qarori: **Variant A** (`PackSize` + `PackUnit`)
+- [x] Shu fayl va `docs/F10-HISOBOT.md` yangilangan
+
+Lokal stend (2026-09-14): image'lar qayta qurildi, `wms-migrator` `F10_NameSearch`
+ni qo'lladi, `wms-api`/`wms-web` healthy. Brauzer tekshiruvi foydalanuvchida
+(Kaspersky interstitial'i sababli).
 
 Shundan keyin — `WMS-AI-REJA.md` §A0 (yangi sessiya, branch `f10-ai`).

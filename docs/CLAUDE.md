@@ -71,8 +71,12 @@ bilan biriktiriladi; parol WMS'ga hech qachon kelmaydi.
 `up --no-build`). Serverda image QURILMAYDI, GitHub `deploy.yml` o'chiq.
 
 ```bash
-# Build (F6 da avtomatlashtirilgan test YO'Q — foydalanuvchi qarori)
+# Build
 dotnet build AgenticsWms.slnx
+
+# Backend testlari (F10·P1): xUnit v3 + Testcontainers — Docker ishlab turishi SHART.
+# ⚠️ `dotnet test` EMAS: MTP v2 da u «0 test» bilan YASHIL chiqadi (skriptda ikki darvoza bor).
+bash scripts/run-tests.sh Release
 
 # Lokal Postgres (5434) — docker/.env namunadan: cp docker/.env.example docker/.env
 docker compose -f docker/docker-compose.yml up -d postgres

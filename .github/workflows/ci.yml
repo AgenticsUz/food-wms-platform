@@ -8,11 +8,13 @@
 #     frontend     — wms-web: lint, test, build
 #     images       — wms-api, wms-web image'lari (main'ga push'da GHCR'ga)
 #
-#  ⚠️ Backend test job'lari (unit/arxitektura, Testcontainers integratsiyasi) HOZIR
-#  YO'Q va bu ATAYLAB: F6 da foydalanuvchi qarori — yangi avtomatlashtirilgan test
-#  yozilmaydi (PLATFORMA-TZ §7·F6, HOLAT §3). Test loyihasi paydo bo'lganda Wash
-#  naqshi qaytadi: `bash scripts/run-tests.sh Release` (`dotnet test` EMAS — MTP v2
-#  da u «0 test» bilan yashil chiqadi) va alohida `integration` job'i.
+#     integration  — tests/WMS.Tests (xUnit v3 + Testcontainers Postgres 17)
+#
+#  ⚠️ Testlar `bash scripts/run-tests.sh Release` bilan yuriladi, `dotnet test` bilan
+#  EMAS: MTP v2 da `dotnet test` «0 test» bilan YASHIL chiqadi va to'plam umuman
+#  yurmagani bilinmasdi. Skriptning o'zida ikki darvoza bor (DLL yo'q → xato,
+#  `Total: 0` → xato). Testlar Docker talab qiladi (ubuntu runner'da bor);
+#  shuning uchun alohida job — backend build'i ular tufayli sekinlashmasin.
 #
 #  ⚠️ `platform` job'i Wash'da YO'Q va bu ATAYLAB. `nuget.config` va
 #  `frontend/package.json` qo'shni repo'ning `../agentics-platform/artifacts`
@@ -88,6 +90,24 @@ jobs:
           global-json-file: global.json
       - run: dotnet restore AgenticsWms.slnx
       - run: dotnet build AgenticsWms.slnx -c Release --no-restore -warnaserror
+
+  integration:
+    name: integration (Testcontainers Postgres)
+    runs-on: ubuntu-latest
+    needs: platform
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: platform-artifacts
+          path: ${{ github.workspace }}/../agentics-platform/artifacts
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      # Skript o'zi build qiladi (Release) va DLL'ni `dotnet exec` bilan yuritadi.
+      # Konteynerni Testcontainers ko'taradi — `services:` bloki KERAK EMAS va
+      # zararli ham bo'lardi: rollar va kengaytmalarni fixture o'zi yaratadi.
+      - run: bash scripts/run-tests.sh Release
 
   frontend:
     name: frontend (lint + test + build)

@@ -56,4 +56,64 @@ filtrli noyob indeks, `numeric(18,3)`).
 - `scripts/run-tests.sh` — platforma naqshi, ikki darvoza: DLL yo'q → xato,
   `Total: 0` → xato.
 
-Natija va qamrov — quyidagi «Yakuniy holat» bo'limida.
+**Qamrov (44 test, hammasi yashil):**
+
+| To'plam | Nima o'lchanadi |
+|---|---|
+| `Infrastructure/RlsIsolationTests` (2) | Boshqa tenant qatorlari ko'rinmaydi; kontekstsiz qamrov 0 qator (global filtr O'CHIRIB tekshiriladi — himoya RLS'da) |
+| `Infrastructure/RlsPolicyTests` (6) | `app_user` NOBYPASSRLS va superuser emas; 5 jadvalda `tenant_isolation` + `FORCE` |
+| `Trade/TransferServiceTests` (6) | FEFO tartibi, «kerak N, mavjud M» YARATISHDA, kirimda partiya, parallel 409, rad etish, ichki ko'chirish |
+| `Trade/TransferCommissionTests` (3) | Komissiya summasi/yaxlitlash, ikkinchi tasdiq, noyob indeks |
+| `Trade/TransferPermissionGateTests` (6) | Rol to'plamlari va `[RequirePermission]` atributlari (refleksiya) |
+| `Catalog/StockAllocatorTests` (6) | «Qancha bor» = «yechib ber»; o'chirilgan partiya/qator; muddatsiz partiya oxirida |
+| `Catalog/SearchServiceTests` (6) | Uch alifboda bir mahsulot; 3 nomzod; tenant ajratilishi |
+| `Catalog/ProductSearchPathTests` (3) | UI yuradigan yo'l: `GetAllAsync(search:)`, `name_search` yaratish/tahrirda yoziladi |
+
+**Darvozalar HAQIQATAN qizil beradimi** (qabul mezoni). Vaqtinchalik `git worktree`
+da eski kodga qarshi yurgizildi (asl daraxtga tegilmadi):
+
+| Darvoza | Qaysi holatda qizil |
+|---|---|
+| «O'chirilgan partiyali qator FEFO'da ko'rinadi» | FEFO tuzatishidan oldingi commit (`EXISTS` sharti) |
+| «Ikki yuza bir xil javob beradi» | O'sha commit |
+| «Qoldiq yetmasa YARATISHDA xato» | `EnsureStockAvailableAsync` olib tashlanganda |
+
+CI: `.github/workflows/ci.yml` ga `integration` job'i qo'shildi —
+`bash scripts/run-tests.sh Release` (`dotnet test` EMAS).
+
+---
+
+## P2.1 — nom qidiruvi (2026-09-14)
+
+«Сникерс» deb yozgan odam «Snikers» ni topa olmasdi: qidiruv mijozda `includes`
+bilan ishlardi. `unaccent` bu ishni qilmaydi (u faqat diakritika), shuning uchun:
+
+- `SearchNormalizer` (C#): kichik harf → kirill lotinga (o'zbek yozuvi) →
+  apostrof tashlanadi → belgilar bo'sh joyga siqiladi. «Сникерс» → `snikers`.
+- `name_search` ustuni + GIN trigram indeks; ustunni servislar, import va demo
+  seed to'ldiradi; migratsiya eski qatorlarni backfill qiladi.
+- **Backfill va RLS tuzog'i:** migratsiya `app_migrator` bilan yuradi va tenant
+  jadvallarida `FORCE` RLS tufayli `UPDATE` JIM 0 qatorga tegardi (XATOLAR §9.3).
+  Yechim — har jadval uchun `NO FORCE` → `UPDATE` → `FORCE`. Lokal stendda
+  tekshirildi: bo'sh `name_search` qolgan qator **0 ta**.
+- `ISearchService` nomzodlarni BAL bilan qaytaradi va «eng yaxshisi» ni
+  tanlamaydi — A1 da AI bir nechta yaqin nomzodda qayta so'rashi uchun.
+- UI: `GET /api/products?search=`, `GET /api/counterparties?search=`, 300 ms
+  debounce; mahsulot turi filtri mijozda qoldi (backend uni bilmaydi).
+
+**Ochiq (A1 dan oldin ko'rib chiqiladi):** GIN indeks so'rovda ishlatilmayapti
+(seans chegarasi «snikers»↔«snickers» ni kesardi); transliteratsiya o'zbekcha
+(ruscha `zh` past bal beradi); o'xshashlik chegarasi 0.4 — real katalogda sozlash
+kerak bo'lishi mumkin.
+
+---
+
+## Ochiq qolgan ishlar (2026-09-14 holatiga)
+
+| Ish | Kimda |
+|---|---|
+| Prod deploy (P0 №1) — baza zaxirasi + `F10_NameSearch` migratsiyasi bilan | 2026-09-15 ertalab |
+| Bot tokenini BotFather'da `/revoke` va prod `wms.env` ga yangisi (P0 №4) | foydalanuvchi |
+| Kabinet ekranlarini brauzerda ko'rish (3-BLOK №1) | foydalanuvchi |
+| 2-BLOK: P2.2–P2.7 (P2.7 — Variant A qaroriga ko'ra) | keyingi sessiya |
+| Qarz #17: WMS nginx CSP (3-BLOK №2) | keyingi sessiya |
