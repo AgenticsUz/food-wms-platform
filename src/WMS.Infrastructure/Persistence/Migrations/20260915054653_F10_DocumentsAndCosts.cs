@@ -433,7 +433,15 @@ namespace WMS.Infrastructure.Persistence.Migrations
         /// <param name="migrationBuilder">Migratsiya quruvchisi.</param>
         private static void BackfillDocuments(MigrationBuilder migrationBuilder)
         {
-            string[] tables = ["transfer", "payment_history", "production_order", "batch", "tenant_counter"];
+            // ⚠️ Ro'yxatga YOZILADIGAN jadvallar ham, backfill ichida O'QILADIGANLARI ham
+            // kirishi SHART: `FORCE ROW LEVEL SECURITY` `SELECT` ga ham qo'llanadi, ya'ni
+            // `transfer_item` ro'yxatdan tushib qolganda `batch.unit_cost` ni to'ldiradigan
+            // JOIN jimgina 0 qator ko'rgan edi (lokal stendda o'lchandi, 2026-09-15).
+            string[] tables =
+            [
+                "transfer", "transfer_item", "payment_history",
+                "production_order", "batch", "tenant_counter",
+            ];
             foreach (string table in tables)
             {
                 migrationBuilder.Sql($"ALTER TABLE wms.{table} NO FORCE ROW LEVEL SECURITY;");

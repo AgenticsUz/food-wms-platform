@@ -112,6 +112,16 @@ ketadi (`rolbypassrls = false`) — tenant konteksti qo'yilmagan `UPDATE`/`INSER
 aynan shunday jim yo'qolgan. Ma'lumotni to'ldirish kerak bo'lsa — servis qatlamida
 (tenant konteksti bilan) yoki JIT/fon vazifada qiling, migratsiyada emas.
 
+📌 **`NO FORCE` ro'yxati JOIN qilinadigan jadvallarni ham o'z ichiga oladi**
+(2026-09-15). Migratsiya backfill'i RLS'ni chetlab o'tish uchun jadvalni vaqtincha
+`NO FORCE ROW LEVEL SECURITY` qiladi. ⚠️ `FORCE` faqat YOZISHGA emas, **O'QISHGA ham**
+qo'llanadi: `F10_DocumentsAndCosts` da `batch.unit_cost` ni to'ldiradigan `UPDATE`
+`transfer_item` dan o'qirdi, o'sha jadval esa ro'yxatda yo'q edi — natijada gap XATO
+BERMASDAN 0 qatorga tegdi va tannarx bo'sh qoldi. Lokal stendda (ma'lumotli bazada)
+o'lchab topildi; bo'sh test bazasida ko'rinmasdi. Qoida: backfill SQL'idagi HAR jadval —
+yoziladigani ham, o'qiladigani ham — `NO FORCE` ro'yxatida bo'lsin, va migratsiya
+ma'lumoti bor bazada sinab ko'rilsin.
+
 📌 **Kabinet (F9) prod'da Identity sozlamasini talab qiladi:** `identity.product`
 da `wms` rollari ro'yxatida `client` va `agent` bo'lishi shart (Console →
 Mahsulotlar), aks holda «Kabinet ochish» `IDN-TEN-003` beradi.
