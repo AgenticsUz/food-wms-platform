@@ -142,3 +142,77 @@ va 23505 ni USHLAMAYDI — natijada o'sha aylanish to'liq uziladi (boshqa tenant
 va keyingi ishlar bajarilmay qoladi). Naqsh `DebtLedger.GetOrCreateAsync` da bor
 (23505 yutiladi) — shu yerda ham kerak. Deploy'dan oldin ham shunday bo'lgan
 (kod bu bosqichda o'zgarmagan). Tuzatish — alohida ish sifatida navbatga.
+
+
+---
+
+## P2.2–P2.9 — domen bo'shliqlari (2026-09-15)
+
+> Foydalanuvchi talabi: «AI'siz ham, AI bilan ham muammo bo'lmasligi kerak».
+> Shuning uchun har band AI uchun emas, TIZIM uchun tuzatildi; AI qatlami ularni
+> keyin shunchaki ishlatadi.
+
+### Nima qilindi
+
+| Band | Mazmuni |
+|---|---|
+| P2.2 | `IPricingService` — oxirgi TASDIQLANGAN hujjatdagi narx: avval shu kontragent bilan, bo'lmasa umumiy; manbasi (hujjat, sana, kontragent) bilan qaytadi |
+| P2.3 | `Transfer.DocumentDate` — hujjat sanasi; filtr, hisobot, eksport, PDF va Telegram SHU ustunga o'tdi |
+| P2.4 | `Transfer.Number` / `ProductionOrder.Number` — tenant ichida ketma-ket, `tenant_counter` bilan |
+| P2.5 | `Batch.UnitCost`, `TransferItem.UnitCost`, `StageExecution.MaterialCost` + `GetProductProfit` |
+| P2.6 | Standart ombor: tenant sozlamasi + xodim override'i + bitta ombor holati |
+| P2.7 | `Product.PackSize` / `PackUnit` (Variant A) — konversiya FORMADA, baza doim asosiy birlikda |
+| P2.8 | `PaymentHistory.DocumentDate`, `.Direction`, `.Source` |
+| P2.9 | `ReversePaymentAsync` — storno (o'chirish EMAS) |
+
+### Koddan topilgan haqiqiy nuqsonlar (hammasi tuzatildi)
+
+1. **Bir davr — uch xil natija.** Hisobot `ConfirmedAt`, ro'yxat va Excel `CreatedAt`,
+   ishlab chiqarish yana `CreatedAt` bo'yicha ishlardi. Endi hammasi `DocumentDate`
+   (izohlangan istisnolar bundan mustasno: «qachon tasdiqlandi» va «bugun nima
+   KIRITILDI» — boshqa savol, boshqa ustun).
+2. **To'lov yo'nalishi taxmin qilinardi** (`CreatePaymentDto.Direction` bo'sh bo'lsa
+   qarz belgisidan). Nol balansda bu summani teskari tomonga yozib, xatoni IKKI
+   barobar qilardi. Endi yo'nalish SAQLANADI va nol balansda servis so'raydi.
+3. **To'lovni tuzatish yo'li umuman yo'q edi** — xato summa qarz balansida abadiy
+   qolardi. Endi storno: teskari yozuv + sabab, ikki marta qaytarib bo'lmaydi,
+   mijozga xabar ketadi (unga to'lov haqida allaqachon yozilgan bo'lishi mumkin).
+4. **Telegram kunlik xulosa** bir kunda qayta ko'tarilganda `23505` (dedup kaliti)
+   bilan yiqilib, `ForEachTenantAsync` ni O'SHA TENANTDA uzardi — qolgan ishlar
+   bajarilmasdi. Prod deploy'ida ko'rindi. Endi kalitlar oldindan o'qiladi, 23505
+   esa zaxira to'r (`PostgresErrors`); marshrut va mijoz xabarlarida ham shunday.
+5. **Migratsiya backfill'i jimgina 0 qatorga tegdi** — `FORCE ROW LEVEL SECURITY`
+   O'QISHGA ham qo'llanadi, `batch.unit_cost` ni to'ldiruvchi `UPDATE` esa
+   `transfer_item` dan o'qirdi va u `NO FORCE` ro'yxatida yo'q edi. **Bo'sh test
+   bazasida ko'rinmasdi** — lokal stendda, ma'lumotli bazada o'lchab topildi.
+   Saboq `docs/DEPLOY.md` §5.1 ga yozildi.
+
+### Darvozalar
+
+- `RlsPolicyTests` endi jadval ro'yxatini QO'LDA sanamaydi: EF modelidan
+  `ITenantEntity` bo'yicha oladi va har birida RLS + `FORCE` + `tenant_isolation`
+  borligini tekshiradi. ⚠️ Mezon «`tenant_id` ustuni bor» EMAS — Telegram
+  jadvallarida ham shu ustun bor, lekin ular ataylab platforma jadvallari.
+- To'lov testlari: nol balansda yo'nalish so'raladi; kelajak sana rad etiladi;
+  orqaga sana faqat ruxsat bilan; storno qarzni qaytaradi va takrorlanmaydi.
+- Hujjat testlari: 20 parallel yaratish → 20 noyob raqam; kecha sanali hujjat
+  kechagi hisobotda; Excel va analitika bir xil to'plamni qaytaradi.
+
+### Holat
+
+- Backend: **84 test yashil** (44 → 84), build 0 xato / 0 ogohlantirish.
+- Frontend: `lint`, `test`, `build` kesh'siz yashil.
+- Migratsiyalar (`F10_DocumentsAndCosts`, `F10_ProductionMaterialCost`) lokal stendda
+  HAQIQIY ma'lumotda sinaldi: 18 hujjatga raqam berildi, hisoblagich 18/6 da,
+  13 partiyadan 9 tasi tannarx oldi (qolgani ishlab chiqarish partiyalari — kirim
+  narxi yo'q), RLS `FORCE` hamma jadvalda joyida.
+
+### Ochiq qolganlar (AI bosqichidan oldin ko'rib chiqiladi)
+
+- Qaytarish (`Return`) mahsulot foydasidan AYIRILMAYDI — reja bu haqda jim; kerak
+  bo'lsa alohida ish.
+- Mahalliy kun ↔ UTC kun chegarasi: eksport xom taqqoslaydi, analitika kunga
+  yaxlitlaydi; Toshkent (+5) kun chegarasini yuborganda bir kunga farq qilishi
+  mumkin — ikkala joyda BIRGA hal qilinishi kerak.
+- `moduleGuard` bitta modul kodini qabul qiladi, backend esa «kamida bittasi»
+  qoidasida — standart ombor sahifasida modul guard'i qo'yilmadi.
