@@ -29,6 +29,14 @@
     <ProjectReference Include="../../src/WMS.API/WMS.API.csproj" />
   </ItemGroup>
 
+  <!--
+    Sinov to'plami (A1) — MA'LUMOT, kod emas: yangi savol qo'shish uchun kod
+    o'zgartirilmasin. Chiqish papkasiga ko'chiriladi, aks holda test uni topmaydi.
+  -->
+  <ItemGroup>
+    <None Update="Ai/Eval/cases.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
   <ItemGroup>
     <Using Include="Xunit" />
     <Using Include="Shouldly" />

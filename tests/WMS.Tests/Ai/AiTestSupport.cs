@@ -3,7 +3,7 @@ using WMS.Application.Ai;
 using WMS.Application.Common;
 using WMS.Application.Interfaces;
 using WMS.Domain.Entities;
-using WMS.Infrastructure.Services.Catalog;
+
 using WMS.Tests.Infrastructure;
 
 namespace WMS.Tests.Ai;
