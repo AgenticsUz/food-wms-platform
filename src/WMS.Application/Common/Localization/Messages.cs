@@ -29,6 +29,13 @@ public static class Messages
     public const string ModuleDisabled = "This module is not enabled for your subscription plan ({0})";
     public const string FeatureDisabled = "This feature is not enabled for your subscription ({0})";
 
+    // ── AI (F10·A0) ──
+    public const string AiDisabled = "The AI assistant is not enabled for your organization.";
+    public const string AiQuotaExceeded =
+        "The AI assistant has reached this month's limit of {0} requests for your organization.";
+    public const string AiUnavailable = "The AI assistant is temporarily unavailable. Please try again later.";
+    public const string AiToolForbidden = "You do not have permission for this action ({0}).";
+
     // ── Plan limits ──
     public const string LimitUsers = "Your plan ({0}) allows {1} users. Upgrade the plan to add more.";
     public const string LimitWarehouses = "Your plan ({0}) allows {1} warehouses. Upgrade the plan to add more.";

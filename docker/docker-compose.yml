@@ -61,6 +61,13 @@ x-dotnet-env: &dotnet-env
   # Platforma egasining chati (TG17) — bo'sh: o'chiq.
   Telegram__OpsChatId: ${TELEGRAM_OPS_CHAT_ID:-}
 
+  # AI yordamchisi (F10·A0). Kalit bo'sh — modul o'chiq (Telegram naqshi: xato emas).
+  # Narx jadvali appsettings.json da; bu yerda faqat stend bo'yicha o'zgaruvchilar.
+  Ai__ApiKey: ${AI_API_KEY:-}
+  Ai__Model: ${AI_MODEL:-claude-sonnet-5}
+  Ai__Effort: ${AI_EFFORT:-low}
+  Ai__DailyUsdCap: ${AI_DAILY_USD_CAP:-10}
+
 x-api-build: &api-build
   context: ..
   dockerfile: docker/Dockerfile.api

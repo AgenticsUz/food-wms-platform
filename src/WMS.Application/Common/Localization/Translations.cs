@@ -326,6 +326,18 @@ public static class Translations
         [Messages.FeatureDisabled] = [
             "Bu imkoniyat sizning tarifingizga kirmaydi ({0})",
             "Эта возможность не входит в ваш тариф ({0})"],
+        [Messages.AiDisabled] = [
+            "AI yordamchisi tashkilotingizda yoqilmagan.",
+            "AI-помощник не подключён для вашей организации."],
+        [Messages.AiQuotaExceeded] = [
+            "AI yordamchisi shu oy uchun tashkilotingizga ajratilgan {0} ta so'rov chegarasiga yetdi.",
+            "AI-помощник исчерпал месячный лимит вашей организации — {0} запросов."],
+        [Messages.AiUnavailable] = [
+            "AI yordamchisi vaqtincha ishlamayapti. Birozdan keyin urinib ko'ring.",
+            "AI-помощник временно недоступен. Попробуйте позже."],
+        [Messages.AiToolForbidden] = [
+            "Bu amal uchun sizda ruxsat yo'q ({0}).",
+            "У вас нет прав на это действие ({0})."],
         [Messages.LimitUsers] = [
             "Tarifingiz ({0}) {1} ta foydalanuvchiga ruxsat beradi. Ko'proq qo'shish uchun tarifni oshiring.",
             "Ваш тариф ({0}) допускает {1} пользователей. Повысьте тариф, чтобы добавить ещё."],

@@ -30,6 +30,9 @@
     <PackageReference Include="AspNetCore.HealthChecks.NpgSql" />
     <PackageReference Include="ClosedXML" />
     <PackageReference Include="QuestPDF" />
+
+    <!-- AI (F10·A0): SDK'ni BILADIGAN yagona joy — `Services/Ai/AnthropicLlmClient`. -->
+    <PackageReference Include="Anthropic" />
   </ItemGroup>
 
 </Project>

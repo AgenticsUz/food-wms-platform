@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using Platform.Infrastructure.Persistence;
 using Platform.Infrastructure.Tenancy;
+using WMS.Application.Common;
 using WMS.Domain.Entities;
 using WMS.Domain.Enums;
 using WMS.Infrastructure.Persistence;
@@ -74,6 +75,8 @@ public sealed class DemoSeeder
 
         DemoPeople people = await EnsureProfilesAsync(manifest, ct);
 
+        await EnsureAiFeatureAsync(ct);
+
         // Soft-delete filtri ATAYLAB o'chiriladi: demo omborlarini o'chirib tajriba qilgan odam
         // keyingi `seed demo` da ikkinchi mahsulot katalogini olmasin.
         bool seeded = await _db.Warehouses.IgnoreQueryFilters([AppQueryFilters.SoftDelete]).AnyAsync(ct);
@@ -93,6 +96,32 @@ public sealed class DemoSeeder
             "Demo tenant '{TenantCode}' to'ldirildi: {Summary}",
             tenantCode,
             string.Join(", ", summary.Select(kv => $"{kv.Key}={kv.Value}")));
+    }
+
+    /// <summary>
+    /// Demo tenantda AI yordamchisini yoqadi (<c>ai.chat</c> override'i).
+    /// </summary>
+    /// <remarks>
+    /// ⚠️ Feature hech bir planga KIRMAYDI va sukuti o'chiq (sababi <c>FeatureCodes.AiChat</c> da),
+    /// shuning uchun demo uchun ham Console operatori qiladigan narsa — TENANT OVERRIDE'i —
+    /// aynan shu yerda yoziladi. Aks holda demo stendda AI jimgina «o'chiq» bo'lib turardi.
+    /// Mavjud override USTIGA yozilmaydi: kimdir uni ataylab o'chirgan bo'lishi mumkin.
+    /// </remarks>
+    private async Task EnsureAiFeatureAsync(CancellationToken ct)
+    {
+        if (await _db.TenantFeatures.AnyAsync(f => f.FeatureCode == FeatureCodes.AiChat, ct))
+        {
+            return;
+        }
+
+        _db.TenantFeatures.Add(new TenantFeature
+        {
+            FeatureCode = FeatureCodes.AiChat,
+            IsEnabled = true,
+            Note = "Demo stend uchun yoqilgan (seed demo).",
+        });
+
+        await _db.SaveChangesAsync(ct);
     }
 
     /// <summary>Tenant nusxasi — JIT (<c>WmsPlatformUserSink</c>) yozadigan shaklda.</summary>

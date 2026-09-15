@@ -58,6 +58,10 @@ public static class WmsInfrastructureExtensions
         services.AddMemoryCache();
         services.Configure<SubscriptionOptions>(configuration.GetSection(SubscriptionOptions.SectionName));
         services.Configure<TelegramOptions>(configuration.GetSection(TelegramOptions.SectionName));
+
+        // AI (F10·A0). Kalit bo'sh bo'lsa ham bog'lanadi: modul «o'chiq» javobini shu
+        // sozlamalardan o'qiydi (`AiOptions.IsConfigured`).
+        services.Configure<AiOptions>(configuration.GetSection(AiOptions.SectionName));
         services.AddScoped<ITenantStateService, TenantStateService>();
 
         // Hujjat raqamlari (P2.4) — infratuzilma servisi: modul emas, jadval bilan bitta.

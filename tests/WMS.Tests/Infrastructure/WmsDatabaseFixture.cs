@@ -5,6 +5,7 @@ using Microsoft.Extensions.Hosting;
 using Npgsql;
 using Testcontainers.PostgreSql;
 using WMS.API.Hosting;
+using WMS.Application.Ai;
 using WMS.Application.Common;
 using WMS.Application.Interfaces;
 using WMS.Domain.Entities;
@@ -13,6 +14,7 @@ using WMS.Infrastructure.DependencyInjection;
 using WMS.Infrastructure.Persistence;
 using WMS.Infrastructure.Seeding;
 using WMS.Infrastructure.Tenancy;
+using WMS.Tests.Ai;
 
 namespace WMS.Tests.Infrastructure;
 
@@ -153,6 +155,13 @@ public sealed class WmsDatabaseFixture : IAsyncLifetime
         {
             [$"ConnectionStrings:{WmsDatabaseConnections.RuntimeConnectionName}"] = ConnectionFor(RuntimeRole),
             [$"ConnectionStrings:{WmsDatabaseConnections.PrivilegedConnectionName}"] = ConnectionFor(MigratorRole),
+
+            // AI narx jadvali (F10·A0). Qiymatlar `appsettings.json` dagi bilan bir xil —
+            // metering testi hisoblangan dollarni AYNAN shu stavkalarga solishtiradi.
+            ["Ai:Pricing:claude-sonnet-5:InputPerMillion"] = "2.0",
+            ["Ai:Pricing:claude-sonnet-5:OutputPerMillion"] = "10.0",
+            ["Ai:Pricing:claude-sonnet-5:CacheWritePerMillion"] = "2.5",
+            ["Ai:Pricing:claude-sonnet-5:CacheReadPerMillion"] = "0.2",
         });
 
         builder.Services.AddLogging();
@@ -166,6 +175,12 @@ public sealed class WmsDatabaseFixture : IAsyncLifetime
         // testlari HTTP'siz yuradi, shuning uchun sozlanadigan nusxa beriladi.
         builder.Services.AddScoped<TestCurrentUser>();
         builder.Services.AddScoped<ICurrentUser>(sp => sp.GetRequiredService<TestCurrentUser>());
+
+        // ⚠️ `ILlmClient` ni ALMASHTIRAMIZ (ro'yxatda oxirgisi yutadi): haqiqiy klient
+        // kalit sozlanmagani uchun «o'chiq» bo'lardi va metering testlari birinchi
+        // qadamdayoq `ai_disabled` ga urilardi — tarmoqqa chiqmasdan (F10 §0.10).
+        builder.Services.AddSingleton<FakeLlmClient>();
+        builder.Services.AddSingleton<ILlmClient>(sp => sp.GetRequiredService<FakeLlmClient>());
 
         return builder.Build();
     }

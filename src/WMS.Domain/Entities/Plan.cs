@@ -30,4 +30,13 @@ public class Plan : BaseEntity
     public int MaxUsers { get; set; } = 10;
     public int MaxWarehouses { get; set; } = 3;
     public int MaxTransfersPerMonth { get; set; } = 1000;
+
+    /// <summary>AI so'rovlari kvotasi (oyiga). 0 — cheklanmagan.</summary>
+    /// <remarks>
+    /// ⚠️ 0 ning ma'nosi qolgan limitlar bilan bir xil (cheklanmagan), lekin bu yerda u
+    /// «bepul» degani EMAS: AI'ni yoqish uchun baribir <c>ai.chat</c> feature'i kerak va
+    /// undan yuqorida platforma darajasidagi kunlik dollar shifti (<c>Ai:DailyUsdCap</c>)
+    /// turadi. Ya'ni kvota — tenantni tenantdan ajratuvchi o'lchov, xarajat to'ri emas.
+    /// </remarks>
+    public int MaxAiRequestsPerMonth { get; set; }
 }

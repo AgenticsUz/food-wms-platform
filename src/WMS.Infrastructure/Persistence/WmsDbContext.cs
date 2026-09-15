@@ -133,6 +133,12 @@ public sealed class WmsDbContext : DbContext
     public DbSet<Delivery> Deliveries => Set<Delivery>();
     public DbSet<DeliveryStop> DeliveryStops => Set<DeliveryStop>();
 
+    // AI (F10·A0): suhbat va xabar — tenant jadvallari; kunlik platforma sarfi RLS'siz.
+    public DbSet<AiConversation> AiConversations => Set<AiConversation>();
+    public DbSet<AiMessage> AiMessages => Set<AiMessage>();
+    public DbSet<AiUsage> AiUsages => Set<AiUsage>();
+    public DbSet<AiDailyCost> AiDailyCosts => Set<AiDailyCost>();
+
     public DbSet<Shift> Shifts => Set<Shift>();
     public DbSet<ShiftPlan> ShiftPlans => Set<ShiftPlan>();
     public DbSet<ShiftActual> ShiftActuals => Set<ShiftActual>();

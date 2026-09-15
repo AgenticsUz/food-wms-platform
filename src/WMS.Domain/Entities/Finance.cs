@@ -50,6 +50,10 @@ public class PaymentHistory : TenantEntity
     /// <summary>Qaysi yuzadan kirgan (AI kiritgan yozuvni ajratish uchun).</summary>
     public DocumentSource Source { get; set; } = DocumentSource.Ui;
 
+    /// <summary>Qoralamani tayyorlagan AI suhbati (<see cref="Source"/> = <c>Ai</c> da).</summary>
+    /// <remarks>Izohi <see cref="Transfer.AiConversationId"/> da — bir xil audit izi.</remarks>
+    public Guid? AiConversationId { get; set; }
+
     /// <summary>
     /// Bu yozuv qaysi to'lovni QAYTARADI (storno). <see langword="null"/> — oddiy to'lov.
     /// </summary>

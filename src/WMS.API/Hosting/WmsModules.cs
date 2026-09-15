@@ -1,4 +1,5 @@
 using WMS.Infrastructure.Services;
+using WMS.Infrastructure.Services.Ai;
 using WMS.Infrastructure.Services.Catalog;
 using WMS.Infrastructure.Services.Operations;
 using WMS.Infrastructure.Services.Reports;
@@ -27,6 +28,7 @@ public static class WmsModules
         services.AddOperationsModule();
         services.AddReportsModule();
         services.AddSaasModule();
+        services.AddAiModule();
 
         return services;
     }

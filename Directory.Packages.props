@@ -48,6 +48,17 @@
     <PackageVersion Include="QuestPDF" Version="2026.2.4" />
   </ItemGroup>
 
+  <!-- ==================== AI (F10) ==================== -->
+  <!--
+    Anthropic'ning RASMIY C# SDK'si (MIT). FAQAT WMS'da: Wash/HRM'da AI yo'q, shuning
+    uchun bu paket yuqoridagi «uch mahsulotda bir xil versiya» qoidasidan tashqarida.
+    Versiya ANIQ qadaladi — LLM API'si tez o'zgaradi va `*` yoki diapazon jimgina
+    yangi SDK olib kelsa, `AnthropicLlmClient` kutilmaganda kompilyatsiyadan chiqardi.
+  -->
+  <ItemGroup Label="Ai">
+    <PackageVersion Include="Anthropic" Version="12.47.0" />
+  </ItemGroup>
+
   <!-- ==================== Observability ==================== -->
   <ItemGroup Label="Observability">
     <PackageVersion Include="Serilog.AspNetCore" Version="10.0.0" />

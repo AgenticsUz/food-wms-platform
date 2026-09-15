@@ -141,4 +141,58 @@ Lokal stend (2026-09-14): image'lar qayta qurildi, `wms-migrator` `F10_NameSearc
 ni qo'lladi, `wms-api`/`wms-web` healthy. Brauzer tekshiruvi foydalanuvchida
 (Kaspersky interstitial'i sababli).
 
-Shundan keyin — `WMS-AI-REJA.md` §A0 (yangi sessiya, branch `f10-ai`).
+---
+
+## A0 — AI poydevori (REJA §A0) — ✅ 2026-09-15
+
+| # | Ish | Holat |
+|---|---|---|
+| 1 | `Anthropic` NuGet (rasmiy C# SDK), aniq versiya `12.47.0` | ✅ |
+| 2 | `ILlmClient` + `LlmContracts` (Application), `AnthropicLlmClient` (Infrastructure) | ✅ |
+| 3 | `AddAiModule()` → `WmsModules.cs`; `AiOptions` binding'i | ✅ |
+| 4 | Tool registri: `IAiTool`, `AiToolContext`, `IAiToolRegistry` + `AiToolRegistry` | ✅ |
+| 5 | JSON sxema DTO'dan (`AiToolSchema`, `JsonSchemaExporter`) | ✅ |
+| 6 | Jadvallar + migratsiya `F10_AiFoundation` | ✅ |
+| 7 | Metering: `IAiMetering`/`AiMetering`, narx jadvali `AiPricing` | ✅ |
+| 8 | Limitlar: feature `ai.chat`, plan kvotasi, kunlik dollar shifti | ✅ |
+| 9 | Audit: `Transfer.AiConversationId`, `PaymentHistory.AiConversationId` | ✅ |
+| 10 | Konfig: `appsettings.json`, compose (dev+prod), `docker/.env.example` | ✅ |
+| 11 | Xato kodlari (`ai_*`) + uz/ru tarjima + middleware | ✅ |
+| 12 | Testlar: `FakeLlmClient`, registr filtri, sxema, metering | ✅ **18 yangi test** |
+
+**Qabul mezoni:**
+
+- [x] `dotnet build` — 0 xato / 0 ogohlantirish
+- [x] `bash scripts/run-tests.sh` — **102 test yashil** (84 → 102)
+- [x] `Ai__ApiKey` bo'sh — modul o'chiq, tizim ishlayveradi (test bilan qo'riqlanadi)
+- [x] `ai.chat` bazaviy katalogda (`BaseCatalogSeeder`), demo tenantga yoqilgan (`DemoSeeder`)
+- [x] `F10_AiFoundation` haqiqiy Postgres'da qo'llandi; RLS darvozasi (`RlsPolicyTests`)
+      yangi tenant jadvallarini o'z-o'zidan qamrab oldi
+
+**Muhim qarorlar:**
+
+- **`ai.chat` hech bir planga KIRMAYDI va sukuti o'chiq.** Boshqa feature'lar bepul
+  yuzalar — ular uchun «sukut bo'yicha yoqiq» to'g'ri; AI esa har chaqiriqda pul
+  turadi, shuning uchun uni Console operatori tenantga oshkora yoqadi.
+- **Ikki qatlamli sarf hisobi.** `ai_usage` — tenant bo'yicha (RLS), `ai_daily_cost` —
+  platforma bo'yicha (tenant ustuni yo'q). Sabab: kunlik dollar shifti HAMMA tenant
+  yig'indisiga qaraydi va RLS ostidagi jadvaldan bunday yig'indi olib bo'lmaydi.
+- **Narx kodda emas, konfigda** (`Ai:Pricing:{model}`) — tarif o'zgarganda deploy
+  kerak emas. Jadvalda model topilmasa sarf BARIBIR yoziladi (token — haqiqat), dollar
+  esa 0 bo'ladi va logga ogohlantirish chiqadi: jim nol «AI bepul» degan xato xulosa.
+- **Rad javoblari uch xil:** `ai_disabled` 403 (kalit/feature), `ai_quota_exceeded` 402
+  («planni ko'taring» oqimi), `ai_unavailable` 503 (provayder yoki kunlik shift —
+  aybdor tenant emas).
+
+**Yo'l-yo'lakay tuzatilgan nuqsonlar (A0 kodi hali commit qilinmagan edi):**
+
+- `AiToolSchema.For<T>()` ildiz sxemasini `["object","null"]` deb chiqarardi
+  (`JsonSchemaExporter` sukuti) va o'z tekshiruvida yiqilardi —
+  `TreatNullObliviousAsNonNullable` qo'shildi.
+- `AnthropicLlmClient.ParseEffort` `xhigh` ni bilmasdi, `AiOptions` esa uni
+  hujjatlashtirgan edi: `Ai__Effort=xhigh` birinchi jonli chaqiriqda yiqilardi.
+
+**A0 dan keyin ochiq:** suhbat tarixini tozalash fon vazifasi (`HistoryRetentionDays`
+siyosat qiymati bor, vazifa — A1), `ai_usage` ni Console'da ko'rsatish.
+
+Shundan keyin — `WMS-AI-REJA.md` §A1 (o'quvchi tool'lar, gateway, sinov to'plami, Telegram).

@@ -50,6 +50,16 @@ public static class FeatureCodes
     // Agents
     public const string AgentsCommissions = "agents.commissions";
 
+    // AI (F10)
+    /// <summary>AI yordamchisi (web paneli va Telegram).</summary>
+    /// <remarks>
+    /// ⚠️ Bu feature SUKUT BO'YICHA O'CHIQ va hech bir planga KIRMAYDI: har chaqiriq
+    /// pul turadi, shuning uchun uni Console operatori tenantga OSHKORA yoqadi.
+    /// Boshqa feature'lar (qaysi biri plandan kelishi) bepul yuzalar — ular uchun
+    /// «sukut bo'yicha yoqiq» to'g'ri, bu yerda esa hisobni ko'paytirardi.
+    /// </remarks>
+    public const string AiChat = "ai.chat";
+
     // Cross-cutting
     public const string AnalyticsAdvanced = "analytics.advanced";
     public const string ExportExcel = "export.excel";

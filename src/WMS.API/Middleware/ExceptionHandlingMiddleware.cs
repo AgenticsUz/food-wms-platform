@@ -49,6 +49,10 @@ public sealed class ExceptionHandlingMiddleware
                 ModuleDisabledException e => (StatusCodes.Status403Forbidden, e.MessageTemplate, e.MessageArgs, "module_disabled:" + e.ModuleCode),
                 FeatureDisabledException e => (StatusCodes.Status403Forbidden, e.MessageTemplate, e.MessageArgs, "feature_disabled:" + e.FeatureCode),
                 ForbiddenException e => (StatusCodes.Status403Forbidden, e.MessageTemplate, e.MessageArgs, null),
+
+                // AI rad javoblari o'z holatini O'ZI olib yuradi (402/403/503): «o'chiq»,
+                // «kvota tugadi» va «vaqtincha ishlamayapti» mijozga butunlay boshqa narsa deydi.
+                AiException e => (e.Status, e.MessageTemplate, e.MessageArgs, e.Code),
                 AppException e => (StatusCodes.Status400BadRequest, e.MessageTemplate, e.MessageArgs, null),
 
                 // D13: `xmin` ushlagan parallel yozuv. 409 — «qayta yuklab takrorlang», 500 emas.

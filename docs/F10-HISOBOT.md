@@ -246,3 +246,76 @@ Prod API (haqiqiy token bilan) tekshirildi:
 ⚠️ Eski chiqim qatorlarida `unitCost` — `null`: tarixda qaysi partiya sotilgani
 yozilmagan va uni qayta tiklab bo'lmaydi. Yangi hujjatlarda to'ldiriladi; foyda
 hisoboti bunday qatorlarni `unknownCostQuantity` sifatida alohida ko'rsatadi.
+
+---
+
+## A0 — AI poydevori (2026-09-15)
+
+Reja: `docs/AI/WMS-AI-REJA.md` §A0. Ish varag'i: `docs/AI/P-CHEKLIST.md`.
+Bu bosqichda hech narsa «gaplashmaydi» — faqat poydevor: provayder seam'i, tool
+registri, jadvallar, sarf hisobi va o'chirgichlar.
+
+### Nima qilindi
+
+**Provayder seam'i.** `ILlmClient` (Application) — WMS kodining model bilan
+gaplashadigan yagona joyi; `AnthropicLlmClient` (Infrastructure) Anthropic SDK
+turlarini biladigan yagona sinf (`Anthropic 12.47.0`, versiya ANIQ qadalgan).
+System prompt ikki blokka bo'lingan (barqaror + o'zgaruvchan): kesh prefiksi
+`tools → system → messages` tartibida yig'iladi, ya'ni sana yoki tenant nomi
+barqaror blokka tushsa prefiks har so'rovda o'zgarib, kesh hech qachon urmasdi.
+
+**Tool registri — xavfsizlik chegarasi.** `IAiTool { Code, Description, Schema,
+PermissionCode, FeatureCode?, ExecuteAsync }`. Registr foydalanuvchi ruxsatlari VA
+tenant feature'lariga qarab filtrlanadi; ruxsatsiz tool modelga umuman
+ko'rsatilmaydi. Bajarishdan oldin tekshiruv QAYTA qilinadi (`Require`): model
+ro'yxatda ko'rmagan nomni o'zi to'qib chaqirishi mumkin. Takror tool kodi
+startupda yiqitadi — jimgina «oxirgisi yutadi» bo'lsa, ko'rinadigan nom ortida
+kutilmagan amal turishi mumkin edi.
+
+**Jadvallar** (`F10_AiFoundation`): `ai_conversation`, `ai_message`, `ai_usage`
+(uchalasi RLS ostida) va `ai_daily_cost` (tenant ustuni yo'q, RLS yo'q). Oxirgisi
+ATAYLAB alohida: kunlik dollar shifti hamma tenant yig'indisiga qaraydi va RLS
+ostidagi jadvaldan bunday yig'indi olib bo'lmaydi. Audit havolasi:
+`transfer.ai_conversation_id` va `payment_history.ai_conversation_id` (FK
+`RESTRICT` — havola qilingan suhbat tarix tozalashda o'chmaydi).
+
+**Metering.** `ai_usage` `INSERT … ON CONFLICT DO UPDATE … + EXCLUDED` bilan
+yoziladi (`DocumentNumbers` naqshi): bir tenantdan parallel kelgan ikki so'rov bir
+xil kunga yozadi va o'qib-o'zgartirib-yozish oxirgisining tokenini yo'q qilardi.
+
+**O'chirgichlar — uch qatlam:** (1) `Ai__ApiKey` bo'sh — modul o'chiq, qolgan tizim
+ishlayveradi; (2) `ai.chat` feature'i — Console'dagi to'liq o'chirgich, hech bir
+planga kirmaydi va sukuti o'chiq; (3) plan kvotasi (`MaxAiRequestsPerMonth`) va
+platformaning kunlik dollar shifti (`Ai:DailyUsdCap`).
+
+### Qabul mezoni natijasi
+
+| Mezon | Natija |
+|---|---|
+| `dotnet build` | 0 xato / 0 ogohlantirish |
+| `bash scripts/run-tests.sh` | **102 test yashil** (84 → 102, 18 yangi) |
+| `Ai__ApiKey` bo'sh → modul o'chiq | ✅ test bilan (`Kalit_yoq_bolsa_ai_ochiq`) |
+| `ai.chat` katalogda, demo tenantga yoqilgan | ✅ `BaseCatalogSeeder` + `DemoSeeder` |
+| Migratsiya | Testcontainers'da haqiqiy Postgres'ga qo'llandi; RLS darvozasi
+  (`RlsPolicyTests`, model bo'yicha) yangi jadvallarni o'z-o'zidan qamradi |
+
+### Yo'l-yo'lakay tuzatilgan nuqsonlar
+
+A0 kodining bir qismi oldingi sessiyadan commit qilinmagan holda qolgan edi; unda
+ikkita nuqson topildi:
+
+- `AiToolSchema.For<T>()` — `JsonSchemaExporter` sukut bo'yicha havola turini
+  «null bo'lishi ham mumkin» deb belgilaydi va ildiz sxemasi `["object","null"]`
+  bo'lib chiqardi. Natijada sxema eksporti O'Z tekshiruvida yiqilardi.
+  `TreatNullObliviousAsNonNullable = true` qo'shildi.
+- `AnthropicLlmClient.ParseEffort` `xhigh` ni bilmasdi, `AiOptions` esa uni
+  hujjatlashtirgan edi: `Ai__Effort=xhigh` birinchi JONLI chaqiriqda yiqilardi
+  (SDK'da `Effort.Xhigh` bor).
+
+### Ochiq qolganlar
+
+- Suhbat tarixini tozalash fon vazifasi — siyosat qiymati (`HistoryRetentionDays`)
+  bor, vazifaning o'zi A1 da.
+- `ai_usage` ni Console'da ko'rsatish (hozir faqat bazada).
+- Prod'ga deploy QILINMADI: `Ai__ApiKey` bo'sh bo'lsa modul o'chiq, ya'ni A0 ni
+  alohida deploy qilishning ma'nosi yo'q — A1 bilan birga chiqadi.

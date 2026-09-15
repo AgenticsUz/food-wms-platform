@@ -45,6 +45,14 @@ public class Transfer : TenantEntity
     /// <summary>Qaysi yuzadan kirgan (AI kiritgan hujjatni ajratish uchun).</summary>
     public DocumentSource Source { get; set; } = DocumentSource.Ui;
 
+    /// <summary>Qoralamani tayyorlagan AI suhbati (<see cref="Source"/> = <c>Ai</c> da).</summary>
+    /// <remarks>
+    /// <see cref="Source"/> «AI qatnashgan» deydi, bu ustun esa QAYSI so'rov bilan degan
+    /// savolga javob beradi — tekshiruvchi hujjatdan suhbatga o'tib, foydalanuvchi aslida
+    /// nima so'raganini ko'radi. Havola qilingan suhbat tarix tozalashda o'chirilmaydi.
+    /// </remarks>
+    public Guid? AiConversationId { get; set; }
+
     /// <summary><c>Type == Return</c> bo'lganda.</summary>
     public ReturnReason? ReturnReason { get; set; }
 
