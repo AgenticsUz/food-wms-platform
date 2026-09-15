@@ -79,7 +79,7 @@ bo'ysunadi va «snikers»↔«snickers» ni kesardi) — katalog o'sganda
 
 ---
 
-## 2-BLOK — A1 bilan parallel / A3'dan OLDIN (REJA §P2.2–P2.7)
+## 2-BLOK — A1 bilan parallel / A3'dan OLDIN (REJA §P2.2–P2.9)
 
 | # | Ish | Kimga kerak | Holat |
 |---|---|---|---|
@@ -89,6 +89,8 @@ bo'ysunadi va «snikers»↔«snickers» ni kesardi) — katalog o'sganda
 | 4 | P2.5 Partiya tannarxi (`Batch.UnitCost`) | A4 foyda hisoboti | ⏳ |
 | 5 | P2.6 Standart ombor | AI qayta so'rashini kamaytiradi | ⏳ |
 | 6 | P2.7 Qadoq — **qaror: VARIANT A** (`Product.PackSize` + `PackUnit`, 1 quti = N dona; formada ham, AI'da ham konversiya) | A3 «50 quti» | ⏳ (qaror 2026-09-14) |
+| 7 | **P2.8 To'lov sanasi va manbasi** — `PaymentHistory.DocumentDate` (hozir `PaidAt = UtcNow` qotirilgan), `Source`/`AiConversationId`; `transfers.backdate` → `documents.backdate` | A3.2 «kecha to'ladi» | ⏳ |
+| 8 | **P2.9 To'lovni qaytarish** — `ReversePaymentAsync` (o'chirish EMAS, teskari yozuv + sabab). Bugun to'lovni tuzatish yo'li UMUMAN yo'q | A3.2 shart: AI kiritgan xato tuzatilishi kerak | ⏳ |
 
 ---
 

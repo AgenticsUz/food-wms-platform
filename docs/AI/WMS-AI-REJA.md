@@ -141,6 +141,32 @@ Har biri UI uchun ham foyda. Tartib bilan, har biri alohida commit.
 - Variant B: qilinmaydi, AI har safar so'raydi.
 - Qaror P2 boshida foydalanuvchi bilan.
 
+**P2.8 — To'lov sanasi va manbasi (A3.2 uchun SHART)**
+- Hozir `PaymentHistory.PaidAt = DateTime.UtcNow` — QOTIRILGAN, ya'ni «kecha
+  to'lagan edi» ni tizim yoza olmaydi. `PaymentHistory.DocumentDate` qo'shiladi
+  (P2.3 bilan bir xil qoida: kelajak sana taqiq, orqaga sana alohida ruxsat bilan).
+  ⚠️ P2.3 dagi `transfers.backdate` ruxsati `documents.backdate` deb nomlanadi va
+  hujjat ham, to'lov ham shu ruxsatga bog'lanadi (ikkita deyarli bir xil ruxsat
+  chalkashlikdan boshqa narsa bermaydi; P2.3 hali yozilmagani uchun nom bepul).
+- `PaymentHistory.Source` (`ui` / `telegram` / `ai`) + `AiConversationId?` —
+  `Transfer.Source` bilan bir xil naqsh (A0), «buni AI yozganmi» savoli uchun.
+- Qabul: kechagi sana bilan kiritilgan to'lov hisobotda KECHAGI kunda turadi;
+  `documents.backdate` yo'q foydalanuvchiga orqaga sana 403.
+
+**P2.9 — To'lovni tuzatish (A3.2 uchun SHART)**
+- Bugun to'lovni O'CHIRISH ham, QAYTARISH ham yo'q (`FinanceController` da faqat
+  `POST payments`; `DELETE` faqat `transactions` da). Ya'ni xato kiritilgan summa
+  qarz balansida abadiy qolib ketadi — buni AI kiritganda muammo ikki barobar.
+- `IFinanceService.ReversePaymentAsync(paymentId, reason)`: asl yozuv O'CHMAYDI,
+  teskari yo'nalishli yangi `PaymentHistory` yoziladi (`ReversalOfId`, sabab bilan),
+  qarz balansi qaytariladi. Bir to'lov IKKI marta qaytarilmaydi (`ReversalOfId`
+  bo'yicha noyob indeks). Ruxsat — `finance.manage`.
+- ⚠️ Mijozga xabar: `Direction = In` to'lovda Telegram orqali «to'lovingiz qabul
+  qilindi» ketadi (`TelegramPartnerNotifier`), shuning uchun qaytarilganda ham
+  xabar ketishi kerak — aks holda mijozda noto'g'ri balans qoladi.
+- Qabul: xato to'lov qaytarilgach qarz AVVALGI qiymatiga qaytadi; ikkinchi
+  qaytarish urinishi 409; ikkala yozuv ham tarixda ko'rinadi.
+
 **P2 qabul mezoni:** build 0/0, P1 testlari + yangi testlar yashil, `wms-web`
 lint/test/build yashil, prod deploy, brauzerda tekshirilgan.
 
@@ -209,6 +235,8 @@ demo tenantga yoqilgan.
 | `today_summary` | `AnalyticsService.GetDashboardSummary` | `dashboard.view` |
 | `pending_transfers` | `TransferService.GetAllAsync(Pending)` | `transfers.view` |
 | `last_price` | `IPricingService` (P2.2) | `transfers.view` |
+| `payment_history` | `IFinanceService.GetPaymentsAsync` | `finance.view` (+ `finance.payments`) |
+| `finance_summary` | `IFinanceService.GetSummaryAsync` | `finance.view` |
 
 Har tool natijasi — strukturali DTO (web komponent chizadi) + qisqa matn
 (Telegram). Natija hajmi chegaralangan (≤ 50 qator; ko'p bo'lsa «N ta topildi,
@@ -255,6 +283,8 @@ demo tenantda botda 20 real savol foydalanuvchi tomonidan tekshirilgan.
 
 ### A3 — Yozuvchi amallar (odam tasdig'i bilan)
 
+**A3.1 — Hujjat qoralamasi (kirim/chiqim)**
+
 - Tool `draft_transfer(type, counterparty, items[product, qty, price?],
   warehouse?, documentDate?)`: hamma ID'lar P2.1 tool'laridan keladi; narx bo'sh
   bo'lsa `last_price` (chiqim) / `CostPrice` (kirim); zaxira `GetAvailableAsync`
@@ -269,6 +299,53 @@ demo tenantda botda 20 real savol foydalanuvchi tomonidan tekshirilgan.
   noaniq holatlar (ombor 2 ta, mahsulot 3 nomzod, qoldiq yetmaydi).
 - Qabul: 15/15 — to'g'ri qoralama yoki to'g'ri savol; AI hech qachon `Confirm`
   chaqirmaydi (test); `Source=ai` va suhbat ID hujjatda; audit yozuvi.
+
+**A3.2 — Moliyaviy oldi-berdi (to'lov qoralamasi)**
+
+> Kontekst (foydalanuvchi, 2026-09-15): bank yoki 1C integratsiyasi YO'Q va
+> rejalashtirilmagan — ruxsat olinsa §K ga o'tadi. Tizim summani shunchaki RAQAM
+> sifatida qabul qiladi, hisobot uchun. Shuning uchun AI hech qachon «pul o'tdi»
+> demaydi, faqat «yozuv kiritildi» deydi; to'lov tasdig'i, bank kafolati yoki
+> hisobvaraq qoldig'i haqida gapirish TAQIQ.
+
+**Tool `draft_payment(counterparty, amount, direction, method?, note?, documentDate?)`**
+- «A mijoz 2 000 000 berdi, qarzidan yop» → `direction = In` (qarz kamayadi).
+  «B ta'minotchiga 5 000 000 berdik» → `direction = Out`.
+- ⚠️ **`direction` MAJBURIY va hech qachon taxmin qilinmaydi.** `CreatePaymentDto`
+  da u ixtiyoriy va bo'sh bo'lsa QARZ BELGISIDAN chiqariladi
+  (`FinanceService.CreatePaymentAsync`) — bu odam uchun qulay, AI uchun xavfli:
+  balans nolga yaqin yoki teskari bo'lganda summa noto'g'ri tomonga yozilib,
+  ikki barobar xato beradi. Gapdan yo'nalish aniq bo'lmasa AI QAYTA SO'RAYDI.
+- `counterpartyId` faqat `find_counterparty` dan; bir nechta nomzod bo'lsa —
+  savol (§0.7). Summa > 0; usul aytilmasa `Cash` EMAS, savol yoki tenant sukuti.
+- Natija — TO'LIQ qoralama va **balans oldi/keyin**: «Korzinka: qarz 5 400 000 →
+  to'lovdan keyin 3 400 000». Hujjat YOZILMAYDI.
+- Tasdiq: web'da mavjud to'lov formasi ko'rinishida, Telegram'da karta + tugma;
+  tugma `IFinanceService.CreatePaymentAsync` ni chaqiradi. `confirm_payment`
+  tool'i YO'Q (§0.6).
+- ⚠️ `Direction = In` tasdiqlanganda mijozga Telegram'ga «to'lovingiz qabul
+  qilindi + qoldiq balans» ketadi. Ya'ni xato tasdiq DARHOL mijozga ko'rinadi —
+  shuning uchun tugma matnida summa, yo'nalish va kontragent to'liq yoziladi va
+  tuzatish yo'li (P2.9) A3.2 dan OLDIN tayyor bo'lishi shart.
+- Bog'liqlik: P2.8 (sana va `Source`), P2.9 (qaytarish), P2.1 (kontragent qidiruvi).
+
+**Tool `draft_transaction(type, amount, description, documentDate?, counterparty?)`**
+(kontragentga bog'liq bo'lmagan kirim/chiqim — ish haqi, yoqilg'i, ijara;
+`FinanceService.CreateTransactionAsync`, feature `finance.transactions`).
+Qarz balansiga TEGMAYDI — AI javobida shu farq aniq aytiladi. Ixtiyoriy: A3.2
+yashil bo'lgandan keyin.
+
+**Sinov to'plamiga 12 savol:** «A mijoz 2 mln berdi, qarzidan yop»,
+«B ga 5 mln berdik», «kecha 1 mln to'ladi» (orqaga sana), «Korzinkadan pul
+keldi» (summa yo'q → savol), «to'ladi» (yo'nalish noaniq → savol), «qarzini
+yopdi» (to'liq summa → joriy qarzni o'qib qo'yadi), ruxsatsiz foydalanuvchi
+(`finance.manage` yo'q → tool ko'rinmaydi), xato tasdiqdan keyin «bekor qil»
+(qaytarish yo'li), «hisobvaraqda pul bormi» (tizim bilmaydi → rad javob).
+
+**Qabul mezoni:** 12/12 — to'g'ri qoralama yoki to'g'ri savol; AI hech qachon
+`CreatePaymentAsync` ni O'ZI chaqirmaydi (test); yo'nalish taxmin qilingan holat
+0 ta; `Source = ai` va suhbat ID yozuvda; bank/hisobvaraq haqidagi savolga
+«tizimda haqiqiy tranzaksiya yo'q» deb javob beradi.
 
 ### A4 — Hisobot va anomaliya tool'lari
 
@@ -308,6 +385,11 @@ demo tenantda botda 20 real savol foydalanuvchi tomonidan tekshirilgan.
 - **Boshqa mahsulotlar (Wash/HRM):** gateway'ning domen-mustaqil qismi
   (sikl, registr, metering, SSE) `Agentics.Platform.Ai` paketiga — WMS
   tajribasidan keyin.
+- **Bank / 1C integratsiyasi:** mijozda 1C yoki bank API'siga ruxsat paydo
+  bo'lsa — to'lovlar QO'LDA emas, chiqishdan olinadi (import yoki webhook) va
+  `PaymentHistory` ga `ExternalId` bilan tushadi. Ungacha (A3.2 va butun F10
+  davomida) summalar faqat qo'lda kiritilgan RAQAM: hisobot uchun, haqiqiy
+  tranzaksiya emas.
 - **Kamera skaner (PWA)**, tarozi/printer bridge — mijoz so'raganda.
 
 ---
@@ -325,9 +407,11 @@ demo tenantda botda 20 real savol foydalanuvchi tomonidan tekshirilgan.
 | `Ai__Effort` | `low` | `output_config.effort`; eval bilan taqqoslab ko'tariladi |
 | `Ai:Pricing:{model}` | jadval | USD/1M token, kirish/chiqish/kesh |
 
-Feature'lar: `ai.chat`, `ai.actions` (A3), `ai.reports` (A4).
+Feature'lar: `ai.chat`, `ai.actions` (A3 — hujjat ham, to'lov ham), `ai.reports` (A4).
 Xato kodlari: `ai_disabled`, `ai_quota_exceeded`, `ai_unavailable`, `ai_tool_forbidden`.
 Ruxsat: AI qatlami (A bosqichlari) YANGI ruxsat qo'shmaydi — tool'lar mavjud
 `WmsPermissions` kodlariga bog'lanadi (A3 da `transfers.create`; barcha A1
 tool'larining kodlari yuqoridagi jadvalda — hammasi kodda bor, tekshirilgan).
-Yagona yangi ruxsat P bosqichida qo'shiladi: P2.3 dagi `transfers.backdate`.
+Yangi ruxsatlar FAQAT P bosqichida: `documents.backdate` (P2.3 + P2.8 — hujjat va
+to'lovga orqaga sana). A3.2 to'lov tool'lari mavjud `finance.view` / `finance.manage`
+kodlariga va `finance.payments` / `finance.transactions` feature'lariga bog'lanadi.
