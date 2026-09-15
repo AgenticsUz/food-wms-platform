@@ -37,7 +37,7 @@ public sealed class AiMeteringTests
     {
         TestTenant tenant = await _fixture.CreateTenantAsync();
         await using WmsTenantScope scope = _fixture.BeginScope(tenant);
-        ResetLlm(scope);
+        AiTestSupport.ResetLlm(scope);
 
         IAiMetering metering = scope.Service<IAiMetering>();
 
@@ -62,7 +62,7 @@ public sealed class AiMeteringTests
     {
         TestTenant tenant = await _fixture.CreateTenantAsync();
         await using WmsTenantScope scope = _fixture.BeginScope(tenant);
-        ResetLlm(scope);
+        AiTestSupport.ResetLlm(scope);
 
         await scope.Service<IAiMetering>()
             .RecordAsync("model-yoq", new LlmUsage(1_000, 500, 0, 0), TestContext.Current.CancellationToken);
@@ -79,9 +79,9 @@ public sealed class AiMeteringTests
     {
         TestTenant tenant = await _fixture.CreateTenantAsync();
         await using WmsTenantScope scope = _fixture.BeginScope(tenant);
-        ResetLlm(scope);
+        AiTestSupport.ResetLlm(scope);
 
-        await EnableAiAsync(scope, tenant);
+        await AiTestSupport.EnableAiAsync(scope, tenant);
 
         // `Ai__ApiKey` bo'sh — modul o'chiq, lekin bu NOSOZLIK emas: 403 + `ai_disabled`.
         scope.Service<FakeLlmClient>().IsConfigured = false;
@@ -97,7 +97,7 @@ public sealed class AiMeteringTests
     {
         TestTenant tenant = await _fixture.CreateTenantAsync();
         await using WmsTenantScope scope = _fixture.BeginScope(tenant);
-        ResetLlm(scope);
+        AiTestSupport.ResetLlm(scope);
 
         // `ai.chat` hech bir planga kirmaydi va sukuti o'chiq — override yo'q, demak o'chiq.
         AiException error = await Should.ThrowAsync<AiException>(
@@ -111,9 +111,9 @@ public sealed class AiMeteringTests
     {
         TestTenant tenant = await _fixture.CreateTenantAsync();
         await using WmsTenantScope scope = _fixture.BeginScope(tenant);
-        ResetLlm(scope);
+        AiTestSupport.ResetLlm(scope);
 
-        await EnableAiAsync(scope, tenant);
+        await AiTestSupport.EnableAiAsync(scope, tenant);
 
         await Should.NotThrowAsync(
             () => scope.Service<IAiMetering>().EnsureAvailableAsync(TestContext.Current.CancellationToken));
@@ -124,9 +124,9 @@ public sealed class AiMeteringTests
     {
         TestTenant tenant = await _fixture.CreateTenantAsync();
         await using WmsTenantScope scope = _fixture.BeginScope(tenant);
-        ResetLlm(scope);
+        AiTestSupport.ResetLlm(scope);
 
-        await EnableAiAsync(scope, tenant);
+        await AiTestSupport.EnableAiAsync(scope, tenant);
         await AttachPlanAsync(scope, tenant, monthlyAiRequests: 1);
 
         IAiMetering metering = scope.Service<IAiMetering>();
@@ -148,9 +148,9 @@ public sealed class AiMeteringTests
     {
         TestTenant tenant = await _fixture.CreateTenantAsync();
         await using WmsTenantScope scope = _fixture.BeginScope(tenant);
-        ResetLlm(scope);
+        AiTestSupport.ResetLlm(scope);
 
-        await EnableAiAsync(scope, tenant);
+        await AiTestSupport.EnableAiAsync(scope, tenant);
 
         DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
         AiDailyCost? row = await scope.Db.AiDailyCosts.FirstOrDefaultAsync(c => c.Day == today, TestContext.Current.CancellationToken);
@@ -181,19 +181,6 @@ public sealed class AiMeteringTests
             row.UsdCost = restore;
             await scope.Db.SaveChangesAsync(TestContext.Current.CancellationToken);
         }
-    }
-
-    /// <summary>Fake klient — singleton: har test uni o'zi uchun tozalaydi.</summary>
-    private static void ResetLlm(WmsTenantScope scope) => scope.Service<FakeLlmClient>().Reset();
-
-    /// <summary>Console operatori qiladigan narsa: tenantga <c>ai.chat</c> override'i.</summary>
-    private static async Task EnableAiAsync(WmsTenantScope scope, TestTenant tenant)
-    {
-        scope.Db.TenantFeatures.Add(new TenantFeature { FeatureCode = FeatureCodes.AiChat, IsEnabled = true });
-        await scope.Db.SaveChangesAsync(TestContext.Current.CancellationToken);
-
-        // Holat keshdan kelsa o'zgarish ko'rinmasdi (Console ham shuni chaqiradi).
-        scope.Service<ITenantStateService>().Invalidate(tenant.Id);
     }
 
     /// <summary>Tenantga AI kvotasi bor plan biriktiradi.</summary>

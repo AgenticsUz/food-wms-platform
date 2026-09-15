@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using WMS.Application.Ai;
+using WMS.Infrastructure.Services.Ai.Tools;
 
 namespace WMS.Infrastructure.Services.Ai;
 
@@ -31,7 +32,32 @@ public static class AiModule
         services.AddScoped<IAiToolRegistry, AiToolRegistry>();
 
         services.AddScoped<IAiMetering, AiMetering>();
+        services.AddScoped<IAiGateway, AiGateway>();
+
+        AddTools(services);
 
         return services;
+    }
+
+    /// <summary>
+    /// O'quvchi tool'lar (A1).
+    /// </summary>
+    /// <remarks>
+    /// ⚠️ Har biri <c>IAiTool</c> sifatida ro'yxatdan o'tadi — registr ularni DI'dan yig'adi.
+    /// Ro'yxatdan o'tmagan tool modelga umuman ko'rinmaydi, ya'ni bu yerdagi qator —
+    /// amalning YOQILISHI. Ruxsat va feature esa tool'ning o'zida e'lon qilinadi.
+    /// </remarks>
+    private static void AddTools(IServiceCollection services)
+    {
+        services.AddScoped<IAiTool, FindProductTool>();
+        services.AddScoped<IAiTool, FindCounterpartyTool>();
+        services.AddScoped<IAiTool, StockQueryTool>();
+        services.AddScoped<IAiTool, ExpiryQueryTool>();
+        services.AddScoped<IAiTool, DebtQueryTool>();
+        services.AddScoped<IAiTool, PaymentHistoryTool>();
+        services.AddScoped<IAiTool, FinanceSummaryTool>();
+        services.AddScoped<IAiTool, PendingTransfersTool>();
+        services.AddScoped<IAiTool, LastPriceTool>();
+        services.AddScoped<IAiTool, TodaySummaryTool>();
     }
 }
