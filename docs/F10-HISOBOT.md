@@ -216,3 +216,33 @@ va keyingi ishlar bajarilmay qoladi). Naqsh `DebtLedger.GetOrCreateAsync` da bor
   mumkin — ikkala joyda BIRGA hal qilinishi kerak.
 - `moduleGuard` bitta modul kodini qabul qiladi, backend esa «kamida bittasi»
   qoidasida — standart ombor sahifasida modul guard'i qo'yilmadi.
+
+---
+
+## P2 prod deploy — 2026-09-15 12:17
+
+Zaxira `wms-p2-20260915-1216.dump` (231K), eski image'lar `pre-20260915-1217` teglari
+bilan. `F10_DocumentsAndCosts` va `F10_ProductionMaterialCost` qo'llandi; uchala
+konteyner healthy, `https://wms.agentics.uz/login` → 200.
+
+Prod'dagi natija (baza):
+
+| Tekshiruv | Natija |
+|---|---|
+| Hujjatlar | 30 ta, **raqamsizi 0** |
+| Hisoblagichlar | ikki tenantda `transfer` = 24 va 6, `production_order` = 6 — hujjatlar soni bilan mos |
+| Partiyalar | 17 ta, **13 tasi tannarxli** (qolgani ishlab chiqarish partiyalari — kirim narxi yo'q) |
+| To'lovlar | 15 ta, hammasi `In` (backfill qoidasi bo'yicha) |
+| RLS | `transfer`, `transfer_item`, `payment_history`, `batch`, `tenant_counter` — hammasida `rls` va `FORCE` yoqiq |
+
+Prod API (haqiqiy token bilan) tekshirildi:
+
+- `GET /api/transfers` → `number: 24`, `documentDate: 2026-09-12`, `source: 1`;
+- `GET /api/pricing/last-price` → 23 000, manbasi `#24`, `isSameCounterparty: false`
+  (boshqa kontragent narxi — UI uni «umumiy narx» deb kulrang ko'rsatadi);
+- `GET /api/settings/warehouses` → sozlanmagan (hamma `null`, tenantda 3 ombor);
+- `GET /api/finance/payments` → `direction`, `documentDate`, `source`, `isReversed`.
+
+⚠️ Eski chiqim qatorlarida `unitCost` — `null`: tarixda qaysi partiya sotilgani
+yozilmagan va uni qayta tiklab bo'lmaydi. Yangi hujjatlarda to'ldiriladi; foyda
+hisoboti bunday qatorlarni `unknownCostQuantity` sifatida alohida ko'rsatadi.
