@@ -17,7 +17,7 @@
 
 | # | Ish | Holat |
 |---|---|---|
-| 1 | T2 (`096f2be`) prod'ga deploy — F7 usuli, `docs/DEPLOY.md` (baza zaxirasi + image teglari shart) | ⏳ |
+| 1 | ~~Prod deploy~~ | ✅ 2026-09-15 09:15 — T2 + P1/P2.1 birga (`8da67bc`), zaxira `wms-20260915-0911.dump`, `F10_NameSearch` qo'llandi |
 | 2 | ~~§3 SQL tekshiruvi~~ | ✅ 2026-09-14 — sabab aniqlandi (quyida) |
 | 3 | ~~FEFO/o'chirilgan partiya tuzatishi~~ | ✅ 2026-09-14 (`StockAllocator`, darvoza testlari bilan) |
 | 4 | Bot tokenini BotFather'da `/revoke`, yangi token prod `wms.env` ga (token suhbatlarda ko'ringan — xavfsizlik) | ⏳ **foydalanuvchida** |
@@ -108,7 +108,7 @@ bo'ysunadi va «snikers»↔«snickers» ni kesardi) — katalog o'sganda
       **№4 bot tokeni** (BotFather'da faqat foydalanuvchi qila oladi)
 - [x] `dotnet build` 0/0, `run-tests.sh` — **44 test yashil**, `wms-web`
       lint/test/build yashil (kesh'siz tekshirildi)
-- [ ] Prod deploy qilingan va brauzerda ko'rilgan — **2026-09-15 ertalab**
+- [x] Prod deploy qilingan (2026-09-15 09:15) — brauzer tekshiruvi foydalanuvchida
 - [x] P2.7 qadoq qarori: **Variant A** (`PackSize` + `PackUnit`)
 - [x] Shu fayl va `docs/F10-HISOBOT.md` yangilangan
 

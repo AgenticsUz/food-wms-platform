@@ -112,8 +112,33 @@ kerak bo'lishi mumkin.
 
 | Ish | Kimda |
 |---|---|
-| Prod deploy (P0 №1) — baza zaxirasi + `F10_NameSearch` migratsiyasi bilan | 2026-09-15 ertalab |
+| ~~Prod deploy (P0 №1)~~ | ✅ 2026-09-15 09:15 |
 | Bot tokenini BotFather'da `/revoke` va prod `wms.env` ga yangisi (P0 №4) | foydalanuvchi |
 | Kabinet ekranlarini brauzerda ko'rish (3-BLOK №1) | foydalanuvchi |
 | 2-BLOK: P2.2–P2.7 (P2.7 — Variant A qaroriga ko'ra) | keyingi sessiya |
 | Qarz #17: WMS nginx CSP (3-BLOK №2) | keyingi sessiya |
+
+---
+
+## Prod deploy — 2026-09-15 09:15
+
+Zaxira `wms-20260915-0911.dump` (227K), eski image'lar `pre-20260915-0914` teglari
+bilan saqlandi. `F10_NameSearch` qo'llandi; `wms-api`/`wms-web`/`wms-postgres`
+healthy, `https://wms.agentics.uz/login` → 200, tokensiz `/api/products` → 401.
+
+Prod tekshiruvi:
+- `name_search` backfill — 11 mahsulotning hammasi to'ldi, bo'sh **0 ta**;
+- qidiruv ishlaydi: `word_similarity('snikers', name_search)` → «Snikers» = 1.000;
+- ⚠️ eng muhimi — backfill'dan keyin RLS TIKLANGAN: `product`, `counterparty`,
+  `warehouse`, `transfer` da `relrowsecurity = t`, `relforcerowsecurity = t` va
+  `tenant_isolation` siyosati joyida.
+
+### Deploy paytida ko'rilgan ESKI nuqson (bu bosqichga aloqasi yo'q)
+
+Ko'tarilishdan keyin bir marta: `Fon vazifasi tenant demo uchun yiqildi` →
+`23505: duplicate key value violates unique constraint "ix_telegram_outbox_dedup_key"`.
+Ya'ni fon vazifasi navbatga allaqachon qo'yilgan xabarni qayta qo'yishga urinadi
+va 23505 ni USHLAMAYDI — natijada o'sha aylanish to'liq uziladi (boshqa tenantlar
+va keyingi ishlar bajarilmay qoladi). Naqsh `DebtLedger.GetOrCreateAsync` da bor
+(23505 yutiladi) — shu yerda ham kerak. Deploy'dan oldin ham shunday bo'lgan
+(kod bu bosqichda o'zgarmagan). Tuzatish — alohida ish sifatida navbatga.
