@@ -564,3 +564,58 @@ jonli rejim esa savol MATNIDAN boshlaydi:
 - To'liq 77 savollik yurish (≈ $2) — byudjet foydalanuvchining prod tekshiruvi
   uchun saqlandi.
 - Token-token oqim — hali qo'shilmagan.
+
+---
+
+## A0–A3 prod deploy — 2026-09-15 19:03
+
+`docs/DEPLOY.md` (F7 usuli) bo'yicha: image lokalda qurildi, `docker save` bilan
+ko'chirildi, serverda faqat `docker load` + `up --no-build`.
+
+| Qadam | Natija |
+|---|---|
+| Zaxira | `/opt/agentics/backups/wms-ai-20260915-1901.dump` (238K) |
+| Eski image teglari | `wms-api:pre-20260915-1902`, `wms-web:pre-20260915-1903` |
+| Compose (§4) | `docker-compose.prod.yml` ko'chirildi — unda `Ai__*` bloki bor |
+| Migratsiya | `F10_AiFoundation` qo'llandi; 4 ta `ai_*` jadval yaratildi |
+| `wms-api` | healthy, `/health` → 200 |
+| `wms-web` | healthy, `/login` → 200, yangi bundle efirda |
+| `POST /api/ai/chat` | 401 (tokensiz — to'g'ri) |
+| API jurnalida xato | 0 |
+| Xotira | 1553 MB band / 1407 MB bo'sh |
+
+### Sozlamalar
+
+Prod `.env` ga AI bloki qo'shildi (eski nusxa `.env.bak-20260915-19xx`):
+`AI_API_KEY`, `AI_MODEL=claude-sonnet-5`, `AI_EFFORT=low`, **`AI_DAILY_USD_CAP=5`**.
+
+⚠️ Kunlik shift prod'da ataylab **5** (lokalda 10): hozircha bitta $10 balans bor
+va u ham foydalanuvchining qo'l tekshiruvi uchun kerak.
+
+⚠️ **Dev va prod BIR XIL kalitda ishlayapti** — reja §A0 buni taqiqlaydi (dev
+tajribasi prod hisobini yeydi, kalitni almashtirish ikkala muhitni birdan uzadi).
+Alohida prod kaliti olinishi kerak.
+
+### `ai.chat` kimga yoqildi
+
+| Tenant | Holat |
+|---|---|
+| `demo` (Demo tashkilot) | ✅ yoqildi |
+| `un-angren-1` (haqiqiy mijoz) | ❌ **TEGILMADI** |
+
+Haqiqiy mijozga hali brauzerda ko'z bilan tekshirilmagan imkoniyat yoqilmadi —
+u pul turadi va mijoz undan xabarsiz. Yoqish qarori foydalanuvchiniki (Console
+orqali yoki `tenant_feature` override'i bilan).
+
+### Deploy yo'lidagi to'siq (hal bo'ldi)
+
+Dastlab na SSH, na `docker build` ishlamasdi: konteynerlarda DNS yechilmasdi va
+SSH banner kelmasdi (github.com:22 ham). Sabab shu mashinadagi xavfsizlik dasturi
+edi — foydalanuvchi uni sozlagach ikkalasi ham tuzaldi. Serverda bunday muammo
+yo'q (`DNS-OK`).
+
+### Ochiq
+
+- Brauzerda va botda qo'l tekshiruvi — foydalanuvchida.
+- To'liq 77 savollik jonli eval (≈ $2) yurgizilmagan.
+- Alohida prod API kaliti.
