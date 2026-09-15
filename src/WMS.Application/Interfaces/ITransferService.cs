@@ -26,7 +26,18 @@ public interface ITransferService
     /// (controller, bot, AI oqimi) belgilaydi — mijoz o'zini «AI» deb ko'rsatolmaydi.
     /// </param>
     /// <returns>Yaratilgan hujjat.</returns>
-    Task<TransferDto> CreateAsync(Guid userId, CreateTransferDto dto, DocumentSource source = DocumentSource.Ui);
+    /// <param name="aiConversationId">
+    /// AI qoralamasidan yaratilganda — o'sha suhbat (<c>Source = Ai</c> bilan birga).
+    /// </param>
+    /// <remarks>
+    /// ⚠️ Suhbat id'si ham DTO'da emas, parametrda: mijoz o'z hujjatini begona suhbatga
+    /// bog'lab, audit izini soxtalashtira olmasin.
+    /// </remarks>
+    Task<TransferDto> CreateAsync(
+        Guid userId,
+        CreateTransferDto dto,
+        DocumentSource source = DocumentSource.Ui,
+        Guid? aiConversationId = null);
     Task<TransferDto> ConfirmAsync(Guid id);
     Task<TransferDto> RejectAsync(Guid id);
     Task CancelAsync(Guid id);

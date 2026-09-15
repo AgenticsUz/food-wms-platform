@@ -38,9 +38,9 @@ public sealed class AiEvalTests
     {
         IReadOnlyList<AiEvalCase> cases = AiEvalCase.Load();
 
-        // Reja (§A1): 50 savol, toifalar bo'yicha taqsimlangan.
-        cases.Count.ShouldBe(50);
-        cases.Select(c => c.Id).Distinct().Count().ShouldBe(50);
+        // Reja: A1 da 50 savol, A3 da +27 (qoralama 15, to'lov 12).
+        cases.Count.ShouldBe(77);
+        cases.Select(c => c.Id).Distinct().Count().ShouldBe(77);
 
         Dictionary<string, int> expected = new(StringComparer.Ordinal)
         {
@@ -52,6 +52,8 @@ public sealed class AiEvalTests
             ["narx"] = 5,
             ["noaniq"] = 7,
             ["ruxsatsiz"] = 5,
+            ["qoralama"] = 15,
+            ["tolov"] = 12,
         };
 
         foreach ((string category, int count) in expected)
@@ -73,7 +75,8 @@ public sealed class AiEvalTests
         IAiToolRegistry registry = scope.Service<IAiToolRegistry>();
         IReadOnlyList<AiEvalCase> cases = [.. AiEvalCase.Load().Where(c => c.ExpectRefusal)];
 
-        cases.Count.ShouldBe(5);
+        // A1 da 5 ta, A3 da yana ikkitasi (qoralama va to'lov ruxsatsiz).
+        cases.Count.ShouldBe(7);
 
         foreach (AiEvalCase test in cases)
         {
@@ -162,7 +165,11 @@ public sealed class AiEvalTests
     private static bool LooksLikeClarify(string text) =>
         text.Contains("nomzod", StringComparison.OrdinalIgnoreCase)
         || text.Contains(" ta mahsulot", StringComparison.OrdinalIgnoreCase)
-        || text.Contains(" ta kontragent", StringComparison.OrdinalIgnoreCase);
+        || text.Contains(" ta kontragent", StringComparison.OrdinalIgnoreCase)
+
+        // A3 qoralamalari: yetishmayotgan ma'lumot («kontragent yo'q», «ombor
+        // aniqlanmadi», «yo'nalish ko'rsatilmagan») doim «so'rang» bilan tugaydi.
+        || text.Contains("so'rang", StringComparison.OrdinalIgnoreCase);
 
     private static AiToolContext Context(AiEvalCase test, IReadOnlySet<string> features) => new(
         AiChannel.Web,
@@ -176,6 +183,7 @@ public sealed class AiEvalTests
         [
             FeatureCodes.WarehouseStock, FeatureCodes.WarehouseBatches, FeatureCodes.FinanceDebts,
             FeatureCodes.FinancePayments, FeatureCodes.FinanceTransactions, FeatureCodes.AiChat,
+            FeatureCodes.TransfersIncoming, FeatureCodes.TransfersOutgoing,
         ],
         StringComparer.OrdinalIgnoreCase);
 

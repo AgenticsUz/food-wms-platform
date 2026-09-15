@@ -1,59 +1,1450 @@
 [
-  { "id": "stock-01", "category": "qoldiq", "lang": "uz", "text": "Snikers qancha qoldi?", "permissions": ["warehouse.view", "products.view"], "tool": "stock_query", "args": { "productName": "Snikers" }, "markers": ["34"] },
-  { "id": "stock-02", "category": "qoldiq", "lang": "ru", "text": "Сникерс сколько осталось?", "permissions": ["warehouse.view", "products.view"], "tool": "stock_query", "args": { "productName": "Сникерс" }, "markers": ["34"] },
-  { "id": "stock-03", "category": "qoldiq", "lang": "mix", "text": "snikers qoldiq qancha", "permissions": ["warehouse.view", "products.view"], "tool": "stock_query", "args": { "productName": "snikers" }, "markers": ["34"] },
-  { "id": "stock-04", "category": "qoldiq", "lang": "uz", "text": "Shakar qancha bor?", "permissions": ["warehouse.view", "products.view"], "tool": "stock_query", "args": { "productName": "Shakar" }, "markers": ["2500"] },
-  { "id": "stock-05", "category": "qoldiq", "lang": "uz", "text": "Asosiy skladda Sut qancha?", "permissions": ["warehouse.view", "products.view"], "tool": "stock_query", "args": { "productName": "Sut", "warehouseName": "Asosiy sklad" }, "markers": ["300"] },
-  { "id": "stock-06", "category": "qoldiq", "lang": "uz", "text": "Un bormi omborda?", "permissions": ["warehouse.view", "products.view"], "tool": "stock_query", "args": { "productName": "Un" }, "markers": ["0"] },
-  { "id": "stock-07", "category": "qoldiq", "lang": "uz", "text": "Omborda nimalar bor?", "permissions": ["warehouse.view"], "tool": "stock_query", "args": {}, "markers": ["Snikers"] },
-  { "id": "stock-08", "category": "qoldiq", "lang": "uz", "text": "Qaysi mahsulotlar tugab qolyapti?", "permissions": ["warehouse.view"], "tool": "stock_query", "args": { "onlyLow": true }, "markers": ["mahsulot"] },
-  { "id": "stock-09", "category": "qoldiq", "lang": "uz", "text": "Kefir nechta qoldi?", "permissions": ["warehouse.view", "products.view"], "tool": "stock_query", "args": { "productName": "Kefir" }, "markers": ["150"] },
-  { "id": "stock-10", "category": "qoldiq", "lang": "uz", "text": "Tvorog qoldig'ini ayting", "permissions": ["warehouse.view", "products.view"], "tool": "stock_query", "args": { "productName": "Tvorog" }, "markers": ["40"] },
-
-  { "id": "expiry-01", "category": "muddat", "lang": "uz", "text": "Muddati tugayotgan mahsulotlar bormi?", "permissions": ["warehouse.view"], "tool": "expiry_query", "args": {}, "markers": ["Kefir"] },
-  { "id": "expiry-02", "category": "muddat", "lang": "ru", "text": "Какие партии скоро истекают?", "permissions": ["warehouse.view"], "tool": "expiry_query", "args": {}, "markers": ["Sut"] },
-  { "id": "expiry-03", "category": "muddat", "lang": "uz", "text": "2 kun ichida muddati tugaydiganlar", "permissions": ["warehouse.view"], "tool": "expiry_query", "args": { "days": 2 }, "markers": ["Kefir"] },
-  { "id": "expiry-04", "category": "muddat", "lang": "uz", "text": "Muddati o'tib ketgan partiya bormi?", "permissions": ["warehouse.view"], "tool": "expiry_query", "args": { "days": 1 }, "markers": ["Tvorog"] },
-  { "id": "expiry-05", "category": "muddat", "lang": "uz", "text": "Bir hafta ichida nima tugaydi?", "permissions": ["warehouse.view"], "tool": "expiry_query", "args": { "days": 7 }, "markers": ["Sut"] },
-
-  { "id": "debt-01", "category": "qarz", "lang": "uz", "text": "Kim qancha qarzdor?", "permissions": ["finance.view"], "tool": "debt_query", "args": {}, "markers": ["Korzinka"] },
-  { "id": "debt-02", "category": "qarz", "lang": "uz", "text": "Makro bilan hisob qanday?", "permissions": ["finance.view", "partners.view"], "tool": "debt_query", "args": { "counterpartyName": "Makro" }, "markers": ["400 000"] },
-  { "id": "debt-03", "category": "qarz", "lang": "uz", "text": "Biz kimga qarzdormiz?", "permissions": ["finance.view"], "tool": "debt_query", "args": { "side": "weOwe" }, "markers": ["Makro"] },
-  { "id": "debt-04", "category": "qarz", "lang": "uz", "text": "Bizga kim qarzdor?", "permissions": ["finance.view"], "tool": "debt_query", "args": { "side": "owesUs" }, "markers": ["Korzinka"] },
-  { "id": "debt-05", "category": "qarz", "lang": "ru", "text": "Сколько нам должны?", "permissions": ["finance.view"], "tool": "debt_query", "args": { "side": "owesUs" }, "markers": ["1 500 000"] },
-  { "id": "debt-06", "category": "qarz", "lang": "uz", "text": "Qarzdorlar ro'yxatini bering", "permissions": ["finance.view"], "tool": "debt_query", "args": { "side": "owesUs" }, "markers": ["BIZGA qarzdor"] },
-  { "id": "debt-07", "category": "qarz", "lang": "uz", "text": "Umumiy qarz qancha?", "permissions": ["finance.view"], "tool": "finance_summary", "args": {}, "markers": ["qarz"] },
-  { "id": "debt-08", "category": "qarz", "lang": "uz", "text": "To'lovlar tarixini ko'rsat", "permissions": ["finance.view"], "tool": "payment_history", "args": {}, "markers": ["to'lov"] },
-
-  { "id": "today-01", "category": "bugungi", "lang": "uz", "text": "Bugun ishlar qanday?", "permissions": ["dashboard.view"], "tool": "today_summary", "args": {}, "markers": ["Bugungi holat"] },
-  { "id": "today-02", "category": "bugungi", "lang": "uz", "text": "Ombor holati qanday?", "permissions": ["dashboard.view"], "tool": "today_summary", "args": {}, "markers": ["Umumiy qoldiq"] },
-  { "id": "today-03", "category": "bugungi", "lang": "ru", "text": "Как дела сегодня?", "permissions": ["dashboard.view"], "tool": "today_summary", "args": {}, "markers": ["Bugungi"] },
-  { "id": "today-04", "category": "bugungi", "lang": "uz", "text": "Nechta hujjat tasdiq kutmoqda?", "permissions": ["dashboard.view"], "tool": "today_summary", "args": {}, "markers": ["Tasdiq kutayotgan hujjatlar: 3"] },
-  { "id": "today-05", "category": "bugungi", "lang": "uz", "text": "Moliyaviy holat qanday?", "permissions": ["finance.view"], "tool": "finance_summary", "args": {}, "markers": ["Sof foyda"] },
-
-  { "id": "pending-01", "category": "kutilayotgan", "lang": "uz", "text": "Tasdiq kutayotgan hujjatlar bormi?", "permissions": ["transfers.view"], "tool": "pending_transfers", "args": {}, "markers": ["3 ta hujjat"] },
-  { "id": "pending-02", "category": "kutilayotgan", "lang": "uz", "text": "Qanday chiqimlar kutmoqda?", "permissions": ["transfers.view"], "tool": "pending_transfers", "args": { "type": "outgoing" }, "markers": ["2 ta hujjat"] },
-  { "id": "pending-03", "category": "kutilayotgan", "lang": "uz", "text": "Kutilayotgan kirimlar bormi?", "permissions": ["transfers.view"], "tool": "pending_transfers", "args": { "type": "incoming" }, "markers": ["1 ta hujjat"] },
-  { "id": "pending-04", "category": "kutilayotgan", "lang": "ru", "text": "Какие документы ждут подтверждения?", "permissions": ["transfers.view"], "tool": "pending_transfers", "args": {}, "markers": ["hujjat"] },
-  { "id": "pending-05", "category": "kutilayotgan", "lang": "uz", "text": "Kutilayotgan sotuvlarni ko'rsat", "permissions": ["transfers.view"], "tool": "pending_transfers", "args": { "type": "outgoing" }, "markers": ["Outgoing"] },
-
-  { "id": "price-01", "category": "narx", "lang": "uz", "text": "Snikers oxirgi qanday narxda ketgan?", "permissions": ["transfers.view", "products.view"], "tool": "last_price", "args": { "productName": "Snikers" }, "markers": ["12 000"] },
-  { "id": "price-02", "category": "narx", "lang": "uz", "text": "Snikers sotuv narxi qancha edi?", "permissions": ["transfers.view", "products.view"], "tool": "last_price", "args": { "productName": "Snikers", "type": "outgoing" }, "markers": ["12 000"] },
-  { "id": "price-03", "category": "narx", "lang": "ru", "text": "По какой цене продавали Сникерс?", "permissions": ["transfers.view", "products.view"], "tool": "last_price", "args": { "productName": "Сникерс" }, "markers": ["12 000"] },
-  { "id": "price-04", "category": "narx", "lang": "uz", "text": "Shakar kirim narxi qancha edi?", "permissions": ["transfers.view", "products.view"], "tool": "last_price", "args": { "productName": "Shakar", "type": "incoming" }, "markers": ["topilmadi"] },
-  { "id": "price-05", "category": "narx", "lang": "uz", "text": "Sut narxi qancha?", "permissions": ["transfers.view", "products.view"], "tool": "last_price", "args": { "productName": "Sut" }, "markers": ["topilmadi"] },
-
-  { "id": "vague-01", "category": "noaniq", "lang": "uz", "text": "Plombir qancha qoldi?", "permissions": ["warehouse.view", "products.view"], "tool": "stock_query", "args": { "productName": "Plombir" }, "markers": ["nomzod"], "expectClarify": true },
-  { "id": "vague-02", "category": "noaniq", "lang": "uz", "text": "Plombir narxi qancha?", "permissions": ["transfers.view", "products.view"], "tool": "last_price", "args": { "productName": "Plombir" }, "markers": ["nomzod"], "expectClarify": true },
-  { "id": "vague-03", "category": "noaniq", "lang": "uz", "text": "Korzinka qancha qarzdor?", "permissions": ["finance.view", "partners.view"], "tool": "debt_query", "args": { "counterpartyName": "Korzinka" }, "markers": ["nomzod"], "expectClarify": true },
-  { "id": "vague-04", "category": "noaniq", "lang": "uz", "text": "Plombirni topib ber", "permissions": ["products.view"], "tool": "find_product", "args": { "name": "Plombir" }, "markers": ["3 ta mahsulot"], "expectClarify": true },
-  { "id": "vague-05", "category": "noaniq", "lang": "uz", "text": "Korzinkani topib ber", "permissions": ["partners.view"], "tool": "find_counterparty", "args": { "name": "Korzinka" }, "markers": ["2 ta kontragent"], "expectClarify": true },
-  { "id": "vague-06", "category": "noaniq", "lang": "ru", "text": "Пломбир сколько осталось?", "permissions": ["warehouse.view", "products.view"], "tool": "stock_query", "args": { "productName": "Пломбир" }, "markers": ["nomzod"], "expectClarify": true },
-  { "id": "vague-07", "category": "noaniq", "lang": "uz", "text": "Plombirdan qancha bor ekan?", "permissions": ["warehouse.view", "products.view"], "tool": "stock_query", "args": { "productName": "Plombir" }, "markers": ["nomzod"], "expectClarify": true },
-
-  { "id": "denied-01", "category": "ruxsatsiz", "lang": "uz", "text": "Kim qancha qarzdor?", "permissions": ["warehouse.view"], "tool": "debt_query", "args": {}, "expectRefusal": true },
-  { "id": "denied-02", "category": "ruxsatsiz", "lang": "uz", "text": "Moliyaviy holat qanday?", "permissions": ["warehouse.view"], "tool": "finance_summary", "args": {}, "expectRefusal": true },
-  { "id": "denied-03", "category": "ruxsatsiz", "lang": "uz", "text": "To'lovlar tarixini ko'rsat", "permissions": ["products.view"], "tool": "payment_history", "args": {}, "expectRefusal": true },
-  { "id": "denied-04", "category": "ruxsatsiz", "lang": "uz", "text": "Bugungi umumiy holat qanday?", "permissions": ["finance.view"], "tool": "today_summary", "args": {}, "expectRefusal": true },
-  { "id": "denied-05", "category": "ruxsatsiz", "lang": "uz", "text": "Tasdiq kutayotgan hujjatlar bormi?", "permissions": ["warehouse.view"], "tool": "pending_transfers", "args": {}, "expectRefusal": true }
+  {
+    "id": "stock-01",
+    "category": "qoldiq",
+    "lang": "uz",
+    "text": "Snikers qancha qoldi?",
+    "permissions": [
+      "warehouse.view",
+      "products.view"
+    ],
+    "tool": "stock_query",
+    "args": {
+      "productName": "Snikers"
+    },
+    "markers": [
+      "34"
+    ]
+  },
+  {
+    "id": "stock-02",
+    "category": "qoldiq",
+    "lang": "ru",
+    "text": "Сникерс сколько осталось?",
+    "permissions": [
+      "warehouse.view",
+      "products.view"
+    ],
+    "tool": "stock_query",
+    "args": {
+      "productName": "Сникерс"
+    },
+    "markers": [
+      "34"
+    ]
+  },
+  {
+    "id": "stock-03",
+    "category": "qoldiq",
+    "lang": "mix",
+    "text": "snikers qoldiq qancha",
+    "permissions": [
+      "warehouse.view",
+      "products.view"
+    ],
+    "tool": "stock_query",
+    "args": {
+      "productName": "snikers"
+    },
+    "markers": [
+      "34"
+    ]
+  },
+  {
+    "id": "stock-04",
+    "category": "qoldiq",
+    "lang": "uz",
+    "text": "Shakar qancha bor?",
+    "permissions": [
+      "warehouse.view",
+      "products.view"
+    ],
+    "tool": "stock_query",
+    "args": {
+      "productName": "Shakar"
+    },
+    "markers": [
+      "2500"
+    ]
+  },
+  {
+    "id": "stock-05",
+    "category": "qoldiq",
+    "lang": "uz",
+    "text": "Asosiy skladda Sut qancha?",
+    "permissions": [
+      "warehouse.view",
+      "products.view"
+    ],
+    "tool": "stock_query",
+    "args": {
+      "productName": "Sut",
+      "warehouseName": "Asosiy sklad"
+    },
+    "markers": [
+      "300"
+    ]
+  },
+  {
+    "id": "stock-06",
+    "category": "qoldiq",
+    "lang": "uz",
+    "text": "Un bormi omborda?",
+    "permissions": [
+      "warehouse.view",
+      "products.view"
+    ],
+    "tool": "stock_query",
+    "args": {
+      "productName": "Un"
+    },
+    "markers": [
+      "0"
+    ]
+  },
+  {
+    "id": "stock-07",
+    "category": "qoldiq",
+    "lang": "uz",
+    "text": "Omborda nimalar bor?",
+    "permissions": [
+      "warehouse.view"
+    ],
+    "tool": "stock_query",
+    "args": {},
+    "markers": [
+      "Snikers"
+    ]
+  },
+  {
+    "id": "stock-08",
+    "category": "qoldiq",
+    "lang": "uz",
+    "text": "Qaysi mahsulotlar tugab qolyapti?",
+    "permissions": [
+      "warehouse.view"
+    ],
+    "tool": "stock_query",
+    "args": {
+      "onlyLow": true
+    },
+    "markers": [
+      "mahsulot"
+    ]
+  },
+  {
+    "id": "stock-09",
+    "category": "qoldiq",
+    "lang": "uz",
+    "text": "Kefir nechta qoldi?",
+    "permissions": [
+      "warehouse.view",
+      "products.view"
+    ],
+    "tool": "stock_query",
+    "args": {
+      "productName": "Kefir"
+    },
+    "markers": [
+      "150"
+    ]
+  },
+  {
+    "id": "stock-10",
+    "category": "qoldiq",
+    "lang": "uz",
+    "text": "Tvorog qoldig'ini ayting",
+    "permissions": [
+      "warehouse.view",
+      "products.view"
+    ],
+    "tool": "stock_query",
+    "args": {
+      "productName": "Tvorog"
+    },
+    "markers": [
+      "40"
+    ]
+  },
+  {
+    "id": "expiry-01",
+    "category": "muddat",
+    "lang": "uz",
+    "text": "Muddati tugayotgan mahsulotlar bormi?",
+    "permissions": [
+      "warehouse.view"
+    ],
+    "tool": "expiry_query",
+    "args": {},
+    "markers": [
+      "Kefir"
+    ]
+  },
+  {
+    "id": "expiry-02",
+    "category": "muddat",
+    "lang": "ru",
+    "text": "Какие партии скоро истекают?",
+    "permissions": [
+      "warehouse.view"
+    ],
+    "tool": "expiry_query",
+    "args": {},
+    "markers": [
+      "Sut"
+    ]
+  },
+  {
+    "id": "expiry-03",
+    "category": "muddat",
+    "lang": "uz",
+    "text": "2 kun ichida muddati tugaydiganlar",
+    "permissions": [
+      "warehouse.view"
+    ],
+    "tool": "expiry_query",
+    "args": {
+      "days": 2
+    },
+    "markers": [
+      "Kefir"
+    ]
+  },
+  {
+    "id": "expiry-04",
+    "category": "muddat",
+    "lang": "uz",
+    "text": "Muddati o'tib ketgan partiya bormi?",
+    "permissions": [
+      "warehouse.view"
+    ],
+    "tool": "expiry_query",
+    "args": {
+      "days": 1
+    },
+    "markers": [
+      "Tvorog"
+    ]
+  },
+  {
+    "id": "expiry-05",
+    "category": "muddat",
+    "lang": "uz",
+    "text": "Bir hafta ichida nima tugaydi?",
+    "permissions": [
+      "warehouse.view"
+    ],
+    "tool": "expiry_query",
+    "args": {
+      "days": 7
+    },
+    "markers": [
+      "Sut"
+    ]
+  },
+  {
+    "id": "debt-01",
+    "category": "qarz",
+    "lang": "uz",
+    "text": "Kim qancha qarzdor?",
+    "permissions": [
+      "finance.view"
+    ],
+    "tool": "debt_query",
+    "args": {},
+    "markers": [
+      "Korzinka"
+    ]
+  },
+  {
+    "id": "debt-02",
+    "category": "qarz",
+    "lang": "uz",
+    "text": "Makro bilan hisob qanday?",
+    "permissions": [
+      "finance.view",
+      "partners.view"
+    ],
+    "tool": "debt_query",
+    "args": {
+      "counterpartyName": "Makro"
+    },
+    "markers": [
+      "400 000"
+    ]
+  },
+  {
+    "id": "debt-03",
+    "category": "qarz",
+    "lang": "uz",
+    "text": "Biz kimga qarzdormiz?",
+    "permissions": [
+      "finance.view"
+    ],
+    "tool": "debt_query",
+    "args": {
+      "side": "weOwe"
+    },
+    "markers": [
+      "Makro"
+    ]
+  },
+  {
+    "id": "debt-04",
+    "category": "qarz",
+    "lang": "uz",
+    "text": "Bizga kim qarzdor?",
+    "permissions": [
+      "finance.view"
+    ],
+    "tool": "debt_query",
+    "args": {
+      "side": "owesUs"
+    },
+    "markers": [
+      "Korzinka"
+    ]
+  },
+  {
+    "id": "debt-05",
+    "category": "qarz",
+    "lang": "ru",
+    "text": "Сколько нам должны?",
+    "permissions": [
+      "finance.view"
+    ],
+    "tool": "debt_query",
+    "args": {
+      "side": "owesUs"
+    },
+    "markers": [
+      "1 500 000"
+    ]
+  },
+  {
+    "id": "debt-06",
+    "category": "qarz",
+    "lang": "uz",
+    "text": "Qarzdorlar ro'yxatini bering",
+    "permissions": [
+      "finance.view"
+    ],
+    "tool": "debt_query",
+    "args": {
+      "side": "owesUs"
+    },
+    "markers": [
+      "BIZGA qarzdor"
+    ]
+  },
+  {
+    "id": "debt-07",
+    "category": "qarz",
+    "lang": "uz",
+    "text": "Umumiy qarz qancha?",
+    "permissions": [
+      "finance.view"
+    ],
+    "tool": "finance_summary",
+    "args": {},
+    "markers": [
+      "qarz"
+    ]
+  },
+  {
+    "id": "debt-08",
+    "category": "qarz",
+    "lang": "uz",
+    "text": "To'lovlar tarixini ko'rsat",
+    "permissions": [
+      "finance.view"
+    ],
+    "tool": "payment_history",
+    "args": {},
+    "markers": [
+      "to'lov"
+    ]
+  },
+  {
+    "id": "today-01",
+    "category": "bugungi",
+    "lang": "uz",
+    "text": "Bugun ishlar qanday?",
+    "permissions": [
+      "dashboard.view"
+    ],
+    "tool": "today_summary",
+    "args": {},
+    "markers": [
+      "Bugungi holat"
+    ]
+  },
+  {
+    "id": "today-02",
+    "category": "bugungi",
+    "lang": "uz",
+    "text": "Ombor holati qanday?",
+    "permissions": [
+      "dashboard.view"
+    ],
+    "tool": "today_summary",
+    "args": {},
+    "markers": [
+      "Umumiy qoldiq"
+    ]
+  },
+  {
+    "id": "today-03",
+    "category": "bugungi",
+    "lang": "ru",
+    "text": "Как дела сегодня?",
+    "permissions": [
+      "dashboard.view"
+    ],
+    "tool": "today_summary",
+    "args": {},
+    "markers": [
+      "Bugungi"
+    ]
+  },
+  {
+    "id": "today-04",
+    "category": "bugungi",
+    "lang": "uz",
+    "text": "Nechta hujjat tasdiq kutmoqda?",
+    "permissions": [
+      "dashboard.view"
+    ],
+    "tool": "today_summary",
+    "args": {},
+    "markers": [
+      "Tasdiq kutayotgan hujjatlar: 3"
+    ]
+  },
+  {
+    "id": "today-05",
+    "category": "bugungi",
+    "lang": "uz",
+    "text": "Moliyaviy holat qanday?",
+    "permissions": [
+      "finance.view"
+    ],
+    "tool": "finance_summary",
+    "args": {},
+    "markers": [
+      "Sof foyda"
+    ]
+  },
+  {
+    "id": "pending-01",
+    "category": "kutilayotgan",
+    "lang": "uz",
+    "text": "Tasdiq kutayotgan hujjatlar bormi?",
+    "permissions": [
+      "transfers.view"
+    ],
+    "tool": "pending_transfers",
+    "args": {},
+    "markers": [
+      "3 ta hujjat"
+    ]
+  },
+  {
+    "id": "pending-02",
+    "category": "kutilayotgan",
+    "lang": "uz",
+    "text": "Qanday chiqimlar kutmoqda?",
+    "permissions": [
+      "transfers.view"
+    ],
+    "tool": "pending_transfers",
+    "args": {
+      "type": "outgoing"
+    },
+    "markers": [
+      "2 ta hujjat"
+    ]
+  },
+  {
+    "id": "pending-03",
+    "category": "kutilayotgan",
+    "lang": "uz",
+    "text": "Kutilayotgan kirimlar bormi?",
+    "permissions": [
+      "transfers.view"
+    ],
+    "tool": "pending_transfers",
+    "args": {
+      "type": "incoming"
+    },
+    "markers": [
+      "1 ta hujjat"
+    ]
+  },
+  {
+    "id": "pending-04",
+    "category": "kutilayotgan",
+    "lang": "ru",
+    "text": "Какие документы ждут подтверждения?",
+    "permissions": [
+      "transfers.view"
+    ],
+    "tool": "pending_transfers",
+    "args": {},
+    "markers": [
+      "hujjat"
+    ]
+  },
+  {
+    "id": "pending-05",
+    "category": "kutilayotgan",
+    "lang": "uz",
+    "text": "Kutilayotgan sotuvlarni ko'rsat",
+    "permissions": [
+      "transfers.view"
+    ],
+    "tool": "pending_transfers",
+    "args": {
+      "type": "outgoing"
+    },
+    "markers": [
+      "Outgoing"
+    ]
+  },
+  {
+    "id": "price-01",
+    "category": "narx",
+    "lang": "uz",
+    "text": "Snikers oxirgi qanday narxda ketgan?",
+    "permissions": [
+      "transfers.view",
+      "products.view"
+    ],
+    "tool": "last_price",
+    "args": {
+      "productName": "Snikers"
+    },
+    "markers": [
+      "12 000"
+    ]
+  },
+  {
+    "id": "price-02",
+    "category": "narx",
+    "lang": "uz",
+    "text": "Snikers sotuv narxi qancha edi?",
+    "permissions": [
+      "transfers.view",
+      "products.view"
+    ],
+    "tool": "last_price",
+    "args": {
+      "productName": "Snikers",
+      "type": "outgoing"
+    },
+    "markers": [
+      "12 000"
+    ]
+  },
+  {
+    "id": "price-03",
+    "category": "narx",
+    "lang": "ru",
+    "text": "По какой цене продавали Сникерс?",
+    "permissions": [
+      "transfers.view",
+      "products.view"
+    ],
+    "tool": "last_price",
+    "args": {
+      "productName": "Сникерс"
+    },
+    "markers": [
+      "12 000"
+    ]
+  },
+  {
+    "id": "price-04",
+    "category": "narx",
+    "lang": "uz",
+    "text": "Shakar kirim narxi qancha edi?",
+    "permissions": [
+      "transfers.view",
+      "products.view"
+    ],
+    "tool": "last_price",
+    "args": {
+      "productName": "Shakar",
+      "type": "incoming"
+    },
+    "markers": [
+      "topilmadi"
+    ]
+  },
+  {
+    "id": "price-05",
+    "category": "narx",
+    "lang": "uz",
+    "text": "Sut narxi qancha?",
+    "permissions": [
+      "transfers.view",
+      "products.view"
+    ],
+    "tool": "last_price",
+    "args": {
+      "productName": "Sut"
+    },
+    "markers": [
+      "topilmadi"
+    ]
+  },
+  {
+    "id": "vague-01",
+    "category": "noaniq",
+    "lang": "uz",
+    "text": "Plombir qancha qoldi?",
+    "permissions": [
+      "warehouse.view",
+      "products.view"
+    ],
+    "tool": "stock_query",
+    "args": {
+      "productName": "Plombir"
+    },
+    "markers": [
+      "nomzod"
+    ],
+    "expectClarify": true
+  },
+  {
+    "id": "vague-02",
+    "category": "noaniq",
+    "lang": "uz",
+    "text": "Plombir narxi qancha?",
+    "permissions": [
+      "transfers.view",
+      "products.view"
+    ],
+    "tool": "last_price",
+    "args": {
+      "productName": "Plombir"
+    },
+    "markers": [
+      "nomzod"
+    ],
+    "expectClarify": true
+  },
+  {
+    "id": "vague-03",
+    "category": "noaniq",
+    "lang": "uz",
+    "text": "Korzinka qancha qarzdor?",
+    "permissions": [
+      "finance.view",
+      "partners.view"
+    ],
+    "tool": "debt_query",
+    "args": {
+      "counterpartyName": "Korzinka"
+    },
+    "markers": [
+      "nomzod"
+    ],
+    "expectClarify": true
+  },
+  {
+    "id": "vague-04",
+    "category": "noaniq",
+    "lang": "uz",
+    "text": "Plombirni topib ber",
+    "permissions": [
+      "products.view"
+    ],
+    "tool": "find_product",
+    "args": {
+      "name": "Plombir"
+    },
+    "markers": [
+      "3 ta mahsulot"
+    ],
+    "expectClarify": true
+  },
+  {
+    "id": "vague-05",
+    "category": "noaniq",
+    "lang": "uz",
+    "text": "Korzinkani topib ber",
+    "permissions": [
+      "partners.view"
+    ],
+    "tool": "find_counterparty",
+    "args": {
+      "name": "Korzinka"
+    },
+    "markers": [
+      "2 ta kontragent"
+    ],
+    "expectClarify": true
+  },
+  {
+    "id": "vague-06",
+    "category": "noaniq",
+    "lang": "ru",
+    "text": "Пломбир сколько осталось?",
+    "permissions": [
+      "warehouse.view",
+      "products.view"
+    ],
+    "tool": "stock_query",
+    "args": {
+      "productName": "Пломбир"
+    },
+    "markers": [
+      "nomzod"
+    ],
+    "expectClarify": true
+  },
+  {
+    "id": "vague-07",
+    "category": "noaniq",
+    "lang": "uz",
+    "text": "Plombirdan qancha bor ekan?",
+    "permissions": [
+      "warehouse.view",
+      "products.view"
+    ],
+    "tool": "stock_query",
+    "args": {
+      "productName": "Plombir"
+    },
+    "markers": [
+      "nomzod"
+    ],
+    "expectClarify": true
+  },
+  {
+    "id": "denied-01",
+    "category": "ruxsatsiz",
+    "lang": "uz",
+    "text": "Kim qancha qarzdor?",
+    "permissions": [
+      "warehouse.view"
+    ],
+    "tool": "debt_query",
+    "args": {},
+    "expectRefusal": true
+  },
+  {
+    "id": "denied-02",
+    "category": "ruxsatsiz",
+    "lang": "uz",
+    "text": "Moliyaviy holat qanday?",
+    "permissions": [
+      "warehouse.view"
+    ],
+    "tool": "finance_summary",
+    "args": {},
+    "expectRefusal": true
+  },
+  {
+    "id": "denied-03",
+    "category": "ruxsatsiz",
+    "lang": "uz",
+    "text": "To'lovlar tarixini ko'rsat",
+    "permissions": [
+      "products.view"
+    ],
+    "tool": "payment_history",
+    "args": {},
+    "expectRefusal": true
+  },
+  {
+    "id": "denied-04",
+    "category": "ruxsatsiz",
+    "lang": "uz",
+    "text": "Bugungi umumiy holat qanday?",
+    "permissions": [
+      "finance.view"
+    ],
+    "tool": "today_summary",
+    "args": {},
+    "expectRefusal": true
+  },
+  {
+    "id": "denied-05",
+    "category": "ruxsatsiz",
+    "lang": "uz",
+    "text": "Tasdiq kutayotgan hujjatlar bormi?",
+    "permissions": [
+      "warehouse.view"
+    ],
+    "tool": "pending_transfers",
+    "args": {},
+    "expectRefusal": true
+  },
+  {
+    "id": "draft-01",
+    "category": "qoralama",
+    "lang": "uz",
+    "text": "Makroga 10 dona Snikers, oxirgi narx bilan",
+    "permissions": [
+      "transfers.create",
+      "products.view",
+      "partners.view",
+      "warehouse.view"
+    ],
+    "tool": "draft_transfer",
+    "args": {
+      "type": "outgoing",
+      "counterpartyName": "Makro",
+      "warehouseName": "Asosiy sklad",
+      "items": [
+        {
+          "productName": "Snikers",
+          "quantity": 10
+        }
+      ]
+    },
+    "markers": [
+      "12 000",
+      "CHIQIM"
+    ]
+  },
+  {
+    "id": "draft-02",
+    "category": "qoralama",
+    "lang": "uz",
+    "text": "Makroga 5 dona Snikers 15000 dan",
+    "permissions": [
+      "transfers.create",
+      "products.view",
+      "partners.view",
+      "warehouse.view"
+    ],
+    "tool": "draft_transfer",
+    "args": {
+      "type": "outgoing",
+      "counterpartyName": "Makro",
+      "warehouseName": "Asosiy sklad",
+      "items": [
+        {
+          "productName": "Snikers",
+          "quantity": 5,
+          "unitPrice": 15000
+        }
+      ]
+    },
+    "markers": [
+      "15 000"
+    ]
+  },
+  {
+    "id": "draft-03",
+    "category": "qoralama",
+    "lang": "ru",
+    "text": "Отгрузить Макро 20 Шакар по 9000",
+    "permissions": [
+      "transfers.create",
+      "products.view",
+      "partners.view",
+      "warehouse.view"
+    ],
+    "tool": "draft_transfer",
+    "args": {
+      "type": "outgoing",
+      "counterpartyName": "Makro",
+      "warehouseName": "Asosiy sklad",
+      "items": [
+        {
+          "productName": "Shakar",
+          "quantity": 20,
+          "unitPrice": 9000
+        }
+      ]
+    },
+    "markers": [
+      "9 000"
+    ]
+  },
+  {
+    "id": "draft-04",
+    "category": "qoralama",
+    "lang": "uz",
+    "text": "Makroga 100 dona Tvorog jo'nating",
+    "permissions": [
+      "transfers.create",
+      "products.view",
+      "partners.view",
+      "warehouse.view"
+    ],
+    "tool": "draft_transfer",
+    "args": {
+      "type": "outgoing",
+      "counterpartyName": "Makro",
+      "warehouseName": "Asosiy sklad",
+      "items": [
+        {
+          "productName": "Tvorog",
+          "quantity": 100,
+          "unitPrice": 5000
+        }
+      ]
+    },
+    "markers": [
+      "YETMAYDI"
+    ]
+  },
+  {
+    "id": "draft-05",
+    "category": "qoralama",
+    "lang": "uz",
+    "text": "Makroga 50 quti Snikers",
+    "permissions": [
+      "transfers.create",
+      "products.view",
+      "partners.view",
+      "warehouse.view"
+    ],
+    "tool": "draft_transfer",
+    "args": {
+      "type": "outgoing",
+      "counterpartyName": "Makro",
+      "warehouseName": "Asosiy sklad",
+      "items": [
+        {
+          "productName": "Snikers",
+          "packs": 50,
+          "unitPrice": 12000
+        }
+      ]
+    },
+    "markers": [
+      "600"
+    ]
+  },
+  {
+    "id": "draft-06",
+    "category": "qoralama",
+    "lang": "uz",
+    "text": "Baraka Taminotdan 500 kg Shakar keldi",
+    "permissions": [
+      "transfers.create",
+      "products.view",
+      "partners.view",
+      "warehouse.view"
+    ],
+    "tool": "draft_transfer",
+    "args": {
+      "type": "incoming",
+      "counterpartyName": "Baraka",
+      "warehouseName": "Tayyor mahsulot",
+      "items": [
+        {
+          "productName": "Shakar",
+          "quantity": 500
+        }
+      ]
+    },
+    "markers": [
+      "7 000",
+      "KIRIM"
+    ]
+  },
+  {
+    "id": "draft-07",
+    "category": "qoralama",
+    "lang": "uz",
+    "text": "Baraka Taminotdan 100 kg Shakar 8000 dan keldi",
+    "permissions": [
+      "transfers.create",
+      "products.view",
+      "partners.view",
+      "warehouse.view"
+    ],
+    "tool": "draft_transfer",
+    "args": {
+      "type": "incoming",
+      "counterpartyName": "Baraka",
+      "warehouseName": "Tayyor mahsulot",
+      "items": [
+        {
+          "productName": "Shakar",
+          "quantity": 100,
+          "unitPrice": 8000
+        }
+      ]
+    },
+    "markers": [
+      "8 000"
+    ]
+  },
+  {
+    "id": "draft-08",
+    "category": "qoralama",
+    "lang": "uz",
+    "text": "15-yanvarda kelgan 300 kg Sut kirimini yozing",
+    "permissions": [
+      "transfers.create",
+      "products.view",
+      "partners.view",
+      "warehouse.view"
+    ],
+    "tool": "draft_transfer",
+    "args": {
+      "type": "incoming",
+      "counterpartyName": "Baraka",
+      "warehouseName": "Tayyor mahsulot",
+      "documentDate": "2026-01-15",
+      "items": [
+        {
+          "productName": "Sut",
+          "quantity": 300,
+          "unitPrice": 6000
+        }
+      ]
+    },
+    "markers": [
+      "2026-01-15"
+    ]
+  },
+  {
+    "id": "draft-09",
+    "category": "qoralama",
+    "lang": "uz",
+    "text": "Makroga 10 Snikers va 20 Shakar",
+    "permissions": [
+      "transfers.create",
+      "products.view",
+      "partners.view",
+      "warehouse.view"
+    ],
+    "tool": "draft_transfer",
+    "args": {
+      "type": "outgoing",
+      "counterpartyName": "Makro",
+      "warehouseName": "Asosiy sklad",
+      "items": [
+        {
+          "productName": "Snikers",
+          "quantity": 10,
+          "unitPrice": 12000
+        },
+        {
+          "productName": "Shakar",
+          "quantity": 20,
+          "unitPrice": 9000
+        }
+      ]
+    },
+    "markers": [
+      "Snikers",
+      "Shakar"
+    ]
+  },
+  {
+    "id": "draft-10",
+    "category": "qoralama",
+    "lang": "uz",
+    "text": "10 dona Snikers chiqim qiling",
+    "permissions": [
+      "transfers.create",
+      "products.view",
+      "partners.view",
+      "warehouse.view"
+    ],
+    "tool": "draft_transfer",
+    "args": {
+      "type": "outgoing",
+      "warehouseName": "Asosiy sklad",
+      "items": [
+        {
+          "productName": "Snikers",
+          "quantity": 10,
+          "unitPrice": 12000
+        }
+      ]
+    },
+    "markers": [
+      "Kontragent"
+    ],
+    "expectClarify": true
+  },
+  {
+    "id": "draft-11",
+    "category": "qoralama",
+    "lang": "uz",
+    "text": "Makroga 10 dona Snikers",
+    "permissions": [
+      "transfers.create",
+      "products.view",
+      "partners.view",
+      "warehouse.view"
+    ],
+    "tool": "draft_transfer",
+    "args": {
+      "type": "outgoing",
+      "counterpartyName": "Makro",
+      "items": [
+        {
+          "productName": "Snikers",
+          "quantity": 10,
+          "unitPrice": 12000
+        }
+      ]
+    },
+    "markers": [
+      "Ombor aniqlanmadi"
+    ],
+    "expectClarify": true
+  },
+  {
+    "id": "draft-12",
+    "category": "qoralama",
+    "lang": "uz",
+    "text": "Korzinkaga 10 dona Snikers",
+    "permissions": [
+      "transfers.create",
+      "products.view",
+      "partners.view",
+      "warehouse.view"
+    ],
+    "tool": "draft_transfer",
+    "args": {
+      "type": "outgoing",
+      "counterpartyName": "Korzinka",
+      "warehouseName": "Asosiy sklad",
+      "items": [
+        {
+          "productName": "Snikers",
+          "quantity": 10,
+          "unitPrice": 12000
+        }
+      ]
+    },
+    "markers": [
+      "nomzod"
+    ],
+    "expectClarify": true
+  },
+  {
+    "id": "draft-13",
+    "category": "qoralama",
+    "lang": "uz",
+    "text": "Makroga 10 dona Plombir",
+    "permissions": [
+      "transfers.create",
+      "products.view",
+      "partners.view",
+      "warehouse.view"
+    ],
+    "tool": "draft_transfer",
+    "args": {
+      "type": "outgoing",
+      "counterpartyName": "Makro",
+      "warehouseName": "Asosiy sklad",
+      "items": [
+        {
+          "productName": "Plombir",
+          "quantity": 10,
+          "unitPrice": 15000
+        }
+      ]
+    },
+    "markers": [
+      "nomzod"
+    ],
+    "expectClarify": true
+  },
+  {
+    "id": "draft-14",
+    "category": "qoralama",
+    "lang": "uz",
+    "text": "Makroga 5 kg Kolbasa",
+    "permissions": [
+      "transfers.create",
+      "products.view",
+      "partners.view",
+      "warehouse.view"
+    ],
+    "tool": "draft_transfer",
+    "args": {
+      "type": "outgoing",
+      "counterpartyName": "Makro",
+      "warehouseName": "Asosiy sklad",
+      "items": [
+        {
+          "productName": "Kolbasa",
+          "quantity": 5,
+          "unitPrice": 50000
+        }
+      ]
+    },
+    "markers": [
+      "topilmadi"
+    ]
+  },
+  {
+    "id": "draft-15",
+    "category": "qoralama",
+    "lang": "uz",
+    "text": "Makroga 10 dona Snikers chiqim qiling",
+    "permissions": [
+      "transfers.view",
+      "products.view"
+    ],
+    "tool": "draft_transfer",
+    "args": {
+      "type": "outgoing",
+      "counterpartyName": "Makro",
+      "warehouseName": "Asosiy sklad",
+      "items": [
+        {
+          "productName": "Snikers",
+          "quantity": 10
+        }
+      ]
+    },
+    "expectRefusal": true
+  },
+  {
+    "id": "pay-01",
+    "category": "tolov",
+    "lang": "uz",
+    "text": "Oltin Vodiy 2 mln berdi, qarzidan yoping",
+    "permissions": [
+      "finance.manage",
+      "partners.view",
+      "finance.view"
+    ],
+    "tool": "draft_payment",
+    "args": {
+      "counterpartyName": "Oltin Vodiy",
+      "amount": 2000000,
+      "direction": "in"
+    },
+    "markers": [
+      "3 400 000"
+    ]
+  },
+  {
+    "id": "pay-02",
+    "category": "tolov",
+    "lang": "uz",
+    "text": "Baraka Taminotga 5 mln berdik",
+    "permissions": [
+      "finance.manage",
+      "partners.view",
+      "finance.view"
+    ],
+    "tool": "draft_payment",
+    "args": {
+      "counterpartyName": "Baraka",
+      "amount": 5000000,
+      "direction": "out"
+    },
+    "markers": [
+      "5 000 000"
+    ]
+  },
+  {
+    "id": "pay-03",
+    "category": "tolov",
+    "lang": "ru",
+    "text": "Олтин Водий заплатил 1 млн",
+    "permissions": [
+      "finance.manage",
+      "partners.view",
+      "finance.view"
+    ],
+    "tool": "draft_payment",
+    "args": {
+      "counterpartyName": "Oltin Vodiy",
+      "amount": 1000000,
+      "direction": "in"
+    },
+    "markers": [
+      "4 400 000"
+    ]
+  },
+  {
+    "id": "pay-04",
+    "category": "tolov",
+    "lang": "uz",
+    "text": "15-yanvarda Oltin Vodiy 1 mln to'lagan edi",
+    "permissions": [
+      "finance.manage",
+      "partners.view",
+      "finance.view"
+    ],
+    "tool": "draft_payment",
+    "args": {
+      "counterpartyName": "Oltin Vodiy",
+      "amount": 1000000,
+      "direction": "in",
+      "documentDate": "2026-01-15"
+    },
+    "markers": [
+      "2026-01-15"
+    ]
+  },
+  {
+    "id": "pay-05",
+    "category": "tolov",
+    "lang": "uz",
+    "text": "Oltin Vodiy 2 mln to'ladi",
+    "permissions": [
+      "finance.manage",
+      "partners.view",
+      "finance.view"
+    ],
+    "tool": "draft_payment",
+    "args": {
+      "counterpartyName": "Oltin Vodiy",
+      "amount": 2000000
+    },
+    "markers": [
+      "Yo"
+    ],
+    "expectClarify": true
+  },
+  {
+    "id": "pay-06",
+    "category": "tolov",
+    "lang": "uz",
+    "text": "Oltin Vodiydan pul keldi",
+    "permissions": [
+      "finance.manage",
+      "partners.view",
+      "finance.view"
+    ],
+    "tool": "draft_payment",
+    "args": {
+      "counterpartyName": "Oltin Vodiy",
+      "direction": "in"
+    },
+    "markers": [
+      "Summa"
+    ],
+    "expectClarify": true
+  },
+  {
+    "id": "pay-07",
+    "category": "tolov",
+    "lang": "uz",
+    "text": "Korzinka 1 mln berdi",
+    "permissions": [
+      "finance.manage",
+      "partners.view",
+      "finance.view"
+    ],
+    "tool": "draft_payment",
+    "args": {
+      "counterpartyName": "Korzinka",
+      "amount": 1000000,
+      "direction": "in"
+    },
+    "markers": [
+      "nomzod"
+    ],
+    "expectClarify": true
+  },
+  {
+    "id": "pay-08",
+    "category": "tolov",
+    "lang": "uz",
+    "text": "2 mln to'lov kiriting",
+    "permissions": [
+      "finance.manage",
+      "partners.view",
+      "finance.view"
+    ],
+    "tool": "draft_payment",
+    "args": {
+      "amount": 2000000,
+      "direction": "in"
+    },
+    "markers": [
+      "Kontragent"
+    ],
+    "expectClarify": true
+  },
+  {
+    "id": "pay-09",
+    "category": "tolov",
+    "lang": "uz",
+    "text": "Oltin Vodiy 1 mln plastik karta bilan to'ladi",
+    "permissions": [
+      "finance.manage",
+      "partners.view",
+      "finance.view"
+    ],
+    "tool": "draft_payment",
+    "args": {
+      "counterpartyName": "Oltin Vodiy",
+      "amount": 1000000,
+      "direction": "in",
+      "method": "card"
+    },
+    "markers": [
+      "Card"
+    ]
+  },
+  {
+    "id": "pay-10",
+    "category": "tolov",
+    "lang": "uz",
+    "text": "Oltin Vodiy qarzini to'liq yopdi",
+    "permissions": [
+      "finance.manage",
+      "partners.view",
+      "finance.view"
+    ],
+    "tool": "draft_payment",
+    "args": {
+      "counterpartyName": "Oltin Vodiy",
+      "amount": 5400000,
+      "direction": "in"
+    },
+    "markers": [
+      "nol"
+    ]
+  },
+  {
+    "id": "pay-11",
+    "category": "tolov",
+    "lang": "uz",
+    "text": "Oltin Vodiy 1 mln berdi",
+    "permissions": [
+      "finance.view",
+      "partners.view"
+    ],
+    "tool": "draft_payment",
+    "args": {
+      "counterpartyName": "Oltin Vodiy",
+      "amount": 1000000,
+      "direction": "in"
+    },
+    "expectRefusal": true
+  },
+  {
+    "id": "pay-12",
+    "category": "tolov",
+    "lang": "uz",
+    "text": "Oltin Vodiydan minus 5 ming",
+    "permissions": [
+      "finance.manage",
+      "partners.view",
+      "finance.view"
+    ],
+    "tool": "draft_payment",
+    "args": {
+      "counterpartyName": "Oltin Vodiy",
+      "amount": -5000,
+      "direction": "in"
+    },
+    "markers": [
+      "Summa"
+    ],
+    "expectClarify": true
+  }
 ]

@@ -44,13 +44,75 @@
           </div>
         }
 
-        @for (entry of store.entries(); track $index) {
+        @for (entry of store.entries(); track $index; let entryIndex = $index) {
           <div class="ai-entry" [class.is-user]="entry.role === 'user'" [class.is-error]="entry.role === 'error'">
             @if (entry.role === 'user') {
               <div class="ai-bubble ai-bubble-user">{{ entry.text }}</div>
             } @else {
               <div class="ai-answer">
-                @for (tool of entry.tools; track $index) {
+                @for (tool of entry.tools; track $index; let toolIndex = $index) {
+                  @if (isDraft(tool)) {
+                    <div class="ai-draft">
+                      <div class="ai-tool-head">
+                        <i class="pi pi-file-edit" aria-hidden="true"></i>
+                        <span>{{ t('ai.draft.title') }}</span>
+                      </div>
+
+                      @if (transferDraft(tool); as draft) {
+                        <div class="ai-draft-line">
+                          <span>{{ draft.counterpartyName }}</span>
+                          <span>{{ draft.warehouseName }}</span>
+                          <span>{{ draft.documentDate | date: 'yyyy-MM-dd' }}</span>
+                        </div>
+                        <table class="ai-table">
+                          <tbody>
+                            @for (item of draft.items; track $index) {
+                              <tr [class.is-low]="item.shortfall">
+                                <td>{{ item.productName }}</td>
+                                <td class="num">
+                                  {{ item.quantity | number: '1.0-3' }} {{ item.unitShortName }}
+                                </td>
+                                <td class="num">{{ item.total | number: '1.0-2' }}</td>
+                              </tr>
+                            }
+                          </tbody>
+                        </table>
+                        <p class="ai-draft-total">
+                          {{ t('common.total') }}: <b>{{ draft.total | number: '1.0-2' }}</b>
+                        </p>
+                        @if (draft.hasShortfall) {
+                          <p class="ai-draft-warn">{{ t('ai.draft.shortfall') }}</p>
+                        }
+                      } @else if (paymentDraft(tool); as draft) {
+                        <div class="ai-draft-line">
+                          <span>{{ draft.counterpartyName }}</span>
+                          <span>{{ draft.documentDate | date: 'yyyy-MM-dd' }}</span>
+                        </div>
+                        <p class="ai-draft-total">
+                          <b>{{ draft.amount | number: '1.0-2' }}</b> —
+                          {{ draft.direction === 1 ? t('ai.draft.moneyIn') : t('ai.draft.moneyOut') }}
+                        </p>
+                        <p class="ai-draft-balance">
+                          {{ t('ai.draft.balance') }}:
+                          {{ draft.balanceBefore | number: '1.0-2' }} →
+                          {{ draft.balanceAfter | number: '1.0-2' }}
+                        </p>
+                      }
+
+                      @if (store.isCreated(entryIndex, toolIndex)) {
+                        <p class="ai-draft-done">{{ t('ai.draft.created') }}</p>
+                      } @else {
+                        <button
+                          type="button"
+                          class="ai-draft-btn"
+                          (click)="store.createFromDraft(entryIndex, toolIndex, tool)"
+                        >
+                          {{ t('ai.draft.create') }}
+                        </button>
+                        <p class="ai-note">{{ t('ai.draft.pendingNote') }}</p>
+                      }
+                    </div>
+                  } @else {
                   <div class="ai-tool">
                     <div class="ai-tool-head">
                       <i class="pi pi-wrench" aria-hidden="true"></i>
@@ -107,6 +169,7 @@
                       <p class="ai-tool-text">{{ tool.text }}</p>
                     }
                   </div>
+                  }
                 }
 
                 @if (entry.pending) {

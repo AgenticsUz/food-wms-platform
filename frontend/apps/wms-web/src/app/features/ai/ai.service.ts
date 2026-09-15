@@ -6,7 +6,13 @@ import { TenantStore } from '@agentics/tenant';
 
 import { ApiService } from '../../core/api/api.service';
 import { WmsSession } from '../../core/auth/wms-session';
-import type { AiConversation, AiConversationDetail, AiStreamEvent } from './ai.model';
+import type {
+  AiConversation,
+  AiConversationDetail,
+  AiPaymentDraft,
+  AiStreamEvent,
+  AiTransferDraft,
+} from './ai.model';
 
 /** Savol yuborilayotgan kontekst — system promptning o'zgaruvchan qismiga tushadi. */
 export interface AiAskOptions {
@@ -46,6 +52,25 @@ export class AiService {
   /** Bitta suhbat va uning xabarlari. */
   getConversation(id: string) {
     return this.api.get<AiConversationDetail>(`ai/conversations/${id}`);
+  }
+
+  /**
+   * Qoralamadan hujjat yaratadi (`Pending`).
+   *
+   * ⚠️ Bu — ODAM tugmasi (F10 §0.6). AI qatlamida bunday tool YO'Q: model bu manzilni
+   * ko'rmaydi ham, chaqira ham olmaydi. `Source = ai` ni SERVER qo'yadi — mijoz o'z
+   * hujjatini «AI yozgan» deb ko'rsata olmasin.
+   */
+  createTransfer(draft: AiTransferDraft, conversationId: string | null) {
+    return this.api.post<{ id: string; number: number }>('ai/drafts/transfer', {
+      draft,
+      conversationId,
+    });
+  }
+
+  /** Qoralamadan to'lov yozuvini kiritadi (izohi yuqorida). */
+  createPayment(draft: AiPaymentDraft, conversationId: string | null) {
+    return this.api.post<{ id: string }>('ai/drafts/payment', { draft, conversationId });
   }
 
   /**

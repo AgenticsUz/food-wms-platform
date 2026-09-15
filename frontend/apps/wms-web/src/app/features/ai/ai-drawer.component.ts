@@ -4,7 +4,14 @@ import { RouterLink } from '@angular/router';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { TranslocoDirective } from '@jsverse/transloco';
 
-import type { AiDebtRow, AiStockLevelRow, AiToolOutput, AiTransferRow } from './ai.model';
+import type {
+  AiDebtRow,
+  AiPaymentDraft,
+  AiStockLevelRow,
+  AiToolOutput,
+  AiTransferDraft,
+  AiTransferRow,
+} from './ai.model';
 import { AiStore } from './ai.store';
 
 /**
@@ -67,6 +74,19 @@ export class AiDrawerComponent {
       event.preventDefault();
       this.send();
     }
+  }
+
+  /** Tool natijasi QORALAMAmi — tugmasi bor karta bilan chiziladi. */
+  isDraft(tool: AiToolOutput): boolean {
+    return (tool.code === 'draft_transfer' || tool.code === 'draft_payment') && tool.data !== null;
+  }
+
+  transferDraft(tool: AiToolOutput): AiTransferDraft | null {
+    return tool.code === 'draft_transfer' ? (tool.data as AiTransferDraft | null) : null;
+  }
+
+  paymentDraft(tool: AiToolOutput): AiPaymentDraft | null {
+    return tool.code === 'draft_payment' ? (tool.data as AiPaymentDraft | null) : null;
   }
 
   /** Tool natijasi jadval bilan chiziladimi. */

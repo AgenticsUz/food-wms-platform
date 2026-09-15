@@ -282,4 +282,58 @@ suhbat tarixini tozalash fon vazifasi.
 suhbat tarixi yuzasi (API bor, panelda ro'yxat hali yo'q); kabinetda tarix umuman yo'q
 (kabinet foydalanuvchisida profil id'si bo'lmaydi).
 
-Shundan keyin — `WMS-AI-REJA.md` §A3 (yozuvchi amallar, odam tasdig'i bilan).
+---
+
+## A3 — Yozuvchi amallar, odam tasdig'i bilan (REJA §A3)
+
+| # | Ish | Holat |
+|---|---|---|
+| 1 | `draft_transfer` — kirim/chiqim qoralamasi (narx, qoldiq, qadoq bilan) | ✅ 2026-09-15 |
+| 2 | `draft_payment` — to'lov qoralamasi, balans oldi/keyin bilan | ✅ |
+| 3 | `POST /api/ai/drafts/transfer`, `.../payment` — ODAM tugmasi | ✅ |
+| 4 | `Source = ai` + `AiConversationId` hujjat va to'lovda | ✅ |
+| 5 | Web: qoralama kartasi, «Yaratish» tugmasi, bir marta bosiladi | ✅ |
+| 6 | Sinov to'plamiga +27 savol (qoralama 15, to'lov 12) | ✅ **77 savol** |
+| 7 | Telegram: karta + tugma | ❌ **qilinmadi** (pastda) |
+
+**Qabul mezoni:**
+
+- [x] `dotnet build` 0/0; `run-tests.sh` — **132 test** (131 yashil + 1 jonli)
+- [x] `wms-web` lint / test / build — uchalasi yashil
+- [x] **AI hujjat yaratmaydi** — qoralamadan keyin bazada 0 hujjat (test)
+- [x] **Tasdiqlovchi tool UMUMAN YO'Q** — statik darvoza: hamma ruxsat bilan ham
+      `confirm_*`/`create_*`/`delete_*` tool topilmaydi, zo'rlab chaqirilsa rad etiladi
+- [x] **Yo'nalish taxmin qilinmaydi** — yo'nalishsiz to'lov qoralamasi tayyorlanmaydi
+- [x] Fixture to'plami 77/77
+- [ ] **Jonli to'plam 15/15 va 12/12** — kalit kerak
+- [ ] **Telegram tugmali tasdiq** — qilinmadi
+
+**Muhim qarorlar:**
+
+- **Tasdiqlash yuzasi ALOHIDA controllerda** (`/api/ai/drafts`), tool emas: model bu
+  manzilni ko'rmaydi ham, chaqira ham olmaydi. `Source = ai` ni SERVER qo'yadi —
+  aks holda oddiy forma ham o'zini «AI yozgan» deb ko'rsatib, audit izini bulg'ardi.
+- **Qoldiq yetmasa qoralama BARIBIR qaytariladi**, faqat qatorda belgilanadi:
+  «yetmaydi» — foydalanuvchi ko'rishi kerak bo'lgan holat, qoralamani tashlab
+  yuborish sababi emas (u miqdorni tuzatib yuborishi mumkin).
+- **To'lovda `direction` MAJBURIY.** `CreatePaymentDto` da u ixtiyoriy va bo'sh bo'lsa
+  qarz belgisidan chiqariladi — odam uchun qulay, AI uchun xavfli: nol balansda summa
+  teskari tomonga yozilib, xatoni ikki barobar qilardi.
+- **Hujjat `Pending` bo'lib yaratiladi.** Tasdiqlash (zaxirani kamaytiradigan qadam)
+  eski joyida qoladi — AI oqimi uni qisqartirmaydi.
+- **Eskirish tekshiruvi qayta yuradi:** qoralama tayyorlangandan keyin qoldiq kamaygan
+  bo'lishi mumkin, shuning uchun `CreateAsync` ichidagi hamma tekshiruv (qoldiq, feature,
+  sana ruxsati, plan limiti) o'z joyida ishlaydi.
+
+**Qilinmagan va nega:**
+
+- **Telegram tugmali tasdiq.** Mavjud tugma naqshi (`telegram_outbox.reply_markup` +
+  `TelegramCallbackExecutor`) bor, lekin qoralamani tugmaga sig'dirib bo'lmaydi
+  (`callback_data` ≤ 64 bayt) — qoralamani saqlaydigan jadval yoki suhbat xabariga
+  havola kerak. Bu alohida ish va uni yarim qilib qo'yish «bosdim, hech narsa
+  bo'lmadi» degan holatga olib borardi. Botda hozir qoralama MATN bo'lib ko'rinadi va
+  foydalanuvchi uni ilovada yaratadi.
+- **`draft_transaction`** (ish haqi, ijara — kontragentsiz kirim/chiqim): reja uni
+  «ixtiyoriy, A3.2 yashil bo'lgandan keyin» deb belgilagan.
+
+Shundan keyin — `WMS-AI-REJA.md` §A4 (hisobot va anomaliya tool'lari).

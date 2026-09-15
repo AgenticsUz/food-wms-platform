@@ -99,3 +99,46 @@ export interface AiTransferRow {
   readonly documentDate: string;
   readonly counterpartyName: string | null;
 }
+
+/** Qoralamadagi bitta qator (backend `AiDraftItem`). */
+export interface AiDraftItem {
+  readonly productId: string;
+  readonly productName: string;
+  readonly unitShortName: string;
+  readonly quantity: number;
+  readonly unitPrice: number;
+  /** `user` | `last_price` | `cost` | `none` — narx qayerdan olingani. */
+  readonly priceSource: string;
+  readonly available: number | null;
+  readonly total: number;
+  /** Qoldiq yetmaydi — yuza qizil qilib ko'rsatadi. */
+  readonly shortfall: boolean;
+}
+
+/** Hujjat qoralamasi — HALI yaratilmagan hujjat. */
+export interface AiTransferDraft {
+  readonly type: number;
+  readonly counterpartyId: string;
+  readonly counterpartyName: string;
+  readonly warehouseId: string;
+  readonly warehouseName: string;
+  readonly documentDate: string;
+  readonly items: readonly AiDraftItem[];
+  readonly note: string | null;
+  readonly total: number;
+  readonly hasShortfall: boolean;
+}
+
+/** To'lov qoralamasi — HALI yozilmagan yozuv. */
+export interface AiPaymentDraft {
+  readonly counterpartyId: string;
+  readonly counterpartyName: string;
+  readonly amount: number;
+  /** 1 — bizga tushdi, 2 — biz to'ladik. */
+  readonly direction: number;
+  readonly method: number;
+  readonly documentDate: string;
+  readonly balanceBefore: number;
+  readonly balanceAfter: number;
+  readonly note: string | null;
+}

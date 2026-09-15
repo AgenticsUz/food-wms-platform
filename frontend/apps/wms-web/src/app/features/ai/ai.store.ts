@@ -1,7 +1,13 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
-import type { AiChatEntry, AiConversation, AiToolOutput } from './ai.model';
+import type {
+  AiChatEntry,
+  AiConversation,
+  AiPaymentDraft,
+  AiToolOutput,
+  AiTransferDraft,
+} from './ai.model';
 import { AiService } from './ai.service';
 
 /**
@@ -32,7 +38,20 @@ export class AiStore {
   readonly conversations = this.conversationsState.asReadonly();
   readonly conversationId = this.conversationState.asReadonly();
 
+  /**
+   * Yozuvga aylantirilgan qoralamalar (`<yozuv>:<tool>` kalitlari).
+   *
+   * ⚠️ Kerak, chunki tugma BIR MARTA bosiladi: ikkinchi bosish ikkinchi hujjat
+   * yaratardi va odam buni faqat ro'yxatda ko'rgan bo'lardi.
+   */
+  private readonly createdState = signal<ReadonlySet<string>>(new Set());
+
   readonly isEmpty = computed(() => this.entriesState().length === 0);
+
+  /** Shu qoralama allaqachon yozuvga aylantirilganmi. */
+  isCreated(entryIndex: number, toolIndex: number): boolean {
+    return this.createdState().has(`${entryIndex}:${toolIndex}`);
+  }
 
   toggle(): void {
     this.openState.update((open) => !open);
@@ -52,6 +71,7 @@ export class AiStore {
     this.abort();
     this.entriesState.set([]);
     this.conversationState.set(null);
+    this.createdState.set(new Set());
   }
 
   /** Suhbatlar ro'yxatini yangilaydi. */
@@ -148,6 +168,50 @@ export class AiStore {
         this.busyState.set(false);
       }
     }
+  }
+
+  /**
+   * Qoralamani yozuvga aylantiradi — ODAM tugmasi (F10 §0.6).
+   *
+   * ⚠️ AI buni o'zi qila olmaydi: shunday tool umuman mavjud emas. Yozuv `Pending`
+   * bo'lib yaratiladi, tasdiqlash esa hujjatlar ekranida qoladi — AI oqimi
+   * zaxirani kamaytiradigan qadamni qisqartirmaydi.
+   */
+  async createFromDraft(entryIndex: number, toolIndex: number, tool: AiToolOutput): Promise<void> {
+    const key = `${entryIndex}:${toolIndex}`;
+    if (this.createdState().has(key)) {
+      return;
+    }
+
+    const conversationId = this.conversationState();
+
+    const request =
+      tool.code === 'draft_transfer'
+        ? this.ai.createTransfer(tool.data as AiTransferDraft, conversationId)
+        : this.ai.createPayment(tool.data as AiPaymentDraft, conversationId);
+
+    request.subscribe({
+      next: (res) => {
+        if (!res.success) {
+          return;
+        }
+
+        this.createdState.update((created) => new Set([...created, key]));
+
+        const number = (res.data as { number?: number } | null)?.number;
+        this.push({
+          role: 'assistant',
+          text:
+            tool.code === 'draft_transfer'
+              ? `✅ #${number ?? '—'} — hujjat yaratildi (tasdiqlanmagan).`
+              : '✅ To\'lov yozuvi kiritildi.',
+          tools: [],
+          pending: false,
+        });
+      },
+      // Xato toasti interceptor zanjirida chiqadi; bu yerda takrorlanmaydi.
+      error: () => undefined,
+    });
   }
 
   /**

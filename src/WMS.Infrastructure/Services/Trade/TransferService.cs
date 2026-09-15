@@ -81,7 +81,7 @@ public class TransferService : ITransferService
     }
 
     public async Task<TransferDto> CreateAsync(Guid userId, CreateTransferDto dto,
-        DocumentSource source = DocumentSource.Ui)
+        DocumentSource source = DocumentSource.Ui, Guid? aiConversationId = null)
     {
         ArgumentNullException.ThrowIfNull(dto);
 
@@ -100,7 +100,11 @@ public class TransferService : ITransferService
             AgentId = dto.AgentId, CommissionPercent = dto.CommissionPercent,
             ReturnReason = dto.ReturnReason, OriginalTransferId = dto.OriginalTransferId,
             CreatedByUserId = userId, Note = dto.Note, Status = TransferStatus.Pending,
-            DocumentDate = documentDate, Source = source
+            DocumentDate = documentDate, Source = source,
+
+            // Audit izi: "bu hujjatni AI qanday so'rov bilan tayyorlagan?" degan savolga
+            // javob faqat suhbatdan chiqadi (`Transfer.AiConversationId` izohi).
+            AiConversationId = source == DocumentSource.Ai ? aiConversationId : null
         };
 
         foreach (var item in dto.Items)

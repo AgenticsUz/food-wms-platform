@@ -916,7 +916,21 @@
       "finance_summary": "Moliyaviy yakun",
       "pending_transfers": "Kutilayotgan hujjatlar",
       "last_price": "Oxirgi narx",
-      "today_summary": "Bugungi holat"
+      "today_summary": "Bugungi holat",
+      "draft_transfer": "Hujjat qoralamasi",
+      "draft_payment": "To'lov qoralamasi",
+      "my_debt": "Balansingiz",
+      "my_transfers": "Hujjatlaringiz"
+    },
+    "draft": {
+      "title": "Qoralama — hujjat hali yaratilmadi",
+      "create": "Yaratish",
+      "created": "✅ Yaratildi",
+      "pendingNote": "Yaratilgandan keyin hujjat «kutilmoqda» holatida bo'ladi — tasdiqlashni hujjatlar bo'limidan qiling.",
+      "shortfall": "⚠️ Ba'zi qatorlarda qoldiq yetmaydi.",
+      "balance": "Balans",
+      "moneyIn": "pul bizga tushdi",
+      "moneyOut": "biz to'ladik"
     }
   }
 }

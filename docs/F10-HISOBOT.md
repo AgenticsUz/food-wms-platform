@@ -448,3 +448,52 @@ va u tokendagi `sub` ni kartaga bog'lay olmasa 403 beradi (fail-closed).
 - Suhbat tarixi yuzasi: API bor, panelda ro'yxat hali chizilmagan.
 - Kabinetda tarix yo'q: kabinet foydalanuvchisida `user_profile.id` bo'lmaydi, ya'ni
   suhbat egasini hozirgi shaklda yozib bo'lmaydi (A3 da ko'riladi).
+
+---
+
+## A3 — Yozuvchi amallar (2026-09-15)
+
+AI endi hujjat va to'lov QORALAMASINI tayyorlaydi. Yozuvni hamon odam yaratadi.
+
+### Nima qilindi
+
+**`draft_transfer`.** Kirim/chiqim qoralamasi: nomlar yechiladi (noaniqda savol),
+narx berilmasa chiqimda oxirgi sotuv narxi va kirimda tannarx qo'yiladi, qadoq
+asosiy birlikka o'giriladi (50 quti → 600 dona), chiqimda mavjud qoldiq
+tekshiriladi. Natijada narx QAYERDAN olingani ham aytiladi — model «12 000» ni
+o'zi topib qo'ygandek gapirmasin.
+
+**`draft_payment`.** Balans oldi/keyin bilan: «2 000 000 yozilsinmi?» degan savolga
+odam balansni ko'rmasdan javob bera olmaydi. Yo'nalish MAJBURIY va hech qachon
+taxmin qilinmaydi.
+
+**Tasdiqlash yuzasi.** `POST /api/ai/drafts/transfer` va `.../payment` — alohida
+controller, tool emas: model bu manzillarni ko'rmaydi ham, chaqira ham olmaydi.
+`Source = ai` va suhbat id'sini SERVER qo'yadi, mijoz emas.
+
+**Web.** Qoralama alohida karta bo'lib chiziladi (tool natijasidan ko'ra ko'zga
+tashlanadi — bu yerda foydalanuvchi QAROR qabul qiladi), tugma bir marta bosiladi.
+
+### Qabul mezoni natijasi
+
+| Mezon | Natija |
+|---|---|
+| `dotnet build` | 0 xato / 0 ogohlantirish |
+| `run-tests.sh` | **132 test** (131 yashil + 1 jonli) |
+| `wms-web` lint / test / build | ✅ uchalasi yashil |
+| AI hujjat yaratmaydi | ✅ qoralamadan keyin bazada 0 hujjat |
+| Tasdiqlovchi tool yo'q | ✅ statik darvoza (hamma ruxsat bilan ham topilmaydi) |
+| Yo'nalish taxmin qilinmaydi | ✅ yo'nalishsiz qoralama tayyorlanmaydi |
+| Fixture to'plami | ✅ **77/77** (50 → 77) |
+| Jonli to'plam | ⏳ kalit kerak |
+
+### Qilinmagan
+
+**Telegram tugmali tasdiq.** Qoralamani tugmaga sig'dirib bo'lmaydi
+(`callback_data` ≤ 64 bayt) — qoralamani saqlaydigan joy kerak. Yarim qilib qo'yish
+«bosdim, hech narsa bo'lmadi» holatiga olib borardi, shuning uchun botda qoralama
+hozir MATN bo'lib ko'rinadi va foydalanuvchi uni ilovada yaratadi. Alohida ish
+sifatida ochiq qoldirildi.
+
+**`draft_transaction`** (kontragentsiz kirim/chiqim) — reja uni ixtiyoriy deb
+belgilagan.

@@ -61,6 +61,11 @@ public static class AiModule
         services.AddScoped<IAiTool, LastPriceTool>();
         services.AddScoped<IAiTool, TodaySummaryTool>();
 
+        // Yozuvchi amallar (A3) — QORALAMA tayyorlaydi, hujjat yozmaydi. Yozuvni odam
+        // tugma bosganda yuza yaratadi (`confirm_transfer`/`confirm_payment` tool'i YO'Q).
+        services.AddScoped<IAiTool, DraftTransferTool>();
+        services.AddScoped<IAiTool, DraftPaymentTool>();
+
         // Kabinet (A2): ruxsat kodi `portal.self` — u RBAC katalogida yo'q, ya'ni bu
         // ikkisi zavod xodimiga umuman ko'rinmaydi (izohi `WmsPermissions.PortalSelf` da).
         services.AddScoped<IAiTool, MyDebtTool>();

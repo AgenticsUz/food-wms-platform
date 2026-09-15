@@ -98,7 +98,7 @@ public class FinanceService : IFinanceService
     /// oladi (SQLite davrida biri ikkinchisining o'zgarishini jimgina ustidan yozardi).
     /// </remarks>
     public async Task<PaymentHistoryDto> CreatePaymentAsync(Guid userId, CreatePaymentDto dto,
-        DocumentSource source = DocumentSource.Ui)
+        DocumentSource source = DocumentSource.Ui, Guid? aiConversationId = null)
     {
         ArgumentNullException.ThrowIfNull(dto);
         if (dto.Amount <= 0) throw new AppException("Amount must be greater than zero");
@@ -120,6 +120,9 @@ public class FinanceService : IFinanceService
             Method = dto.Method, Direction = direction,
             DocumentDate = documentDate, PaidAt = DateTime.UtcNow,
             Source = source,
+
+            // Audit izi (`Transfer.AiConversationId` bilan bir xil qoida).
+            AiConversationId = source == DocumentSource.Ai ? aiConversationId : null,
             Note = dto.Note, RecordedByUserId = userId
         };
         _db.PaymentHistories.Add(payment);

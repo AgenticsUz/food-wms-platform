@@ -17,8 +17,9 @@ public interface IFinanceService
     /// <param name="dto">To'lov ma'lumoti.</param>
     /// <param name="source">Qaysi yuzadan (UI / Telegram / AI) — DTO'dan EMAS, chaqiruvchidan.</param>
     /// <returns>Saqlangan to'lov.</returns>
+    /// <param name="aiConversationId">AI qoralamasidan yaratilganda — o'sha suhbat.</param>
     Task<PaymentHistoryDto> CreatePaymentAsync(Guid userId, CreatePaymentDto dto,
-        DocumentSource source = DocumentSource.Ui);
+        DocumentSource source = DocumentSource.Ui, Guid? aiConversationId = null);
 
     /// <summary>To'lovni QAYTARADI (storno): asl yozuv o'chmaydi, teskari yozuv qo'shiladi.</summary>
     /// <param name="userId">Qaytargan <c>user_profile.id</c>.</param>

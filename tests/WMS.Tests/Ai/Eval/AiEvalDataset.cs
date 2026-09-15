@@ -78,6 +78,13 @@ internal sealed class AiEvalDataset
         // va model ikkalasini bir xil aytmasligi kerak.
         await AiTestSupport.AddSearchableProductAsync(scope, "Un");
 
+        // Qadoq (P2.7) va tannarx — A3 qoralamalari uchun: "50 quti" va kirim narxi
+        // aynan shu ikki maydondan hisoblanadi.
+        snikers.PackSize = 12m;
+        snikers.PackUnit = "quti";
+        shakar.CostPrice = 7_000m;
+        await scope.Db.SaveChangesAsync(ct);
+
         DateTime today = DateTime.UtcNow.Date;
 
         // ⚠️ 38, 34 emas: quyida 4 dona TASDIQLANGAN sotuv bor va qoldiq undan keyin 34
@@ -97,8 +104,12 @@ internal sealed class AiEvalDataset
         Counterparty korzinka = await TestData.AddCounterpartyAsync(scope.Db, "Korzinka");
         Counterparty korzinkaServis = await TestData.AddCounterpartyAsync(scope.Db, "Korzinka Servis");
         Counterparty makro = await TestData.AddCounterpartyAsync(scope.Db, "Makro");
+
+        // Nomi NOYOB mijoz: qoralama stsenariylari noaniqlikka urilib qolmasin
+        // ("Korzinka" ataylab ikkita va u faqat savol berish uchun ishlatiladi).
+        Counterparty oltinVodiy = await TestData.AddCounterpartyAsync(scope.Db, "Oltin Vodiy");
         Counterparty supplier = await TestData.AddCounterpartyAsync(scope.Db, "Baraka Taminot", CounterpartyType.Supplier);
-        await Searchable(scope, korzinka, korzinkaServis, makro, supplier);
+        await Searchable(scope, korzinka, korzinkaServis, makro, oltinVodiy, supplier);
 
         ITransferService transfers = scope.Service<ITransferService>();
 
@@ -142,6 +153,7 @@ internal sealed class AiEvalDataset
         // To'plamdagi kutilgan son bitta joyda — shu yerda — hal bo'lishi kerak.
         await SetDebtAsync(scope, korzinka.Id, 1_500_000m);
         await SetDebtAsync(scope, makro.Id, -400_000m);
+        await SetDebtAsync(scope, oltinVodiy.Id, 5_400_000m);
 
         return new AiEvalDataset(main, finished, korzinka, makro, supplier, snikers);
     }
