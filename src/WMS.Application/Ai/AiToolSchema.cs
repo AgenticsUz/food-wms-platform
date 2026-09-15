@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Schema;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 
 namespace WMS.Application.Ai;
 
@@ -22,8 +23,19 @@ namespace WMS.Application.Ai;
 public static class AiToolSchema
 {
     /// <summary>Tool argumentlari uchun JSON sozlamalari — sxema ham, o'qish ham SHU bilan.</summary>
+    /// <remarks>
+    /// ⚠️ <see cref="JsonSerializerOptions.TypeInfoResolver"/> OSHKORA berilgan. Sukut
+    /// bo'yicha u <see langword="null"/> va birinchi (de)serializatsiyada o'z-o'zidan
+    /// to'ldiriladi — lekin <c>JsonSchemaExporter</c> sozlamalarni faqat O'QISHGA
+    /// belgilaydi va resolver hali yo'q bo'lsa «read-only» xatosi bilan yiqiladi.
+    /// Ya'ni xatti-harakat TARTIBGA bog'liq edi: agar biror tool avval bajarilgan
+    /// bo'lsa sxema qurilardi, gateway esa sxemani BIRINCHI so'raydi — demak prod'da
+    /// AI birinchi savoldayoq yiqilardi (jonli sinov to'plami shuni ushladi).
+    /// </remarks>
     public static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web)
     {
+        TypeInfoResolver = new DefaultJsonTypeInfoResolver(),
+
         // Model enum'ni nomi bilan yozadi (`"outgoing"`), raqam bilan emas.
         Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
     };

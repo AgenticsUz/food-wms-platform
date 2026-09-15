@@ -497,3 +497,70 @@ sifatida ochiq qoldirildi.
 
 **`draft_transaction`** (kontragentsiz kirim/chiqim) — reja uni ixtiyoriy deb
 belgilagan.
+
+---
+
+## Jonli sinov — birinchi yurish (2026-09-15)
+
+Kalit qo'yilgach sinov to'plami HAQIQIY model bilan yurgizildi. To'liq 77 savol
+EMAS: byudjet foydalanuvchining prod/bot tekshiruvi uchun saqlandi, shuning uchun
+14 ta savol — oqimni ochadigan va eng xavfli joylarni qamraydigan tanlov.
+
+### Natija
+
+| To'plam | Savollar | Natija |
+|---|---|---|
+| Qoldiq (birinchi 8) | `stock-01…08` | **8/8** |
+| Nuqtali (xavfli joylar) | `denied-01`, `vague-01`, `draft-01`, `pay-05` | **4/4** (ikki tuzatishdan keyin) |
+
+Tool zanjirlari kutilgandek: «Snikers qancha qoldi?» → `find_product` →
+`stock_query`; «Asosiy skladdan Makroga 10 dona Snikers» → `find_product` →
+`find_counterparty` → `draft_transfer`.
+
+### Topilgan nuqson — PROD'NI YIQITADIGAN
+
+`AiToolSchema.SerializerOptions` da `TypeInfoResolver` OSHKORA berilmagan edi.
+`JsonSchemaExporter` sozlamalarni faqat o'qishga belgilaydi va resolver hali
+yo'q bo'lsa «read-only» xatosi bilan yiqiladi.
+
+⚠️ Nuqson TARTIBGA bog'liq edi: 133 testli to'plam uni KO'RMADI, chunki biror test
+avval deserializatsiya qilib sozlamalarni to'ldirib qo'yardi. Gateway esa sxemani
+BIRINCHI so'raydi — ya'ni prod'da AI birinchi savoldayoq 500 berardi va buni faqat
+mijoz ko'rgan bo'lardi.
+
+Tuzatildi; tartibga bog'liq bo'lmagan darvoza qo'shildi: `HAR_toolning_sxemasi_quriladi`
+(har ro'yxatdan o'tgan tool'ning sxemasi quriladi va ildizi `object` ekani tekshiriladi).
+
+### Sinov to'plamining ikki kamchiligi (model emas, to'plam)
+
+Ikkalasi ham fixture rejimida KO'RINMAYDI, chunki u argumentlarni tayyor oladi —
+jonli rejim esa savol MATNIDAN boshlaydi:
+
+- **`draft-01`** savolida ombor aytilmagan edi, ma'lumot to'plamida esa ikkita
+  ombor bor va standart ombor tanlanmagan. Model «qaysi ombordan?» deb SO'RADI —
+  bu to'g'ri xatti-harakat (§0.7), lekin test uni nuqson deb belgilardi.
+  Savol matniga ombor qo'shildi.
+- **`pay-05`** «Oltin Vodiy 2 mln to'ladi» — reja buni «yo'nalish noaniq» misoli
+  deb bergan, lekin o'zbekchada «X to'ladi» yo'nalishni AYON qiladi (pul bizga
+  tushdi) va model uni to'g'ri aniqladi. Haqiqiy noaniqlik boshqacha yangraydi:
+  matn «Oltin Vodiy bilan 2 mln to'lov bo'ldi» ga o'zgartirildi.
+
+  ⚠️ Xavfsizlik qoidasi O'ZGARMADI: yo'nalish hech qachon QARZ BELGISIDAN
+  chiqarilmaydi va yuk tarkibida oshkora ketadi (`AiDraftTests` darvozasi).
+  O'zgargani — modeldan gapdagi aniq ma'noni ham tushunmaslikni talab qilgan
+  sun'iy savol.
+
+### Baholashdagi ikki tuzatish
+
+- Noaniq holatlarda ANIQ tool talab qilinmaydi: «Plombir qancha qoldi?» savoliga
+  model `stock_query` emas, `find_product` chaqirib uch nomzodni ko'rishi va
+  SHUNDAN keyin so'rashi bir xil darajada to'g'ri. O'lchanadigan narsa — taxmin
+  qilmagani, tool tanlovi emas.
+- Xato holatda hisobotga javob PARCHASI yoziladi: «javobda yo'q: 12 000» degan
+  qator sababni aytmaydi.
+
+### Ochiq
+
+- To'liq 77 savollik yurish (≈ $2) — byudjet foydalanuvchining prod tekshiruvi
+  uchun saqlandi.
+- Token-token oqim — hali qo'shilmagan.

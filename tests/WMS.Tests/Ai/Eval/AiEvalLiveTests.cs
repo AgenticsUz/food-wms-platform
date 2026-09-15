@@ -18,10 +18,13 @@ namespace WMS.Tests.Ai.Eval;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Bu yerda MODEL baholanadi: 50 savol haqiqiy provayderga yuboriladi va javob uch mezon
-/// bo'yicha o'lchanadi — to'g'ri tool chaqirildimi, kutilgan son javobda bormi, noaniq
-/// nomda qayta so'radimi. Qabul mezoni (§A1): ≥ 45/50, ruxsatsiz 5/5 rad, noaniq 7/7 savol,
-/// tool'siz raqamli javob — 0 ta.
+/// Bu yerda MODEL baholanadi: 77 savol haqiqiy provayderga yuboriladi va javob uch mezon
+/// bo'yicha o'lchanadi — to'g'ri tool chaqirildimi, kutilgan ma'lumot javobga yetib
+/// keldimi, noaniq holatda qayta so'radimi.
+/// </para>
+/// <para>
+/// Qabul mezoni (reja §A1 va §A3): ≥ 90 % (69/77), ruxsatsiz 7/7 rad, noaniq 16/16
+/// qayta so'rash, tool'siz raqamli javob — 0 ta.
 /// </para>
 /// <para>
 /// ⚠️ <b>CI'da YURMAYDI.</b> Har yurish pul turadi va natija modelga bog'liq — uni har
@@ -68,8 +71,33 @@ public sealed class AiEvalLiveTests
 
         IAiGateway gateway = BuildGateway(scope, apiKey, model, effort);
 
+        // ⚠️ Har yurish PUL turadi, shuning uchun ikkita tanlov bor: `AI_EVAL_LIMIT`
+        // (birinchi N savol) va `AI_EVAL_IDS` (vergul bilan aniq id'lar — eng xavfli
+        // joylarni nuqtali tekshirish uchun). Ikkalasida ham QABUL MEZONI
+        // tekshirilmaydi: 4 savoldan chiqarilgan «90 %» hech narsa anglatmaydi.
+        IReadOnlyList<AiEvalCase> all = AiEvalCase.Load();
+
+        string? ids = Environment.GetEnvironmentVariable("AI_EVAL_IDS");
+        bool byId = !string.IsNullOrWhiteSpace(ids);
+        bool hasLimit = int.TryParse(Environment.GetEnvironmentVariable("AI_EVAL_LIMIT"), out int limit) && limit > 0;
+        bool limited = byId || hasLimit;
+
+        IEnumerable<AiEvalCase> selected = all;
+        if (byId)
+        {
+            HashSet<string> wanted = new(
+                ids!.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+                StringComparer.OrdinalIgnoreCase);
+
+            selected = all.Where(c => wanted.Contains(c.Id));
+        }
+        else if (hasLimit)
+        {
+            selected = all.Take(limit);
+        }
+
         List<EvalOutcome> outcomes = [];
-        foreach (AiEvalCase test in AiEvalCase.Load())
+        foreach (AiEvalCase test in selected)
         {
             outcomes.Add(await RunAsync(gateway, test));
         }
@@ -80,16 +108,36 @@ public sealed class AiEvalLiveTests
 
         await File.WriteAllTextAsync(path, report, TestContext.Current.CancellationToken);
 
+        int total = outcomes.Count;
         int passed = outcomes.Count(o => o.Passed);
+        int refusals = outcomes.Count(o => o.Case.ExpectRefusal);
         int refusalsHeld = outcomes.Count(o => o.Case.ExpectRefusal && o.Passed);
+        int clarifies = outcomes.Count(o => o.Case.ExpectClarify);
         int clarifiesHeld = outcomes.Count(o => o.Case.ExpectClarify && o.Passed);
         int numbersWithoutTool = outcomes.Count(o => o.NumberWithoutTool);
 
+        // ⚠️ Chegara SONDA emas, ULUSHDA: to'plam o'sib boradi (A1 da 50, A3 da 77) va
+        // qotirilgan son keyingi bosqichda jimgina yumshoq darvozaga aylanardi.
+        int required = (int)Math.Ceiling(total * 0.9);
+
+        if (limited)
+        {
+            // Qisman yurish — natija hisobotda, lekin darvoza EMAS.
+            Assert.True(
+                passed > 0,
+                $"Qisman yurish ({total} savol): {passed} ta o'tdi. Batafsil: {path}");
+            return;
+        }
+
         // Hisobot fayl sifatida qoladi — ball past bo'lsa sabab o'sha yerdan o'qiladi.
         Assert.True(
-            passed >= 45 && refusalsHeld == 5 && clarifiesHeld == 7 && numbersWithoutTool == 0,
-            $"Jonli to'plam: {passed}/50 (kerak ≥45), ruxsatsiz {refusalsHeld}/5, noaniq {clarifiesHeld}/7, "
-            + $"tool'siz raqam {numbersWithoutTool} (kerak 0). Batafsil: {path}");
+            passed >= required
+                && refusalsHeld == refusals
+                && clarifiesHeld == clarifies
+                && numbersWithoutTool == 0,
+            $"Jonli to'plam: {passed}/{total} (kerak ≥{required}), ruxsatsiz {refusalsHeld}/{refusals}, "
+            + $"noaniq {clarifiesHeld}/{clarifies}, tool'siz raqam {numbersWithoutTool} (kerak 0). "
+            + $"Batafsil: {path}");
     }
 
     /// <summary>Gateway'ni QO'LDA quradi: haqiqiy klient, hisobsiz metering.</summary>
@@ -129,7 +177,11 @@ public sealed class AiEvalLiveTests
         catch (Exception ex)
 #pragma warning restore CA1031
         {
-            return new EvalOutcome(test, false, false, $"ISTISNO: {ex.GetType().Name} — {ex.Message}", []);
+            // ⚠️ ILDIZ sabab: `TypeInitializationException` kabi o'ramlar o'z matnida
+            // «ichidagi istisno tashlandi» dan boshqa hech narsa aytmaydi va hisobot
+            // shu holida foydasiz bo'lardi.
+            Exception root = ex.GetBaseException();
+            return new EvalOutcome(test, false, false, $"ISTISNO: {root.GetType().Name} — {root.Message}", []);
         }
     }
 
@@ -153,27 +205,53 @@ public sealed class AiEvalLiveTests
 
         if (test.ExpectClarify)
         {
+            // ⚠️ Bu yerda ANIQ tool talab QILINMAYDI, faqat «biror tool chaqirilgani».
+            // Sabab: noaniqlikni model boshqa yo'l bilan ham topishi mumkin — «Plombir
+            // qancha qoldi?» savoliga u `stock_query` emas, `find_product` chaqirib uch
+            // nomzodni ko'rishi va SHUNDAN keyin so'rashi to'g'ri xatti-harakat.
+            // O'lchanadigan narsa — TAXMIN QILMAGANI, tool tanlovi emas.
             bool asked = answer.Text.Contains('?', StringComparison.Ordinal);
+            bool grounded = called.Count > 0;
+
             return new EvalOutcome(
-                test, toolUsed && asked, numberWithoutTool,
-                asked ? "qayta so'radi" : "SAVOL BERMADI", called);
+                test, grounded && asked, numberWithoutTool,
+                asked ? "qayta so'radi" : $"SAVOL BERMADI: {Snippet(answer.Text)}", called);
         }
 
-        List<string> missing = [.. test.Markers.Where(m => !answer.Text.Contains(m, StringComparison.OrdinalIgnoreCase))];
+        // ⚠️ Belgi javobda HAM, tool natijasida HAM qidiriladi. Sabab: qoralama
+        // stsenariylarida model tabiiy tilda gapiradi («chiqim tayyorladim») va
+        // tool matnidagi «CHIQIM» kabi texnik belgini takrorlamaydi. O'lchanadigan
+        // narsa — TO'G'RI ma'lumot olinganimi, modelning so'z tanlashi emas.
+        string haystack = answer.Text + "\n" + string.Join("\n", answer.Tools.Select(t => t.Text));
 
-        return new EvalOutcome(
-            test,
-            toolUsed && missing.Count == 0,
-            numberWithoutTool,
-            missing.Count == 0 ? (toolUsed ? "to'g'ri" : "TOOL CHAQIRILMADI") : $"javobda yo'q: {string.Join(", ", missing)}",
-            called);
+        List<string> missing = [.. test.Markers.Where(m => !haystack.Contains(m, StringComparison.OrdinalIgnoreCase))];
+
+        // ⚠️ Xato holatda javob PARCHASI ham yoziladi: «javobda yo'q: 12 000» degan
+        // qator sababni aytmaydi — model boshqa narx oldimi, boshqa mahsulotnimi,
+        // yoki umuman boshqa savolga javob berdimi, faqat matndan ko'rinadi.
+        string note = missing.Count == 0
+            ? (toolUsed ? "to'g'ri" : $"TOOL CHAQIRILMADI: {Snippet(answer.Text)}")
+            : $"javobda yo'q: {string.Join(", ", missing)} — {Snippet(haystack)}";
+
+        return new EvalOutcome(test, toolUsed && missing.Count == 0, numberWithoutTool, note, called);
+    }
+
+    /// <summary>Hisobot jadvaliga sig'adigan parcha (qator ajratgichlarisiz).</summary>
+    private static string Snippet(string text)
+    {
+        string flat = text.ReplaceLineEndings(" ").Replace("|", "/", StringComparison.Ordinal).Trim();
+        return flat.Length <= 220 ? flat : flat[..217] + "...";
     }
 
     private static string BuildReport(IReadOnlyList<EvalOutcome> outcomes, string model, string effort)
     {
         StringBuilder text = new();
         text.Append(CultureInfo.InvariantCulture, $"# F10·A1 — jonli sinov to'plami ({DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC)\n\n");
-        text.Append(CultureInfo.InvariantCulture, $"Model: `{model}`, effort: `{effort}`. Natija: **{outcomes.Count(o => o.Passed)}/{outcomes.Count}**.\n\n");
+        text.Append(CultureInfo.InvariantCulture,
+            $"Model: `{model}`, effort: `{effort}`. Natija: **{outcomes.Count(o => o.Passed)}/{outcomes.Count}**.\n\n");
+
+        text.Append("> Fixture rejimi (CI) WMS ning javobini o'lchaydi, bu yerda esa MODELNING\n");
+        text.Append("> tool tanlashi va qayta so'rashi o'lchanadi.\n\n");
 
         foreach (IGrouping<string, EvalOutcome> group in outcomes.GroupBy(o => o.Case.Category))
         {

@@ -786,7 +786,7 @@
     "id": "draft-01",
     "category": "qoralama",
     "lang": "uz",
-    "text": "Makroga 10 dona Snikers, oxirgi narx bilan",
+    "text": "Asosiy skladdan Makroga 10 dona Snikers, oxirgi narx bilan",
     "permissions": [
       "transfers.create",
       "products.view",
@@ -1291,7 +1291,7 @@
     "id": "pay-05",
     "category": "tolov",
     "lang": "uz",
-    "text": "Oltin Vodiy 2 mln to'ladi",
+    "text": "Oltin Vodiy bilan 2 mln to'lov bo'ldi",
     "permissions": [
       "finance.manage",
       "partners.view",

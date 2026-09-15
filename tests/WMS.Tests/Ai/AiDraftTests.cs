@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using WMS.Application.Ai;
 using WMS.Application.Common;
@@ -54,6 +55,29 @@ public sealed class AiDraftTests
         {
             Should.Throw<AiException>(() => registry.Require(invented, everything))
                 .Code.ShouldBe(AiErrorCodes.ToolForbidden);
+        }
+    }
+
+    [Fact]
+    public async Task HAR_toolning_sxemasi_quriladi()
+    {
+        TestTenant tenant = await _fixture.CreateTenantAsync();
+        await using WmsTenantScope scope = _fixture.BeginScope(tenant);
+
+        // ⚠️ Bu darvoza jonli sinovda topilgan nuqsondan keyin qo'shildi: sxema
+        // eksporti `JsonSerializerOptions` ni faqat o'qishga belgilaydi va resolver
+        // oshkora berilmagan bo'lsa yiqiladi. Nuqson TARTIBGA bog'liq edi — biror
+        // tool avval BAJARILGAN bo'lsa sozlamalar allaqachon to'lgan bo'lardi va
+        // to'plam yashil qolardi. Gateway esa sxemani BIRINCHI so'raydi.
+        AiToolContext everything = Context([.. WmsPermissions.All.Select(p => p.Code), WmsPermissions.PortalSelf]);
+
+        IReadOnlyList<IAiTool> tools = scope.Service<IAiToolRegistry>().Available(everything);
+        tools.Count.ShouldBeGreaterThan(10);
+
+        foreach (IAiTool tool in tools)
+        {
+            JsonElement schema = tool.Schema;
+            schema.GetProperty("type").GetString().ShouldBe("object", $"tool '{tool.Code}'");
         }
     }
 
