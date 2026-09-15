@@ -15,7 +15,6 @@ import { StatusBadgeComponent } from '../../../shared/components/status-badge/st
 import {
   ProductionOrderStatus,
   StageExecutionStatus,
-  shortId,
   type ProductionOrder,
   type StageExecuteDto,
   type StageExecution,
@@ -47,7 +46,6 @@ export default class OrderDetailComponent implements OnInit {
   private readonly productionService = inject(ProductionService);
   private readonly notify = inject(NotificationService);
 
-  protected readonly shortId = shortId;
   protected readonly orderStatusClass = orderStatusClass;
   protected readonly orderStatusKey = orderStatusKey;
   protected readonly stageStatusClass = stageStatusClass;

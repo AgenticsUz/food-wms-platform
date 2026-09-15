@@ -47,6 +47,33 @@
   .text-right { text-align: right; }
 }
 
+/* To'lov tarixi — moliya ekranidagi bilan bir xil o'qiladigan belgilar. */
+.row-reversed {
+  background: var(--surface-hover, rgba(148, 163, 184, 0.12));
+  .number,
+  .note-text {
+    text-decoration: line-through;
+    opacity: 0.65;
+  }
+}
+
+.row-reversal {
+  border-left: 3px solid var(--danger);
+}
+
+.reversal-reason {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.source-icon {
+  margin-left: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  vertical-align: middle;
+}
+
 .inner-note {
   margin: 8px 0 0;
   font-size: 13px;

@@ -1,5 +1,6 @@
 <div class="page-enter" *transloco="let t">
-  <app-page-header [title]="t('transfer.transferDetail') + ' #' + shortId(transfer()?.id)" [subtitle]="typeKey() ? t(typeKey()) : ''">
+  <!-- Sarlavhada hujjat RAQAMI («#12»); Guid pastdagi «ID» qatorida tooltip bilan qoladi. -->
+  <app-page-header [title]="t('transfer.transferDetail') + (transfer() ? ' #' + transfer()?.number : '')" [subtitle]="typeKey() ? t(typeKey()) : ''">
     @if (canDownloadPdf()) {
       <p-button icon="pi pi-file-pdf" [label]="exportService.exporting() ? t('common.exporting') : t('common.downloadPdf')"
         [loading]="exportService.exporting()" [disabled]="exportService.exporting()"
@@ -29,14 +30,26 @@
         <p class="detail-card-title">{{ t('transfer.counterparty') }}</p>
         <p class="detail-card-value small">{{ tr.counterpartyName || '—' }}</p>
       </div>
+      <!-- Hujjat sanasi va yaratilgan lahza — ATAYLAB yonma-yon: hujjat kechagi kun
+           bilan kiritilgan bo'lsa foydalanuvchi buni ko'rib tursin.
+           `'UTC'` — hujjat sanasi kalendar kuni (serverda UTC yarim tuni). -->
       <div class="wms-card detail-card">
-        <p class="detail-card-title">{{ t('common.date') }}</p>
-        <p class="detail-card-value small">{{ (parse(tr.createdAt) | date:'dd.MM.yyyy HH:mm') || '—' }}</p>
+        <p class="detail-card-title">{{ t('transfer.documentDate') }}</p>
+        <p class="detail-card-value small">{{ (parse(tr.documentDate) | date:'dd.MM.yyyy':'UTC') || '—' }}</p>
+        <p class="detail-card-note">{{ t('transfer.createdAtShort') + ': ' + ((parse(tr.createdAt) | date:'dd.MM.yyyy HH:mm') || '—') }}</p>
       </div>
     </div>
 
     <!-- Omborlar va qo'shimcha ma'lumot -->
     <div class="wms-card section-card info-row">
+      <!-- Guid — qo'llab-quvvatlash uchun: ekranda qisqartma, to'lig'i tooltipda. -->
+      <div class="info-item">
+        <span class="info-label">{{ t('transfer.id') }}:</span>
+        <span class="info-value" [title]="tr.id">{{ shortId(tr.id) }}</span>
+        @if (sourceIcon(tr.source); as icon) {
+          <i [class]="'source-icon ' + icon" [title]="t(sourceKey(tr.source))"></i>
+        }
+      </div>
       @if (tr.fromWarehouseName) {
         <div class="info-item">
           <span class="info-label">{{ t('common.from') }}:</span>

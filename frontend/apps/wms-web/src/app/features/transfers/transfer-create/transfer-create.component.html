@@ -12,6 +12,16 @@
           optionLabel="label" optionValue="value" [style]="{ width: '100%' }" />
       </div>
 
+      <!-- Hujjat sanasi: kelajak hech kimga ruxsat emas; orqaga sana — `documents.backdate` bilan. -->
+      <div class="form-field">
+        <label for="transfer-date">{{ t('transfer.documentDate') }} *</label>
+        <p-datepicker inputId="transfer-date" [ngModel]="documentDate()" (ngModelChange)="documentDate.set($event)"
+          dateFormat="yy-mm-dd" [showIcon]="true" [maxDate]="today" [minDate]="minDate()" [style]="{ width: '100%' }" />
+        @if (!canBackdate()) {
+          <small class="field-hint">{{ t('transfer.backdateLocked') }}</small>
+        }
+      </div>
+
       @if (isIncoming() || isOutgoing() || isReturn()) {
         <div class="form-field">
           <label for="transfer-counterparty">{{ isIncoming() ? t('transfer.selectSupplier') : t('transfer.selectClient') }} *</label>
@@ -23,7 +33,7 @@
       @if (isIncoming() || isReturn()) {
         <div class="form-field">
           <label for="transfer-to">{{ t('transfer.destWarehouse') }} *</label>
-          <p-select inputId="transfer-to" [options]="warehouses()" [ngModel]="toWarehouseId()" (ngModelChange)="toWarehouseId.set($event)"
+          <p-select inputId="transfer-to" [options]="warehouses()" [ngModel]="toWarehouseId()" (ngModelChange)="onToWarehouseChange($event)"
             optionLabel="name" optionValue="id" [placeholder]="t('transfer.selectWarehouse')" [style]="{ width: '100%' }" />
         </div>
       }
@@ -77,7 +87,7 @@
         </div>
         <div class="form-field">
           <label for="transfer-internal-to">{{ t('transfer.toWarehouse') }} *</label>
-          <p-select inputId="transfer-internal-to" [options]="warehouses()" [ngModel]="toWarehouseId()" (ngModelChange)="toWarehouseId.set($event)"
+          <p-select inputId="transfer-internal-to" [options]="warehouses()" [ngModel]="toWarehouseId()" (ngModelChange)="onToWarehouseChange($event)"
             optionLabel="name" optionValue="id" [placeholder]="t('transfer.destWarehouse')" [style]="{ width: '100%' }" />
         </div>
       }
@@ -134,12 +144,24 @@
 
     <div class="add-item-row">
       <div class="add-item-field">
-        <p-select [options]="products()" [ngModel]="itemProductId()" (ngModelChange)="itemProductId.set($event)"
+        <p-select [options]="products()" [ngModel]="itemProductId()" (ngModelChange)="onItemProductChange($event)"
           optionLabel="name" optionValue="id" [placeholder]="t('common.name')" [filter]="true" [style]="{ width: '100%' }" />
       </div>
       <div class="add-item-field small">
-        <p-inputNumber [ngModel]="itemQuantity()" (ngModelChange)="itemQuantity.set($event ?? 0)"
-          [placeholder]="t('common.quantity')" [min]="0" [minFractionDigits]="0" [maxFractionDigits]="2" [style]="{ width: '100%' }" />
+        <div class="qty-row">
+          <p-inputNumber [ngModel]="itemQuantity()" (ngModelChange)="itemQuantity.set($event ?? 0)"
+            [placeholder]="t('common.quantity')" [min]="0" [minFractionDigits]="0" [maxFractionDigits]="2" [style]="{ width: '100%' }" />
+          <!-- Qadoq o'tkazgichi (P2.7): «quti» rejimida kiritilgan son `× packSize`
+               qilinib DONAda yuboriladi. Yorliqlar — mahsulotning o'z nomlari. -->
+          @if (pack.options(); as opts) {
+            <p-selectbutton [options]="opts" [ngModel]="itemInPacks()" (ngModelChange)="itemInPacks.set($event)"
+              optionLabel="label" optionValue="value" [allowEmpty]="false" [ariaLabel]="t('products.packMode')"
+              styleClass="pack-toggle" />
+          }
+        </div>
+        @if (pack.hint(); as hint) {
+          <small class="pack-hint">{{ hint }}</small>
+        }
         <!-- Qoldiq AYNAN manba ombor kesimida: «boshqa omborda bor» eng ko'p uchragan sabab. -->
         @if (selectedAvailable() !== null) {
           <small class="stock-hint" [class.stock-hint-empty]="selectedAvailable() === 0">
@@ -150,6 +172,16 @@
       <div class="add-item-field small">
         <p-inputNumber [ngModel]="itemUnitPrice()" (ngModelChange)="itemUnitPrice.set($event ?? 0)"
           [placeholder]="t('common.price')" [min]="0" [minFractionDigits]="0" [maxFractionDigits]="2" mode="decimal" [style]="{ width: '100%' }" />
+        <!-- Taklif BOSILGANDA qo'yiladi, avtomatik emas: narx kelishuv natijasi,
+             eskisini indamay ko'chirish yangi kelishuvni yuvib yuborardi. -->
+        @if (selectedLastPrice(); as lp) {
+          <button type="button" class="price-hint" [class.price-hint-other]="!lp.isSameCounterparty"
+            [title]="t('transfer.applyLastPrice')" (click)="applySuggestion()">
+            {{ (lp.isSameCounterparty ? t('transfer.lastPrice') : t('transfer.lastPriceGeneral')) + ': ' }}
+            <span class="number">{{ lp.unitPrice | number: '1.0-2' }}</span>
+            {{ ' · ' + ((parse(lp.documentDate) | date: 'dd.MM' : 'UTC') || '') + (lp.counterpartyName ? ' · ' + lp.counterpartyName : '') }}
+          </button>
+        }
       </div>
       <p-button icon="pi pi-plus" [label]="t('transfer.addItem')" (onClick)="addItem()" />
     </div>
@@ -169,7 +201,19 @@
           <tr>
             <td><span class="item-name">{{ item.productName }}</span></td>
             <td class="text-right"><span class="number">{{ item.quantity | number:'1.0-2' }}</span></td>
-            <td class="text-right"><span class="number">{{ item.unitPrice | number:'1.0-2' }}</span></td>
+            <td class="text-right">
+              <span class="number">{{ item.unitPrice | number:'1.0-2' }}</span>
+              <!-- Skaner qatorining narxi tannarxdan olingan — oxirgi savdo narxi shu yerda taklif bo'lib turadi. -->
+              @if (lastPriceFor(item.productId); as lp) {
+                @if (lp.unitPrice !== item.unitPrice) {
+                  <button type="button" class="price-hint" [class.price-hint-other]="!lp.isSameCounterparty"
+                    [title]="t('transfer.applyLastPrice')" (click)="applySuggestionToRow(i)">
+                    {{ (lp.isSameCounterparty ? t('transfer.lastPrice') : t('transfer.lastPriceGeneral')) + ': ' }}
+                    <span class="number">{{ lp.unitPrice | number: '1.0-2' }}</span>
+                  </button>
+                }
+              }
+            </td>
             <td class="text-right"><span class="number">{{ item.quantity * item.unitPrice | number:'1.0-2' }}</span></td>
             <td class="text-center">
               <p-button icon="pi pi-times" [rounded]="true" [text]="true" severity="danger" (onClick)="removeItem(i)" />

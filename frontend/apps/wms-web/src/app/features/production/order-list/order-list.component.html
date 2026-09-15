@@ -32,7 +32,7 @@
       [rowsPerPageOptions]="[10, 15, 25, 50]" [scrollable]="true" styleClass="p-datatable-sm p-datatable-striped">
       <ng-template #header>
         <tr>
-          <th>#</th>
+          <th>{{ t('production.number') }}</th>
           <th>{{ t('production.recipe') }}</th>
           <th>{{ t('nav.products') }}</th>
           <th class="text-right">{{ t('production.plannedQty') }}</th>
@@ -44,7 +44,8 @@
       </ng-template>
       <ng-template #body let-order>
         <tr>
-          <td><span class="number" [title]="order.id">#{{ shortId(order.id) }}</span></td>
+          <!-- Buyurtma raqami — odam aytadigan nom; Guid tooltipda qoladi. -->
+          <td><span class="number" [title]="order.id">#{{ order.number }}</span></td>
           <td><span class="item-name">{{ order.recipeName }}</span></td>
           <td>{{ order.outputProductName }}</td>
           <td class="text-right"><span class="number">{{ order.plannedQuantity | number: '1.0-2' }}</span></td>

@@ -5,7 +5,7 @@ import { TranslocoDirective } from '@jsverse/transloco';
 import { TableModule } from 'primeng/table';
 import { DatePicker } from 'primeng/datepicker';
 
-import { localDayRangeToUtc, parseUtc } from '../../../core/utils/date.util';
+import { parseUtc, toLocalDateString } from '../../../core/utils/date.util';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { TransferStatus, TransferType, type Transfer } from '../../transfers/transfer.model';
@@ -13,6 +13,10 @@ import { transferTypeClass, transferTypeKey } from '../../transfers/transfer-enu
 import { WarehouseService } from '../warehouse.service';
 
 interface MovementRow {
+  /** Hujjatning qisqa raqami — qatorni hujjatga bog'laydi («#12»). */
+  readonly number: number;
+  /** Guid — tooltipda: operator qo'llab-quvvatlashga aynan shuni beradi. */
+  readonly transferId: string;
   readonly productName: string;
   readonly unitShortName: string;
   /** Tovar kimdan keldi (kirim/qaytarishda kontragent, ichkida manba ombor). */
@@ -24,6 +28,7 @@ interface MovementRow {
   readonly unitPrice: number;
   /** Qator summasi — `quantity * unitPrice` (javobdagi `totalPrice`). */
   readonly amount: number;
+  /** HUJJAT sanasi (kalendar kuni) — tasdiqlangan lahza emas: hisobot shu bo'yicha. */
   readonly date: Date | null;
   readonly note: string | null;
 }
@@ -62,11 +67,11 @@ export default class MovementsComponent implements OnInit {
       .getMovements({
         status: TransferStatus.Confirmed,
         pageSize: 500,
-        // Backend `CreatedAt >= from` / `<= to` (UTC) qiladi — mahalliy kun chegaralari
-        // UTC'ga o'giriladi. Eskisi `YYYY-MM-DD` yuborib, «gacha» kunining deyarli
-        // hammasini (UTC yarim tundan keyingisini) tashlab yuborardi.
-        from: from ? localDayRangeToUtc(from, from).from : undefined,
-        to: to ? localDayRangeToUtc(to, to).to : undefined,
+        // Backend endi HUJJAT SANASI bo'yicha filtrlaydi (`DocumentDate`, P2.3), u esa
+        // kun boshi — shuning uchun kalendar kuni (`YYYY-MM-DD`) yuboriladi, vaqt
+        // nuqtasi emas.
+        from: from ? toLocalDateString(from) : undefined,
+        to: to ? toLocalDateString(to) : undefined,
       })
       .subscribe({
         next: (res) => {
@@ -91,9 +96,13 @@ export default class MovementsComponent implements OnInit {
 /** Har transferni mahsulot qatorlariga yoyadi. */
 function flatten(transfers: readonly Transfer[]): MovementRow[] {
   return transfers.flatMap((tr) => {
-    const date = parseUtc(tr.confirmedAt ?? tr.createdAt);
+    // Sana — HUJJAT sanasi: filtr ham, hisobot ham shu ustunda; tasdiqlangan lahza
+    // (`confirmedAt`) bilan ular boshqa kunga tushib ketardi.
+    const date = parseUtc(tr.documentDate);
     const [fromName, toName] = partiesFor(tr);
     return tr.items.map((item) => ({
+      number: tr.number,
+      transferId: tr.id,
       productName: item.productName,
       unitShortName: item.unitShortName,
       fromName,

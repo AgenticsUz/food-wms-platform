@@ -52,8 +52,9 @@
       <div class="wms-card portal-card">
         <p class="portal-card-title">{{ t('portal.totalPaid') }}</p>
         <p class="portal-card-value">{{ f.totalPaid | number: '1.0-2' }}</p>
+        <!-- «Oxirgi to'lov» ham HUJJAT sanasi (kun boshi) — soatsiz ko'rsatiladi. -->
         <p class="portal-card-hint">
-          {{ t('portal.lastPayment') }}: {{ (parse(f.lastPaymentAt) | date: 'dd.MM.yyyy HH:mm') || '—' }}
+          {{ t('portal.lastPayment') }}: {{ (parse(f.lastPaymentAt) | date: 'dd.MM.yyyy' : 'UTC') || '—' }}
         </p>
       </div>
     </div>

@@ -12,7 +12,14 @@ import { ExportService } from '../../../core/services/export.service';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { HasPermissionDirective } from '../../../shared/directives/has-permission.directive';
-import { shortTransferId, transferStatusClass, transferStatusKey, transferTypeKey } from '../transfer-enums';
+import {
+  shortTransferId,
+  transferSourceIcon,
+  transferSourceKey,
+  transferStatusClass,
+  transferStatusKey,
+  transferTypeKey,
+} from '../transfer-enums';
 import { TransferStatus, type Transfer } from '../transfer.model';
 import { TransferService } from '../transfer.service';
 import { parseUtc } from '../../../core/utils/date.util';
@@ -36,6 +43,9 @@ export default class TransferDetailComponent implements OnInit {
 
   protected readonly transferStatusClass = transferStatusClass;
   protected readonly transferStatusKey = transferStatusKey;
+  protected readonly sourceIcon = transferSourceIcon;
+  protected readonly sourceKey = transferSourceKey;
+  /** Asl hujjat havolasida faqat Guid ma'lum — raqami yo'q, shuning uchun qisqartma qoladi. */
   protected readonly shortId = shortTransferId;
 
   readonly transfer = signal<Transfer | null>(null);

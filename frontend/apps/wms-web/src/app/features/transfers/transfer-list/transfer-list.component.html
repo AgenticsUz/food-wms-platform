@@ -32,18 +32,26 @@
       [rowsPerPageOptions]="[10, 15, 25, 50]" [scrollable]="true" styleClass="p-datatable-sm p-datatable-striped">
       <ng-template #header>
         <tr>
-          <th>{{ t('transfer.id') }}</th>
+          <th pSortableColumn="number">{{ t('transfer.number') }} <p-sortIcon field="number" /></th>
           <th>{{ t('common.type') }}</th>
           <th>{{ t('transfer.counterparty') }}</th>
           <th class="text-right">{{ t('common.amount') }}</th>
           <th>{{ t('common.status.label') }}</th>
-          <th pSortableColumn="createdAt">{{ t('common.date') }} <p-sortIcon field="createdAt" /></th>
+          <!-- «Sana» — hujjat sanasi (server ham shu bo'yicha filtrlaydi), `createdAt` emas. -->
+          <th pSortableColumn="documentDate">{{ t('common.date') }} <p-sortIcon field="documentDate" /></th>
           <th class="text-center">{{ t('common.actions') }}</th>
         </tr>
       </ng-template>
       <ng-template #body let-row>
         <tr>
-          <td><span class="number" [title]="row.id">{{ '#' + shortId(row.id) }}</span></td>
+          <!-- Odam raqamni aytadi («7-hujjat»), Guid esa tooltipda — qo'llab-quvvatlash uchun. -->
+          <td>
+            <span class="number" [title]="row.id">{{ '#' + row.number }}</span>
+            <!-- Manba belgisi: AI/Telegram yozgan hujjat ko'rinib tursin (F10). -->
+            @if (sourceIcon(row.source); as icon) {
+              <i [class]="'source-icon ' + icon" [title]="t(sourceKey(row.source))"></i>
+            }
+          </td>
           <td>
             @if (isReturnType(row.type)) {
               <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-800">
@@ -65,7 +73,9 @@
           <td>
             <app-status-badge [status]="transferStatusClass(row.status)" [label]="t(transferStatusKey(row.status))" />
           </td>
-          <td>{{ (parse(row.createdAt) | date:'dd.MM.yyyy HH:mm') || '—' }}</td>
+          <!-- `'UTC'` ataylab: hujjat sanasi — KALENDAR KUNI (serverda UTC yarim tuni);
+               mahalliy zonada ko'rsatilsa manfiy siljishda kun surilib ketardi. -->
+          <td>{{ (parse(row.documentDate) | date:'dd.MM.yyyy':'UTC') || '—' }}</td>
           <td class="text-center actions-cell">
             <p-button icon="pi pi-eye" [rounded]="true" [text]="true" severity="secondary" (onClick)="viewDetail(row)" />
           </td>

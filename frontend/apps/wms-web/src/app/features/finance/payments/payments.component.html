@@ -9,24 +9,54 @@
       <ng-template #header>
         <tr>
           <th pSortableColumn="counterpartyName">{{ t('finance.counterparty') }} <p-sortIcon field="counterpartyName" /></th>
+          <th>{{ t('finance.direction') }}</th>
           <th class="text-right" pSortableColumn="amount">{{ t('common.amount') }} <p-sortIcon field="amount" /></th>
           <th>{{ t('finance.paymentMethod') }}</th>
-          <th pSortableColumn="paidAt">{{ t('common.date') }} <p-sortIcon field="paidAt" /></th>
+          <!-- «Sana» — `documentDate` (hisobot shu bo'yicha), `paidAt` emas: u audit izi. -->
+          <th pSortableColumn="documentDate">{{ t('common.date') }} <p-sortIcon field="documentDate" /></th>
           <th>{{ t('common.note') }}</th>
+          <th class="text-center">{{ t('common.actions') }}</th>
         </tr>
       </ng-template>
       <ng-template #body let-p>
-        <tr>
-          <td><span class="item-name">{{ p.counterpartyName }}</span></td>
+        <tr [class.row-reversed]="p.isReversed" [class.row-reversal]="p.reversalOfId">
+          <td>
+            <span class="item-name">{{ p.counterpartyName }}</span>
+            <!-- Manba belgisi: AI/Telegram kiritgan yozuv ko'rinib tursin (F10). -->
+            @if (sourceIcon(p.source); as icon) {
+              <i [class]="'source-icon ' + icon" [title]="t(sourceKey(p.source))"></i>
+            }
+          </td>
+          <td>
+            <app-status-badge [status]="directionStatus(p.direction)" [label]="t(directionKey(p.direction))" />
+          </td>
           <td class="text-right"><span class="number payment-amount">{{ p.amount | number: '1.0-2' }}</span></td>
           <td><app-status-badge [status]="methodStatus(p.method)" [label]="t(methodKey(p.method))" /></td>
-          <td>{{ (parse(p.paidAt) | date: 'dd.MM.yyyy HH:mm') || '—' }}</td>
-          <td>{{ p.note || '—' }}</td>
+          <!-- `'UTC'` ataylab: hujjat sanasi — KALENDAR KUNI (serverda UTC yarim tuni).
+               Mahalliy zonada ko'rsatilsa manfiy siljishda kun surilib ketardi. -->
+          <td>{{ (parse(p.documentDate) | date: 'dd.MM.yyyy' : 'UTC') || '—' }}</td>
+          <td>
+            @if (p.isReversed) {
+              <app-status-badge status="Cancelled" [label]="t('finance.reversed')" />
+            }
+            @if (p.reversalOfId) {
+              <app-status-badge status="Cancelled" [label]="t('finance.reversalEntry')" />
+              <div class="reversal-reason">{{ p.reversalReason || '—' }}</div>
+            } @else {
+              <span class="note-text">{{ p.note || '—' }}</span>
+            }
+          </td>
+          <td class="text-center actions-cell">
+            @if (canReverse(p)) {
+              <p-button *hasPermission="'finance.manage'" icon="pi pi-undo" [rounded]="true" [text]="true"
+                severity="danger" [ariaLabel]="t('finance.reverse')" (onClick)="openReverse(p)" />
+            }
+          </td>
         </tr>
       </ng-template>
       <ng-template #emptymessage>
         <tr>
-          <td colspan="5">
+          <td colspan="7">
             <div class="empty-state">
               <i class="pi pi-wallet"></i>
               <p>{{ t('finance.noPayments') }}</p>
@@ -44,7 +74,16 @@
         <label for="pay-counterparty">{{ t('finance.counterparty') }} *</label>
         <p-select inputId="pay-counterparty" [options]="counterparties()" [ngModel]="form().counterpartyId"
           (ngModelChange)="updateForm('counterpartyId', $event)" optionLabel="name" optionValue="id"
-          placeholder="Select counterparty" [filter]="true" filterBy="name" [style]="{ width: '100%' }" />
+          [placeholder]="t('finance.selectCounterparty')" [filter]="true" filterBy="name" [style]="{ width: '100%' }" />
+      </div>
+
+      <!-- Yo'nalish sukut bo'yicha TANLANMAGAN: noto'g'ri taxmin summani teskari yozadi. -->
+      <div class="form-field full-width">
+        <!-- `label` emas, `span`: `p-selectbutton` da bog'lanadigan `inputId` yo'q. -->
+        <span id="pay-direction-label" class="field-label">{{ t('finance.direction') }} *</span>
+        <p-selectbutton [options]="directionOptions()" [ngModel]="form().direction"
+          (ngModelChange)="updateForm('direction', $event)" optionLabel="label" optionValue="value"
+          [allowEmpty]="false" ariaLabelledBy="pay-direction-label" styleClass="direction-toggle" />
       </div>
 
       <div class="form-field">
@@ -59,16 +98,51 @@
           (ngModelChange)="updateForm('method', $event)" optionLabel="label" optionValue="value" [style]="{ width: '100%' }" />
       </div>
 
+      <!-- Kelajak sana hech kimga ruxsat emas; orqaga sana — `documents.backdate` bilan. -->
+      <div class="form-field full-width">
+        <label for="pay-date">{{ t('finance.paymentDate') }} *</label>
+        <p-datepicker inputId="pay-date" [ngModel]="formDate()" (ngModelChange)="formDate.set($event)"
+          dateFormat="yy-mm-dd" [showIcon]="true" [maxDate]="today" [minDate]="minDate()" [style]="{ width: '100%' }" />
+        @if (!canBackdate()) {
+          <small class="field-hint">{{ t('finance.backdateLocked') }}</small>
+        }
+      </div>
+
       <div class="form-field full-width">
         <label for="pay-note">{{ t('common.note') }}</label>
         <textarea id="pay-note" pTextarea [ngModel]="form().note ?? ''" (ngModelChange)="updateForm('note', $event || null)"
-          rows="3" class="w-full" placeholder="Optional note..."></textarea>
+          rows="3" class="w-full"></textarea>
       </div>
     </div>
 
     <ng-template #footer>
       <p-button [label]="t('common.cancel')" [text]="true" (onClick)="dialogVisible.set(false)" />
       <p-button [label]="t('common.save')" icon="pi pi-check" (onClick)="save()" [loading]="saving()" />
+    </ng-template>
+  </p-dialog>
+
+  <!-- Storno dialogi: sabab majburiy, u tarixda qatorda ko'rinadi. -->
+  <p-dialog [header]="t('finance.reversePayment')" [visible]="reverseTarget() !== null"
+    (visibleChange)="onReverseVisible($event)" [modal]="true" [style]="{ width: '420px' }" [draggable]="false">
+    @if (reverseTarget(); as target) {
+      <div class="form-grid">
+        <div class="form-field full-width">
+          <span class="reverse-summary">
+            {{ target.counterpartyName }} — {{ target.amount | number: '1.0-2' }}
+          </span>
+        </div>
+        <div class="form-field full-width">
+          <label for="reverse-reason">{{ t('finance.reversalReason') }} *</label>
+          <textarea id="reverse-reason" pTextarea [ngModel]="reverseReason()"
+            (ngModelChange)="reverseReason.set($event)" rows="3" class="w-full"></textarea>
+        </div>
+      </div>
+    }
+
+    <ng-template #footer>
+      <p-button [label]="t('common.cancel')" [text]="true" (onClick)="closeReverse()" />
+      <p-button [label]="t('finance.reverse')" icon="pi pi-undo" severity="danger"
+        (onClick)="confirmReverse()" [loading]="reversing()" />
     </ng-template>
   </p-dialog>
 </div>

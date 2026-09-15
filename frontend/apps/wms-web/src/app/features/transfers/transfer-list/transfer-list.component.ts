@@ -11,13 +11,14 @@ import { LanguageService } from '@agentics/i18n';
 
 import { WmsSession } from '../../../core/auth/wms-session';
 import { ExportService } from '../../../core/services/export.service';
-import { localDayRangeToUtc, toLocalDateString } from '../../../core/utils/date.util';
+import { toLocalDateString } from '../../../core/utils/date.util';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { HasPermissionDirective } from '../../../shared/directives/has-permission.directive';
 import { injectTranslationTick } from '../../warehouse/translation-tick';
 import {
-  shortTransferId,
+  transferSourceIcon,
+  transferSourceKey,
   transferStatusClass,
   transferStatusKey,
   transferTypeClass,
@@ -47,7 +48,8 @@ export default class TransferListComponent implements OnInit {
   protected readonly transferStatusKey = transferStatusKey;
   protected readonly transferTypeClass = transferTypeClass;
   protected readonly transferTypeKey = transferTypeKey;
-  protected readonly shortId = shortTransferId;
+  protected readonly sourceIcon = transferSourceIcon;
+  protected readonly sourceKey = transferSourceKey;
 
   readonly transfers = signal<Transfer[]>([]);
   readonly loading = signal(true);
@@ -89,7 +91,7 @@ export default class TransferListComponent implements OnInit {
 
   loadTransfers(): void {
     this.loading.set(true);
-    const range = this.utcRange();
+    const range = this.dateRange();
     this.transferService
       .getTransfers({
         pageSize: 100,
@@ -140,7 +142,7 @@ export default class TransferListComponent implements OnInit {
   }
 
   exportTransfers(): void {
-    const range = this.utcRange();
+    const range = this.dateRange();
     this.exportService.download('export/transfers', `transfers-${toLocalDateString(new Date())}.xlsx`, {
       fromDate: range.from,
       toDate: range.to,
@@ -148,16 +150,17 @@ export default class TransferListComponent implements OnInit {
   }
 
   /**
-   * Tanlangan kunlar — UTC vaqt nuqtalari: backend `CreatedAt >= from` va
-   * `<= to` qiladi. Eskisi `YYYY-MM-DD` yuborib, «gacha» kunining UTC yarim
-   * tundan keyingi (ya'ni deyarli butun) qismini tashlab yuborardi.
+   * Tanlangan kunlar — KALENDAR KUNLARI (`YYYY-MM-DD`): filtr endi hujjat
+   * sanasi bo'yicha (`DocumentDate >= from`, `<= to`), u esa serverda kun boshi.
+   * Vaqt nuqtasiga o'girish (`localDayRangeToUtc`) bu yerda faqat chegarani
+   * chalkashtirardi — eksport ham AYNAN shu ustun bo'yicha filtrlaydi.
    */
-  private utcRange(): { from?: string; to?: string } {
+  private dateRange(): { from?: string; to?: string } {
     const from = this.dateFrom();
     const to = this.dateTo();
     return {
-      from: from ? localDayRangeToUtc(from, from).from : undefined,
-      to: to ? localDayRangeToUtc(to, to).to : undefined,
+      from: from ? toLocalDateString(from) : undefined,
+      to: to ? toLocalDateString(to) : undefined,
     };
   }
 

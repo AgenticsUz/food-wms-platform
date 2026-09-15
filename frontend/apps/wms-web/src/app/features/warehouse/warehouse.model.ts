@@ -87,3 +87,29 @@ export interface WarehouseStockRow extends WarehouseStockGrouped {
   readonly warehouseId: string;
   readonly warehouseName: string;
 }
+
+/**
+ * Standart ombor sozlamasi (P2.6) — manba `DTOs/Warehouses/WarehouseDefaultsDto.cs`.
+ *
+ * ⚠️ FORMA FAQAT `effective*` GA QARAYDI. Ustunlik tartibini (xodimning shaxsiy
+ * tanlovi → tenant sozlamasi → tenantda ombor bitta bo'lsa o'sha) server hisoblab
+ * beradi; uni mijozda takrorlash ikki joyda ikki xil natija degani bo'lardi.
+ * `rawWarehouseId` / `finishedWarehouseId` / `userWarehouseId` faqat SOZLAMALAR
+ * ekraniga — «hozir nima yozilgan» ni ko'rsatish uchun.
+ */
+export interface WarehouseDefaults {
+  readonly rawWarehouseId: string | null;
+  readonly finishedWarehouseId: string | null;
+  readonly userWarehouseId: string | null;
+  readonly effectiveRawId: string | null;
+  readonly effectiveFinishedId: string | null;
+}
+
+/**
+ * `PUT /api/settings/warehouses` — tenant sozlamasi, ALMASHTIRISH semantikasi:
+ * ikkala maydon ham yuboriladi, `null` sozlamani o'chiradi.
+ */
+export interface WarehouseDefaultsUpdateDto {
+  readonly rawWarehouseId: string | null;
+  readonly finishedWarehouseId: string | null;
+}

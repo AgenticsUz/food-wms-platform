@@ -33,6 +33,8 @@ interface ProductForm {
   readonly shelfLifeDays: number | null;
   readonly barcode: string | null;
   readonly costPrice: number | null;
+  readonly packSize: number | null;
+  readonly packUnit: string | null;
 }
 
 const EMPTY_FORM: ProductForm = {
@@ -45,6 +47,8 @@ const EMPTY_FORM: ProductForm = {
   shelfLifeDays: null,
   barcode: null,
   costPrice: null,
+  packSize: null,
+  packUnit: null,
 };
 
 /** Mahsulot katalogi (eski `products/product-list`). */
@@ -178,6 +182,8 @@ export default class ProductListComponent implements OnInit {
       shelfLifeDays: product.shelfLifeDays,
       barcode: product.barcode,
       costPrice: product.costPrice,
+      packSize: product.packSize,
+      packUnit: product.packUnit,
     });
     this.editing.set(true);
     this.dialogVisible.set(true);
@@ -199,6 +205,18 @@ export default class ProductListComponent implements OnInit {
       this.notify.warn(this.requiredMessage('common.unit'));
       return;
     }
+    // Qadoq JUFT maydon (P2.7). Serverda ham shu qoida bor, lekin bu yerda
+    // aytilmasa odam «12» yozib, nomini unutib, 400 xatosini olardi.
+    const packUnit = f.packUnit?.trim() || null;
+    const hasSize = f.packSize !== null;
+    if (hasSize !== (packUnit !== null)) {
+      this.notify.warn(this.language.translate('products.packPairRequired'));
+      return;
+    }
+    if (hasSize && (f.packSize ?? 0) <= 0) {
+      this.notify.warn(this.language.translate('products.packSizePositive'));
+      return;
+    }
 
     this.saving.set(true);
     const dto: ProductCreateDto = {
@@ -210,6 +228,8 @@ export default class ProductListComponent implements OnInit {
       shelfLifeDays: f.shelfLifeDays,
       barcode: f.barcode,
       costPrice: f.costPrice,
+      packSize: f.packSize,
+      packUnit,
     };
 
     const request =
@@ -260,6 +280,17 @@ export default class ProductListComponent implements OnInit {
       default:
         return 'Neutral';
     }
+  }
+
+  /**
+   * Jadvaldagi qadoq ustuni: «1 quti = 12 dona». Bitta satr sifatida shu yerda
+   * yig'iladi — shablonda bo'laklab yozilsa tarjima qorovuli (`template/i18n`)
+   * orasidagi «=» ni qotirilgan matn deb ushlardi.
+   */
+  packLabel(product: Product): string | null {
+    if (product.packSize === null || !product.packUnit) return null;
+    const base = product.unitShortName || product.unitName;
+    return `1 ${product.packUnit} = ${product.packSize} ${base}`;
   }
 
   exportProducts(): void {

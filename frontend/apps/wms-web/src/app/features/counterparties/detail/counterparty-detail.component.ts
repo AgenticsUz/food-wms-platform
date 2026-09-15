@@ -11,7 +11,14 @@ import { StatusBadgeComponent } from '../../../shared/components/status-badge/st
 import { TelegramLinkDialogComponent, type TelegramLinkApi } from '../../../shared/components/telegram-link-dialog/telegram-link-dialog.component';
 import { PortalAccountCardComponent } from '../../../shared/components/portal-account/portal-account-card.component';
 import { HasPermissionDirective } from '../../../shared/directives/has-permission.directive';
-import { paymentMethodKey, type PaymentHistory } from '../../finance/finance.model';
+import {
+  documentSourceIcon,
+  documentSourceKey,
+  paymentDirectionKey,
+  paymentDirectionStatus,
+  paymentMethodKey,
+  type PaymentHistory,
+} from '../../finance/finance.model';
 import {
   CounterpartyType,
   counterpartyTypeKey,
@@ -48,6 +55,12 @@ export default class CounterpartyDetailComponent implements OnInit {
   protected readonly transferTypeKey = transferTypeKey;
   protected readonly typeKey = counterpartyTypeKey;
   protected readonly methodKey = paymentMethodKey;
+  // To'lov tarixi moliya ekrani bilan BIR XIL o'qilsin: yo'nalish, hujjat sanasi,
+  // storno holati va manba belgisi — yordamchilar `finance.model` da (yagona manba).
+  protected readonly directionKey = paymentDirectionKey;
+  protected readonly directionStatus = paymentDirectionStatus;
+  protected readonly sourceIcon = documentSourceIcon;
+  protected readonly sourceKey = documentSourceKey;
 
   readonly counterparty = signal<Counterparty | null>(null);
 

@@ -1,0 +1,42 @@
+@use '../module-common';
+
+.field-hint {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: var(--text-muted);
+
+  &.locked {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+  }
+}
+
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.effective-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+
+  &:last-child { border-bottom: none; }
+}
+
+.effective-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.effective-value {
+  font-weight: 600;
+  color: var(--text-primary);
+}

@@ -149,6 +149,9 @@ export const SETTINGS_NAV: NavItem = {
     // F8.1: faqat Identity `admin` roli — marshrutda `roleGuard('admin')`, API'da ham shu.
     { key: 'settings.accessAccounts', route: '/settings/access', roleCode: 'admin' },
     { key: 'settings.modules', route: '/settings/modules', permissionCode: 'settings.modules' },
+    // P2.6: tenant sozlamasi `settings.modules` ostida, lekin sahifa `warehouse.view`
+    // bilan ham ochiladi — har xodim o'zining «Mening omborim» tanlovini qo'yadi.
+    { key: 'settings.warehouseDefaults', route: '/settings/warehouses', permissionCode: 'warehouse.view' },
     { key: 'subscription.title', route: '/settings/subscription' },
     // Marshrutda `quality.view` ham talab qilinadi — menyu ham shuni tekshiradi.
     {

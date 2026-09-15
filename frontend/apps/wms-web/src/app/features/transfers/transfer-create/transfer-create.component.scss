@@ -86,3 +86,60 @@
   color: var(--danger, #c0392b);
   font-weight: 600;
 }
+
+/* Sana maydonining yon izohi (moliya formasidagi bilan bir xil ko'rinish). */
+.field-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* «Oxirgi narx» taklifi — bosiladigan ishora, shuning uchun tugma (klaviatura ham yetadi). */
+.price-hint {
+  display: block;
+  margin-top: 4px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary-600);
+  cursor: pointer;
+  text-align: left;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+/* Boshqa kontragent narxi — KELISHILGAN narx emas, faqat orientir: kulrang va oddiy. */
+.price-hint-other {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* Miqdor maydoni + qadoq o'tkazgichi bitta qatorda: o'tkazgich ANIQ shu maydonga
+   tegishli ekani ko'rinib tursin. */
+.qty-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  > :first-child { flex: 1 1 auto; min-width: 0; }
+}
+
+/* O'tkazgich ingichka: u yordamchi, asosiy diqqat raqamda. */
+:host ::ng-deep .pack-toggle .p-togglebutton {
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+/* «= 600 dona» — kiritilgan qutilar asosiy birlikda qancha ekani. */
+.pack-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary-600);
+}

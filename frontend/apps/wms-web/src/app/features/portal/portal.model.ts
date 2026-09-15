@@ -54,6 +54,15 @@ export interface PortalTransfer {
   readonly note: string | null;
   readonly createdAt: string;
   readonly confirmedAt: string | null;
+  /**
+   * Hujjat sanasi (P2.3) — tovar HAQIQATDA kelgan/ketgan KUN, vaqt nuqtasi emas.
+   * Kabinet ro'yxati ham shu bo'yicha tartiblangan, ya'ni zavoddagi tartib bilan
+   * bir xil. ⚠️ Soatsiz ko'rsatiladi: kun boshi bo'lgani uchun har yozuvda
+   * «00:00» chiqardi.
+   */
+  readonly documentDate: string;
+  /** Qisqa hujjat raqami (P2.4) — mijoz telefonda «12-hujjat» deb ayta olsin. */
+  readonly number: number;
   readonly items: PortalTransferItem[];
 }
 
@@ -61,6 +70,10 @@ export interface PortalPayment {
   readonly id: string;
   readonly amount: number;
   readonly method: number;
+  /**
+   * To'lov sanasi — endi HUJJAT sanasi (kun boshi), operator kiritgan lahza emas.
+   * Shu sababli soatsiz ko'rsatiladi.
+   */
   readonly paidAt: string;
   readonly note: string | null;
 }

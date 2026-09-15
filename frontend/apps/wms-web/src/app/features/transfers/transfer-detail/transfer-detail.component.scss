@@ -40,3 +40,18 @@
   gap: 12px;
   padding-top: 8px;
 }
+
+/* Kartadagi ikkinchi darajali qator — «yaratilgan: …» (audit izi, sana ustuni EMAS). */
+.detail-card-note {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Manba belgisi — moliya ro'yxatidagi bilan bir xil ko'rinish. */
+.source-icon {
+  margin-left: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  vertical-align: middle;
+}

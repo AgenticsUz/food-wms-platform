@@ -1,0 +1,98 @@
+<div class="page-enter" *transloco="let t">
+  <app-page-header [title]="t('settings.warehouseDefaults')" [subtitle]="t('settings.warehouseDefaultsSubtitle')" />
+
+  <!-- Tenant sozlamasi: butun tashkilot uchun; `settings.modules` egasining qarori. -->
+  <div class="wms-card section-card">
+    <h3 class="section-title">{{ t('settings.warehouseTenantTitle') }}</h3>
+    <p class="field-hint">{{ t('settings.warehouseTenantHint') }}</p>
+
+    @if (!canManage()) {
+      <p class="field-hint locked">
+        <i class="pi pi-lock"></i>{{ t('settings.warehouseReadonlyNotice') }}
+      </p>
+    }
+
+    <div class="form-grid">
+      <div class="form-field">
+        <label for="wd-raw">{{ t('settings.warehouseRaw') }}</label>
+        <p-select
+          inputId="wd-raw"
+          [options]="warehouses()"
+          [ngModel]="rawId()"
+          (ngModelChange)="rawId.set($event)"
+          optionLabel="name"
+          optionValue="id"
+          [disabled]="!canManage() || loading()"
+          [showClear]="true"
+          [placeholder]="t('settings.warehouseNotSet')"
+          [style]="{ width: '100%' }" />
+      </div>
+
+      <div class="form-field">
+        <label for="wd-finished">{{ t('settings.warehouseFinished') }}</label>
+        <p-select
+          inputId="wd-finished"
+          [options]="warehouses()"
+          [ngModel]="finishedId()"
+          (ngModelChange)="finishedId.set($event)"
+          optionLabel="name"
+          optionValue="id"
+          [disabled]="!canManage() || loading()"
+          [showClear]="true"
+          [placeholder]="t('settings.warehouseNotSet')"
+          [style]="{ width: '100%' }" />
+      </div>
+    </div>
+
+    @if (canManage()) {
+      <div class="card-actions">
+        <p-button [label]="t('common.save')" icon="pi pi-check" [loading]="savingTenant()" (onClick)="saveTenant()" />
+      </div>
+    }
+  </div>
+
+  <!-- Shaxsiy tanlov: har qanday xodim o'zgartira oladi va u tenant sozlamasini bosib ketadi. -->
+  <div class="wms-card section-card">
+    <h3 class="section-title">{{ t('settings.warehouseMine') }}</h3>
+    <p class="field-hint">{{ t('settings.warehouseMineHint') }}</p>
+
+    <div class="form-grid">
+      <div class="form-field">
+        <label for="wd-mine">{{ t('settings.warehouseMine') }}</label>
+        <p-select
+          inputId="wd-mine"
+          [options]="warehouses()"
+          [ngModel]="myId()"
+          (ngModelChange)="myId.set($event)"
+          optionLabel="name"
+          optionValue="id"
+          [disabled]="loading()"
+          [showClear]="true"
+          [placeholder]="t('settings.warehouseNotSet')"
+          [style]="{ width: '100%' }" />
+      </div>
+    </div>
+
+    <div class="card-actions">
+      <p-button [label]="t('common.save')" icon="pi pi-check" [loading]="savingMine()" (onClick)="saveMine()" />
+      <p-button [label]="t('settings.warehouseMineClear')" icon="pi pi-times" [text]="true" severity="secondary"
+        [disabled]="myId() === null && defaults()?.userWarehouseId === null" (onClick)="clearMine()" />
+    </div>
+  </div>
+
+  <!-- ⚠️ Natija SERVERDA hisoblanadi (`effective*`) — bu yerda faqat ko'rsatiladi. -->
+  @if (defaults(); as d) {
+    <div class="wms-card section-card">
+      <h3 class="section-title">{{ t('settings.warehouseEffectiveTitle') }}</h3>
+      <p class="field-hint">{{ t('settings.warehouseEffectiveHint') }}</p>
+      <div class="effective-row">
+        <span class="effective-label">{{ t('settings.warehouseEffectiveRaw') }}</span>
+        <span class="effective-value">{{ warehouseName(d.effectiveRawId) || t('settings.warehouseAsksEveryTime') }}</span>
+      </div>
+      <div class="effective-row">
+        <span class="effective-label">{{ t('settings.warehouseEffectiveFinished') }}</span>
+        <span class="effective-value">{{ warehouseName(d.effectiveFinishedId) || t('settings.warehouseAsksEveryTime') }}</span>
+      </div>
+    </div>
+  }
+</div>

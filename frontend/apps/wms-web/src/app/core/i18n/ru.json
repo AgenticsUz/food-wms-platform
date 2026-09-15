@@ -250,7 +250,17 @@
     "allTypes": "Все типы",
     "allStatuses": "Все статусы",
     "transferDetail": "Перемещение",
-    "id": "ID"
+    "id": "ID",
+    "number": "Номер",
+    "documentDate": "Дата документа",
+    "createdAtShort": "создан",
+    "backdateLocked": "Только сегодняшняя дата: для прошедшего дня нужно разрешение «documents.backdate»",
+    "lastPrice": "последняя",
+    "lastPriceGeneral": "общая цена",
+    "applyLastPrice": "Подставить цену в поле",
+    "sourceUi": "Приложение",
+    "sourceTelegram": "Telegram",
+    "sourceAi": "AI-помощник"
   },
   "production": {
     "stages": "Этапы",
@@ -287,7 +297,8 @@
     "inputs": "Входы",
     "orderInfo": "Информация о заказе",
     "unassigned": "Не назначен",
-    "skipped": "Пропущен"
+    "skipped": "Пропущен",
+    "number": "Номер"
   },
   "finance": {
     "income": "Доход",
@@ -317,7 +328,25 @@
     "noDebts": "Долги не найдены",
     "noPayments": "Платежи не найдены",
     "addTransaction": "Добавить транзакцию",
-    "allTypes": "Все типы"
+    "allTypes": "Все типы",
+    "paymentIn": "Заплатили нам",
+    "paymentOut": "Заплатили мы",
+    "paymentDate": "Дата платежа",
+    "backdateLocked": "Только сегодняшняя дата: для прошедшего дня нужно разрешение «documents.backdate»",
+    "directionRequired": "Выберите направление платежа",
+    "selectCounterparty": "Выберите контрагента",
+    "amountRequired": "Сумма должна быть больше нуля",
+    "paymentRecorded": "Платёж записан",
+    "reverse": "Отменить",
+    "reversePayment": "Отмена платежа",
+    "reversalReason": "Причина отмены",
+    "reversalReasonRequired": "Укажите причину отмены",
+    "reversalEntry": "Сторно",
+    "reversed": "Отменён",
+    "paymentReversed": "Платёж отменён",
+    "sourceUi": "Приложение",
+    "sourceTelegram": "Telegram",
+    "sourceAi": "AI-помощник"
   },
   "kpi": {
     "efficiency": "Эффективность",
@@ -434,7 +463,23 @@
     "customRoles": "Дополнительные роли",
     "lastSeen": "Последняя активность",
     "systemRole": "Системная роль",
-    "telegramDisabled": "Telegram-бот ещё не настроен — уведомления не отправляются."
+    "telegramDisabled": "Telegram-бот ещё не настроен — уведомления не отправляются.",
+    "warehouseDefaults": "Склады по умолчанию",
+    "warehouseDefaultsSubtitle": "Чтобы форма перемещения не спрашивала склад каждый раз",
+    "warehouseTenantTitle": "Настройка организации",
+    "warehouseTenantHint": "Этот выбор действует для всей организации. Пустое поле означает, что настройка снята.",
+    "warehouseReadonlyNotice": "Для изменения нужно право «Настройки модулей». Текущую настройку вы видите.",
+    "warehouseRaw": "Склад сырья",
+    "warehouseFinished": "Склад готовой продукции",
+    "warehouseNotSet": "Не выбрано",
+    "warehouseMine": "Мой склад",
+    "warehouseMineClear": "Убрать выбор",
+    "warehouseMineHint": "Личный выбор действует только для вас и перекрывает настройку организации.",
+    "warehouseEffectiveTitle": "Что применяется сейчас",
+    "warehouseEffectiveHint": "Порядок: личный выбор → настройка организации → единственный склад организации.",
+    "warehouseEffectiveRaw": "Приход и внутреннее перемещение",
+    "warehouseEffectiveFinished": "Расход и возврат",
+    "warehouseAsksEveryTime": "Форма спросит каждый раз"
   },
   "telegramLink": {
     "title": "Telegram — {{name}}",
@@ -575,7 +620,15 @@
     "noUnits": "Единицы не найдены",
     "parentCategory": "Родительская категория",
     "subCategory": "Подкатегория",
-    "rootCategory": "Корневая"
+    "rootCategory": "Корневая",
+    "pack": "Упаковка",
+    "packSize": "Количество в упаковке",
+    "packUnit": "Название упаковки",
+    "packUnitPlaceholder": "коробка",
+    "packHint": "Упаковка — только для удобства ввода: остатки, сроки и отчёты всё равно ведутся в основной единице. Оба поля заполняются вместе либо оба остаются пустыми.",
+    "packPairRequired": "Упаковка: заполните и количество, и название (либо оставьте оба пустыми).",
+    "packSizePositive": "Количество в упаковке должно быть больше нуля.",
+    "packMode": "Единица ввода"
   },
   "notifications": {
     "title": "Уведомления",

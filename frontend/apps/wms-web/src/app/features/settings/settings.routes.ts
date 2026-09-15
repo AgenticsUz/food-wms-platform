@@ -42,6 +42,17 @@ export const SETTINGS_ROUTES: Routes = [
     data: { titleKey: 'settings.modules' },
     loadComponent: () => import('./modules/modules.component'),
   },
+  /**
+   * P2.6: standart ombor. Guard — `warehouse.view` (API'da GET shu ruxsat ostida);
+   * tenant sozlamasini YOZISH uchun `settings.modules` kerak, uni sahifaning o'zi
+   * tekshiradi — ruxsatsiz odam ham «hozir qaysi ombor» ni ko'ra olsin.
+   */
+  {
+    path: 'warehouses',
+    canActivate: [permissionGuard('warehouse.view')],
+    data: { titleKey: 'settings.warehouseDefaults' },
+    loadComponent: () => import('./warehouse-defaults/warehouse-defaults.component'),
+  },
   {
     path: 'subscription',
     data: { titleKey: 'subscription.title' },

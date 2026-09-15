@@ -8,6 +8,7 @@ import type {
   IncomeExpensePoint,
   PaymentCreateDto,
   PaymentHistory,
+  PaymentReverseDto,
   TopDebtor,
   Transaction,
   TransactionCreateDto,
@@ -42,6 +43,15 @@ export class FinanceService {
   }
   getPayments() {
     return this.api.get<PaymentHistory[]>('finance/payments', ALL_ROWS);
+  }
+  /**
+   * Storno — to'lov O'CHIRILMAYDI, teskari yozuv qo'shiladi (P2.9). Sabab
+   * majburiy: tarixda «nega qaytarildi» degan savolga javob shu qatorda qoladi.
+   * Xato matnini server tayyor (tarjima qilingan) holda qaytaradi.
+   */
+  reversePayment(id: string, reason: string) {
+    const body: PaymentReverseDto = { reason };
+    return this.api.post<PaymentHistory>(`finance/payments/${id}/reverse`, body);
   }
   getSummary() {
     return this.api.get<FinanceSummary>('finance/summary');

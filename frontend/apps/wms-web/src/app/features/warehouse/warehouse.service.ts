@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { forkJoin, map, of, type Observable } from 'rxjs';
 
-import { ApiService, type QueryParams } from '../../core/api/api.service';
+import { ApiService, type ApiCallOptions, type QueryParams } from '../../core/api/api.service';
 import type { Transfer } from '../transfers/transfer.model';
 import type {
   Batch,
@@ -10,6 +10,8 @@ import type {
   UpdateBatchDto,
   Warehouse,
   WarehouseCreateDto,
+  WarehouseDefaults,
+  WarehouseDefaultsUpdateDto,
   WarehouseStockDetail,
   WarehouseStockGrouped,
   WarehouseStockRow,
@@ -34,6 +36,28 @@ export class WarehouseService {
 
   deleteWarehouse(id: string) {
     return this.api.delete<null>(`warehouses/${id}`);
+  }
+
+  /**
+   * Standart ombor sozlamasi (P2.6). Nega ombor servisida, sozlamalarda emas:
+   * uni sozlamalar ekrani ham, transfer FORMASI ham chaqiradi — ikkinchisi
+   * sozlamalar bo'limiga bog'lanib qolmasin.
+   *
+   * O'qish `warehouse.view` ostida; transfer formasida u yordamchi so'rov, shuning
+   * uchun u yerdan `skipErrorNotify` bilan chaqiriladi.
+   */
+  getDefaults(options?: ApiCallOptions) {
+    return this.api.get<WarehouseDefaults>('settings/warehouses', undefined, options);
+  }
+
+  /** Tenant sozlamasi (`settings.modules`) — ikkala maydon ALMASHTIRILADI. */
+  setDefaults(dto: WarehouseDefaultsUpdateDto) {
+    return this.api.put<void>('settings/warehouses', dto);
+  }
+
+  /** Xodimning shaxsiy tanlovi; `null` — tanlovni olib tashlaydi (tenant sozlamasi qoladi). */
+  setMyDefaultWarehouse(warehouseId: string | null) {
+    return this.api.put<void>('settings/warehouses/mine', { warehouseId });
   }
 
   getStock(warehouseId: string) {

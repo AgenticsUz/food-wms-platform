@@ -174,21 +174,40 @@
         <ng-template #header>
           <tr>
             <th class="text-right">{{ t('common.amount') }}</th>
+            <th>{{ t('finance.direction') }}</th>
             <th>{{ t('finance.paymentMethod') }}</th>
+            <!-- «Sana» — hujjat sanasi (`documentDate`), `paidAt` esa audit izi. -->
             <th>{{ t('common.date') }}</th>
             <th>{{ t('common.note') }}</th>
           </tr>
         </ng-template>
         <ng-template #body let-p>
-          <tr>
+          <tr [class.row-reversed]="p.isReversed" [class.row-reversal]="p.reversalOfId">
             <td class="text-right"><span class="number">{{ p.amount | number: '1.0-2' }}</span></td>
-            <td>{{ t(methodKey(p.method)) }}</td>
-            <td>{{ (parse(p.paidAt) | date: 'dd.MM.yyyy HH:mm') || '—' }}</td>
-            <td>{{ p.note || '—' }}</td>
+            <td><app-status-badge [status]="directionStatus(p.direction)" [label]="t(directionKey(p.direction))" /></td>
+            <td>
+              {{ t(methodKey(p.method)) }}
+              @if (sourceIcon(p.source); as icon) {
+                <i [class]="'source-icon ' + icon" [title]="t(sourceKey(p.source))"></i>
+              }
+            </td>
+            <!-- `'UTC'` — hujjat sanasi kalendar kuni, mahalliy zonada surilmasin. -->
+            <td>{{ (parse(p.documentDate) | date: 'dd.MM.yyyy' : 'UTC') || '—' }}</td>
+            <td>
+              @if (p.isReversed) {
+                <app-status-badge status="Cancelled" [label]="t('finance.reversed')" />
+              }
+              @if (p.reversalOfId) {
+                <app-status-badge status="Cancelled" [label]="t('finance.reversalEntry')" />
+                <div class="reversal-reason">{{ p.reversalReason || '—' }}</div>
+              } @else {
+                <span class="note-text">{{ p.note || '—' }}</span>
+              }
+            </td>
           </tr>
         </ng-template>
         <ng-template #emptymessage>
-          <tr><td colspan="4"><div class="empty-state"><i class="pi pi-wallet"></i><p>{{ t('partners.noPayments') }}</p></div></td></tr>
+          <tr><td colspan="5"><div class="empty-state"><i class="pi pi-wallet"></i><p>{{ t('partners.noPayments') }}</p></div></td></tr>
         </ng-template>
       </p-table>
     </div>

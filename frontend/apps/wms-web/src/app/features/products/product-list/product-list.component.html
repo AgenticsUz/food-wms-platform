@@ -49,6 +49,7 @@
           <th>{{ t('products.category') }}</th>
           <th>{{ t('common.type') }}</th>
           <th>{{ t('common.unit') }}</th>
+          <th>{{ t('products.pack') }}</th>
           <th class="text-right" pSortableColumn="minStock">{{ t('products.minStock') }} <p-sortIcon field="minStock" /></th>
           <th class="text-right">{{ t('products.costPrice') }}</th>
           <th>{{ t('products.barcode') }}</th>
@@ -65,6 +66,8 @@
             <app-status-badge [status]="typeStatus(product.type)" [label]="t(typeKey(product.type))" />
           </td>
           <td>{{ product.unitShortName || product.unitName || '—' }}</td>
+          <!-- Qadoq — faqat KIRITISH qulayligi; qoldiq va hisobotlar asosiy birlikda. -->
+          <td><span class="pack-label">{{ packLabel(product) || '—' }}</span></td>
           <td class="text-right">
             <span class="number">{{ product.minStock | number:'1.0-2' }}</span>
           </td>
@@ -86,7 +89,7 @@
       </ng-template>
       <ng-template #emptymessage>
         <tr>
-          <td colspan="8">
+          <td colspan="9">
             <div class="empty-state">
               <i class="pi pi-box"></i>
               <p>{{ t('products.noProducts') }}</p>
@@ -162,6 +165,24 @@
       <div class="form-field">
         <label for="product-shelf-life">{{ t('products.shelfLife') }}</label>
         <p-inputNumber inputId="product-shelf-life" [ngModel]="form().shelfLifeDays" (ngModelChange)="updateForm('shelfLifeDays', $event)" [style]="{ width: '100%' }" />
+      </div>
+
+      <!-- Qadoq (P2.7): ikkovi JUFT — biri to'ldirilsa ikkinchisi ham. Qoldiq va
+           hisobotlar baribir asosiy birlikda qoladi, bu faqat kiritish qulayligi. -->
+      <div class="form-field">
+        <label for="product-pack-size">{{ t('products.packSize') }}</label>
+        <p-inputNumber inputId="product-pack-size" [ngModel]="form().packSize" (ngModelChange)="updateForm('packSize', $event)"
+          [min]="0" [minFractionDigits]="0" [maxFractionDigits]="3" [style]="{ width: '100%' }" />
+      </div>
+
+      <div class="form-field">
+        <label for="product-pack-unit">{{ t('products.packUnit') }}</label>
+        <input id="product-pack-unit" pInputText [ngModel]="form().packUnit ?? ''" (ngModelChange)="updateForm('packUnit', $event || null)"
+          maxlength="32" class="w-full" [placeholder]="t('products.packUnitPlaceholder')" />
+      </div>
+
+      <div class="form-field full-width">
+        <small class="field-hint">{{ t('products.packHint') }}</small>
       </div>
 
       <div class="form-field full-width">

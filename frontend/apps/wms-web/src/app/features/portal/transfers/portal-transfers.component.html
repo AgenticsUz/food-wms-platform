@@ -13,6 +13,7 @@
       <ng-template #header>
         <tr>
           <th style="width: 3rem"></th>
+          <th>{{ t('transfer.number') }}</th>
           <th>{{ t('common.type') }}</th>
           <th>{{ t('transfer.items') }}</th>
           <th class="text-right">{{ t('common.amount') }}</th>
@@ -34,6 +35,8 @@
               />
             }
           </td>
+          <!-- Qisqa raqam: mijoz telefonda «12-hujjat» deydi — Guid u yerda ishlamaydi. -->
+          <td><span class="number">{{ '#' + row.number }}</span></td>
           <td><app-status-badge [status]="transferTypeClass(row.type)" [label]="t(transferTypeKey(row.type))" /></td>
           <td>
             @if (itemCount(row) > 0) {
@@ -47,12 +50,13 @@
           </td>
           <td class="text-right"><span class="number">{{ row.totalAmount | number: '1.0-2' }}</span></td>
           <td><app-status-badge [status]="transferStatusClass(row.status)" [label]="t(transferStatusKey(row.status))" /></td>
-          <td>{{ (moment(row) | date: 'dd.MM.yyyy HH:mm') || '—' }}</td>
+          <!-- Hujjat sanasi — KUN, soatsiz (ro'yxat ham shu bo'yicha tartiblangan). -->
+          <td>{{ (moment(row) | date: 'dd.MM.yyyy' : 'UTC') || '—' }}</td>
         </tr>
       </ng-template>
       <ng-template #expandedrow let-row>
         <tr>
-          <td colspan="6">
+          <td colspan="7">
             <table class="portal-items">
               <thead>
                 <tr>
@@ -83,7 +87,7 @@
       </ng-template>
       <ng-template #emptymessage>
         <tr>
-          <td colspan="6">
+          <td colspan="7">
             <div class="portal-empty"><i class="pi pi-inbox"></i><p>{{ t('common.noData') }}</p></div>
           </td>
         </tr>

@@ -90,6 +90,11 @@ export enum ProductionOrderStatus {
 
 export interface ProductionOrder {
   readonly id: string;
+  /**
+   * Tenant ichidagi qisqa buyurtma raqami — ekranda «#7» (P2.4).
+   * ⚠️ `StageExecution.orderNumber` bilan aralashtirilmaydi: u BOSQICH tartibi.
+   */
+  readonly number: number;
   readonly recipeId: string;
   readonly recipeName: string;
   readonly outputProductName: string;

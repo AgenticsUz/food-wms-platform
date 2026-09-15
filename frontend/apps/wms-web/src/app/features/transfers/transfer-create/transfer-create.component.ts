@@ -1,12 +1,14 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal, type OnInit } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { Button } from 'primeng/button';
+import { DatePicker } from 'primeng/datepicker';
 import { InputNumber } from 'primeng/inputnumber';
 import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
+import { SelectButton } from 'primeng/selectbutton';
 import { Textarea } from 'primeng/textarea';
 import { TableModule } from 'primeng/table';
 import { ToggleSwitch } from 'primeng/toggleswitch';
@@ -19,7 +21,7 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 import type { Product } from '../../products/product.model';
 import { ProductService, productSearch } from '../../products/product.service';
 import { injectTranslationTick } from '../../warehouse/translation-tick';
-import type { Warehouse } from '../../warehouse/warehouse.model';
+import type { Warehouse, WarehouseDefaults } from '../../warehouse/warehouse.model';
 import { WarehouseService } from '../../warehouse/warehouse.service';
 import {
   CounterpartyType,
@@ -27,8 +29,16 @@ import {
   type AgentOption,
   type CounterpartyOption,
 } from '../transfer-lookups.service';
-import { ReturnReason, TransferType, type TransferCreateDto, type TransferItemDto } from '../transfer.model';
+import {
+  ReturnReason,
+  TransferType,
+  type LastPrice,
+  type TransferCreateDto,
+  type TransferItemDto,
+} from '../transfer.model';
 import { TransferService } from '../transfer.service';
+import { createPackQuantity, defaultWarehouseFor, priceTypeFor } from './transfer-entry';
+import { parseUtc, toLocalDateString } from '../../../core/utils/date.util';
 
 interface DraftItem extends TransferItemDto {
   readonly productName: string;
@@ -39,6 +49,9 @@ const GUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 
 /** Shtrix-kod maydonida nom yozilganda ko'rsatiladigan takliflar soni. */
 const BARCODE_SEARCH_LIMIT = 5;
+
+/** Orqaga sana ruxsati — `WmsPermissions.DocumentsBackdate` bilan bir xil kod. */
+const BACKDATE_PERMISSION = 'documents.backdate';
 
 /**
  * Yangi transfer (eski `transfers/transfer-create`).
@@ -52,7 +65,7 @@ const BARCODE_SEARCH_LIMIT = 5;
  */
 @Component({
   selector: 'app-transfer-create',
-  imports: [DecimalPipe, FormsModule, TranslocoDirective, Button, InputNumber, InputText, Select, Textarea, TableModule, ToggleSwitch, PageHeaderComponent],
+  imports: [DecimalPipe, DatePipe, FormsModule, TranslocoDirective, Button, DatePicker, InputNumber, InputText, Select, SelectButton, Textarea, TableModule, ToggleSwitch, PageHeaderComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './transfer-create.component.html',
   styleUrl: './transfer-create.component.scss',
@@ -76,10 +89,52 @@ export default class TransferCreateComponent implements OnInit {
   readonly note = signal('');
   readonly items = signal<DraftItem[]>([]);
 
+  /**
+   * Hujjat sanasi — sukut bo'yicha BUGUN. Alohida signalda, chunki
+   * `p-datepicker` `Date` bilan ishlaydi; serverga esa kalendar kuni
+   * (`YYYY-MM-DD`) ketadi.
+   */
+  readonly documentDate = signal<Date>(new Date());
+
+  /** Kelajak sana hech kimga ruxsat emas (server ham 400 beradi) — kalendarda tanlab bo'lmasin. */
+  readonly today = new Date();
+
+  /** Ruxsat yo'q bo'lsa kalendar faqat bugunni beradi (aks holda server 403 qaytaradi). */
+  readonly canBackdate = computed(() => this.session.can(BACKDATE_PERMISSION));
+  readonly minDate = computed(() => (this.canBackdate() ? null : this.today));
+
   // Qo'lda qo'shish qatori
   readonly itemProductId = signal<string | null>(null);
   readonly itemQuantity = signal(0);
   readonly itemUnitPrice = signal(0);
+
+  /**
+   * Miqdor QADOQDA kiritilyaptimi (P2.7). Serverga DOIM asosiy birlik ketadi —
+   * bu faqat kiritish rejimi: «50 quti» yozgan odam 600 ni o'zi ko'paytirmasin.
+   */
+  readonly itemInPacks = signal(false);
+
+  /**
+   * Standart ombor (P2.6). ⚠️ Faqat `effective*` o'qiladi: ustunlik tartibini
+   * (xodim → tenant → yagona ombor) server hisoblab beradi.
+   */
+  private readonly defaults = signal<WarehouseDefaults | null>(null);
+
+  /**
+   * Foydalanuvchi omborni QO'LDA tanlaganmi. Tanlagan bo'lsa sukut qiymat uning
+   * ustidan yozilmaydi — tur o'zgarganda tanlovi yo'qolsa, bu eng bezovta
+   * qiladigan xato bo'lardi.
+   */
+  private fromTouched = false;
+  private toTouched = false;
+
+  /**
+   * Mahsulot → «oxirgi narx» taklifi. Taklif AVTOMATIK QO'YILMAYDI: narx
+   * kelishuv natijasi, eskisini indamay ko'chirish menejerning yangi narxini
+   * bilintirmay yuvib yuborardi. Shuning uchun u ko'rsatiladi va faqat
+   * BOSILGANDA maydonga tushadi.
+   */
+  readonly lastPrices = signal<ReadonlyMap<string, LastPrice>>(new Map());
 
   /**
    * Manba ombordagi mavjud qoldiq (mahsulot → miqdor).
@@ -94,6 +149,13 @@ export default class TransferCreateComponent implements OnInit {
   readonly warehouses = signal<Warehouse[]>([]);
   readonly products = signal<Product[]>([]);
   readonly agents = signal<AgentOption[]>([]);
+
+  /**
+   * Qadoq bilan kiritish (`transfer-entry.ts`). ⚠️ Maydonlar tartibi muhim:
+   * `products` e'lon qilingandan KEYIN turishi shart — sinf maydonlari yuqoridan
+   * pastga ishga tushadi.
+   */
+  readonly pack = createPackQuantity(this.products, this.itemProductId, this.itemQuantity, this.itemInPacks);
 
   // Agent (faqat chiqim — sotuv)
   readonly viaAgent = signal(false);
@@ -195,6 +257,43 @@ export default class TransferCreateComponent implements OnInit {
     this.loadWarehouses();
     this.loadProducts();
     this.loadAgents();
+    this.loadDefaults();
+  }
+
+  /**
+   * Standart ombor sozlamasi. Xato JIM yutiladi (`skipErrorNotify`): sukut
+   * qiymat — qulaylik, u kelmasa forma eskicha bo'sh ombor bilan ochiladi.
+   */
+  private loadDefaults(): void {
+    this.warehouseService.getDefaults({ skipErrorNotify: true, skipLoading: true }).subscribe({
+      next: (res) => {
+        if (!res.success || !res.data) return;
+        this.defaults.set(res.data);
+        this.applyDefaults();
+        this.loadSourceStock();
+      },
+      error: () => undefined,
+    });
+  }
+
+  /**
+   * Turga mos sukut omborni qo'yadi (tanlash qoidasi — `transfer-entry.ts`).
+   *
+   * ⚠️ Qo'lda tanlangan ombor USTIDAN YOZILMAYDI; sozlanmagan bo'lsa (`null`)
+   * maydon hozirgidek bo'sh qoladi.
+   */
+  private applyDefaults(): void {
+    const d = this.defaults();
+    if (!d) return;
+    const { field, id } = defaultWarehouseFor(d, this.transferType());
+    const toIsTarget = field === 'to';
+    // Qarama-qarshi maydon AVTOMATIK qo'yilgan bo'lsa tozalanadi: aks holda
+    // chiqimdan qolgan manba ombor kirim hujjatiga jimgina ilashib ketardi.
+    if (toIsTarget && !this.fromTouched) this.fromWarehouseId.set(null);
+    if (!toIsTarget && !this.toTouched) this.toWarehouseId.set(null);
+    if (id && (toIsTarget ? !this.toTouched : !this.fromTouched)) {
+      (toIsTarget ? this.toWarehouseId : this.fromWarehouseId).set(id);
+    }
   }
 
   private loadAgents(): void {
@@ -234,13 +333,24 @@ export default class TransferCreateComponent implements OnInit {
   /** Manba ombor tanlangach qoldiq qayta so'raladi (tanlov o'chsa — tozalanadi). */
   onFromWarehouseChange(id: string | null): void {
     this.fromWarehouseId.set(id);
+    this.fromTouched = true;
     this.loadSourceStock();
   }
 
-  /** Tur o'zgarsa manba ombor ham, qoldiq ham ma'nosini yo'qotishi mumkin. */
+  /** Qabul qiluvchi ombor — sukut qiymat endi uning ustidan yozilmaydi. */
+  onToWarehouseChange(id: string | null): void {
+    this.toWarehouseId.set(id);
+    this.toTouched = true;
+  }
+
+  /** Tur o'zgarsa manba ombor ham, qoldiq ham, narx taklifi ham ma'nosini yo'qotishi mumkin. */
   onTypeChange(type: TransferType): void {
     this.transferType.set(type);
+    // Yangi turda boshqa ombor ma'noli — sukut qiymat qayta qo'yiladi (qo'lda
+    // tanlanganiga tegilmaydi).
+    this.applyDefaults();
     this.loadSourceStock();
+    this.refreshLastPrices();
   }
 
   private loadSourceStock(): void {
@@ -272,6 +382,78 @@ export default class TransferCreateComponent implements OnInit {
    */
   readonly selectedAvailable = computed(() => this.availableFor(this.itemProductId()));
 
+  /** Qo'shish qatoridagi mahsulot uchun narx taklifi (yo'q bo'lsa — `null`). */
+  readonly selectedLastPrice = computed(() => this.lastPriceFor(this.itemProductId()));
+
+  /** Jadval qatori uchun ham kerak: shtrix-kod bilan qo'shilgan qatorda taklif shu yerda ko'rinadi. */
+  lastPriceFor(productId: string | null | undefined): LastPrice | null {
+    return productId ? (this.lastPrices().get(productId) ?? null) : null;
+  }
+
+  /** Qo'shish qatorida mahsulot tanlandi — narx taklifi shu payt so'raladi. */
+  onItemProductChange(productId: string | null): void {
+    this.itemProductId.set(productId);
+    // Qadoq mahsulotga bog'liq: yangi mahsulotda qadoq bo'lmasligi mumkin,
+    // o'tkazgich esa «quti» da qolib, kiritilgan son jimgina ko'payib ketardi.
+    this.itemInPacks.set(false);
+    if (productId) this.loadLastPrice(productId);
+  }
+
+  /**
+   * Taklifni so'rash. Xato jim yutiladi (`skipErrorNotify` servisda): taklif —
+   * qulaylik, u bo'lmagani uchun forma to'xtamaydi.
+   */
+  private loadLastPrice(productId: string): void {
+    const type = priceTypeFor(this.transferType());
+    if (!type) return;
+
+    this.transferService.getLastPrice(productId, type, this.counterpartyId()).subscribe({
+      next: (res) => {
+        const price = res.success ? res.data : null;
+        this.lastPrices.update((map) => {
+          const next = new Map(map);
+          // `null` — taklif yo'q: eski (boshqa kontragentdan qolgan) qiymat ham o'chsin.
+          if (price) next.set(productId, price);
+          else next.delete(productId);
+          return next;
+        });
+      },
+      error: () => undefined,
+    });
+  }
+
+  /**
+   * Kontragent yoki tur o'zgarsa takliflar boshqa hujjatlarga tegishli bo'lib
+   * qoladi — ularni tashlab, qatordagi mahsulot uchun qaytadan so'raymiz.
+   */
+  private refreshLastPrices(): void {
+    this.lastPrices.set(new Map());
+    const pid = this.itemProductId();
+    if (pid) this.loadLastPrice(pid);
+    for (const item of this.items()) this.loadLastPrice(item.productId);
+  }
+
+  /** Taklifni qo'shish qatoridagi narx maydoniga qo'yadi (foydalanuvchi bosgandagina). */
+  applySuggestion(): void {
+    const suggestion = this.selectedLastPrice();
+    if (suggestion) this.itemUnitPrice.set(suggestion.unitPrice);
+  }
+
+  /** Taklifni JADVALDAGI qatorga qo'yadi — shtrix-kod bilan qo'shilgan qator uchun. */
+  applySuggestionToRow(index: number): void {
+    const item = this.items()[index];
+    const suggestion = this.lastPriceFor(item?.productId);
+    if (!suggestion) return;
+    this.items.update((list) =>
+      list.map((row, i) => (i === index ? { ...row, unitPrice: suggestion.unitPrice } : row))
+    );
+  }
+
+  /** Hujjat sanasi serverdan `Z` siz kelishi mumkin — `core/utils/date.util` qoidasi. */
+  parse(value: string | null | undefined): Date | null {
+    return parseUtc(value);
+  }
+
   onAgentChange(id: string | null): void {
     this.agentId.set(id);
     const agent = this.agents().find((a) => a.id === id);
@@ -281,6 +463,8 @@ export default class TransferCreateComponent implements OnInit {
   /** Mijozga agent biriktirilgan bo'lsa chiqimda agent avtomatik tanlanadi. */
   onCounterpartyChange(id: string | null): void {
     this.counterpartyId.set(id);
+    // Narx AYNAN kontragent kesimida taklif qilinadi — tanlov o'zgarsa taklif ham boshqa.
+    this.refreshLastPrices();
     if (!this.isOutgoing() || !this.agentsAvailable()) return;
     const cp = this.counterparties().find((c) => c.id === id);
     if (cp?.agentId) {
@@ -291,7 +475,9 @@ export default class TransferCreateComponent implements OnInit {
 
   addItem(): void {
     const pid = this.itemProductId();
-    const qty = this.itemQuantity();
+    // ⚠️ Qatorga va serverga ASOSIY birlikdagi miqdor tushadi: qoldiq, FEFO va
+    // hisobotlar qadoqni bilmaydi.
+    const qty = this.pack.baseQuantity();
     const price = this.itemUnitPrice();
     if (!pid) {
       this.notify.warn('Select a product');
@@ -326,6 +512,7 @@ export default class TransferCreateComponent implements OnInit {
     this.itemProductId.set(null);
     this.itemQuantity.set(0);
     this.itemUnitPrice.set(0);
+    this.itemInPacks.set(false);
   }
 
   removeItem(index: number): void {
@@ -415,6 +602,9 @@ export default class TransferCreateComponent implements OnInit {
       ...list,
       { productId: product.id, productName: product.name, batchId: null, quantity: 1, unitPrice: product.costPrice ?? 0 },
     ]);
+    // Skanerdan kelgan qator ham narx taklifini ko'rsin: qator narxi tannarxdan
+    // olingan, oxirgi savdo narxi esa undan boshqa bo'lishi mumkin.
+    this.loadLastPrice(product.id);
     this.barcodeQuery.set('');
     this.barcodeResults.set([]);
     this.notify.success(`Added: ${product.name}`);
@@ -469,6 +659,8 @@ export default class TransferCreateComponent implements OnInit {
     const isReturn = type === TransferType.Return;
     const dto: TransferCreateDto = {
       type,
+      // Kalendar kuni, vaqt nuqtasi emas — `toLocalDateString` (zona siljishisiz).
+      documentDate: toLocalDateString(this.documentDate()),
       fromWarehouseId: this.fromWarehouseId(),
       toWarehouseId: this.toWarehouseId(),
       counterpartyId: this.counterpartyId(),

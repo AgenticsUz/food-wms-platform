@@ -250,7 +250,17 @@
     "allTypes": "Barcha turlar",
     "allStatuses": "Barcha holatlar",
     "transferDetail": "O'tkazma",
-    "id": "ID"
+    "id": "ID",
+    "number": "Raqam",
+    "documentDate": "Hujjat sanasi",
+    "createdAtShort": "yaratilgan",
+    "backdateLocked": "Faqat bugungi sana: o'tgan kunni kiritish uchun «documents.backdate» ruxsati kerak",
+    "lastPrice": "oxirgi",
+    "lastPriceGeneral": "umumiy narx",
+    "applyLastPrice": "Narxni maydonga qo'yish",
+    "sourceUi": "Ilova",
+    "sourceTelegram": "Telegram",
+    "sourceAi": "AI yordamchi"
   },
   "production": {
     "stages": "Bosqichlar",
@@ -287,7 +297,8 @@
     "inputs": "Kirishlar",
     "orderInfo": "Buyurtma ma'lumoti",
     "unassigned": "Tayinlanmagan",
-    "skipped": "O'tkazib yuborilgan"
+    "skipped": "O'tkazib yuborilgan",
+    "number": "Raqam"
   },
   "finance": {
     "income": "Daromad",
@@ -317,7 +328,25 @@
     "noDebts": "Qarzlar topilmadi",
     "noPayments": "To'lovlar topilmadi",
     "addTransaction": "Tranzaksiya qo'shish",
-    "allTypes": "Barcha turlar"
+    "allTypes": "Barcha turlar",
+    "paymentIn": "Bizga to'ladi",
+    "paymentOut": "Biz to'ladik",
+    "paymentDate": "To'lov sanasi",
+    "backdateLocked": "Faqat bugungi sana: o'tgan kunni kiritish uchun «documents.backdate» ruxsati kerak",
+    "directionRequired": "To'lov yo'nalishini tanlang",
+    "selectCounterparty": "Hamkorni tanlang",
+    "amountRequired": "Summa noldan katta bo'lishi kerak",
+    "paymentRecorded": "To'lov qayd etildi",
+    "reverse": "Bekor qilish",
+    "reversePayment": "To'lovni bekor qilish",
+    "reversalReason": "Bekor qilish sababi",
+    "reversalReasonRequired": "Bekor qilish sababini yozing",
+    "reversalEntry": "Storno",
+    "reversed": "Bekor qilingan",
+    "paymentReversed": "To'lov bekor qilindi",
+    "sourceUi": "Ilova",
+    "sourceTelegram": "Telegram",
+    "sourceAi": "AI yordamchi"
   },
   "kpi": {
     "efficiency": "Samaradorlik",
@@ -434,7 +463,23 @@
     "customRoles": "Qo'shimcha rollar",
     "lastSeen": "Oxirgi faollik",
     "systemRole": "Tizim roli",
-    "telegramDisabled": "Telegram bot hali sozlanmagan — bildirishnomalar yuborilmaydi."
+    "telegramDisabled": "Telegram bot hali sozlanmagan — bildirishnomalar yuborilmaydi.",
+    "warehouseDefaults": "Standart omborlar",
+    "warehouseDefaultsSubtitle": "Transfer formasi omborni har safar so'ramasligi uchun",
+    "warehouseTenantTitle": "Tashkilot sozlamasi",
+    "warehouseTenantHint": "Bu tanlov butun tashkilot uchun amal qiladi. Bo'sh qoldirilgan maydon — sozlama o'chirilgani.",
+    "warehouseReadonlyNotice": "O'zgartirish uchun «Modul sozlamalari» ruxsati kerak. Siz hozirgi sozlamani ko'ra olasiz.",
+    "warehouseRaw": "Xomashyo ombori",
+    "warehouseFinished": "Tayyor mahsulot ombori",
+    "warehouseNotSet": "Tanlanmagan",
+    "warehouseMine": "Mening omborim",
+    "warehouseMineHint": "Shaxsiy tanlov faqat sizga ta'sir qiladi va tashkilot sozlamasini bosib ketadi.",
+    "warehouseMineClear": "Tanlovni olib tashlash",
+    "warehouseEffectiveTitle": "Hozir nima qo'llanadi",
+    "warehouseEffectiveHint": "Tartib: shaxsiy tanlov → tashkilot sozlamasi → tashkilotda ombor bitta bo'lsa o'sha.",
+    "warehouseEffectiveRaw": "Kirim va ichki o'tkazma",
+    "warehouseEffectiveFinished": "Chiqim va qaytarish",
+    "warehouseAsksEveryTime": "Forma har safar so'raydi"
   },
   "telegramLink": {
     "title": "Telegram — {{name}}",
@@ -575,7 +620,15 @@
     "noUnits": "Birliklar topilmadi",
     "parentCategory": "Asosiy kategoriya",
     "subCategory": "Ichki kategoriya",
-    "rootCategory": "Yuqori daraja"
+    "rootCategory": "Yuqori daraja",
+    "pack": "Qadoq",
+    "packSize": "Qadoqdagi miqdor",
+    "packUnit": "Qadoq nomi",
+    "packUnitPlaceholder": "quti",
+    "packHint": "Qadoq — faqat kiritish qulayligi: qoldiq, muddat va hisobotlar baribir asosiy birlikda qoladi. Ikkala maydon birga to'ldiriladi yoki ikkalasi ham bo'sh qoladi.",
+    "packPairRequired": "Qadoq: miqdorni ham, nomni ham to'ldiring (yoki ikkalasini bo'sh qoldiring).",
+    "packSizePositive": "Qadoqdagi miqdor noldan katta bo'lishi kerak.",
+    "packMode": "Kiritish birligi"
   },
   "notifications": {
     "title": "Bildirishnomalar",

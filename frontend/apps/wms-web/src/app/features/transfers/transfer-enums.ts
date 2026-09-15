@@ -1,4 +1,4 @@
-import { ReturnReason, TransferStatus, TransferType } from './transfer.model';
+import { DocumentSource, ReturnReason, TransferStatus, TransferType } from './transfer.model';
 
 /**
  * Transfer enum → UI yordamchilari (eski `shared/utils/transfer-enums.ts`) —
@@ -85,9 +85,37 @@ export function returnReasonKey(reason: ReturnReason): string {
 }
 
 /**
- * Transferning ko'rinadigan «raqami». Backendda qisqa raqam yo'q (id — Guid);
- * eski UI `#12` ko'rsatgan joyda Guid'ning boshlang'ich 8 belgisi chiqadi —
- * jadvalga sig'adi va operator uni ovoz chiqarib aytib bera oladi.
+ * Manba belgisi (moliya ekranidagi bilan bir xil naqsh). `Ui` — belgi YO'Q:
+ * odatiy holat shovqin qilmasin; Telegram va AI esa ko'rinsin — qaysi hujjatni
+ * bot/yordamchi yozganini ajratib bilish F10 talabi.
+ */
+export function transferSourceIcon(source: DocumentSource): string | null {
+  switch (source) {
+    case DocumentSource.Telegram:
+      return 'pi pi-telegram';
+    case DocumentSource.Ai:
+      return 'pi pi-sparkles';
+    default:
+      return null;
+  }
+}
+
+/** Manba nomi kaliti (belgining tooltipi uchun). */
+export function transferSourceKey(source: DocumentSource): string {
+  switch (source) {
+    case DocumentSource.Telegram:
+      return 'transfer.sourceTelegram';
+    case DocumentSource.Ai:
+      return 'transfer.sourceAi';
+    default:
+      return 'transfer.sourceUi';
+  }
+}
+
+/**
+ * Transferning Guid'idan qisqa ko'rinish. ⚠️ Hujjat RAQAMI (`transfer.number`)
+ * paydo bo'lgach transfer ekranlarida raqam ustun — bu yordamchi faqat raqami
+ * yo'q joylarda (masalan faqat id ma'lum bo'lgan havolada) qoladi.
  */
 export function shortTransferId(id: string | null | undefined): string {
   // Guid v7 ning boshi — vaqt belgisi (bir vaqtdagi yozuvlarda bir xil); farqlovchi qism — oxiri.

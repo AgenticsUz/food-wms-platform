@@ -49,8 +49,13 @@ export default class PortalTransfersComponent implements OnInit {
     });
   }
 
+  /**
+   * Ro'yxatdagi sana — HUJJAT sanasi (P2.3), tasdiqlangan/yaratilgan lahza emas:
+   * mijoz «tovar qaysi kuni keldi» ni so'raydi va server ham shu bo'yicha
+   * tartiblaydi. Bu kun boshi, shuning uchun shablonda soat ko'rsatilmaydi.
+   */
   moment(row: PortalTransfer): Date | null {
-    return parseUtc(row.confirmedAt ?? row.createdAt);
+    return parseUtc(row.documentDate);
   }
 
   itemCount(row: PortalTransfer): number {

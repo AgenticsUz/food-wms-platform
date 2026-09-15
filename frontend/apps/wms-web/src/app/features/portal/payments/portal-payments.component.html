@@ -16,7 +16,9 @@
         <tr>
           <td class="text-right"><span class="number">{{ p.amount | number: '1.0-2' }}</span></td>
           <td>{{ t(methodKey(p.method)) }}</td>
-          <td>{{ (parse(p.paidAt) | date: 'dd.MM.yyyy HH:mm') || '—' }}</td>
+          <!-- Soatsiz: manba endi HUJJAT sanasi (kun boshi) — soat bo'lsa hamma
+               yozuvda «00:00» chiqardi. -->
+          <td>{{ (parse(p.paidAt) | date: 'dd.MM.yyyy' : 'UTC') || '—' }}</td>
           <td>{{ p.note || '—' }}</td>
         </tr>
       </ng-template>

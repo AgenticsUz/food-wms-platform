@@ -1,6 +1,6 @@
 <div class="page-enter" *transloco="let t">
   <app-page-header
-    [title]="t('production.orderDetail') + (order() ? ' #' + shortId(order()?.id ?? '') : '')"
+    [title]="t('production.orderDetail') + (order() ? ' #' + order()?.number : '')"
     [subtitle]="order()?.recipeName ?? ''">
     <p-button icon="pi pi-arrow-left" [label]="t('common.back')" [text]="true" (onClick)="goBack()" />
   </app-page-header>

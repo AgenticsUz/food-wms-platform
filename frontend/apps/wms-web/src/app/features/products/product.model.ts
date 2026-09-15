@@ -29,6 +29,16 @@ export interface Product {
   readonly shelfLifeDays: number | null;
   readonly barcode: string | null;
   readonly costPrice: number | null;
+  /**
+   * 1 qadoqdagi asosiy birlik miqdori (P2.7); `packUnit` bilan JUFT — biri
+   * bo'lsa ikkinchisi ham bo'lishi shart (server ham shuni tekshiradi).
+   *
+   * ⚠️ Qoldiq, FEFO va hisobotlar DOIM asosiy birlikda. Qadoq — faqat KIRITISH
+   * qulayligi: «50 quti» yozilsa forma uni `50 × packSize` donaga o'giradi.
+   */
+  readonly packSize: number | null;
+  /** Qadoq nomi («quti», «karobka»); `packSize` bilan JUFT. */
+  readonly packUnit: string | null;
 }
 
 /** `CreateProductDto` va `UpdateProductDto` backendda bir xil shaklda. */
@@ -41,6 +51,8 @@ export interface ProductCreateDto {
   readonly shelfLifeDays: number | null;
   readonly barcode: string | null;
   readonly costPrice: number | null;
+  readonly packSize: number | null;
+  readonly packUnit: string | null;
 }
 
 export interface Category {

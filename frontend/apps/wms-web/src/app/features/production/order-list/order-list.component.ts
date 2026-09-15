@@ -24,7 +24,7 @@ import { APEX_DEFAULTS } from '../../../core/config/apex-defaults';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { HasPermissionDirective } from '../../../shared/directives/has-permission.directive';
-import { ProductionOrderStatus, shortId, type ProductionOrder } from '../production.model';
+import { ProductionOrderStatus, type ProductionOrder } from '../production.model';
 import { ProductionService } from '../production.service';
 import { orderStatusClass, orderStatusKey } from '../production-status';
 
@@ -56,7 +56,6 @@ export default class OrderListComponent implements OnInit {
   private readonly language = inject(LanguageService);
   private readonly router = inject(Router);
 
-  protected readonly shortId = shortId;
   protected readonly orderStatusClass = orderStatusClass;
   protected readonly orderStatusKey = orderStatusKey;
 
