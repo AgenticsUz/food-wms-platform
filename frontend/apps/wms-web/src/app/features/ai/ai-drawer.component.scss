@@ -1,0 +1,255 @@
+// AI paneli — qobiqdagi o'ng tortma.
+// Ranglar mavzu o'zgaruvchilaridan: panel ham yorug', ham qorong'i mavzuda ishlaydi.
+
+.ai-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  background: rgb(0 0 0 / 35%);
+}
+
+.ai-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1101;
+  display: flex;
+  flex-direction: column;
+  width: min(420px, 100vw);
+  background: var(--surface-card, #fff);
+  border-left: 1px solid var(--surface-border, #e5e7eb);
+  box-shadow: -8px 0 24px rgb(0 0 0 / 12%);
+}
+
+.ai-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--surface-border, #e5e7eb);
+}
+
+.ai-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+}
+
+.ai-header-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.ai-icon-btn {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  color: var(--text-color-secondary, #6b7280);
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+
+  &:hover {
+    background: var(--surface-hover, #f3f4f6);
+  }
+}
+
+.ai-body {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.ai-hint {
+  font-size: 0.875rem;
+  color: var(--text-color-secondary, #6b7280);
+
+  ul {
+    padding-left: 1.1rem;
+    margin: 0.5rem 0;
+  }
+
+  li {
+    margin-bottom: 0.25rem;
+  }
+}
+
+.ai-hint-title {
+  margin: 0;
+  font-weight: 600;
+  color: var(--text-color, #111827);
+}
+
+.ai-note {
+  margin-top: 0.75rem;
+  font-size: 0.8125rem;
+  font-style: italic;
+}
+
+.ai-entry {
+  margin-bottom: 0.875rem;
+
+  &.is-user {
+    display: flex;
+    justify-content: flex-end;
+  }
+}
+
+.ai-bubble {
+  max-width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  background: var(--surface-100, #f3f4f6);
+  border-radius: 10px;
+}
+
+.ai-bubble-user {
+  max-width: 85%;
+  color: #fff;
+  background: var(--primary-color, #10b981);
+}
+
+.ai-bubble-error {
+  color: var(--red-700, #b91c1c);
+  background: var(--red-50, #fef2f2);
+}
+
+.ai-tool {
+  padding: 0.5rem 0.625rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.8125rem;
+  background: var(--surface-50, #fafafa);
+  border: 1px solid var(--surface-border, #e5e7eb);
+  border-radius: 8px;
+}
+
+.ai-tool-head {
+  display: flex;
+  gap: 0.375rem;
+  align-items: center;
+  margin-bottom: 0.375rem;
+  font-weight: 600;
+  color: var(--text-color-secondary, #6b7280);
+}
+
+.ai-tool-text {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.ai-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  td {
+    padding: 0.2rem 0;
+    border-bottom: 1px solid var(--surface-border, #f0f0f0);
+  }
+
+  .num {
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .is-low td {
+    color: var(--orange-600, #ea580c);
+  }
+
+  .is-negative {
+    color: var(--red-600, #dc2626);
+  }
+
+  a {
+    color: var(--primary-color, #10b981);
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+// «Yozmoqda» — uch nuqta. Javob bir necha soniya oladi va jimlik
+// «osilib qoldi» degan taassurot bermasin.
+.ai-typing {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.5rem 0.25rem;
+
+  span {
+    width: 6px;
+    height: 6px;
+    background: var(--text-color-secondary, #9ca3af);
+    border-radius: 50%;
+    animation: ai-blink 1.2s infinite ease-in-out;
+
+    &:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    &:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+  }
+}
+
+@keyframes ai-blink {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+  }
+
+  40% {
+    opacity: 1;
+  }
+}
+
+.ai-footer {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-end;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--surface-border, #e5e7eb);
+}
+
+.ai-input {
+  flex: 1;
+  padding: 0.5rem 0.625rem;
+  font: inherit;
+  font-size: 0.875rem;
+  color: var(--text-color, #111827);
+  resize: none;
+  background: var(--surface-card, #fff);
+  border: 1px solid var(--surface-border, #d1d5db);
+  border-radius: 8px;
+
+  &:focus {
+    border-color: var(--primary-color, #10b981);
+    outline: none;
+  }
+}
+
+.ai-send {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  color: #fff;
+  cursor: pointer;
+  background: var(--primary-color, #10b981);
+  border: 0;
+  border-radius: 8px;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+}

@@ -1,7 +1,10 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { IdleTimeoutService } from '@agentics/auth';
 
+import { WmsSession } from '../../core/auth/wms-session';
+import { AiDrawerComponent } from '../../features/ai/ai-drawer.component';
+import { AiStore } from '../../features/ai/ai.store';
 import { NotificationBellService } from '../../core/services/notification-bell.service';
 import { SubscriptionBannerComponent } from '../../shared/components/subscription-banner/subscription-banner.component';
 import { HeaderComponent } from '../header/header.component';
@@ -17,12 +20,25 @@ import { SidebarComponent } from '../sidebar/sidebar.component';
  */
 @Component({
   selector: 'app-main-layout',
-  imports: [RouterOutlet, SidebarComponent, HeaderComponent, SubscriptionBannerComponent],
+  imports: [RouterOutlet, SidebarComponent, HeaderComponent, SubscriptionBannerComponent, AiDrawerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.scss',
 })
 export class MainLayout {
+  private readonly session = inject(WmsSession);
+
+  readonly ai = inject(AiStore);
+
+  /**
+   * AI tugmasi `ai.chat` feature'i yoqilganda KO'RINADI.
+   *
+   * ⚠️ Bu faqat UX: haqiqiy chegara backendda — gateway feature'ni o'zi tekshiradi
+   * va `ai_disabled` qaytaradi. Lekin yoqilmagan tenantga tugma ko'rsatish
+   * «bosdim — ishlamadi» degan taassurot qoldirardi.
+   */
+  readonly aiEnabled = computed(() => this.session.isFeatureEnabled('ai.chat'));
+
   readonly sidebarCollapsed = signal(false);
   readonly mobileMenuOpen = signal(false);
 

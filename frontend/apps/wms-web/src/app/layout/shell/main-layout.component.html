@@ -14,4 +14,17 @@
       <router-outlet />
     </main>
   </div>
+
+  @if (aiEnabled()) {
+    <button
+      type="button"
+      class="ai-fab"
+      [attr.aria-label]="'AI'"
+      (click)="ai.toggle()"
+    >
+      <i class="pi pi-sparkles" aria-hidden="true"></i>
+    </button>
+
+    <app-ai-drawer />
+  }
 </div>

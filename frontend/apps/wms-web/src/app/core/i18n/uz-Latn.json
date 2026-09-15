@@ -894,5 +894,29 @@
       "done": "Fayl yuklab olindi",
       "failed": "Faylni yuklab bo'lmadi"
     }
+  },
+  "ai": {
+    "title": "AI yordamchi",
+    "newChat": "Yangi suhbat",
+    "placeholder": "Savolingizni yozing…",
+    "send": "Yuborish",
+    "thinking": "O'ylanmoqda",
+    "hintTitle": "Nima so'rash mumkin:",
+    "hint1": "Snikers qancha qoldi?",
+    "hint2": "Kim qancha qarzdor?",
+    "hint3": "Muddati tugayotgan partiyalar bormi?",
+    "readOnlyNote": "Yordamchi faqat ma'lumot beradi — hujjat yaratmaydi va tasdiqlamaydi.",
+    "tool": {
+      "find_product": "Mahsulot qidirildi",
+      "find_counterparty": "Kontragent qidirildi",
+      "stock_query": "Qoldiq olindi",
+      "expiry_query": "Muddatlar tekshirildi",
+      "debt_query": "Qarzlar olindi",
+      "payment_history": "To'lovlar tarixi",
+      "finance_summary": "Moliyaviy yakun",
+      "pending_transfers": "Kutilayotgan hujjatlar",
+      "last_price": "Oxirgi narx",
+      "today_summary": "Bugungi holat"
+    }
   }
 }

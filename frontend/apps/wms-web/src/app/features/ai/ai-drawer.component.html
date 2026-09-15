@@ -1,0 +1,147 @@
+<ng-container *transloco="let t">
+  @if (store.isOpen()) {
+    <div class="ai-overlay" (click)="store.close()" aria-hidden="true"></div>
+
+    <aside class="ai-drawer" role="dialog" [attr.aria-label]="t('ai.title')">
+      <header class="ai-header">
+        <div class="ai-title">
+          <i class="pi pi-sparkles" aria-hidden="true"></i>
+          <span>{{ t('ai.title') }}</span>
+        </div>
+
+        <div class="ai-header-actions">
+          <button
+            type="button"
+            class="ai-icon-btn"
+            [title]="t('ai.newChat')"
+            [attr.aria-label]="t('ai.newChat')"
+            (click)="store.reset()"
+          >
+            <i class="pi pi-plus" aria-hidden="true"></i>
+          </button>
+          <button
+            type="button"
+            class="ai-icon-btn"
+            [title]="t('common.close')"
+            [attr.aria-label]="t('common.close')"
+            (click)="store.close()"
+          >
+            <i class="pi pi-times" aria-hidden="true"></i>
+          </button>
+        </div>
+      </header>
+
+      <div class="ai-body" #scroller>
+        @if (store.isEmpty()) {
+          <div class="ai-hint">
+            <p class="ai-hint-title">{{ t('ai.hintTitle') }}</p>
+            <ul>
+              <li>{{ t('ai.hint1') }}</li>
+              <li>{{ t('ai.hint2') }}</li>
+              <li>{{ t('ai.hint3') }}</li>
+            </ul>
+            <p class="ai-note">{{ t('ai.readOnlyNote') }}</p>
+          </div>
+        }
+
+        @for (entry of store.entries(); track $index) {
+          <div class="ai-entry" [class.is-user]="entry.role === 'user'" [class.is-error]="entry.role === 'error'">
+            @if (entry.role === 'user') {
+              <div class="ai-bubble ai-bubble-user">{{ entry.text }}</div>
+            } @else {
+              <div class="ai-answer">
+                @for (tool of entry.tools; track $index) {
+                  <div class="ai-tool">
+                    <div class="ai-tool-head">
+                      <i class="pi pi-wrench" aria-hidden="true"></i>
+                      <span>{{ t('ai.tool.' + tool.code) }}</span>
+                    </div>
+
+                    @if (isTable(tool)) {
+                      @if (stockRows(tool).length > 0) {
+                        <table class="ai-table">
+                          <tbody>
+                            @for (row of stockRows(tool); track $index) {
+                              <tr [class.is-low]="row.isLow">
+                                <td>{{ row.productName }}</td>
+                                <td class="num">{{ row.currentStock | number: '1.0-3' }} {{ row.unitShortName }}</td>
+                              </tr>
+                            }
+                          </tbody>
+                        </table>
+                      } @else if (debtRows(tool).length > 0) {
+                        <table class="ai-table">
+                          <tbody>
+                            @for (row of debtRows(tool); track $index) {
+                              <tr>
+                                <td>
+                                  <a [routerLink]="['/counterparties', row.counterpartyId]" (click)="store.close()">
+                                    {{ row.counterpartyName }}
+                                  </a>
+                                </td>
+                                <td class="num" [class.is-negative]="row.amount < 0">
+                                  {{ row.amount | number: '1.0-2' }}
+                                </td>
+                              </tr>
+                            }
+                          </tbody>
+                        </table>
+                      } @else if (transferRows(tool).length > 0) {
+                        <table class="ai-table">
+                          <tbody>
+                            @for (row of transferRows(tool); track $index) {
+                              <tr>
+                                <td>
+                                  <a [routerLink]="['/transfers', row.id]" (click)="store.close()">#{{ row.number }}</a>
+                                </td>
+                                <td>{{ row.counterpartyName }}</td>
+                                <td class="num">{{ row.documentDate | date: 'yyyy-MM-dd' }}</td>
+                              </tr>
+                            }
+                          </tbody>
+                        </table>
+                      } @else {
+                        <p class="ai-tool-text">{{ tool.text }}</p>
+                      }
+                    } @else {
+                      <p class="ai-tool-text">{{ tool.text }}</p>
+                    }
+                  </div>
+                }
+
+                @if (entry.pending) {
+                  <div class="ai-typing" [attr.aria-label]="t('ai.thinking')">
+                    <span></span><span></span><span></span>
+                  </div>
+                } @else {
+                  <div class="ai-bubble" [class.ai-bubble-error]="entry.role === 'error'">{{ entry.text }}</div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <footer class="ai-footer">
+        <textarea
+          #input
+          rows="2"
+          class="ai-input"
+          [placeholder]="t('ai.placeholder')"
+          [(ngModel)]="draft"
+          (keydown)="onKeydown($event)"
+          [disabled]="store.busy()"
+        ></textarea>
+        <button
+          type="button"
+          class="ai-send"
+          [disabled]="store.busy() || draft.trim().length === 0"
+          [attr.aria-label]="t('ai.send')"
+          (click)="send()"
+        >
+          <i class="pi pi-send" aria-hidden="true"></i>
+        </button>
+      </footer>
+    </aside>
+  }
+</ng-container>
