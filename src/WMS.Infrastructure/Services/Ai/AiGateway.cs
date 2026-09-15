@@ -1,4 +1,4 @@
-using System.Text.Json;
+using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
 using WMS.Application.Ai;
 using WMS.Application.Common;
@@ -28,6 +28,16 @@ public sealed class AiGateway : IAiGateway
     private readonly WmsDbContext _db;
     private readonly ILogger<AiGateway> _logger;
 
+    /// <summary>
+    /// Oxirgi oqimning jami sarfi — <see cref="AskAsync"/> uni javobga qo'shadi.
+    /// </summary>
+    /// <remarks>
+    /// ⚠️ Gateway SCOPED (har so'rovga yangi nusxa), shuning uchun bu maydon bitta savolga
+    /// tegishli. Hodisa oqimiga qo'shib yuborish mumkin edi, lekin token hisobi yuzaga
+    /// KERAK EMAS — u faqat `ai_usage` va `AskAsync` chaqiruvchisi uchun.
+    /// </remarks>
+    private LlmUsage _lastUsage = LlmUsage.Empty;
+
     public AiGateway(
         ILlmClient llm,
         IAiToolRegistry registry,
@@ -48,6 +58,42 @@ public sealed class AiGateway : IAiGateway
     public async Task<AiAnswer> AskAsync(
         AiUser user, AiAskRequest request, CancellationToken cancellationToken = default)
     {
+        // ⚠️ Sikl BITTA joyda: bu yerda faqat oqim yig'iladi. Ikki nusxa bo'lsa, qoidalar
+        // qoidalar bir yuzada kuchga kirib, ikkinchisida jimgina yo'qolardi.
+        List<AiToolOutput> tools = [];
+        string text = string.Empty;
+        Guid conversationId = Guid.Empty;
+
+        await foreach (AiStreamEvent evt in StreamAsync(user, request, cancellationToken))
+        {
+            switch (evt.Type)
+            {
+                case AiStreamEvent.Types.Text:
+                    text = evt.Text ?? string.Empty;
+                    break;
+
+                case AiStreamEvent.Types.ToolResult when evt.Tool is { } tool:
+                    tools.Add(tool);
+                    break;
+
+                case AiStreamEvent.Types.Done:
+                    conversationId = evt.ConversationId ?? Guid.Empty;
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        return new AiAnswer(conversationId, text, tools, _lastUsage);
+    }
+
+    /// <inheritdoc />
+    public async IAsyncEnumerable<AiStreamEvent> StreamAsync(
+        AiUser user,
+        AiAskRequest request,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
         ArgumentNullException.ThrowIfNull(user);
         ArgumentNullException.ThrowIfNull(request);
 
@@ -56,7 +102,8 @@ public sealed class AiGateway : IAiGateway
             throw new AppException("Savol bo'sh.");
         }
 
-        // Kalit, feature, kvota va kunlik shift — provayderga CHIQISHDAN OLDIN.
+        // ⚠️ Darvoza BIRINCHI hodisadan OLDIN: yuza SSE sarlavhalarini yozib bo'lgach
+        // holat kodini o'zgartira olmaydi, ya'ni «AI o'chiq» 200 bo'lib ketardi.
         await _metering.EnsureAvailableAsync(cancellationToken);
 
         TenantState state = _db.CurrentTenantId is { } tenantId
@@ -70,12 +117,12 @@ public sealed class AiGateway : IAiGateway
             state.EnabledFeatures,
             user.Language);
 
-        // ⚠️ Ro'yxat BIR MARTA olinadi va butun sikl davomida o'zgarmaydi: o'rtada
-        // qayta hisoblansa kesh prefiksi (tools → system → messages) buzilib, keyingi
+        // ⚠️ Ro'yxat BIR MARTA olinadi va butun sikl davomida o'zgarmaydi: o'rtada qayta
+        // hisoblansa kesh prefiksi (tools → system → messages) buzilib, keyingi
         // aylanishlar to'liq narxda ketardi.
-        IReadOnlyList<IAiTool> tools = _registry.Available(toolContext);
+        IReadOnlyList<IAiTool> available = _registry.Available(toolContext);
         IReadOnlyList<LlmToolDefinition> definitions =
-            [.. tools.Select(t => new LlmToolDefinition(t.Code, t.Description, t.Schema))];
+            [.. available.Select(t => new LlmToolDefinition(t.Code, t.Description, t.Schema))];
 
         AiConversations conversations = new(_db);
         AiConversation conversation = await conversations.OpenAsync(request, user, cancellationToken);
@@ -86,36 +133,12 @@ public sealed class AiGateway : IAiGateway
         int sequence = await conversations.LastSequenceAsync(conversation.Id, cancellationToken);
         conversations.AddUser(conversation.Id, ++sequence, request.Text);
 
-        List<AiToolOutput> outputs = [];
         LlmUsage total = LlmUsage.Empty;
         string? answer = null;
 
-        for (int turn = 0; turn < MaxTurns; turn++)
+        for (int turn = 0; turn < MaxTurns && answer is null; turn++)
         {
-            LlmRequest llmRequest = new()
-            {
-                SystemStable = AiSystemPrompt.Stable,
-                SystemVolatile = AiSystemPrompt.Volatile(state.Name, user, request),
-
-                // ⚠️ NUSXA, ro'yxatning o'zi emas: `messages` sikl davomida O'SADI va
-                // havola berilsa, provayderga ketgan so'rov keyingi aylanishda jimgina
-                // «o'zgarib» qolardi — qayta urinish, jurnal va test o'sha so'rovni
-                // BOSHQACHA ko'rardi.
-                Messages = [.. messages],
-                Tools = definitions,
-            };
-
-            LlmResponse response;
-            try
-            {
-                response = await _llm.CompleteAsync(llmRequest, cancellationToken);
-            }
-            finally
-            {
-                // Suhbat yarim qolsa ham yozilgani yoziladi: provayder javob bermaganda
-                // ham token sarflangan bo'lishi mumkin va u hisobdan tushib qolmasin.
-                await SaveAsync(cancellationToken);
-            }
+            LlmResponse response = await CompleteAsync(state, user, request, messages, definitions, cancellationToken);
 
             total = Add(total, response.Usage);
             await _metering.RecordAsync(response.Model, response.Usage, cancellationToken);
@@ -134,7 +157,9 @@ public sealed class AiGateway : IAiGateway
             {
                 (LlmToolResult result, AiToolOutput output) = await RunToolAsync(call, toolContext, cancellationToken);
                 results.Add(result);
-                outputs.Add(output);
+
+                // Tool tugagan zahoti yuzaga ketadi — foydalanuvchi ish borayotganini ko'rsin.
+                yield return AiStreamEvent.OfTool(output);
             }
 
             conversations.AddToolResults(conversation.Id, ++sequence, results);
@@ -154,7 +179,49 @@ public sealed class AiGateway : IAiGateway
         conversation.LastActivityAt = DateTime.UtcNow;
         await SaveAsync(cancellationToken);
 
-        return new AiAnswer(conversation.Id, answer, outputs, total);
+        _lastUsage = total;
+
+        yield return AiStreamEvent.OfText(answer);
+        yield return AiStreamEvent.OfDone(conversation.Id);
+    }
+
+    /// <summary>
+    /// Bitta provayder chaqirig'i.
+    /// </summary>
+    /// <remarks>
+    /// Alohida metod, chunki <c>try/finally</c> iterator metodida <c>yield</c> bilan yonma-yon
+    /// tura olmaydi — sikl esa oqim metodining o'zida qolishi kerak.
+    /// </remarks>
+    private async Task<LlmResponse> CompleteAsync(
+        TenantState state,
+        AiUser user,
+        AiAskRequest request,
+        List<LlmMessage> messages,
+        IReadOnlyList<LlmToolDefinition> definitions,
+        CancellationToken cancellationToken)
+    {
+        LlmRequest llmRequest = new()
+        {
+            SystemStable = AiSystemPrompt.Stable,
+            SystemVolatile = AiSystemPrompt.Volatile(state.Name, user, request),
+
+            // ⚠️ NUSXA, ro'yxatning o'zi emas: `messages` sikl davomida O'SADI va havola
+            // berilsa, provayderga ketgan so'rov keyingi aylanishda jimgina «o'zgarib»
+            // qolardi — qayta urinish, jurnal va test o'sha so'rovni BOSHQACHA ko'rardi.
+            Messages = [.. messages],
+            Tools = definitions,
+        };
+
+        try
+        {
+            return await _llm.CompleteAsync(llmRequest, cancellationToken);
+        }
+        finally
+        {
+            // Suhbat yarim qolsa ham yozilgani yoziladi: provayder javob bermaganda ham
+            // token sarflangan bo'lishi mumkin va u hisobdan tushib qolmasin.
+            await SaveAsync(cancellationToken);
+        }
     }
 
     /// <summary>Bitta tool chaqirig'ini bajaradi.</summary>

@@ -33,6 +33,7 @@ public static class AiModule
 
         services.AddScoped<IAiMetering, AiMetering>();
         services.AddScoped<IAiGateway, AiGateway>();
+        services.AddScoped<IAiHistory, AiHistory>();
 
         AddTools(services);
 

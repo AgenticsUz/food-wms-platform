@@ -46,6 +46,51 @@ public sealed record AiAnswer(
     LlmUsage Usage);
 
 /// <summary>
+/// Oqim hodisasi — web paneli javobni bo'lak-bo'lak ko'rsatishi uchun (SSE).
+/// </summary>
+/// <param name="Type"><c>text</c> | <c>tool_result</c> | <c>done</c> | <c>error</c>.</param>
+/// <param name="Text">Model matni (<c>text</c> da) yoki xato izohi (<c>error</c> da).</param>
+/// <param name="Tool">Bajarilgan tool natijasi (<c>tool_result</c> da).</param>
+/// <param name="ConversationId">Suhbat (<c>done</c> da) — keyingi savol shu id bilan keladi.</param>
+/// <param name="Code">Mashina o'qiydigan xato kodi (<c>error</c> da).</param>
+/// <remarks>
+/// <para>
+/// ⚠️ Hodisalar QADAM darajasida: har tool bajarilgach bittasi ketadi, model javobi esa
+/// oxirida bitta <c>text</c> bo'lib keladi. Token-token oqim (harflar paydo bo'lishi)
+/// provayder oqimini talab qiladi — <c>ILlmClient</c> hozir buni bilmaydi.
+/// </para>
+/// <para>
+/// Foydasi baribir katta: qoldiq so'ralganda foydalanuvchi «mahsulot izlandi → qoldiq
+/// olindi» ni KO'RADI va bir necha soniyalik jimlik «osilib qoldi» degan taassurot
+/// bermaydi.
+/// </para>
+/// </remarks>
+public sealed record AiStreamEvent(
+    string Type,
+    string? Text = null,
+    AiToolOutput? Tool = null,
+    Guid? ConversationId = null,
+    string? Code = null)
+{
+    /// <summary>Hodisa turlari — yuza bilan kelishilgan satrlar.</summary>
+    public static class Types
+    {
+        public const string Text = "text";
+        public const string ToolResult = "tool_result";
+        public const string Done = "done";
+        public const string Error = "error";
+    }
+
+    public static AiStreamEvent OfText(string text) => new(Types.Text, Text: text);
+
+    public static AiStreamEvent OfTool(AiToolOutput tool) => new(Types.ToolResult, Tool: tool);
+
+    public static AiStreamEvent OfDone(Guid conversationId) => new(Types.Done, ConversationId: conversationId);
+
+    public static AiStreamEvent OfError(string code, string message) => new(Types.Error, Text: message, Code: code);
+}
+
+/// <summary>
 /// AI oqimining yagona kirish nuqtasi: savol → (tool'lar) → javob.
 /// </summary>
 /// <remarks>
@@ -64,4 +109,19 @@ public interface IAiGateway
     /// AI o'chiq, kvota tugagan yoki provayder javob bermadi.
     /// </exception>
     Task<AiAnswer> AskAsync(AiUser user, AiAskRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Xuddi shu ish, lekin hodisalar bo'lib: web paneli javobni bo'lak-bo'lak ko'rsatadi.
+    /// </summary>
+    /// <param name="user">Savol so'ragan odam va uning huquqlari.</param>
+    /// <param name="request">Savol.</param>
+    /// <param name="cancellationToken">Bekor qilish belgisi.</param>
+    /// <returns>Hodisalar oqimi; oxirgisi — <c>done</c>.</returns>
+    /// <remarks>
+    /// ⚠️ <see cref="AskAsync"/> SHU oqimni yig'ib beradi — sikl bitta joyda. Ikki nusxa
+    /// bo'lsa, «tool'siz raqamli javob bermaslik» kabi qoidalar bir yuzada kuchga kirib,
+    /// ikkinchisida jimgina yo'qolardi.
+    /// </remarks>
+    IAsyncEnumerable<AiStreamEvent> StreamAsync(
+        AiUser user, AiAskRequest request, CancellationToken cancellationToken = default);
 }
