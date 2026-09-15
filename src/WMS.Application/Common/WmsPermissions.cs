@@ -57,6 +57,21 @@ public static class WmsPermissions
     /// </remarks>
     public const string DocumentsBackdate = "documents.backdate";
 
+    /// <summary>
+    /// Kabinet foydalanuvchisining O'Z ma'lumoti (F10·A2 AI tool'lari uchun).
+    /// </summary>
+    /// <remarks>
+    /// ⚠️ <b>Bu kod <see cref="All"/> katalogida ATAYLAB YO'Q</b> va hech bir rolga
+    /// berilmaydi: uni faqat kabinet yuzasi (<c>/api/portal/ai/chat</c>) so'rov davomida
+    /// beradi. Sabab — kabinet rollarining (<c>client</c>, <c>agent</c>) WMS ruxsati bo'sh
+    /// (<c>PortalController</c> izohi), ya'ni tool registri ularga hech narsa ko'rsatmasdi.
+    /// Katalogga qo'shilsa esa u rollar ekranida paydo bo'lib, xodimga ham berilishi mumkin
+    /// bo'lardi — va o'shanda «o'zining» ma'lumoti kimniki ekani noaniq bo'lardi.
+    /// Himoya baribir ikki qatlamli: tool'lar <c>IPortalService</c> ni chaqiradi va u
+    /// tokendagi <c>sub</c> ni kartaga bog'lay olmasa 403 beradi (fail-closed).
+    /// </remarks>
+    public const string PortalSelf = "portal.self";
+
     /// <summary>To'liq katalog (28 ta).</summary>
     public static readonly IReadOnlyList<PermissionDefinition> All =
     [

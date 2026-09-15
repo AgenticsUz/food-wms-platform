@@ -6,6 +6,8 @@ import { LanguageService, SUPPORTED_LANGUAGES, type AppLanguage } from '@agentic
 import { Button } from 'primeng/button';
 
 import { ThemeService } from '../../../core/theme/theme.service';
+import { AiDrawerComponent } from '../../ai/ai-drawer.component';
+import { AiStore } from '../../ai/ai.store';
 import { BrandMarkComponent } from '../../../shared/components/brand-mark/brand-mark.component';
 import { PortalActorKind } from '../portal.model';
 import { PortalStore } from '../portal.store';
@@ -28,7 +30,15 @@ const LANGUAGE_SHORT: Readonly<Record<AppLanguage, string>> = {
  */
 @Component({
   selector: 'app-portal-layout',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, TranslocoDirective, Button, BrandMarkComponent],
+  imports: [
+    RouterOutlet,
+    RouterLink,
+    RouterLinkActive,
+    TranslocoDirective,
+    Button,
+    BrandMarkComponent,
+    AiDrawerComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './portal-layout.component.html',
   styleUrl: './portal-layout.component.scss',
@@ -38,6 +48,16 @@ export class PortalLayoutComponent implements OnInit {
   private readonly language = inject(LanguageService);
   protected readonly store = inject(PortalStore);
   protected readonly theme = inject(ThemeService);
+
+  /**
+   * Kabinetda AI tugmasi HAR DOIM ko'rinadi.
+   *
+   * ⚠️ Ilova qobig'idan farqi: kabinet foydalanuvchisida tenant feature ro'yxati yo'q
+   * (`/api/me` unga berilmaydi), ya'ni `ai.chat` ni yuzada tekshirib bo'lmaydi. Rad
+   * javobini gateway beradi va u panelda o'z matni bilan ko'rinadi — «yoqilmagan»
+   * degan javob tugmaning umuman yo'qligidan tushunarliroq.
+   */
+  readonly ai = inject(AiStore);
 
   readonly menuOpen = signal(false);
 

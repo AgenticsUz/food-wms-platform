@@ -395,3 +395,56 @@ uzatiladi.
 - Jonli eval va botdagi qo'l tekshiruvi — ikkalasi ham `Ai__ApiKey` ga bog'liq.
 - Suhbat tarixini tozalash fon vazifasi (`HistoryRetentionDays` siyosat qiymati bor).
 - Ko'p tenantli chatda tanlovdan keyin savol qayta so'raladi (`callback_data` ≤ 64 bayt).
+
+---
+
+## A2 — Web panel va kabinet (2026-09-15)
+
+AI endi brauzerda: qobiqdagi global tortma, javob oqim bo'lib keladi.
+
+### Nima qilindi
+
+**Gateway oqimga aylandi.** `StreamAsync` hodisalar beradi (`tool_result` → `text`
+→ `done`), `AskAsync` esa o'sha oqimni yig'adi — ya'ni sikl BITTA joyda qoldi.
+Ikki nusxa bo'lsa, «tool'siz raqamli javob bermaslik» kabi qoidalar bir yuzada
+kuchga kirib, ikkinchisida jimgina yo'qolardi.
+
+⚠️ Hodisalar QADAM darajasida, token-token emas: harflar paydo bo'lishi provayder
+oqimini talab qiladi va `ILlmClient` uni hozir bilmaydi. Kalitsiz yozilgan
+streaming kodini sinab ko'rib bo'lmasdi, shuning uchun u A3 ga qoldirildi.
+
+**Yuzalar.** `POST /api/ai/chat` (`text/event-stream`),
+`GET /api/ai/conversations`, `GET /api/ai/conversations/{id}`.
+`EventSource` ishlatilmadi — u `Authorization` sarlavhasini yubora olmaydi;
+mijoz `fetch` + `ReadableStream` bilan o'qiydi. `X-Accel-Buffering: no` —
+nginx oqimni buferlab, hamma hodisani oxirida birdan bermasin.
+
+**Panel.** Qobiqdagi o'ng tortma, holat `AiStore` da (`providedIn: 'root'`):
+sahifa almashganda suhbat saqlanadi. Tool natijalari komponent bilan —
+`stock_query` jadval, `debt_query` kontragent havolasi bilan jadval,
+`pending_transfers` hujjat havolalari. Shakl `unknown` dan tekshirib o'qiladi:
+backend DTO'si o'zgarsa panel jim qoladi (matn baribir ko'rinadi).
+
+**Kabinet.** `POST /api/portal/ai/chat` — o'sha gateway, boshqa tool to'plami
+(`my_debt`, `my_transfers`). Ruxsat kodi `portal.self` RBAC katalogida YO'Q, ya'ni
+zavod xodimi kabinet tool'larini hech qachon ko'rmaydi; kabinet foydalanuvchisi esa
+faqat shularni ko'radi. Himoya ikki qatlamli: tool'lar `IPortalService` ni chaqiradi
+va u tokendagi `sub` ni kartaga bog'lay olmasa 403 beradi (fail-closed).
+
+### Qabul mezoni natijasi
+
+| Mezon | Natija |
+|---|---|
+| `dotnet build` | 0 xato / 0 ogohlantirish |
+| `run-tests.sh` | **124 test** (123 yashil + 1 jonli, o'tkazib yuborilgan) |
+| `wms-web` lint / test / build | ✅ uchalasi yashil (frontend testlari 21 → 25) |
+| Kabinet va zavod tool'lari ajratilgan | ✅ test bilan |
+| Suhbat faqat egasiga | ✅ begonaga 404 |
+| 10 savol web'da, brauzer tekshiruvi | ⏳ **kalit + foydalanuvchi** |
+
+### Ochiq qolganlar
+
+- Token-token oqim — kalit bo'lgach `ILlmClient` ga qo'shiladi va jonli sinaladi.
+- Suhbat tarixi yuzasi: API bor, panelda ro'yxat hali chizilmagan.
+- Kabinetda tarix yo'q: kabinet foydalanuvchisida `user_profile.id` bo'lmaydi, ya'ni
+  suhbat egasini hozirgi shaklda yozib bo'lmaydi (A3 da ko'riladi).

@@ -60,5 +60,10 @@ public static class AiModule
         services.AddScoped<IAiTool, PendingTransfersTool>();
         services.AddScoped<IAiTool, LastPriceTool>();
         services.AddScoped<IAiTool, TodaySummaryTool>();
+
+        // Kabinet (A2): ruxsat kodi `portal.self` — u RBAC katalogida yo'q, ya'ni bu
+        // ikkisi zavod xodimiga umuman ko'rinmaydi (izohi `WmsPermissions.PortalSelf` da).
+        services.AddScoped<IAiTool, MyDebtTool>();
+        services.AddScoped<IAiTool, MyTransfersTool>();
     }
 }

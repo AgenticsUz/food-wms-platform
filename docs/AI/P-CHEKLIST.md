@@ -239,4 +239,47 @@ va u sikl davomida o'sib, yuborilgan so'rov keyin «o'zgarib» qolardi (gateway 
 **A1 dan keyin ochiq:** jonli eval va botdagi qo'l tekshiruvi (ikkalasi ham kalitga bog'liq);
 suhbat tarixini tozalash fon vazifasi.
 
-Shundan keyin — `WMS-AI-REJA.md` §A2 (web panel, SSE, kabinet).
+---
+
+## A2 — Web panel (REJA §A2)
+
+| # | Ish | Holat |
+|---|---|---|
+| 1 | `POST /api/ai/chat` (SSE: `tool_result`, `text`, `done`, `error`) | ✅ 2026-09-15 |
+| 2 | `GET /api/ai/conversations`, `GET /api/ai/conversations/{id}` | ✅ |
+| 3 | `IAiGateway.StreamAsync` — sikl bitta joyda, `AskAsync` uni yig'adi | ✅ |
+| 4 | `wms-web`: global tortma (qobiqda), Signals store, `fetch` + `ReadableStream` | ✅ |
+| 5 | Tool natijalari komponent bilan (qoldiq jadvali, qarz/hujjat havolalari) | ✅ |
+| 6 | Kabinet (`/api/portal/ai/chat`): `my_debt`, `my_transfers` — o'sha gateway | ✅ |
+| 7 | i18n uz-Latn/ru (tool nomlari ham) | ✅ |
+
+**Qabul mezoni:**
+
+- [x] `dotnet build` 0/0; `run-tests.sh` — **124 test** (123 yashil + 1 jonli)
+- [x] `wms-web` lint / test / build — uchalasi yashil (frontend 21 → 25 test)
+- [x] Kabinet va zavod tool'lari ARALASHMAYDI (test bilan qo'riqlanadi)
+- [x] Suhbat faqat EGASIGA ko'rinadi (begonaga 404)
+- [ ] **10 asosiy savol web'da** — `Ai__ApiKey` kerak (foydalanuvchida)
+- [ ] **Brauzerda ko'z bilan tekshirish** — foydalanuvchida
+
+**Muhim qarorlar:**
+
+- **Oqim QADAM darajasida, token-token EMAS.** Token oqimi provayder oqimini talab
+  qiladi va `ILlmClient` uni bilmaydi; uni kalitsiz yozib, sinab ko'rmasdan qoldirish
+  esa ishonchsiz kod bo'lardi. Qadam hodisalari baribir «osilib qoldi» taassurotini
+  yo'q qiladi: foydalanuvchi «mahsulot izlandi → qoldiq olindi» ni ko'radi.
+- **`fetch`, `HttpClient` emas.** `HttpClient` javobni to'liq kutadi — oqimning ma'nosi
+  qolmasdi. `EventSource` esa `Authorization` sarlavhasini yubora olmaydi.
+  Narxi: interceptor zanjiri bu yo'lda ishlamaydi va to'rt sarlavha qo'lda qo'yiladi.
+- **Rad javobi birinchi hodisadan OLDIN.** SSE sarlavhalari yozilgandan keyin holat
+  kodini o'zgartirib bo'lmaydi va «AI o'chiq» 200 bo'lib ketardi.
+- **Kabinetga alohida manzil.** Kabinet rollarining WMS ruxsati bo'sh, shuning uchun
+  `portal.self` kodini AYNAN o'sha manzil beradi. Bitta manzil bo'lsa ruxsat to'plamini
+  mijoz tanlagan bo'lardi. Kod RBAC katalogida YO'Q — xodim uni hech qachon olmaydi.
+- **Panel holati qobiqda** (`providedIn: 'root'`): sahifa almashganda suhbat saqlanadi.
+
+**A2 dan keyin ochiq:** token-token oqim (kalit bo'lgach `ILlmClient` ga qo'shiladi);
+suhbat tarixi yuzasi (API bor, panelda ro'yxat hali yo'q); kabinetda tarix umuman yo'q
+(kabinet foydalanuvchisida profil id'si bo'lmaydi).
+
+Shundan keyin — `WMS-AI-REJA.md` §A3 (yozuvchi amallar, odam tasdig'i bilan).

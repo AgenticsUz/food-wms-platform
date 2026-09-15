@@ -1,8 +1,6 @@
-using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using WMS.Application.Ai;
 using WMS.Application.Common;
-using WMS.Application.Common.Localization;
 using WMS.Application.Interfaces;
 using WMS.Domain.Enums;
 
@@ -32,9 +30,6 @@ public sealed record AiChatRequest(string Text, Guid? ConversationId = null, str
 [Route("api/ai")]
 public sealed class AiController : BaseController
 {
-    /// <summary>SSE hodisalari mijoz kutgan shaklda (camelCase).</summary>
-    private static readonly JsonSerializerOptions EventOptions = new(JsonSerializerDefaults.Web);
-
     private readonly IAiGateway _gateway;
     private readonly IAiHistory _history;
     private readonly IRequestLanguage _language;
@@ -78,26 +73,7 @@ public sealed class AiController : BaseController
         AiAskRequest ask = new(
             AiChannel.Web, request.Text, request.ConversationId, PageContext: request.PageContext);
 
-        bool started = false;
-        try
-        {
-            await foreach (AiStreamEvent evt in _gateway.StreamAsync(user, ask, cancellationToken))
-            {
-                if (!started)
-                {
-                    StartStream();
-                    started = true;
-                }
-
-                await WriteAsync(evt, cancellationToken);
-            }
-        }
-        catch (AiException ex) when (started)
-        {
-            await WriteAsync(
-                AiStreamEvent.OfError(ex.Code, Translations.Format(ex.MessageTemplate, _language.Current, ex.MessageArgs)),
-                cancellationToken);
-        }
+        await AiSseWriter.WriteAsync(Response, _gateway, user, ask, _language, cancellationToken);
     }
 
     /// <summary>Foydalanuvchining suhbatlari.</summary>
@@ -124,24 +100,5 @@ public sealed class AiController : BaseController
         return conversation is null
             ? NotFound(ApiResponse<AiConversationDetailDto>.Fail("Conversation not found"))
             : Ok(ApiResponse<AiConversationDetailDto>.Ok(conversation));
-    }
-
-    /// <summary>SSE sarlavhalari — birinchi hodisadan oldin bir marta.</summary>
-    /// <remarks>
-    /// <c>X-Accel-Buffering: no</c> — nginx oqimni BUFERLAMASIN: aks holda hamma hodisa
-    /// javob tugagandan keyin birdan kelib, oqimning ma'nosi qolmasdi.
-    /// </remarks>
-    private void StartStream()
-    {
-        Response.Headers.ContentType = "text/event-stream";
-        Response.Headers.CacheControl = "no-cache";
-        Response.Headers["X-Accel-Buffering"] = "no";
-    }
-
-    private async Task WriteAsync(AiStreamEvent evt, CancellationToken cancellationToken)
-    {
-        string json = JsonSerializer.Serialize(evt, EventOptions);
-        await Response.WriteAsync($"data: {json}\n\n", cancellationToken);
-        await Response.Body.FlushAsync(cancellationToken);
     }
 }

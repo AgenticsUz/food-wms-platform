@@ -236,6 +236,28 @@ public sealed class AiGatewayTests
     }
 
     [Fact]
+    public async Task Kabinet_va_zavod_toollari_ARALASHMAYDI()
+    {
+        TestTenant tenant = await _fixture.CreateTenantAsync();
+        await using WmsTenantScope scope = _fixture.BeginScope(tenant);
+
+        IAiToolRegistry registry = scope.Service<IAiToolRegistry>();
+
+        // Kabinet foydalanuvchisi: WMS ruxsatlari BO'SH, faqat `portal.self`.
+        IReadOnlyList<string> portal = [.. registry.Available(Context(WmsPermissions.PortalSelf)).Select(t => t.Code)];
+        portal.ShouldBe(["my_debt", "my_transfers"], ignoreOrder: true);
+
+        // Zavod xodimi — hamma ruxsat bilan ham kabinet tool'larini KO'RMAYDI:
+        // `portal.self` RBAC katalogida yo'q, ya'ni hech bir rolda uchramaydi.
+        IReadOnlyList<string> staff =
+            [.. registry.Available(Context([.. WmsPermissions.All.Select(p => p.Code)])).Select(t => t.Code)];
+
+        staff.ShouldNotContain("my_debt");
+        staff.ShouldNotContain("my_transfers");
+        staff.ShouldContain("stock_query");
+    }
+
+    [Fact]
     public async Task Ai_ochiq_bolsa_gateway_ishlamaydi()
     {
         TestTenant tenant = await _fixture.CreateTenantAsync();
@@ -254,4 +276,14 @@ public sealed class AiGatewayTests
         error.Code.ShouldBe(AiErrorCodes.Disabled);
         llm.Requests.ShouldBeEmpty();
     }
+
+    /// <summary>Berilgan ruxsatlar bilan tool konteksti (feature'lar to'liq).</summary>
+    private static AiToolContext Context(params string[] permissions) => new(
+        AiChannel.Web,
+        null,
+        new HashSet<string>(permissions, StringComparer.Ordinal),
+        new HashSet<string>(
+            [FeatureCodes.WarehouseBatches, FeatureCodes.FinanceDebts, FeatureCodes.FinancePayments],
+            StringComparer.OrdinalIgnoreCase),
+        "uz");
 }

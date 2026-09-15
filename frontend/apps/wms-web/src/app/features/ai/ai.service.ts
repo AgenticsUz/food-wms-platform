@@ -5,6 +5,7 @@ import { LanguageService } from '@agentics/i18n';
 import { TenantStore } from '@agentics/tenant';
 
 import { ApiService } from '../../core/api/api.service';
+import { WmsSession } from '../../core/auth/wms-session';
 import type { AiConversation, AiConversationDetail, AiStreamEvent } from './ai.model';
 
 /** Savol yuborilayotgan kontekst — system promptning o'zgaruvchan qismiga tushadi. */
@@ -35,6 +36,7 @@ export class AiService {
   private readonly config = inject(ConfigService);
   private readonly tenants = inject(TenantStore);
   private readonly language = inject(LanguageService);
+  private readonly session = inject(WmsSession);
 
   /** Suhbatlar ro'yxati (faqat o'zining). */
   getConversations() {
@@ -54,7 +56,7 @@ export class AiService {
    * (backend controlleridagi izoh).
    */
   async *ask(text: string, options: AiAskOptions = {}): AsyncGenerator<AiStreamEvent> {
-    const response = await fetch(`${this.config.apiUrl()}/ai/chat`, {
+    const response = await fetch(`${this.config.apiUrl()}/${this.endpoint()}`, {
       method: 'POST',
       headers: this.headers(),
       body: JSON.stringify({
@@ -75,6 +77,18 @@ export class AiService {
     }
 
     yield* readEvents(body);
+  }
+
+  /**
+   * Kabinet va ilova BOSHQA manzilga boradi.
+   *
+   * ⚠️ Gateway bitta, tool to'plami boshqa: kabinet foydalanuvchisining WMS ruxsati
+   * ataylab bo'sh va unga `portal.self` kodini AYNAN o'sha manzil beradi
+   * (`PortalController` izohi). Bitta manzil bo'lsa, ruxsat to'plamini mijoz
+   * tanlagan bo'lardi — ya'ni chegara mijozda qolardi.
+   */
+  private endpoint(): string {
+    return this.session.isPortalUser() ? 'portal/ai/chat' : 'ai/chat';
   }
 
   /**

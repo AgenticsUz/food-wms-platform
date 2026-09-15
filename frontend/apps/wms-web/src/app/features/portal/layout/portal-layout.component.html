@@ -49,4 +49,10 @@
   <main class="portal-main">
     <router-outlet />
   </main>
+
+  <button type="button" class="ai-fab" [attr.aria-label]="t('ai.title')" (click)="ai.toggle()">
+    <i class="pi pi-sparkles" aria-hidden="true"></i>
+  </button>
+
+  <app-ai-drawer />
 </div>

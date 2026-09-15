@@ -1,9 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WMS.API.Middleware;
+using WMS.API.Controllers.Ai;
+using WMS.Application.Ai;
 using WMS.Application.Common;
 using WMS.Application.DTOs.Portal;
 using WMS.Application.Interfaces;
+using WMS.Domain.Enums;
 
 namespace WMS.API.Controllers.Trade;
 
@@ -36,6 +39,49 @@ public sealed class PortalController : ControllerBase
     private readonly IPortalService _portal;
 
     public PortalController(IPortalService portal) => _portal = portal;
+
+    /// <summary>
+    /// Kabinet AI yordamchisi — zavodnikisi bilan BITTA gateway, boshqa tool to'plami.
+    /// </summary>
+    /// <param name="request">Savol.</param>
+    /// <param name="gateway">AI oqimi.</param>
+    /// <param name="language">So'rov tili.</param>
+    /// <param name="cancellationToken">So'rov uzilsa.</param>
+    /// <returns>Asinxron amal (javob SSE bo'lib oqimga yoziladi).</returns>
+    /// <remarks>
+    /// <para>
+    /// ⚠️ Ruxsat to'plami QO'LDA <c>portal.self</c> qilib beriladi — kabinet rollarining
+    /// WMS ruxsati bo'sh va tool registri ularga hech narsa ko'rsatmasdi. Shu kod bilan
+    /// aynan ikki tool ochiladi: <c>my_debt</c> va <c>my_transfers</c>.
+    /// </para>
+    /// <para>
+    /// ⚠️ Xodim bu yo'lni chaqirsa ham hech narsa ololmaydi: tool'lar
+    /// <c>IPortalService</c> ni chaqiradi va u tokendagi <c>sub</c> ni kartaga bog'lay
+    /// olmasa 403 beradi (fail-closed). Ya'ni <c>portal.self</c> — ESHIK EMAS, ro'yxat
+    /// filtri; eshikni servis ochadi.
+    /// </para>
+    /// </remarks>
+    [HttpPost("ai/chat")]
+    public async Task AiChat(
+        [FromBody] AiChatRequest request,
+        [FromServices] IAiGateway gateway,
+        [FromServices] IRequestLanguage language,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(gateway);
+        ArgumentNullException.ThrowIfNull(language);
+
+        AiUser user = new(
+            null,
+            new HashSet<string>([WmsPermissions.PortalSelf], StringComparer.Ordinal),
+            language.Current);
+
+        AiAskRequest ask = new(
+            AiChannel.Web, request.Text, request.ConversationId, PageContext: request.PageContext);
+
+        await AiSseWriter.WriteAsync(Response, gateway, user, ask, language, cancellationToken);
+    }
 
     [HttpGet("me")]
     public async Task<ActionResult<ApiResponse<PortalMeDto>>> Me(CancellationToken ct)
