@@ -6,13 +6,27 @@ namespace WMS.Application.Interfaces;
 // Tenant parametri yo'q (D4): WmsDbContext filtri + RLS joriy tenantni o'zi qo'yadi.
 public interface ITransferService
 {
+    /// <param name="type">Hujjat turi.</param>
+    /// <param name="status">Holat.</param>
+    /// <param name="from">Boshlanish sanasi — <c>DocumentDate</c> bo'yicha (P2.3), <c>CreatedAt</c> emas.</param>
+    /// <param name="to">Tugash sanasi — <c>DocumentDate</c> bo'yicha.</param>
+    /// <param name="counterpartyId">Kontragent.</param>
+    /// <param name="page">Sahifa.</param>
+    /// <param name="pageSize">Sahifa hajmi.</param>
+    /// <returns>Hujjatlar (yangi sana birinchi).</returns>
     Task<List<TransferDto>> GetAllAsync(TransferType? type = null,
         TransferStatus? status = null, DateTime? from = null, DateTime? to = null,
         Guid? counterpartyId = null, int page = 1, int pageSize = 50);
     Task<TransferDto> GetByIdAsync(Guid id);
 
     /// <param name="userId">Yaratuvchining <c>user_profile.id</c> si.</param>
-    Task<TransferDto> CreateAsync(Guid userId, CreateTransferDto dto);
+    /// <param name="dto">Hujjat.</param>
+    /// <param name="source">
+    /// Hujjat qaysi yuzadan kirgani. ⚠️ DTO'da EMAS, parametr: manbani chaqiruvchi kod
+    /// (controller, bot, AI oqimi) belgilaydi — mijoz o'zini «AI» deb ko'rsatolmaydi.
+    /// </param>
+    /// <returns>Yaratilgan hujjat.</returns>
+    Task<TransferDto> CreateAsync(Guid userId, CreateTransferDto dto, DocumentSource source = DocumentSource.Ui);
     Task<TransferDto> ConfirmAsync(Guid id);
     Task<TransferDto> RejectAsync(Guid id);
     Task CancelAsync(Guid id);

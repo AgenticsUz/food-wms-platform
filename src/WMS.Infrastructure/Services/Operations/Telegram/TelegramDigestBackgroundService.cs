@@ -11,6 +11,7 @@ using WMS.Application.DTOs.Analytics;
 using WMS.Application.Interfaces;
 using WMS.Domain.Entities;
 using WMS.Domain.Enums;
+using WMS.Infrastructure.Common;
 using WMS.Infrastructure.Persistence;
 using WMS.Infrastructure.Tenancy;
 
@@ -124,8 +125,25 @@ public sealed class TelegramDigestBackgroundService : BackgroundService
             string tenantName = await db.Tenants.AsNoTracking().Where(t => t.Id == tenantId).Select(t => t.Name).FirstAsync(token);
             string dateKey = TelegramQuietHours.ToTashkent(DateTime.UtcNow).ToString("yyyyMMdd", CultureInfo.InvariantCulture);
 
+            // ⚠️ BUGUNGI kalitlar oldindan o'qiladi (2026-09-15 prod deploy'ida topilgan):
+            // `dedup_key` noyob indeksi niyatni to'g'ri ifodalaydi, lekin uni faqat ISTISNO
+            // sifatida beradi — xizmat bir kunda qayta ko'tarilganda (deploy) `23505` chiqib,
+            // `ForEachTenantAsync` shu tenantda UZILARDI va qolgan ishlar bajarilmasdi.
+            string keyPrefix = $"digest:{dateKey}:";
+            HashSet<string> alreadyQueued = [.. await db.TelegramOutboxes.AsNoTracking()
+                .Where(o => o.DedupKey != null && o.DedupKey.StartsWith(keyPrefix))
+                .Select(o => o.DedupKey!)
+                .ToListAsync(token)];
+
+            int queued = 0;
             foreach (var link in links.DistinctBy(l => l.ChatId))
             {
+                string dedupKey = $"{keyPrefix}{link.ChatId.ToString(CultureInfo.InvariantCulture)}";
+                if (!alreadyQueued.Add(dedupKey))
+                {
+                    continue;   // bugun allaqachon navbatga qo'yilgan
+                }
+
                 string text = Compose(tenantName, summary, debtors, expiring, link.Lang);
                 db.TelegramOutboxes.Add(new TelegramOutbox
                 {
@@ -133,12 +151,27 @@ public sealed class TelegramDigestBackgroundService : BackgroundService
                     TelegramLinkId = link.Id,
                     ChatId = link.ChatId,
                     Text = text,
-                    DedupKey = $"digest:{dateKey}:{link.ChatId.ToString(CultureInfo.InvariantCulture)}",
+                    DedupKey = dedupKey,
                 });
-                sent++;
+                queued++;
             }
 
-            await db.SaveChangesAsync(token);
+            if (queued == 0)
+            {
+                return;
+            }
+
+            try
+            {
+                await db.SaveChangesAsync(token);
+                sent += queued;
+            }
+            catch (DbUpdateException ex) when (PostgresErrors.IsUniqueViolation(ex))
+            {
+                // Zaxira to'r: ikki nusxa bir vaqtda yozsa yuqoridagi tekshiruv yetmaydi.
+                // Bu XATO emas — xabar allaqachon navbatda, ya'ni ish bajarilgan.
+                _logger.LogDebug(ex, "Kunlik xulosa allaqachon navbatda (tenant {Tenant})", tenantId);
+            }
         }, _logger, ct);
 
         if (sent > 0) _logger.LogInformation("Telegram kunlik xulosa: {Count} xabar navbatga yozildi", sent);

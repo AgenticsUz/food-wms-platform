@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using WMS.Domain.Entities;
+using WMS.Infrastructure.Common;
 using WMS.Infrastructure.Persistence;
 
 namespace WMS.Infrastructure.Services.Trade;
@@ -49,7 +50,8 @@ internal static class DebtLedger
         }
     }
 
-    /// <summary>Postgres noyoblik buzilishi (23505).</summary>
-    public static bool IsUniqueViolation(DbUpdateException ex) =>
-        ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation };
+    /// <summary>Postgres noyoblik buzilishi (23505) — tekshiruv <see cref="PostgresErrors"/> da.</summary>
+    /// <param name="ex">Saqlash xatosi.</param>
+    /// <returns>Ha — 23505.</returns>
+    public static bool IsUniqueViolation(DbUpdateException ex) => PostgresErrors.IsUniqueViolation(ex);
 }

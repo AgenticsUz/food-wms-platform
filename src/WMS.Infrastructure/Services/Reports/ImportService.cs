@@ -98,6 +98,24 @@ public class ImportService : IImportService
 
             var barcode = ws.Cell(row, 8).GetString().Trim();
 
+            // Qadoq (P2.7) — ustunlar OXIRIDA: eski shablon bilan to'ldirilgan fayl ham o'qilsin
+            // (bo'sh katak «qadoq yo'q» degani). PackSize va PackUnit JUFT: biri bo'lsa ikkinchisi shart.
+            decimal? packSize = null;
+            var packSizeStr = ws.Cell(row, 9).GetString().Trim();
+            if (!string.IsNullOrEmpty(packSizeStr))
+            {
+                if (decimal.TryParse(packSizeStr, NumberStyles.Number, CultureInfo.InvariantCulture, out var ps) && ps > 0)
+                    packSize = ps;
+                else
+                    errors.Add(new ImportErrorDto { Row = row, Field = "PackSize", Message = "Must be a number greater than zero" });
+            }
+
+            var packUnit = ws.Cell(row, 10).GetString().Trim();
+            if (packSize is not null && string.IsNullOrEmpty(packUnit))
+                errors.Add(new ImportErrorDto { Row = row, Field = "PackUnit", Message = "Pack unit is required when pack size is set" });
+            else if (string.IsNullOrEmpty(packSizeStr) && !string.IsNullOrEmpty(packUnit))
+                errors.Add(new ImportErrorDto { Row = row, Field = "PackSize", Message = "Pack size is required when pack unit is set" });
+
             if (errors.Count > 0)
             {
                 result.Errors.AddRange(errors);
@@ -119,7 +137,9 @@ public class ImportService : IImportService
                     MinStock = minStock,
                     CostPrice = costPrice,
                     ShelfLifeDays = shelfLife,
-                    Barcode = string.IsNullOrEmpty(barcode) ? null : barcode
+                    Barcode = string.IsNullOrEmpty(barcode) ? null : barcode,
+                    PackSize = packSize,
+                    PackUnit = string.IsNullOrEmpty(packUnit) ? null : packUnit
                 });
                 result.SuccessCount++;
             }
@@ -217,22 +237,23 @@ public class ImportService : IImportService
         var ws = workbook.Worksheets.Add("Products");
 
         // Sarlavha qatori
-        ws.Range("A1:H1").Merge();
+        ws.Range("A1:J1").Merge();
         var titleCell = ws.Cell("A1");
         titleCell.Value = "Products Import Template";
         StyleTitle(titleCell);
 
-        // Ustun nomlari
-        var headers = new[] { "Name*", "Category", "Type*", "Unit", "MinStock", "CostPrice", "ShelfLifeDays", "Barcode" };
+        // Ustun nomlari. ⚠️ Qadoq ustunlari (P2.7) OXIRIDA: mavjud tartib o'zgarsa,
+        // odamlarda saqlanib qolgan to'ldirilgan fayllar boshqa ustunga tushardi.
+        var headers = new[] { "Name*", "Category", "Type*", "Unit", "MinStock", "CostPrice", "ShelfLifeDays", "Barcode", "PackSize", "PackUnit" };
         for (int i = 0; i < headers.Length; i++)
             StyleHeader(ws.Cell(2, i + 1), headers[i]);
 
         // Namuna qatorlar
         var examples = new[]
         {
-            new[] { "Quruq sut", "Sut mahsulotlari", "Raw", "kg", "100", "25000", "365", "" },
-            new[] { "Shakar", "Qand va shakar", "Raw", "kg", "200", "12000", "", "" },
-            new[] { "Plombir 100ml", "Muzqaymoq", "Finished", "dona", "500", "3500", "180", "" }
+            new[] { "Quruq sut", "Sut mahsulotlari", "Raw", "kg", "100", "25000", "365", "", "", "" },
+            new[] { "Shakar", "Qand va shakar", "Raw", "kg", "200", "12000", "", "", "50", "qop" },
+            new[] { "Plombir 100ml", "Muzqaymoq", "Finished", "dona", "500", "3500", "180", "", "24", "quti" }
         };
         for (int r = 0; r < examples.Length; r++)
             for (int c = 0; c < examples[r].Length; c++)

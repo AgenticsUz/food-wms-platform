@@ -71,10 +71,16 @@ public class TransferPdfService : ITransferPdfService
 
                 row.RelativeItem().AlignRight().Column(right =>
                 {
-                    // ⚠️ Kalit endi Guid (D3) — «#123» kabi qisqa raqam yo'q, hujjatda to'liq kalit turadi.
-                    right.Item().AlignRight().Text($"Transfer #{transfer.Id}").Bold().FontSize(10);
-                    right.Item().AlignRight().Text($"Date: {transfer.CreatedAt:yyyy-MM-dd HH:mm}").FontSize(10).FontColor(TextMuted);
+                    // Sarlavhada — ODAM o'qiydigan qisqa raqam (P2.4). Guid pastda, mayda
+                    // shriftda qoladi: qo'llab-quvvatlash xizmati hujjatning suratidan
+                    // yozuvni topa olsin (qisqa raqam tenantlar bo'ylab noyob emas).
+                    right.Item().AlignRight().Text($"Transfer #{transfer.Number}").Bold().FontSize(10);
+
+                    // ⚠️ Sana — HUJJAT sanasi, yozuv yaratilgan lahza emas (P2.3): kechagi
+                    // chiqim bugun kiritilsa ham qog'ozda KECHAGI sana turishi kerak.
+                    right.Item().AlignRight().Text($"Date: {transfer.DocumentDate:yyyy-MM-dd}").FontSize(10).FontColor(TextMuted);
                     right.Item().AlignRight().PaddingTop(4).Element(c => StatusBadge(c, transfer.Status.ToString()));
+                    right.Item().AlignRight().PaddingTop(4).Text(transfer.Id.ToString()).FontSize(6).FontColor(TextMuted);
                 });
             });
 
@@ -118,6 +124,9 @@ public class TransferPdfService : ITransferPdfService
                 row.RelativeItem().Column(right =>
                 {
                     InfoRow(right, "Created by:", transfer.CreatedByUser?.FullName ?? "-");
+                    // ⚠️ «Confirmed at» ATAYLAB `ConfirmedAt` da qoladi: bu qator aynan
+                    // «hujjat qachon TASDIQLANDI» degan savolga javob beradi (sarlavhadagi
+                    // «Date» esa tovar qachon ketganini). Ikkalasi turli savol, turli ustun.
                     InfoRow(right, "Confirmed at:", transfer.ConfirmedAt?.ToString("yyyy-MM-dd HH:mm") ?? "-");
                     InfoRow(right, "Note:", transfer.Note ?? "-");
                 });

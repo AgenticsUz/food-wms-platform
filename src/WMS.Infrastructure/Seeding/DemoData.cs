@@ -51,6 +51,10 @@ internal sealed partial class DemoData
     private readonly Dictionary<Guid, Unit> _unitsById = [];
     private readonly Dictionary<Guid, Product> _productsById = [];
 
+    /// <summary>Berilgan oxirgi hujjat raqamlari (P2.4) — tarix xronologik yurgani uchun ketma-ket.</summary>
+    private int _transferNumber;
+    private int _orderNumber;
+
     public DemoData(WmsDbContext db, DemoPeople people, DateTime utcNow)
     {
         _db = db;
@@ -93,6 +97,12 @@ internal sealed partial class DemoData
         }
 
         await _db.SaveChangesAsync(ct);
+
+        // ⚠️ Hisoblagichni demo bergan eng katta raqamgacha ko'taramiz: aks holda seed'dan keyin
+        // yaratilgan BIRINCHI hujjat «#1» ni olib, demo tarixidagi raqamni takrorlardi.
+        DocumentNumbers numbers = new(_db);
+        await numbers.EnsureAtLeastAsync(TenantCounter.Kinds.Transfer, _transferNumber, ct);
+        await numbers.EnsureAtLeastAsync(TenantCounter.Kinds.ProductionOrder, _orderNumber, ct);
 
         return _created
             .GroupBy(c => c.Entity.GetType().Name, StringComparer.Ordinal)
@@ -199,6 +209,19 @@ internal sealed partial class DemoData
     }
 
     // ── Umumiy yordamchilar ──
+
+    /// <summary>Hujjat sanasi: voqea kunining UTC boshlanishi.</summary>
+    /// <remarks>
+    /// Servisdagi <c>DocumentDates.Resolve</c> ham kunni UTC'da kesadi — demo boshqacha kessa
+    /// «oxirgi 7 kun» filtri seed bergan sanalar bilan chegarada mos kelmay qolardi.
+    /// </remarks>
+    private static DateTime DocumentDay(DateTime at) => DateTime.SpecifyKind(at.Date, DateTimeKind.Utc);
+
+    /// <summary>Keyingi transfer raqami (tarix xronologik — raqamlar ham ketma-ket chiqadi).</summary>
+    private int NextTransferNumber() => ++_transferNumber;
+
+    /// <summary>Keyingi ishlab chiqarish buyurtmasi raqami.</summary>
+    private int NextOrderNumber() => ++_orderNumber;
 
     /// <summary><paramref name="daysAgo"/> kun oldin, mahalliy <paramref name="hour"/>:<paramref name="minute"/> — UTC da.</summary>
     private DateTime Day(int daysAgo, int hour, int minute = 0) =>

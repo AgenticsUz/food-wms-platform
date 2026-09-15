@@ -22,6 +22,10 @@ public static class TradeModule
         services.AddScoped<IAgentService, AgentService>();
         services.AddScoped<IFinanceService, FinanceService>();
 
+        // Narx taklifi (P2.2): hujjat qatorlari ustidan o'qiydi — shuning uchun transfer
+        // moduli bilan bir joyda, alohida modul emas.
+        services.AddScoped<IPricingService, PricingService>();
+
         // Kabinet (F9): kontragent/agent o'z oldi-berdisini ko'radi; hisobni admin biriktiradi.
         services.AddScoped<IPortalService, PortalService>();
         services.AddScoped<IPortalAccountService, PortalAccountService>();

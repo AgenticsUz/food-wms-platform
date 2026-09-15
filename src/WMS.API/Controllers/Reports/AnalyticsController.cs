@@ -83,6 +83,16 @@ public class AnalyticsController : BaseController
         => Ok(ApiResponse<ExtendedDashboardSummaryDto>.Ok(
             await _analytics.GetExtendedDashboardSummary(fromDate, toDate)));
 
+    // Chiqim hujjatlaridan quriladi va kengaytirilgan analitikaga kiradi — shuning uchun
+    // darvozalar `transfers/daily` bilan bir xil.
+    [HttpGet("product-profit")]
+    [RequireModule(ModuleCodes.Transfers)]
+    [RequireFeature(FeatureCodes.AnalyticsAdvanced)]
+    public async Task<IActionResult> GetProductProfit(
+        [FromQuery] DateTime from, [FromQuery] DateTime to, [FromQuery] Guid? productId)
+        => Ok(ApiResponse<List<ProductProfitDto>>.Ok(
+            await _analytics.GetProductProfit(from, to, productId)));
+
     [HttpGet("monthly-comparison")]
     public async Task<IActionResult> GetMonthlyComparison()
         => Ok(ApiResponse<List<MonthlyComparisonDto>>.Ok(

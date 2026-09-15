@@ -59,6 +59,10 @@ public static class WmsInfrastructureExtensions
         services.Configure<SubscriptionOptions>(configuration.GetSection(SubscriptionOptions.SectionName));
         services.Configure<TelegramOptions>(configuration.GetSection(TelegramOptions.SectionName));
         services.AddScoped<ITenantStateService, TenantStateService>();
+
+        // Hujjat raqamlari (P2.4) — infratuzilma servisi: modul emas, jadval bilan bitta.
+        services.AddScoped<DocumentNumbers>();
+        services.AddScoped<IDocumentNumbers>(sp => sp.GetRequiredService<DocumentNumbers>());
         services.AddScoped<IRequestWarnings, RequestWarnings>();
 
         // Huquqlar manbai IKKI interfeysda bitta nusxa: paketning JIT middleware'i

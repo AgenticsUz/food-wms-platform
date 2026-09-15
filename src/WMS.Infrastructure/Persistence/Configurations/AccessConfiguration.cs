@@ -14,6 +14,12 @@ internal sealed class UserProfileConfiguration : IEntityTypeConfiguration<UserPr
         builder.Property(u => u.Phone).HasMaxLength(20);
         builder.Property(u => u.IdentityRole).HasMaxLength(32);
 
+        // Standart ombor (P2.6) — ombor o'chirilsa profil «osilib» qolmasin: bog'lanish
+        // uziladi va forma yana omborni so'raydi (Restrict bo'lsa omborni o'chirib
+        // bo'lmasdi).
+        builder.HasOne(u => u.DefaultWarehouse).WithMany()
+            .HasForeignKey(u => u.DefaultWarehouseId).OnDelete(DeleteBehavior.SetNull);
+
         // JIT profilni `sub` bo'yicha topadi; ikki parallel birinchi so'rov ikki profil
         // yozmasin — ikkinchisi noyoblik xatosi bilan yiqiladi va keyingi so'rovda o'tadi.
         builder.HasIndex(u => new { u.TenantId, u.IdentitySub }).IsUnique();
@@ -66,5 +72,17 @@ internal sealed class AuditLogConfiguration : IEntityTypeConfiguration<AuditLog>
         builder.Property(a => a.Path).HasMaxLength(500).IsRequired();
         builder.Property(a => a.CorrelationId).HasMaxLength(64);
         builder.HasIndex(a => new { a.TenantId, a.CreatedAt });
+    }
+}
+
+internal sealed class TenantCounterConfiguration : IEntityTypeConfiguration<TenantCounter>
+{
+    public void Configure(EntityTypeBuilder<TenantCounter> builder)
+    {
+        builder.Property(c => c.Kind).HasMaxLength(32).IsRequired();
+
+        // ⚠️ Qisman noyob indeks — `DocumentNumbers` dagi `ON CONFLICT` ning ARBITRI.
+        // Predikat o'zgarsa SQL ham o'zgarishi shart, aks holda Postgres indeksni tanimaydi.
+        builder.HasIndex(c => new { c.TenantId, c.Kind }).IsUnique().HasFilter("\"is_deleted\" = false");
     }
 }

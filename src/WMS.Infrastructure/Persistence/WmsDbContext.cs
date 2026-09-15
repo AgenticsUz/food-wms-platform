@@ -89,6 +89,8 @@ public sealed class WmsDbContext : DbContext
     public DbSet<TenantFeature> TenantFeatures => Set<TenantFeature>();
     public DbSet<PaymentRecord> PaymentRecords => Set<PaymentRecord>();
 
+    public DbSet<TenantCounter> TenantCounters => Set<TenantCounter>();
+
     public DbSet<UserProfile> UserProfiles => Set<UserProfile>();
     public DbSet<Role> Roles => Set<Role>();
     public DbSet<RolePermission> RolePermissions => Set<RolePermission>();

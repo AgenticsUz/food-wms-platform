@@ -127,6 +127,9 @@ public static class Translations
         ["Your order from {0} is on the way today ({1})."] = ["{0} dan buyurtmangiz bugun yo'lda ({1}).", "Ваш заказ от {0} сегодня в пути ({1})."],
         ["Your order from {0} has been delivered. Thank you!"] = ["{0} dan buyurtmangiz yetkazildi. Rahmat!", "Ваш заказ от {0} доставлен. Спасибо!"],
         ["{0}: payment of {1} received. Your balance: {2}"] = ["{0}: {1} to'lov qabul qilindi. Balansingiz: {2}", "{0}: получена оплата {1}. Ваш баланс: {2}"],
+        ["{0}: payment of {1} was cancelled. Your balance: {2}"] = [
+            "{0}: {1} to'lov yozuvi bekor qilindi. Balansingiz: {2}",
+            "{0}: платёж {1} отменён. Ваш баланс: {2}"],
         ["Reminder from {0}: your outstanding balance is {1}. Please settle it."] = [
             "{0} eslatmasi: qarzingiz {1}. Iltimos, to'lang.",
             "Напоминание от {0}: ваша задолженность {1}. Пожалуйста, оплатите."],
@@ -237,6 +240,36 @@ public static class Translations
         // Transfer/moliya (W1·2): ilgari interpolyatsiya bilan qurilardi va tarjima qilinmasdi.
         // Raqamsiz xabar («qoldiq yo'q») menejerga hech narsa aytmasdi: u ekranda
         // qoldiqni ko'rib turardi va nima yetmaganini bilmasdi.
+                // ── F10·P2.7: qadoq ──
+        ["Pack size must be greater than zero"] = [
+            "Qadoq hajmi noldan katta bo'lishi kerak",
+            "Размер упаковки должен быть больше нуля"],
+        ["Pack unit is required when pack size is set"] = [
+            "Qadoq hajmi ko'rsatilgan bo'lsa, qadoq nomi ham kerak",
+            "Если указан размер упаковки, нужно указать и её название"],
+        ["Pack size is required when pack unit is set"] = [
+            "Qadoq nomi ko'rsatilgan bo'lsa, qadoq hajmi ham kerak",
+            "Если указано название упаковки, нужно указать и её размер"],
+
+        // ── F10·P2: hujjat sanasi va to'lovni qaytarish ──
+        ["Document date cannot be in the future"] = [
+            "Hujjat sanasi kelajakda bo'lishi mumkin emas",
+            "Дата документа не может быть в будущем"],
+        ["Entering a past document date requires the '{0}' permission"] = [
+            "O'tgan sana bilan kiritish uchun '{0}' ruxsati kerak",
+            "Для ввода прошедшей даты нужно разрешение '{0}'"],
+        ["Payment not found"] = [
+            "To'lov topilmadi",
+            "Платёж не найден"],
+        ["This payment is already reversed"] = [
+            "Bu to'lov allaqachon qaytarilgan",
+            "Этот платёж уже сторнирован"],
+        ["A reversal cannot be reversed"] = [
+            "Qaytarish yozuvini qaytarib bo'lmaydi",
+            "Сторно нельзя сторнировать"],
+        ["Payment direction is required when the balance is zero"] = [
+            "Balans nolga teng bo'lganda to'lov yo'nalishi ko'rsatilishi shart",
+            "При нулевом балансе нужно указать направление платежа"],
         ["Insufficient available stock for product {0}: need {1:N2}, available {2:N2}"] = [
             "'{0}' mahsulotidan omborda yetarli qoldiq yo'q: kerak {1:N2}, mavjud {2:N2}",
             "Недостаточно доступного остатка товара '{0}': нужно {1:N2}, доступно {2:N2}"],

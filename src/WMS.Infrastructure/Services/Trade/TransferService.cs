@@ -23,14 +23,22 @@ public class TransferService : ITransferService
 
     private readonly ITelegramPartnerNotifier _partners;
 
+    /// <summary>Orqaga sana ruxsatini tekshirish uchun (<c>DocumentDates.Resolve</c>).</summary>
+    private readonly ICurrentUser _user;
+
+    /// <summary>Tenant ichidagi qisqa hujjat raqami (P2.4).</summary>
+    private readonly IDocumentNumbers _documentNumbers;
+
     public TransferService(WmsDbContext db, INotificationService notifications,
         ITenantStateService tenantState, IRequestWarnings warnings,
         IOptions<SubscriptionOptions> subscription, ILogger<TransferService> logger,
-        IStockAllocator stock, ITelegramPartnerNotifier partners)
+        IStockAllocator stock, ITelegramPartnerNotifier partners,
+        ICurrentUser user, IDocumentNumbers documentNumbers)
     {
         _db = db; _notifications = notifications; _tenantState = tenantState;
         _warnings = warnings; _subscription = subscription.Value; _logger = logger;
         _stock = stock; _partners = partners;
+        _user = user; _documentNumbers = documentNumbers;
     }
 
     public async Task<List<TransferDto>> GetAllAsync(TransferType? type,
@@ -46,14 +54,20 @@ public class TransferService : ITransferService
         if (type.HasValue) q = q.Where(t => t.Type == type.Value);
         if (status.HasValue) q = q.Where(t => t.Status == status.Value);
         if (counterpartyId.HasValue) q = q.Where(t => t.CounterpartyId == counterpartyId.Value);
-        if (from.HasValue) q = q.Where(t => t.CreatedAt >= from.Value);
-        if (to.HasValue) q = q.Where(t => t.CreatedAt <= to.Value);
+
+        // ⚠️ Filtr HUJJAT SANASI bo'yicha (P2.3), `CreatedAt` bo'yicha emas: kecha kelgan kirim
+        // bugun kiritilsa ham «kecha» oralig'iga tushishi kerak — aks holda hisobot bilan
+        // ro'yxat bir xil kunda BOSHQA-BOSHQA hujjatlarni ko'rsatardi.
+        if (from.HasValue) q = q.Where(t => t.DocumentDate >= from.Value);
+        if (to.HasValue) q = q.Where(t => t.DocumentDate <= to.Value);
 
         // Manfiy Skip Postgres'da 500 berardi — noto'g'ri sahifa raqami mijoz xatosi, server emas.
         page = Math.Max(1, page);
         pageSize = Math.Max(1, pageSize);
 
-        var transfers = await q.OrderByDescending(t => t.CreatedAt).ThenByDescending(t => t.Id)
+        // Tartib ham hujjat sanasi bo'yicha; bir kunda bir nechta bo'lsa — qisqa raqam
+        // (u ketma-ket, ya'ni kun ichidagi kiritish tartibini beradi).
+        var transfers = await q.OrderByDescending(t => t.DocumentDate).ThenByDescending(t => t.Number)
             .Skip((page - 1) * pageSize).Take(pageSize)
             .ToListAsync();
 
@@ -66,11 +80,18 @@ public class TransferService : ITransferService
         return MapToDto(t);
     }
 
-    public async Task<TransferDto> CreateAsync(Guid userId, CreateTransferDto dto)
+    public async Task<TransferDto> CreateAsync(Guid userId, CreateTransferDto dto,
+        DocumentSource source = DocumentSource.Ui)
     {
+        ArgumentNullException.ThrowIfNull(dto);
+
         await PlanLimits.EnsureCanCreateTransferAsync(_db);
         await EnsureTransferTypeAllowedAsync(dto.Type);
         await ValidateCreateAsync(dto);
+
+        // Sana tekshiruvi HAMMA tekshiruvdan keyin, lekin raqam olishdan OLDIN: kelajak sana
+        // yoki ruxsatsiz orqaga sana hisoblagichni bekorga oshirmasin.
+        DateTime documentDate = DocumentDates.Resolve(dto.DocumentDate, _user);
 
         var transfer = new Transfer
         {
@@ -78,7 +99,8 @@ public class TransferService : ITransferService
             ToWarehouseId = dto.ToWarehouseId, CounterpartyId = dto.CounterpartyId,
             AgentId = dto.AgentId, CommissionPercent = dto.CommissionPercent,
             ReturnReason = dto.ReturnReason, OriginalTransferId = dto.OriginalTransferId,
-            CreatedByUserId = userId, Note = dto.Note, Status = TransferStatus.Pending
+            CreatedByUserId = userId, Note = dto.Note, Status = TransferStatus.Pending,
+            DocumentDate = documentDate, Source = source
         };
 
         foreach (var item in dto.Items)
@@ -91,6 +113,14 @@ public class TransferService : ITransferService
         }
 
         _db.Transfers.Add(transfer);
+
+        // ⚠️ Raqam SaveChanges'dan OLDIN olinadi: `DocumentNumbers` xom SQL bilan ishlaydi va
+        // EF kuzatuviga tegmaydi (izohi o'sha yerda), ya'ni hali yozilmagan `transfer` ni
+        // bazaga yuborib yubormaydi. Shu tartibda raqam va hujjat bitta ish birligida qoladi:
+        // saqlash yiqilsa raqam yonadi (bo'shliq — P2.4 qabul mezoni), lekin raqamsiz yoki
+        // ikki xil raqamli hujjat hech qachon yozilmaydi.
+        transfer.Number = await _documentNumbers.NextAsync(TenantCounter.Kinds.Transfer);
+
         await _db.SaveChangesAsync();
 
         await PlanLimits.ReportUsageAsync(_db, _warnings, PlanLimits.TransfersThisMonth, _subscription.LimitWarnPercent, _notifications);
@@ -109,14 +139,14 @@ public class TransferService : ITransferService
             .FirstAsync(x => x.Id == transferId);
         string creator = await _db.UserProfiles.AsNoTracking().Where(u => u.Id == createdByUserId).Select(u => u.FullName).FirstOrDefaultAsync() ?? "—";
         string amount = NotificationMessages.Amount(t.Items.Sum(i => i.Quantity * i.UnitPrice));
-        string date = NotificationMessages.Date(t.CreatedAt);
-        string party = t.Counterparty?.Name ?? t.FromWarehouse?.Name ?? t.ToWarehouse?.Name ?? "—";
+        string date = NotificationMessages.Date(t.DocumentDate);
+        string party = WithNumber(t.Counterparty?.Name ?? t.FromWarehouse?.Name ?? t.ToWarehouse?.Name ?? "—", t.Number);
 
         (string template, string?[] args) = t.Type switch
         {
             TransferType.Return => (NotificationMessages.ReturnPending, new string?[] { party, date, amount, creator }),
             TransferType.Incoming => (NotificationMessages.IncomingPending, new string?[] { party, date, amount, creator }),
-            TransferType.Internal => (NotificationMessages.InternalPending, new string?[] { t.FromWarehouse?.Name ?? "—", t.ToWarehouse?.Name ?? "—", date, creator }),
+            TransferType.Internal => (NotificationMessages.InternalPending, new string?[] { t.FromWarehouse?.Name ?? "—", WithNumber(t.ToWarehouse?.Name ?? "—", t.Number), date, creator }),
             _ => (NotificationMessages.SalePending, new string?[] { party, date, amount, creator }),
         };
 
@@ -190,11 +220,10 @@ public class TransferService : ITransferService
         if (transfer.Type == TransferType.Outgoing || transfer.Type == TransferType.Internal)
             await NotifySafelyAsync(transfer.Id, () => CheckLowStock(transfer));
 
-        // Guid o'rniga odam o'qiydigan belgi: kontragent/ombor va sana (TG4). Qisqa raqam
-        // qarori (HOLAT «keyinga qolgan») chiqsa shu yerda almashadi.
+        // Guid o'rniga odam o'qiydigan belgi: qisqa raqam (P2.4), kontragent/ombor va sana (TG4).
         string amount = NotificationMessages.Amount(transfer.Items.Sum(i => i.Quantity * i.UnitPrice));
-        string date = NotificationMessages.Date(transfer.CreatedAt);
-        string party = transfer.Counterparty?.Name ?? transfer.FromWarehouse?.Name ?? transfer.ToWarehouse?.Name ?? "—";
+        string date = NotificationMessages.Date(transfer.DocumentDate);
+        string party = WithNumber(transfer.Counterparty?.Name ?? transfer.FromWarehouse?.Name ?? transfer.ToWarehouse?.Name ?? "—", transfer.Number);
 
         (string title, string template, string?[] args, NotificationType type) = transfer.Type switch
         {
@@ -203,7 +232,7 @@ public class TransferService : ITransferService
             TransferType.Incoming => (NotificationMessages.TransferConfirmedTitle, NotificationMessages.IncomingConfirmed,
                 new string?[] { party, date, amount }, NotificationType.TransferConfirmed),
             TransferType.Internal => (NotificationMessages.TransferConfirmedTitle, NotificationMessages.InternalConfirmed,
-                new string?[] { transfer.FromWarehouse?.Name ?? "—", transfer.ToWarehouse?.Name ?? "—", date }, NotificationType.TransferConfirmed),
+                new string?[] { transfer.FromWarehouse?.Name ?? "—", WithNumber(transfer.ToWarehouse?.Name ?? "—", transfer.Number), date }, NotificationType.TransferConfirmed),
             _ => (NotificationMessages.TransferConfirmedTitle, NotificationMessages.SaleConfirmed,
                 new string?[] { party, date, amount }, NotificationType.TransferConfirmed),
         };
@@ -230,11 +259,21 @@ public class TransferService : ITransferService
 
         await NotifySafelyAsync(transfer.Id, () => _notifications.NotifyAsync(null,
             NotificationMessages.TransferRejectedTitle, NotificationMessages.TransferRejected,
-            [transfer.Counterparty?.Name ?? transfer.FromWarehouse?.Name ?? transfer.ToWarehouse?.Name ?? "—", NotificationMessages.Date(transfer.CreatedAt)],
+            [WithNumber(transfer.Counterparty?.Name ?? transfer.FromWarehouse?.Name ?? transfer.ToWarehouse?.Name ?? "—", transfer.Number),
+                NotificationMessages.Date(transfer.DocumentDate)],
             NotificationType.TransferRejected, "Transfer", transfer.Id));
 
         return MapToDto(transfer);
     }
+
+    /// <summary>Hujjat belgisi: nom + qisqa raqam («Korzinka #12»).</summary>
+    /// <remarks>
+    /// ⚠️ Raqam SHABLONGA emas, ARGUMENTGA qo'shiladi — tarjima kalitlari (<c>SaleConfirmed</c>
+    /// va boshqalar) o'zgarmasin, aks holda hamma tildagi matn qaytadan tarjima talab qilardi.
+    /// Raqam har doim sanadan OLDIN turgan argumentga qo'shiladi: «... A → B #12 (15.09.2026)».
+    /// </remarks>
+    private static string WithNumber(string label, int number) =>
+        number > 0 ? $"{label} #{number}" : label;
 
     public async Task CancelAsync(Guid id)
     {
@@ -461,7 +500,12 @@ public class TransferService : ITransferService
                 ExpiryDate = originalBatch != null
                     ? originalBatch.ExpiryDate
                     : product?.ShelfLifeDays != null ? now.AddDays(product.ShelfLifeDays.Value) : null,
-                InitialQuantity = item.Quantity, RemainingQuantity = item.Quantity
+                InitialQuantity = item.Quantity, RemainingQuantity = item.Quantity,
+
+                // Tannarx — AYNAN shu kirimning narxi (P2.5). Nol narx «tekin keldi» degani emas,
+                // «narx kiritilmagan» degani — shuning uchun `null`: noma'lum tannarx foydani
+                // butun sotuv summasiga teng qilib ko'rsatishdan ko'ra ochiq bo'lgani yaxshi.
+                UnitCost = item.UnitPrice > 0 ? item.UnitPrice : null
             };
             _db.Batches.Add(batch);
             item.Batch = batch;
@@ -499,10 +543,49 @@ public class TransferService : ITransferService
                     item.Quantity,
                     item.Quantity - allocation.Shortfall);
 
+            // Chiqim qatoriga partiya tannarxining NUSXASI (P2.5) — partiya keyin o'chirilsa
+            // yoki tannarxi to'g'rilansa ham sotilgan tovarning foydasi o'zgarmasin.
+            item.UnitCost = WeightedUnitCost(allocation.Lines);
+
             deductions.AddRange(allocation.Lines.Select(l => (item, l.Stock, l.Quantity)));
         }
 
         return deductions;
+    }
+
+    /// <summary>FEFO bir necha partiyadan olganda — MIQDOR bo'yicha o'rtacha tannarx.</summary>
+    /// <param name="lines">FEFO qatorlari (partiya navigatsiyasi yuklangan).</param>
+    /// <returns>O'rtacha tannarx; tannarxli partiya bo'lmasa <see langword="null"/>.</returns>
+    /// <remarks>
+    /// <para>
+    /// Nega o'rtacha: chiqim qatori BITTA (<c>TransferItem</c>), tannarx esa partiyaga bog'liq.
+    /// 10 dona 1000 so'mlik va 5 dona 1200 so'mlik partiyadan olinsa, qatorning haqiqiy qiymati
+    /// 16 000 so'm — uni bitta raqamga sig'dirishning yagona to'g'ri yo'li og'irlangan o'rtacha
+    /// (16 000 / 15 = 1066.67). Oddiy o'rtacha (1100) miqdorni e'tiborsiz qoldirib, katta
+    /// partiyaning ta'sirini kichiklashtirib yuborardi.
+    /// </para>
+    /// <para>
+    /// Tannarxsiz partiyalar yig'indiga ham, bo'luvchiga ham KIRMAYDI: ularni 0 deb hisoblash
+    /// o'rtachani sun'iy pasaytirib, foydani bo'rttirib ko'rsatardi.
+    /// </para>
+    /// </remarks>
+    private static decimal? WeightedUnitCost(IReadOnlyList<FefoLine> lines)
+    {
+        decimal value = 0m;
+        decimal quantity = 0m;
+
+        foreach (var line in lines)
+        {
+            if (line.Stock.Batch?.UnitCost is not { } cost)
+            {
+                continue;
+            }
+
+            value += cost * line.Quantity;
+            quantity += line.Quantity;
+        }
+
+        return quantity > 0 ? Math.Round(value / quantity, 2) : null;
     }
 
     private async Task ProcessInternal(Transfer transfer)
@@ -736,13 +819,14 @@ public class TransferService : ITransferService
         ReturnReason = t.ReturnReason, ReturnReasonName = t.ReturnReason?.ToString(),
         OriginalTransferId = t.OriginalTransferId,
         Note = t.Note, ConfirmedAt = t.ConfirmedAt, CreatedAt = t.CreatedAt,
+        DocumentDate = t.DocumentDate, Number = t.Number, Source = t.Source,
         TotalAmount = t.Items.Sum(i => i.Quantity * i.UnitPrice),
         Items = t.Items.Select(i => new TransferItemDto
         {
             Id = i.Id, ProductId = i.ProductId, ProductName = i.Product.Name,
             UnitShortName = i.Product.Unit.ShortName,
             BatchId = i.BatchId, LotNumber = i.Batch?.LotNumber,
-            Quantity = i.Quantity, UnitPrice = i.UnitPrice,
+            Quantity = i.Quantity, UnitPrice = i.UnitPrice, UnitCost = i.UnitCost,
             TotalPrice = i.Quantity * i.UnitPrice
         }).ToList()
     };

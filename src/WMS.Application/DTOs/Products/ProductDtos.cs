@@ -16,6 +16,16 @@ public class ProductDto
     public int? ShelfLifeDays { get; set; }
     public string? Barcode { get; set; }
     public decimal? CostPrice { get; set; }
+
+    /// <summary>1 qadoqdagi asosiy birlik miqdori (1 quti = N dona); <see langword="null"/> — qadoq yo'q.</summary>
+    /// <remarks>
+    /// ⚠️ Qoldiq, FEFO va hisobotlar DOIM asosiy birlikda — qadoq faqat KIRITISH qulayligi.
+    /// «50 quti → 50 × PackSize dona» o'girishni FORMA qiladi, backend faqat maydonni saqlaydi.
+    /// </remarks>
+    public decimal? PackSize { get; set; }
+
+    /// <summary>Qadoq nomi («quti», «karobka») — faqat ko'rsatish uchun.</summary>
+    public string? PackUnit { get; set; }
 }
 
 public class CreateProductDto
@@ -28,6 +38,12 @@ public class CreateProductDto
     public int? ShelfLifeDays { get; set; }
     public string? Barcode { get; set; }
     public decimal? CostPrice { get; set; }
+
+    /// <summary>1 qadoqdagi asosiy birlik miqdori; <see cref="PackUnit"/> bilan JUFT (ikkisi birga).</summary>
+    public decimal? PackSize { get; set; }
+
+    /// <summary>Qadoq nomi («quti», «karobka»); <see cref="PackSize"/> bilan JUFT.</summary>
+    public string? PackUnit { get; set; }
 }
 
 public class UpdateProductDto
@@ -40,6 +56,12 @@ public class UpdateProductDto
     public int? ShelfLifeDays { get; set; }
     public string? Barcode { get; set; }
     public decimal? CostPrice { get; set; }
+
+    /// <summary>1 qadoqdagi asosiy birlik miqdori; <see cref="PackUnit"/> bilan JUFT (ikkisi birga).</summary>
+    public decimal? PackSize { get; set; }
+
+    /// <summary>Qadoq nomi («quti», «karobka»); <see cref="PackSize"/> bilan JUFT.</summary>
+    public string? PackUnit { get; set; }
 }
 
 public class CategoryDto

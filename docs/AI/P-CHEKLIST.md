@@ -83,14 +83,37 @@ bo'ysunadi va «snikers»↔«snickers» ni kesardi) — katalog o'sganda
 
 | # | Ish | Kimga kerak | Holat |
 |---|---|---|---|
-| 1 | P2.2 Oxirgi narx (`IPricingService`) | A1 `last_price`, asosan A3 qoralama | ⏳ |
-| 2 | P2.3 Hujjat sanasi (`DocumentDate`, `transfers.backdate`; ⚠️ backfill RLS sabog'i — XATOLAR §9.3) | A3 «kecha kelgan kirim» | ⏳ |
-| 3 | P2.4 Qisqa hujjat raqami (tenant hisoblagichi) | A3/UI qulayligi | ⏳ |
-| 4 | P2.5 Partiya tannarxi (`Batch.UnitCost`) | A4 foyda hisoboti | ⏳ |
-| 5 | P2.6 Standart ombor | AI qayta so'rashini kamaytiradi | ⏳ |
-| 6 | P2.7 Qadoq — **qaror: VARIANT A** (`Product.PackSize` + `PackUnit`, 1 quti = N dona; formada ham, AI'da ham konversiya) | A3 «50 quti» | ⏳ (qaror 2026-09-14) |
-| 7 | **P2.8 To'lov sanasi va manbasi** — `PaymentHistory.DocumentDate` (hozir `PaidAt = UtcNow` qotirilgan), `Source`/`AiConversationId`; `transfers.backdate` → `documents.backdate` | A3.2 «kecha to'ladi» | ⏳ |
-| 8 | **P2.9 To'lovni qaytarish** — `ReversePaymentAsync` (o'chirish EMAS, teskari yozuv + sabab). Bugun to'lovni tuzatish yo'li UMUMAN yo'q | A3.2 shart: AI kiritgan xato tuzatilishi kerak | ⏳ |
+| 1 | P2.2 Oxirgi narx (`IPricingService`) | A1 `last_price`, A3 qoralama | ✅ 2026-09-15 |
+| 2 | P2.3 Hujjat sanasi (`DocumentDate` + `documents.backdate`) | A3 «kecha kelgan kirim» | ✅ 2026-09-15 |
+| 3 | P2.4 Qisqa hujjat raqami (tenant hisoblagichi) | A3/UI qulayligi | ✅ 2026-09-15 |
+| 4 | P2.5 Partiya tannarxi (`Batch.UnitCost`, `TransferItem.UnitCost`, ishlab chiqarish sarfi) | A4 foyda hisoboti | ✅ 2026-09-15 |
+| 5 | P2.6 Standart ombor (tenant + xodim override'i) | AI qayta so'rashini kamaytiradi | ✅ 2026-09-15 |
+| 6 | P2.7 Qadoq — **Variant A** (`PackSize` + `PackUnit`) | A3 «50 quti» | ✅ 2026-09-15 (backend; konversiya formada) |
+| 7 | P2.8 To'lov sanasi, yo'nalishi va manbasi | A3.2 «kecha to'ladi» | ✅ 2026-09-15 |
+| 8 | P2.9 To'lovni qaytarish (storno) | A3.2 sharti | ✅ 2026-09-15 |
+
+**Nima qilindi (qisqacha):**
+
+- **Hujjat sanasi** butun tizimda bitta ma'no oldi: ilgari ro'yxat `CreatedAt`, hisobot
+  `ConfirmedAt`, ishlab chiqarish yana `CreatedAt` bo'yicha ishlardi va bir xil davr uch xil
+  natija berardi. Endi `Transfer.DocumentDate` va `PaymentHistory.DocumentDate`; orqaga sana
+  — `documents.backdate` ruxsati bilan, kelajak sana hech kimga.
+- **Qisqa raqam**: `tenant_counter` jadvali (`UPDATE … RETURNING`), tenant ichida noyob;
+  20 parallel yaratish testi 20 ta noyob raqam beradi.
+- **Tannarx**: kirimda partiyaga narx nusxalanadi, chiqimda FEFO tanlagan partiyalarning
+  og'irlangan o'rtachasi hujjat qatoriga yoziladi, ishlab chiqarishda bosqich sarfi
+  (`StageExecution.MaterialCost`) yig'ilib tayyor partiyaga tushadi. Tannarxi NOMA'LUM
+  qatorlar hisobotda alohida ko'rsatiladi — foyda soxta katta ko'rinmasin.
+- **To'lov**: yo'nalish endi SAQLANADI va nol balansda TAXMIN QILINMAYDI (ilgari qarz
+  belgisidan chiqarilardi — nol balansda summa teskari tomonga yozilib, xatoni ikki barobar
+  qilardi). Storno: to'lov o'chirilmaydi, teskari yozuv qo'shiladi; ikki marta qaytarib
+  bo'lmaydi; mijozga Telegram orqali xabar ketadi.
+
+**Yo'l-yo'lakay tuzatilgan eski nuqsonlar:**
+
+- Telegram kunlik xulosa xizmati bir kunda qayta ko'tarilganda `23505` (dedup kaliti) bilan
+  yiqilib, butun tenant aylanishini uzardi — endi kalitlar oldindan o'qiladi va 23505 zaxira
+  to'r sifatida ushlanadi (`PostgresErrors`). Marshrut va mijoz xabarlarida ham xuddi shu.
 
 ---
 

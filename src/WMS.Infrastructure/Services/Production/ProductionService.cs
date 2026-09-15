@@ -19,13 +19,18 @@ public class ProductionService : IProductionService
     private readonly INotificationService _notifications;
     private readonly IStockAllocator _stock;
     private readonly ILogger<ProductionService> _logger;
+
+    /// <summary>Tenant ichidagi qisqa buyurtma raqami (P2.4).</summary>
+    private readonly IDocumentNumbers _documentNumbers;
+
     public ProductionService(WmsDbContext db, INotificationService notifications, IStockAllocator stock,
-        ILogger<ProductionService> logger)
+        ILogger<ProductionService> logger, IDocumentNumbers documentNumbers)
     {
         _db = db;
         _notifications = notifications;
         _stock = stock;
         _logger = logger;
+        _documentNumbers = documentNumbers;
     }
 
     // === Stages ===
@@ -244,7 +249,7 @@ public class ProductionService : IProductionService
         return await q.OrderByDescending(o => o.CreatedAt)
             .Select(o => new ProductionOrderDto
             {
-                Id = o.Id, RecipeId = o.RecipeId, RecipeName = o.Recipe.Name,
+                Id = o.Id, Number = o.Number, RecipeId = o.RecipeId, RecipeName = o.Recipe.Name,
                 OutputProductName = o.Recipe.OutputProduct.Name,
                 PlannedQuantity = o.PlannedQuantity, Status = o.Status,
                 PlannedStartDate = o.PlannedStartDate, PlannedEndDate = o.PlannedEndDate,
@@ -267,7 +272,7 @@ public class ProductionService : IProductionService
 
         return new ProductionOrderDto
         {
-            Id = o.Id, RecipeId = o.RecipeId, RecipeName = o.Recipe.Name,
+            Id = o.Id, Number = o.Number, RecipeId = o.RecipeId, RecipeName = o.Recipe.Name,
             OutputProductName = o.Recipe.OutputProduct.Name,
             PlannedQuantity = o.PlannedQuantity, Status = o.Status,
             PlannedStartDate = o.PlannedStartDate, PlannedEndDate = o.PlannedEndDate,
@@ -322,6 +327,11 @@ public class ProductionService : IProductionService
         }
 
         _db.ProductionOrders.Add(order);
+
+        // Raqam SaveChanges'dan OLDIN — sabab `TransferService.CreateAsync` dagidek:
+        // xom SQL EF kuzatuviga tegmaydi, ya'ni yarim tayyor buyurtmani bazaga yubormaydi.
+        order.Number = await _documentNumbers.NextAsync(TenantCounter.Kinds.ProductionOrder);
+
         await _db.SaveChangesAsync();
 
         // Ishlab chiqarish boshqaruvchilariga (production.manage) — «Boshlash» tugmasi bilan (TG9).
@@ -398,6 +408,10 @@ public class ProductionService : IProductionService
 
         await using var tx = await _db.Database.BeginTransactionAsync();
 
+        // Shu bosqichda sarflangan xomashyoning qiymati — chiqadigan partiyaning tannarxi
+        // uchun (P2.5). Bosqich kirimsiz bo'lsa 0 qoladi va tannarx `null` yoziladi.
+        decimal materialCost = 0m;
+
         if (firstCompletion && execution.RecipeStage.Inputs.Count > 0)
         {
             // Recipe inputs are defined for one recipe batch (Recipe.OutputQuantity);
@@ -408,7 +422,14 @@ public class ProductionService : IProductionService
             // Miqdor ustuni numeric(18,3): xotiradagi qiymat bazadagidan farq qilmasin
             // (aks holda partiya qoldig'i va zaxira qatori turlicha yaxlitlanardi).
             foreach (var input in execution.RecipeStage.Inputs)
-                await DeductFromStockAsync(input.ProductId, Math.Round(input.Quantity * factor, 3));
+                materialCost += await DeductFromStockAsync(input.ProductId, Math.Round(input.Quantity * factor, 3));
+
+            // ⚠️ USTIGA yozilmaydi, QO'SHILADI: bosqich qayta bajarilib yana sarflasa, oldingi
+            // sarf ham buyurtma tannarxida qolishi kerak — tovar omborga qaytmagan.
+            if (materialCost > 0m)
+            {
+                execution.MaterialCost = (execution.MaterialCost ?? 0m) + materialCost;
+            }
         }
 
         execution.ActualQuantity = dto.ActualQuantity;
@@ -430,7 +451,7 @@ public class ProductionService : IProductionService
         {
             await AddProducedStockAsync(execution.RecipeStage.OutputWarehouseId.Value,
                 execution.RecipeStage.OutputProductId.Value, dto.ActualQuantity,
-                $"SEMI-{order.Id}");
+                $"SEMI-{order.Number}", materialCost);
         }
 
         await _db.SaveChangesAsync();
@@ -489,8 +510,16 @@ public class ProductionService : IProductionService
 
         if (totalOutput > 0)
         {
+            // Buyurtmaning tannarxi — HAMMA bosqichda sarflangan xomashyo qiymati (P2.5).
+            // Bosqichlar alohida so'rovlarda bajarilgani uchun qiymat `StageExecution.MaterialCost`
+            // da yig'ilib turadi. ⚠️ Birorta bosqichda ham qiymat bo'lmasa — `null`: taxmin
+            // qilinmaydi, chunki noto'g'ri tannarx foydani JIMGINA buzadi, `null` esa ko'rinadi.
+            decimal? materialCost = order.StageExecutions.Any(se => se.MaterialCost.HasValue)
+                ? order.StageExecutions.Sum(se => se.MaterialCost ?? 0m)
+                : null;
+
             var batch = await AddProducedStockAsync(finishedWarehouse.Id,
-                order.Recipe.OutputProductId, totalOutput, $"PROD-{order.Id}");
+                order.Recipe.OutputProductId, totalOutput, $"PROD-{order.Number}", materialCost);
 
             // Auto-create ProductionOutput transfer for traceability.
             // F6: ITransferService orqali EMAS — u ProductionOutput turini foydalanuvchi
@@ -500,7 +529,15 @@ public class ProductionService : IProductionService
             {
                 Type = TransferType.ProductionOutput,
                 ToWarehouseId = finishedWarehouse.Id, Status = TransferStatus.Confirmed,
-                ConfirmedAt = DateTime.UtcNow, Note = $"Production Order #{order.Id}"
+                ConfirmedAt = DateTime.UtcNow,
+
+                // Hujjat sanasi — yakunlangan KUN (P2.3): `DocumentDates.Resolve` bu yerda
+                // chaqirilmaydi, chunki sanani odam kiritmaydi va orqaga sanalash ham yo'q.
+                DocumentDate = DateTime.UtcNow.Date,
+                Number = await _documentNumbers.NextAsync(TenantCounter.Kinds.Transfer),
+
+                // Guid o'rniga qisqa raqam (P2.4) — bu matn hujjat ro'yxatida ko'rinadi.
+                Note = $"Production Order #{order.Number}"
             };
             transfer.Items.Add(new TransferItem
             {
@@ -531,9 +568,13 @@ public class ProductionService : IProductionService
     /// Ishlab chiqarish xomashyoni HAMMA omborlardan oladi va partiya qoldig'ini ham kamaytiradi
     /// (tovar sarflanadi) — eski xulq aynan shu edi.
     /// </remarks>
-    private async Task DeductFromStockAsync(Guid productId, decimal quantity)
+    /// <returns>
+    /// Sarflangan xomashyoning QIYMATI (partiya tannarxi × olingan miqdor), tannarxi ma'lum
+    /// qatorlar bo'yicha. Hech bir partiyada tannarx bo'lmasa — 0.
+    /// </returns>
+    private async Task<decimal> DeductFromStockAsync(Guid productId, decimal quantity)
     {
-        if (quantity <= 0) return;
+        if (quantity <= 0) return 0m;
 
         var allocation = await _stock.DeductFefoAsync(productId, quantity, warehouseId: null, reduceBatchRemaining: true);
         var remaining = allocation.Shortfall;
@@ -548,11 +589,31 @@ public class ProductionService : IProductionService
             throw new AppException("Insufficient stock for input '{0}' (short by {1})",
                 productName ?? productId.ToString(), Math.Round(remaining, 2));
         }
+
+        // Ilgari `Lines` tashlab yuborilardi va sarf QIYMATI hech qayerda qolmasdi — tayyor
+        // mahsulot partiyasi tannarxsiz tug'ilardi (P2.5). Tannarxsiz partiya hisobga kirmaydi:
+        // uni 0 deb olish ishlab chiqarish tannarxini sun'iy pasaytirardi.
+        return allocation.Lines.Sum(l => (l.Stock.Batch?.UnitCost ?? 0m) * l.Quantity);
     }
 
     /// Creates a new batch + stock row for produced goods in the given warehouse.
+    /// <param name="warehouseId">Ombor.</param>
+    /// <param name="productId">Mahsulot.</param>
+    /// <param name="quantity">Ishlab chiqarilgan miqdor.</param>
+    /// <param name="lotPrefix">Partiya raqami prefiksi.</param>
+    /// <param name="materialCost">
+    /// Shu chiqarishga sarflangan xomashyo QIYMATI (<see cref="DeductFromStockAsync"/> yig'indisi);
+    /// noma'lum bo'lsa <see langword="null"/>.
+    /// </param>
+    /// <returns>Yaratilgan partiya.</returns>
+    /// <remarks>
+    /// Partiya tannarxi (P2.5) — sarflangan xomashyo qiymati BIR BIRLIKKA: <c>qiymat / miqdor</c>.
+    /// Chiqindi alohida ayrilmaydi: u allaqachon bo'luvchidan tashqarida (miqdor — FAKTIK chiqim),
+    /// ya'ni yo'qotilgan xomashyo tannarxi omon qolgan mahsulotga taqsimlanadi — ishlab chiqarish
+    /// hisobining odatiy qoidasi.
+    /// </remarks>
     private async Task<Batch> AddProducedStockAsync(Guid warehouseId,
-        Guid productId, decimal quantity, string lotPrefix)
+        Guid productId, decimal quantity, string lotPrefix, decimal? materialCost = null)
     {
         var location = await _db.Locations.FirstOrDefaultAsync(l => l.WarehouseId == warehouseId);
         if (location == null)
@@ -572,7 +633,10 @@ public class ProductionService : IProductionService
             LotNumber = $"{lotPrefix}-{now:yyyyMMdd}-{Guid.NewGuid().ToString()[..6]}",
             ManufacturedDate = now,
             ExpiryDate = shelfLifeDays != null ? now.AddDays(shelfLifeDays.Value) : null,
-            InitialQuantity = quantity, RemainingQuantity = quantity
+            InitialQuantity = quantity, RemainingQuantity = quantity,
+            UnitCost = materialCost is > 0m && quantity > 0m
+                ? Math.Round(materialCost.Value / quantity, 2)
+                : null
         };
         _db.Batches.Add(batch);
 

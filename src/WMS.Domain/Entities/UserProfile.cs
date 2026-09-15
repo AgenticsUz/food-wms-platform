@@ -52,6 +52,16 @@ public class UserProfile : TenantEntity
     /// <summary>WMS ichidagi o'chirgich — Identity'dagi bloklashdan mustaqil.</summary>
     public bool IsActive { get; set; } = true;
 
+    /// <summary>Shu xodim uchun standart ombor — tenant sozlamasini BOSIB ketadi.</summary>
+    /// <remarks>
+    /// Sex xodimi doim bitta omborda ishlaydi; tenant sozlamasi esa umumiy. Bo'sh bo'lsa
+    /// tenant sozlamasi ishlatiladi, u ham bo'sh bo'lsa — forma omborni so'raydi.
+    /// </remarks>
+    public Guid? DefaultWarehouseId { get; set; }
+
+    /// <summary>Standart ombor (navigatsiya).</summary>
+    public Warehouse? DefaultWarehouse { get; set; }
+
     public DateTime? LastSeenAt { get; set; }
 
     public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();

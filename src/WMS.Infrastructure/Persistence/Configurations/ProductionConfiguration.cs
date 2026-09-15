@@ -54,6 +54,9 @@ internal sealed class ProductionOrderConfiguration : IEntityTypeConfiguration<Pr
         builder.HasOne(o => o.Recipe).WithMany().HasForeignKey(o => o.RecipeId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(o => o.AssignedToUser).WithMany().HasForeignKey(o => o.AssignedToUserId).OnDelete(DeleteBehavior.Restrict);
         builder.HasIndex(o => new { o.TenantId, o.Status });
+
+        // Qisqa raqam tenant ichida noyob (Transfer bilan bir xil naqsh).
+        builder.HasIndex(o => new { o.TenantId, o.Number }).IsUnique().HasFilter("\"is_deleted\" = false");
     }
 }
 

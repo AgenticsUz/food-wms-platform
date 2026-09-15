@@ -82,6 +82,18 @@ public class Tenant : BaseEntity
     /// Mijozlarga (kontragent) Telegram xabarlari (TG13): buyurtma tasdiqlandi, yetkazildi, to'lov, qarz
     /// eslatmasi. Sukut O'CHIQ — mijozning mijoziga xabar yuborish tenant qarori.
     /// </summary>
+    /// <summary>Standart xomashyo ombori (kirim formasida sukut qiymat).</summary>
+    /// <remarks>
+    /// ⚠️ FK ATAYLAB yo'q: <c>tenant</c> — platforma jadvali (RLS'siz), <c>warehouse</c> esa
+    /// tenant jadvali. FK ularni bog'lasa, o'chirish yo'llari ikki xil qoidaga bo'ysunardi.
+    /// Qiymat servis qatlamida tekshiriladi: ombor shu tenantniki va o'chirilmagan bo'lishi
+    /// shart, aks holda sozlama JIMGINA e'tiborsiz qoladi.
+    /// </remarks>
+    public Guid? DefaultRawWarehouseId { get; set; }
+
+    /// <summary>Standart tayyor mahsulot ombori (chiqim formasida sukut qiymat).</summary>
+    public Guid? DefaultFinishedWarehouseId { get; set; }
+
     public bool ClientTelegramEnabled { get; set; }
 
     /// <summary>Qarz eslatmasi necha kunda bir (0 — o'chiq). Faqat <see cref="ClientTelegramEnabled"/> bilan.</summary>

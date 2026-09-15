@@ -46,7 +46,18 @@ public static class WmsPermissions
     public const string DeliveryView = "delivery.view";
     public const string DeliveryManage = "delivery.manage";
 
-    /// <summary>To'liq katalog (27 ta).</summary>
+    /// <summary>Hujjat va to'lovni ORQAGA sana bilan kiritish.</summary>
+    /// <remarks>
+    /// Nega alohida ruxsat: orqaga sana — hisobotni QAYTA yozish imkoni (kechagi kun
+    /// yopilgandan keyin unga yangi hujjat qo'shish). Har kim uchun ochiq bo'lsa
+    /// «kecha»gi raqamlar hech qachon barqaror bo'lmaydi. Hujjat ham, to'lov ham BITTA
+    /// ruxsatga bog'lanadi — ikkita deyarli bir xil ruxsat faqat chalkashtirardi.
+    /// Kodda tekshiruv SANAGA qarab ishlaydi (yuk tarkibiga bog'liq entitlement
+    /// naqshi — `EnsureTransferTypeAllowedAsync` bilan bir xil).
+    /// </remarks>
+    public const string DocumentsBackdate = "documents.backdate";
+
+    /// <summary>To'liq katalog (28 ta).</summary>
     public static readonly IReadOnlyList<PermissionDefinition> All =
     [
         new(DashboardView, "View Dashboard", "DASHBOARD"),
@@ -76,6 +87,7 @@ public static class WmsPermissions
         new(AuditView, "View Audit Log", "SETTINGS"),
         new(DeliveryView, "View Delivery", "DELIVERY"),
         new(DeliveryManage, "Manage Delivery", "DELIVERY"),
+        new(DocumentsBackdate, "Backdate Documents", "TRANSFERS"),
     ];
 
     /// <summary>Kod katalogdami.</summary>

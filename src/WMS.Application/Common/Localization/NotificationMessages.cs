@@ -60,6 +60,13 @@ public static class NotificationMessages
     public const string ClientDelivered = "Your order from {0} has been delivered. Thank you!";
     /// <summary>{0} zavod, {1} summa, {2} qoldiq balans.</summary>
     public const string ClientPaymentReceived = "{0}: payment of {1} received. Your balance: {2}";
+    /// <summary>{0} zavod, {1} summa, {2} qoldiq balans — xato yozuv QAYTARILDI (P2.9).</summary>
+    /// <remarks>
+    /// Xabar SHART: to'lov qabul qilingani haqida mijozga allaqachon xabar ketgan bo'ladi,
+    /// storno esa uning balansini qaytaradi. Jimgina tuzatish mijozda NOTO'G'RI balans
+    /// qoldirardi va keyingi da'vo aynan shundan chiqardi.
+    /// </remarks>
+    public const string ClientPaymentReversed = "{0}: payment of {1} was cancelled. Your balance: {2}";
     public const string ClientDebtReminder = "Reminder from {0}: your outstanding balance is {1}. Please settle it.";
     public const string ClientBalance = "Your balance with {0}: {1}";
     public const string ClientNoDebt = "You have no outstanding balance with {0}.";

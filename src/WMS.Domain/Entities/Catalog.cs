@@ -40,4 +40,16 @@ public class Product : TenantEntity
     public int? ShelfLifeDays { get; set; }
     public string? Barcode { get; set; }
     public decimal? CostPrice { get; set; }
+
+    /// <summary>Bitta qadoqdagi asosiy birlik miqdori (1 quti = N dona). <see langword="null"/> — qadoq yo'q.</summary>
+    /// <remarks>
+    /// ⚠️ Qoldiq, FEFO va hisobotlar DOIM asosiy birlikda (<see cref="UnitId"/>) yuritiladi —
+    /// qadoq faqat KIRITISH qulayligi: «50 quti» → 50 × <see cref="PackSize"/> dona.
+    /// Ikkinchi o'lchov birligini bazaga kiritish (qoldiqni quti va donada saqlash)
+    /// ATAYLAB qilinmadi: o'sha yo'l har hisobotda «qaysi birlikda?» savolini tug'diradi.
+    /// </remarks>
+    public decimal? PackSize { get; set; }
+
+    /// <summary>Qadoq nomi («quti», «karobka», «paket») — faqat ko'rsatish uchun.</summary>
+    public string? PackUnit { get; set; }
 }

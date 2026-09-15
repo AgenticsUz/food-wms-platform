@@ -39,6 +39,15 @@ public class Batch : TenantEntity
     public DateTime? ExpiryDate { get; set; }
     public decimal InitialQuantity { get; set; }
     public decimal RemainingQuantity { get; set; }
+
+    /// <summary>Shu partiyaning bir birlik TANNARXI (kirimdagi narx yoki ishlab chiqarish qiymati).</summary>
+    /// <remarks>
+    /// Nega partiyada, nega <c>Product.CostPrice</c> yetmaydi: bir mahsulot turli narxda
+    /// kelaveradi va foyda AYNAN sotilgan partiyaning tannarxidan hisoblanadi. Mahsulot
+    /// darajasidagi bitta raqam eski kirimlarni ham yangi narxga qayta baholab yuborardi.
+    /// <see langword="null"/> — tannarx noma'lum (eski qatorlar, narxsiz kirim).
+    /// </remarks>
+    public decimal? UnitCost { get; set; }
     public string? Notes { get; set; }
 }
 

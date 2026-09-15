@@ -54,6 +54,19 @@ public class FinanceController : BaseController
     public async Task<IActionResult> CreatePayment([FromBody] CreatePaymentDto dto)
         => Ok(ApiResponse<PaymentHistoryDto>.Ok(await _finance.CreatePaymentAsync(UserId, dto)));
 
+    /// <summary>To'lovni qaytaradi (storno) — o'chirish emas.</summary>
+    /// <param name="id">Asl to'lov.</param>
+    /// <param name="dto">Sabab.</param>
+    /// <returns>Storno yozuvi.</returns>
+    [HttpPost("payments/{id:guid}/reverse")]
+    [RequireFeature(FeatureCodes.FinancePayments)]
+    [RequirePermission(WmsPermissions.FinanceManage)]
+    public async Task<IActionResult> ReversePayment(Guid id, [FromBody] ReversePaymentDto dto)
+    {
+        ArgumentNullException.ThrowIfNull(dto);
+        return Ok(ApiResponse<PaymentHistoryDto>.Ok(await _finance.ReversePaymentAsync(UserId, id, dto.Reason)));
+    }
+
     [HttpGet("summary")]
     public async Task<IActionResult> GetSummary()
         => Ok(ApiResponse<FinanceSummaryDto>.Ok(await _finance.GetSummaryAsync()));

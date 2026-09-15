@@ -14,6 +14,10 @@ public class TransfersController : BaseController
     private readonly ITransferService _transfers;
     public TransfersController(ITransferService transfers) => _transfers = transfers;
 
+    /// <remarks>
+    /// <c>from</c>/<c>to</c> — HUJJAT SANASI oralig'i (P2.3): ro'yxat va hisobot bir xil kunda
+    /// bir xil hujjatlarni ko'rsatsin.
+    /// </remarks>
     [HttpGet]
     public async Task<IActionResult> GetAll(
         [FromQuery] TransferType? type, [FromQuery] TransferStatus? status,
@@ -30,10 +34,13 @@ public class TransfersController : BaseController
     // SQLite davridagi `catch (Exception) → 400` o'chdi: u xmin to'qnashuvini (409, D13) ham 400 ga
     // yassilab yuborardi. Biznes xatolari (AppException oilasi) middleware'da o'z statusi va
     // tarjimasi bilan qaytadi.
+    //
+    // Manba OSHKORA `Ui`: u DTO'dan kelmaydi (mijoz o'zini «AI» deb ko'rsatolmasin) — bot va
+    // AI oqimlari o'z qiymatini SHU metod emas, o'z chaqiruv joyidan beradi.
     [HttpPost]
     [RequirePermission(WmsPermissions.TransfersCreate)]
     public async Task<IActionResult> Create([FromBody] CreateTransferDto dto)
-        => Ok(ApiResponse<TransferDto>.Ok(await _transfers.CreateAsync(UserId, dto)));
+        => Ok(ApiResponse<TransferDto>.Ok(await _transfers.CreateAsync(UserId, dto, DocumentSource.Ui)));
 
     [HttpPut("{id}/confirm")]
     [RequirePermission(WmsPermissions.TransfersConfirm)]

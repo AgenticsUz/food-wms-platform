@@ -29,6 +29,7 @@ internal sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
 {
     public void Configure(EntityTypeBuilder<Product> builder)
     {
+        builder.Property(p => p.PackUnit).HasMaxLength(32);
         builder.Property(p => p.Name).HasMaxLength(200).IsRequired();
         builder.Property(p => p.NameSearch).HasMaxLength(SearchNormalizer.MaxLength).IsRequired();
         builder.Property(p => p.Barcode).HasMaxLength(64);

@@ -100,6 +100,7 @@ internal sealed partial class DemoData
                 PlannedStartDate = start,
                 PlannedEndDate = end,
                 AssignedToUserId = _people.Employee.Id,
+                Number = NextOrderNumber(),
             },
             createdAt);
 
@@ -109,6 +110,9 @@ internal sealed partial class DemoData
             : TimeSpan.FromHours(3);
         decimal factor = planned / recipe.Recipe.OutputQuantity;
         List<StageExecution> executions = [];
+
+        // Sarflangan xomashyoning QIYMATI — tayyor mahsulot partiyasining tannarxi uchun (P2.5).
+        decimal materialCost = 0m;
 
         for (int i = 0; i < recipe.Steps.Count; i++)
         {
@@ -128,10 +132,19 @@ internal sealed partial class DemoData
                 execution.StartTime = stageStart;
                 execution.EndTime = stageStart + slice;
 
+                decimal stageCost = 0m;
                 foreach (RecipeStageItem input in inputs)
                 {
-                    Take(_productsById[input.ProductId], input.Quantity * factor, from: null);
+                    foreach ((WarehouseStock stock, decimal taken) in Take(_productsById[input.ProductId], input.Quantity * factor, from: null))
+                    {
+                        stageCost += (_batches[stock.BatchId].UnitCost ?? 0m) * taken;
+                    }
                 }
+
+                // Sarf qiymati BOSQICHDA saqlanadi (servisdagidek): buyurtma yakunlanganda
+                // tayyor mahsulot tannarxi shu yig'indidan chiqadi. Kirimsiz bosqichda `null`.
+                execution.MaterialCost = stageCost > 0m ? stageCost : null;
+                materialCost += stageCost;
             }
             else if (i == completedStages && status == ProductionOrderStatus.InProgress)
             {
@@ -150,6 +163,10 @@ internal sealed partial class DemoData
         if (status == ProductionOrderStatus.Completed && end is { } completedAt)
         {
             Batch batch = NewBatch(recipe.Output, "PROD", completedAt, ExpiryFrom(recipe.Output, completedAt), actual, completedAt);
+
+            // Tannarx — sarflangan xomashyo qiymati BIR BIRLIKKA. Chiqindi bo'luvchidan tashqarida:
+            // yo'qotilgan xomashyo qiymati omon qolgan mahsulotga taqsimlanadi.
+            batch.UnitCost = materialCost > 0 && actual > 0 ? Math.Round(materialCost / actual, 2) : null;
             AddStock(_finishedWarehouse, _locB1, recipe.Output, batch, actual, completedAt);
 
             Transfer output = Add(
@@ -160,6 +177,8 @@ internal sealed partial class DemoData
                     Status = TransferStatus.Confirmed,
                     ConfirmedAt = completedAt,
                     Note = $"Ishlab chiqarish buyurtmasi: {recipe.Recipe.Name}, {Fmt(planned)} {UnitOf(recipe.Output)}",
+                    DocumentDate = DocumentDay(completedAt),
+                    Number = NextTransferNumber(),
                 },
                 completedAt);
             Item(output, recipe.Output, batch, actual, 0, completedAt);

@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using WMS.Application.Common;
 using WMS.Application.Interfaces;
 using WMS.Domain.Entities;
+using WMS.Infrastructure.Common;
 using WMS.Infrastructure.Persistence;
 
 namespace WMS.Infrastructure.Services.Operations.Telegram;
@@ -34,12 +35,23 @@ public sealed class TelegramOpsNotifier : IOpsNotifier
         if (dedupKey is not null && await _db.TelegramOutboxes.AnyAsync(o => o.DedupKey == dedupKey, cancellationToken))
             return;
 
-        _db.TelegramOutboxes.Add(new TelegramOutbox
+        TelegramOutbox outbox = new()
         {
             ChatId = _options.OpsChatId!.Value,
             Text = text.Length > TelegramOutbox.MaxTextLength ? text[..(TelegramOutbox.MaxTextLength - 1)] + "…" : text,
             DedupKey = dedupKey,
-        });
-        await _db.SaveChangesAsync(cancellationToken);
+        };
+        _db.TelegramOutboxes.Add(outbox);
+
+        try
+        {
+            await _db.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex) when (PostgresErrors.IsUniqueViolation(ex))
+        {
+            // Yuqoridagi tekshiruvdan keyingi poyga — xabar allaqachon navbatda (xato emas).
+            // Yozuv kuzatuvdan chiqariladi, aks holda keyingi `SaveChanges` qayta urinardi.
+            _db.Entry(outbox).State = EntityState.Detached;
+        }
     }
 }

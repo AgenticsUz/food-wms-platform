@@ -9,7 +9,13 @@ internal sealed partial class DemoData
     private readonly List<TransferItem> _transferItems = [];
     private readonly Dictionary<Guid, Debt> _debts = [];
     private readonly Dictionary<Guid, CommissionRecord> _commissionBySale = [];
-    private readonly List<(PaymentHistory Payment, PaymentDirection Direction)> _payments = [];
+    /// <summary>To'lovlar — yo'nalish endi YOZUVNING O'ZIDA (<c>PaymentHistory.Direction</c>).</summary>
+    /// <remarks>
+    /// Ilgari bu ro'yxat <c>(to'lov, yo'nalish)</c> juftligini saqlardi, chunki yo'nalish
+    /// modelda yo'q edi. Endi u ustun — juftlikni qoldirish ikkinchi, ajralib ketadigan
+    /// haqiqat manbai bo'lardi.
+    /// </remarks>
+    private readonly List<PaymentHistory> _payments = [];
 
     private Counterparty _nemat = null!;
     private Counterparty _baraka = null!;
@@ -52,10 +58,14 @@ internal sealed partial class DemoData
         debt.Amount += delta;
     }
 
-    private TransferItem Item(Transfer transfer, Product product, Batch? batch, decimal quantity, decimal unitPrice, DateTime at)
+    /// <param name="unitCost">
+    /// Chiqim qatorida — FEFO olgan partiya tannarxining NUSXASI (P2.5); kirim va qaytarishda
+    /// <see langword="null"/> (u qator tovarni omborga QO'SHADI, tannarx partiyada turadi).
+    /// </param>
+    private TransferItem Item(Transfer transfer, Product product, Batch? batch, decimal quantity, decimal unitPrice, DateTime at, decimal? unitCost = null)
     {
         TransferItem item = Add(
-            new TransferItem { TransferId = transfer.Id, ProductId = product.Id, BatchId = batch?.Id, Quantity = quantity, UnitPrice = unitPrice },
+            new TransferItem { TransferId = transfer.Id, ProductId = product.Id, BatchId = batch?.Id, Quantity = quantity, UnitPrice = unitPrice, UnitCost = unitCost },
             at);
         _transferItems.Add(item);
         return item;
@@ -65,6 +75,9 @@ internal sealed partial class DemoData
     private Transfer Incoming(Counterparty supplier, Product product, decimal quantity, decimal unitPrice, DateTime at, Location location)
     {
         Batch batch = NewBatch(product, "LOT", at, ExpiryFrom(product, at), quantity, at);
+
+        // Partiya tannarxi — AYNAN shu kirimning narxi (servisdagi `AddStockAsync` qoidasi, P2.5).
+        batch.UnitCost = unitPrice > 0 ? unitPrice : null;
         AddStock(_rawWarehouse, location, product, batch, quantity, at);
 
         Transfer transfer = Add(
@@ -76,6 +89,8 @@ internal sealed partial class DemoData
                 CreatedByUserId = _people.Manager.Id,
                 Status = TransferStatus.Confirmed,
                 ConfirmedAt = at,
+                DocumentDate = DocumentDay(at),
+                Number = NextTransferNumber(),
             },
             at);
         Item(transfer, product, batch, quantity, unitPrice, at);
@@ -96,6 +111,8 @@ internal sealed partial class DemoData
                 CreatedByUserId = _people.Employee.Id,
                 Status = TransferStatus.Pending,
                 Note = "Yetkazib beruvchi yuk xatini yubordi — omborda qabul qilinishi kutilmoqda",
+                DocumentDate = DocumentDay(at),
+                Number = NextTransferNumber(),
             },
             at);
         Item(transfer, product, null, quantity, unitPrice, at);
@@ -123,12 +140,17 @@ internal sealed partial class DemoData
                 CreatedByUserId = _people.Manager.Id,
                 Status = TransferStatus.Confirmed,
                 ConfirmedAt = at,
+                DocumentDate = DocumentDay(at),
+                Number = NextTransferNumber(),
             },
             at);
 
         foreach ((WarehouseStock stock, decimal taken) in Take(product, quantity, _finishedWarehouse))
         {
-            Item(transfer, product, _batches[stock.BatchId], taken, unitPrice, at);
+            // Har qator BITTA partiyadan — tannarx to'g'ridan-to'g'ri o'sha partiyaniki
+            // (servisda bir necha partiya bitta qatorga tushsa og'irlangan o'rtacha olinadi).
+            Batch batch = _batches[stock.BatchId];
+            Item(transfer, product, batch, taken, unitPrice, at, batch.UnitCost);
         }
 
         decimal amount = quantity * unitPrice;
@@ -161,6 +183,10 @@ internal sealed partial class DemoData
         Counterparty client = Created<Counterparty>().First(c => c.Id == sale.CounterpartyId);
 
         Batch batch = NewBatch(product, "LOT-RET", original.ManufacturedDate, original.ExpiryDate, quantity, at, $"Qaytarildi: {original.LotNumber}");
+
+        // Qaytgan tovar ASL partiyaning tannarxi bilan qaytadi: sotuv paytidagi qiymat
+        // o'zgarmaydi, aks holda qaytarish foydani soxta «tuzatib» yuborardi.
+        batch.UnitCost = original.UnitCost;
         AddStock(_finishedWarehouse, _locB2, product, batch, quantity, at);
 
         Transfer transfer = Add(
@@ -175,6 +201,8 @@ internal sealed partial class DemoData
                 ReturnReason = reason,
                 OriginalTransferId = sale.Id,
                 Note = note,
+                DocumentDate = DocumentDay(at),
+                Number = NextTransferNumber(),
             },
             at);
         Item(transfer, product, batch, quantity, soldItem.UnitPrice, at);
@@ -214,11 +242,17 @@ internal sealed partial class DemoData
                 TransferId = forTransfer?.Id,
                 Amount = amount,
                 Method = method,
+                Direction = direction,
+
+                // ⚠️ `DocumentDate` — HAQIQIY to'lov kuni, `PaidAt` esa yozuv lahzasi: demo'da
+                // ikkalasi ham tarixiy `at` dan, lekin sanasi KUN boshiga kesiladi (hisobot va
+                // filtrlar shu maydonga qaraydi — `TransferService` dagi qoida bilan bir xil).
+                DocumentDate = DocumentDay(at),
                 PaidAt = at,
                 RecordedByUserId = _people.Admin.Id,
             },
             at);
-        _payments.Add((payment, direction));
+        _payments.Add(payment);
 
         ChangeDebt(counterparty, direction == PaymentDirection.In ? -amount : amount, at);
 

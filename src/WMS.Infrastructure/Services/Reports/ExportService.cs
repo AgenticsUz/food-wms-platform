@@ -49,23 +49,36 @@ public class ExportService : IExportService
             .Include(t => t.Items)
             .AsQueryable();
 
-        if (fromDate.HasValue) q = q.Where(t => t.CreatedAt >= fromDate.Value);
+        // ⚠️ Filtr HUJJAT SANASI bo'yicha (P2.3) — `TransferService.GetAllAsync` va
+        // `AnalyticsService` bilan AYNAN bir xil ustun. Ilgari eksport `CreatedAt`, analitika
+        // esa `ConfirmedAt` bo'yicha filtrlardi: bir xil davr uchun uch xil to'plam chiqardi va
+        // «Excel bilan dashboard to'g'ri kelmayapti» degan shikoyat shundan edi.
+        if (fromDate.HasValue) q = q.Where(t => t.DocumentDate >= fromDate.Value);
         // `toDate` — wms-web yuboradigan ANIQ lahza (mahalliy kun oxiri, UTC: `localDayRangeToUtc`),
         // ro'yxat endpointlaridagi kabi `<=`. Ilgari UTC kunga yaxlitlanib bir kun qo'shilardi va
         // eksportga keyingi mahalliy kunning 5 soati (Toshkent +5) qo'shilib ketardi (F6 stendi).
-        if (toDate.HasValue) q = q.Where(t => t.CreatedAt <= toDate.Value);
+        if (toDate.HasValue) q = q.Where(t => t.DocumentDate <= toDate.Value);
 
-        var data = await q.AsNoTracking().OrderByDescending(t => t.CreatedAt).ToListAsync();
+        // Tartib ham hujjat sanasi bo'yicha, tenglikda qisqa raqam — ro'yxat ekranidagi
+        // tartibning aynan o'zi (`TransferService.GetAllAsync`).
+        var data = await q.AsNoTracking()
+            .OrderByDescending(t => t.DocumentDate).ThenByDescending(t => t.Number)
+            .ToListAsync();
 
         var filters = BuildFilterText(fromDate, toDate);
 
         using var wb = new XLWorkbook();
         var ws = wb.Worksheets.Add("Transfers");
 
-        await BrandAsync(ws, "Transfers Export", 9);
-        WriteSubtitle(ws, filters, 9);
+        // ⚠️ Birinchi ustun — ODAM o'qiydigan qisqa raqam («No», P2.4). Guid ustuni («ID»)
+        // O'CHIRILMADI: qo'llab-quvvatlash xizmati eksportdagi qatorni bazadagi yozuv bilan
+        // shu bo'yicha solishtiradi va qisqa raqam tenantlar bo'ylab noyob emas.
+        const int colCount = 10;
 
-        var headers = new[] { "ID", "Type", "Counterparty", "From Warehouse", "To Warehouse",
+        await BrandAsync(ws, "Transfers Export", colCount);
+        WriteSubtitle(ws, filters, colCount);
+
+        var headers = new[] { "No", "ID", "Type", "Counterparty", "From Warehouse", "To Warehouse",
             "Status", "Total Amount", "Date", "Created By" };
         WriteHeaders(ws, 4, headers);
 
@@ -73,30 +86,34 @@ public class ExportService : IExportService
         {
             var t = data[i];
             var row = i + 5;
-            ws.Cell(row, 1).Value = t.Id.ToString();
-            ws.Cell(row, 2).Value = t.Type.ToString();
-            ws.Cell(row, 3).Value = t.Counterparty?.Name ?? "-";
-            ws.Cell(row, 4).Value = t.FromWarehouse?.Name ?? "-";
-            ws.Cell(row, 5).Value = t.ToWarehouse?.Name ?? "-";
-            ws.Cell(row, 6).Value = t.Status.ToString();
-            ws.Cell(row, 7).Value = t.Items.Sum(x => x.Quantity * x.UnitPrice);
-            ws.Cell(row, 7).Style.NumberFormat.Format = "#,##0.00";
-            ws.Cell(row, 8).Value = t.CreatedAt.ToString("yyyy-MM-dd HH:mm");
-            ws.Cell(row, 9).Value = t.CreatedByUser?.FullName ?? "-";
-            StyleDataRow(ws, row, 9, i % 2 == 1);
+            ws.Cell(row, 1).Value = t.Number;
+            ws.Cell(row, 2).Value = t.Id.ToString();
+            ws.Cell(row, 3).Value = t.Type.ToString();
+            ws.Cell(row, 4).Value = t.Counterparty?.Name ?? "-";
+            ws.Cell(row, 5).Value = t.FromWarehouse?.Name ?? "-";
+            ws.Cell(row, 6).Value = t.ToWarehouse?.Name ?? "-";
+            ws.Cell(row, 7).Value = t.Status.ToString();
+            ws.Cell(row, 8).Value = t.Items.Sum(x => x.Quantity * x.UnitPrice);
+            ws.Cell(row, 8).Style.NumberFormat.Format = "#,##0.00";
+
+            // Sana — HUJJAT sanasi (kun). Soat ataylab yo'q: `DocumentDate` kun boshi bo'lib
+            // saqlanadi va «00:00» ustuni o'qiyotgan odamni chalg'itardi.
+            ws.Cell(row, 9).Value = t.DocumentDate.ToString("yyyy-MM-dd");
+            ws.Cell(row, 10).Value = t.CreatedByUser?.FullName ?? "-";
+            StyleDataRow(ws, row, colCount, i % 2 == 1);
         }
 
         if (data.Count > 0)
         {
             var totalRow = data.Count + 5;
-            ws.Cell(totalRow, 6).Value = "Total:";
-            ws.Cell(totalRow, 6).Style.Font.Bold = true;
-            ws.Cell(totalRow, 7).Value = data.Sum(t => t.Items.Sum(x => x.Quantity * x.UnitPrice));
-            ws.Cell(totalRow, 7).Style.NumberFormat.Format = "#,##0.00";
-            StyleTotalRow(ws, totalRow, 9);
+            ws.Cell(totalRow, 7).Value = "Total:";
+            ws.Cell(totalRow, 7).Style.Font.Bold = true;
+            ws.Cell(totalRow, 8).Value = data.Sum(t => t.Items.Sum(x => x.Quantity * x.UnitPrice));
+            ws.Cell(totalRow, 8).Style.NumberFormat.Format = "#,##0.00";
+            StyleTotalRow(ws, totalRow, colCount);
         }
 
-        AutoFit(ws, 9);
+        AutoFit(ws, colCount);
         return ToBytes(wb);
     }
 

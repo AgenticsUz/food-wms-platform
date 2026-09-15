@@ -29,6 +29,17 @@ public class AnalyticsService : IAnalyticsService
 
     private static DateTime DaysAgo(int days) => DateTime.UtcNow.AddDays(-days);
 
+    /// <summary>«N kun oldingi kun boshi» — HUJJAT SANASI bo'yicha filtrlar uchun.</summary>
+    /// <param name="days">Necha kun orqaga.</param>
+    /// <returns>UTC kun boshi.</returns>
+    /// <remarks>
+    /// ⚠️ <see cref="DaysAgo"/> dan farqi — soat yo'q. <c>Transfer.DocumentDate</c> KUN BOSHI
+    /// bo'lib saqlanadi (<c>DocumentDates.Resolve</c>), shuning uchun <c>UtcNow.AddDays(-7)</c>
+    /// dagi soat eng eski kunni butunlay tushirib qoldirardi: o'sha kun hujjatlarining
+    /// 00:00 i hamisha 14:30 dan kichik.
+    /// </remarks>
+    private static DateTime DaysAgoDay(int days) => DateTime.UtcNow.Date.AddDays(-days);
+
     // So'rov satridagi sana (`?fromDate=2026-09-01`) Unspecified bo'lib bog'lanadi; ustun
     // konvertori uni UTC deb qabul qiladi (UtcDateTimeConverter) — bu yerda ham xuddi shunday,
     // aks holda standart qiymat bilan aralashgan oraliq ikki xil talqin olardi.
@@ -125,19 +136,24 @@ public class AnalyticsService : IAnalyticsService
 
     public async Task<List<DailyTransferDto>> GetDailyTransfers(int days)
     {
-        var from = DaysAgo(days);
+        // ⚠️ Davr ham, guruhlash ham HUJJAT SANASI bo'yicha (P2.3): kechagi chiqim bugun
+        // tasdiqlansa, grafikda KECHAGI ustunga tushishi kerak. `ConfirmedAt` — tasdiqlash
+        // lahzasi, ya'ni operatorning ish grafigi; grafik esa tovar harakatini ko'rsatadi.
+        // Guruhlash ustunning O'ZI bo'yicha (`.Date` siz): `DocumentDate` allaqachon UTC kun
+        // boshi va shu ko'rinishda indekslangan.
+        var from = DaysAgoDay(days);
 
         // Sanoq HAMMA tasdiqlangan transferlar bo'yicha guruhlanadi (ichki transfer ham) — eski
         // natijada faqat ichki transferi bo'lgan kun ham nol qator bilan chiqardi.
         var counts = await _db.Transfers
-            .Where(t => t.Status == TransferStatus.Confirmed && t.ConfirmedAt >= from)
-            .GroupBy(t => new { Day = t.ConfirmedAt!.Value.Date, t.Type })
+            .Where(t => t.Status == TransferStatus.Confirmed && t.DocumentDate >= from)
+            .GroupBy(t => new { Day = t.DocumentDate, t.Type })
             .Select(g => new { g.Key.Day, g.Key.Type, Count = g.Count() })
             .ToListAsync();
         var amounts = await _db.TransferItems
-            .Where(i => i.Transfer.Status == TransferStatus.Confirmed && i.Transfer.ConfirmedAt >= from
+            .Where(i => i.Transfer.Status == TransferStatus.Confirmed && i.Transfer.DocumentDate >= from
                 && (i.Transfer.Type == TransferType.Incoming || i.Transfer.Type == TransferType.Outgoing))
-            .GroupBy(i => new { Day = i.Transfer.ConfirmedAt!.Value.Date, i.Transfer.Type })
+            .GroupBy(i => new { Day = i.Transfer.DocumentDate, i.Transfer.Type })
             .Select(g => new { g.Key.Day, g.Key.Type, Total = g.Sum(i => i.Quantity * i.UnitPrice) })
             .ToListAsync();
 
@@ -168,13 +184,15 @@ public class AnalyticsService : IAnalyticsService
 
     public async Task<List<StockHistoryDto>> GetStockHistory(int days)
     {
-        var from = DaysAgo(days);
+        // Harakat sanasi — hujjat sanasi (P2.3): tovar qachon kelgan/ketgani muhim, yozuv
+        // qachon tasdiqlangani emas.
+        var from = DaysAgoDay(days);
         return await _db.Transfers
-            .Where(t => t.Status == TransferStatus.Confirmed && t.ConfirmedAt >= from
+            .Where(t => t.Status == TransferStatus.Confirmed && t.DocumentDate >= from
                 && t.Type != TransferType.Internal)
             .SelectMany(t => t.Items.Select(i => new StockHistoryDto
             {
-                Date = t.ConfirmedAt!.Value,
+                Date = t.DocumentDate,
                 ProductName = i.Product.Name,
                 Quantity = i.Quantity,
                 MovementType = t.Type == TransferType.Incoming || t.Type == TransferType.ProductionOutput
@@ -275,17 +293,25 @@ public class AnalyticsService : IAnalyticsService
         var from = AsUtc(fromDate) ?? MonthStart(now);
         var to = AsUtc(toDate) ?? now;
 
+        // Hujjat sanasi bo'yicha filtrlar uchun chegaralar KUNGA yaxlitlanadi va ikkalasi
+        // ham kiradi — `DocumentDate` kun boshi bo'lib saqlanadi, ya'ni `to` kunining
+        // hujjatlari ham tushadi (xuddi `GetProductProfit` dagidek).
+        var fromDay = DayUtc(from);
+        var toDay = DayUtc(to);
+
         // Moliya
         var transactions = _db.Transactions.Where(t => t.Date >= from && t.Date <= to);
         var totalIncome = await transactions.Where(t => t.Type == TransactionType.Income).SumAsync(t => t.Amount);
         var totalExpense = await transactions.Where(t => t.Type == TransactionType.Expense).SumAsync(t => t.Amount);
         var totalDebt = await _db.Debts.SumAsync(d => d.Amount);
 
-        // Transferlar
+        // Transferlar — davr HUJJAT SANASI bo'yicha (P2.3). Holat sharti o'z joyida:
+        // tasdiqlanmagan hujjat hali oldi-berdi emas, lekin QAYSI KUNGA tegishli ekanini
+        // tasdiq lahzasi emas, hujjat sanasi aytadi.
         var confirmed = _db.Transfers.Where(t => t.Status == TransferStatus.Confirmed
-            && t.ConfirmedAt >= from && t.ConfirmedAt <= to);
+            && t.DocumentDate >= fromDay && t.DocumentDate <= toDay);
         var confirmedItems = _db.TransferItems.Where(i => i.Transfer.Status == TransferStatus.Confirmed
-            && i.Transfer.ConfirmedAt >= from && i.Transfer.ConfirmedAt <= to);
+            && i.Transfer.DocumentDate >= fromDay && i.Transfer.DocumentDate <= toDay);
 
         var incomingCount = await confirmed.CountAsync(t => t.Type == TransferType.Incoming);
         var outgoingCount = await confirmed.CountAsync(t => t.Type == TransferType.Outgoing);
@@ -294,8 +320,15 @@ public class AnalyticsService : IAnalyticsService
         var outgoingAmount = await confirmedItems.Where(i => i.Transfer.Type == TransferType.Outgoing)
             .SumAsync(i => i.Quantity * i.UnitPrice);
 
-        // Ishlab chiqarish
-        var orders = _db.ProductionOrders.Where(o => o.CreatedAt >= from && o.CreatedAt <= to);
+        // Ishlab chiqarish — `PlannedStartDate` bo'yicha, `CreatedAt` bo'yicha EMAS.
+        // ⚠️ `ProductionOrder` da hujjat sanasi maydoni yo'q; ma'no jihatidan unga eng yaqini
+        // shu — sex qaysi kun ishlashi. Buyurtma ertaga ishlash uchun bugun yozilsa, u
+        // ertangi kunning ishi; `CreatedAt` esa faqat «kim qachon yozdi» degan audit izi va
+        // transferlar endi hujjat sanasiga qaraganda, ishlab chiqarish undan qolib ketardi.
+        // Yuqori chegara YARIM OCHIQ: `PlannedStartDate` da (hujjat sanasidan farqli) soat
+        // bo'lishi mumkin, `<= toDay` esa o'sha kunning soatli rejalarini tashlab ketardi.
+        var toNextDay = toDay.AddDays(1);
+        var orders = _db.ProductionOrders.Where(o => o.PlannedStartDate >= fromDay && o.PlannedStartDate < toNextDay);
         var totalOrders = await orders.CountAsync();
         var completedOrders = await orders.CountAsync(o => o.Status == ProductionOrderStatus.Completed);
         var executions = _db.StageExecutions.Where(se => se.Status == StageExecutionStatus.Completed
@@ -385,4 +418,69 @@ public class AnalyticsService : IAnalyticsService
         }
         return result;
     }
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// <para>
+    /// Faqat <c>Outgoing</c> + <c>Confirmed</c>: qaytarish (<c>Return</c>) va ichki ko'chirish
+    /// sotuv emas, tasdiqlanmagan hujjat esa hali sotuv bo'lmagan.
+    /// </para>
+    /// <para>
+    /// ⚠️ Davr <b>hujjat sanasi</b> bo'yicha (P2.3): kechagi sotuvni bugun kiritish uni
+    /// bugungi hisobotga ko'chirmasligi kerak. Chegaralar kunga yaxlitlanadi va IKKALASI
+    /// HAM kiradi — <c>DocumentDate</c> kun boshi bo'lib saqlanadi
+    /// (<c>DocumentDates.Resolve</c>), ya'ni <c>to</c> kunining hujjatlari ham tushadi.
+    /// </para>
+    /// <para>
+    /// ⚠️ Tannarx <c>COALESCE(unit_cost, 0)</c> bilan YIG'ILMAYDI — noma'lum tannarx nol
+    /// tannarx EMAS. Bunday qatorlarning miqdori alohida chiqadi, sabab
+    /// <see cref="ProductProfitDto"/> izohida.
+    /// </para>
+    /// </remarks>
+    public async Task<List<ProductProfitDto>> GetProductProfit(DateTime from, DateTime to, Guid? productId = null)
+    {
+        var fromDay = DayUtc(from);
+        var toDay = DayUtc(to);
+
+        var rows = await _db.TransferItems
+            .Where(i => i.Transfer.Type == TransferType.Outgoing
+                && i.Transfer.Status == TransferStatus.Confirmed
+                && i.Transfer.DocumentDate >= fromDay
+                && i.Transfer.DocumentDate <= toDay
+                && (productId == null || i.ProductId == productId))
+            .GroupBy(i => new { i.ProductId, i.Product.Name })
+            .Select(g => new
+            {
+                g.Key.ProductId,
+                g.Key.Name,
+                Quantity = g.Sum(i => i.Quantity),
+                Revenue = g.Sum(i => i.Quantity * i.UnitPrice),
+
+                // Tannarxi noma'lum qator yig'indiga 0 bilan kiradi (ya'ni TA'SIR QILMAYDI),
+                // lekin uning MIQDORI quyidagi ustunda alohida sanaladi.
+                Cost = g.Sum(i => i.UnitCost == null ? 0m : i.Quantity * i.UnitCost.Value),
+                UnknownCostQuantity = g.Sum(i => i.UnitCost == null ? i.Quantity : 0m)
+            }).ToListAsync();
+
+        return rows
+            .Select(r => new ProductProfitDto
+            {
+                ProductId = r.ProductId,
+                ProductName = r.Name,
+                Quantity = r.Quantity,
+                Revenue = r.Revenue,
+                Cost = r.Cost,
+                UnknownCostQuantity = r.UnknownCostQuantity
+            })
+            // Foyda bo'yicha — hisobotning savoli shu; teng bo'lsa nom bo'yicha barqaror
+            // tartib (aks holda bir xil so'rov har safar boshqa ketma-ketlik qaytarardi).
+            .OrderByDescending(x => x.Profit)
+            .ThenBy(x => x.ProductName, StringComparer.Ordinal)
+            .ToList();
+    }
+
+    /// <summary>Sanani UTC kun boshiga keltiradi (davr chegaralari uchun).</summary>
+    /// <param name="value">Sana.</param>
+    /// <returns>UTC kun boshi.</returns>
+    private static DateTime DayUtc(DateTime value) => AsUtc(value)!.Value.Date;
 }

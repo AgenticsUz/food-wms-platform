@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Platform.Infrastructure.Tenancy;
 using WMS.Application.Common;
 using WMS.Application.DTOs.Warehouses;
 using WMS.Application.Interfaces;
@@ -14,14 +15,18 @@ public class WarehouseService : IWarehouseService
     private readonly IRequestWarnings _warnings;
     private readonly INotificationService _notifications;
     private readonly SubscriptionOptions _subscription;
+    private readonly ICurrentTenant _tenant;
+    private readonly ICurrentUser _user;
 
     public WarehouseService(WmsDbContext db, IRequestWarnings warnings, IOptions<SubscriptionOptions> subscription,
-        INotificationService notifications)
+        INotificationService notifications, ICurrentTenant tenant, ICurrentUser user)
     {
         _db = db;
         _warnings = warnings;
         _notifications = notifications;
         _subscription = subscription.Value;
+        _tenant = tenant;
+        _user = user;
     }
 
     public async Task<List<WarehouseDto>> GetAllAsync()
@@ -226,5 +231,82 @@ public class WarehouseService : IWarehouseService
 
         b.IsDeleted = true;
         await _db.SaveChangesAsync();
+    }
+
+    // ────────────────────────────── STANDART OMBOR (P2.6) ──────────────────────────────
+
+    public async Task<WarehouseDefaultsDto> GetDefaultsAsync(CancellationToken cancellationToken)
+    {
+        Guid tenantId = _tenant.TenantId ?? throw new AppException("Tenant is required");
+
+        var settings = await _db.Tenants.AsNoTracking().Where(t => t.Id == tenantId)
+            .Select(t => new { t.DefaultRawWarehouseId, t.DefaultFinishedWarehouseId })
+            .FirstAsync(cancellationToken);
+
+        Guid? mine = _user.ProfileId is { } profileId
+            ? await _db.UserProfiles.AsNoTracking().Where(p => p.Id == profileId)
+                .Select(p => p.DefaultWarehouseId).FirstOrDefaultAsync(cancellationToken)
+            : null;
+
+        // Mavjud omborlar: global filtr shu tenantning O'CHIRILMAGANlarini beradi. Ro'yxat
+        // to'liq olinadi — omborlar soni plan limiti bilan cheklangan, ya'ni bir nechta.
+        List<Guid> live = await _db.Warehouses.AsNoTracking().Select(w => w.Id).ToListAsync(cancellationToken);
+
+        // Saqlangan qiymatda FK yo'q (Tenant izohi): o'chirilgan yoki begona ombor JIMGINA tushib qoladi.
+        Guid? Live(Guid? id) => id is { } value && live.Contains(value) ? value : null;
+
+        // «Bitta omborli tenantda forma omborni so'ramaydi»: yagona ombor sozlamasiz ham amaldagi bo'ladi.
+        Guid? only = live.Count == 1 ? live[0] : null;
+
+        Guid? rawSetting = Live(settings.DefaultRawWarehouseId);
+        Guid? finishedSetting = Live(settings.DefaultFinishedWarehouseId);
+        Guid? userSetting = Live(mine);
+
+        return new WarehouseDefaultsDto
+        {
+            RawWarehouseId = rawSetting,
+            FinishedWarehouseId = finishedSetting,
+            UserWarehouseId = userSetting,
+            // Xodimning tanlovi tenant sozlamasidan USTUN: sex xodimi doim o'z omborida ishlaydi.
+            EffectiveRawId = userSetting ?? rawSetting ?? only,
+            EffectiveFinishedId = userSetting ?? finishedSetting ?? only,
+        };
+    }
+
+    public async Task SetDefaultsAsync(WarehouseDefaultsDto dto, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(dto);
+        Guid tenantId = _tenant.TenantId ?? throw new AppException("Tenant is required");
+
+        await EnsureWarehouseExistsAsync(dto.RawWarehouseId, cancellationToken);
+        await EnsureWarehouseExistsAsync(dto.FinishedWarehouseId, cancellationToken);
+
+        Tenant tenant = await _db.Tenants.FirstAsync(t => t.Id == tenantId, cancellationToken);
+        tenant.DefaultRawWarehouseId = dto.RawWarehouseId;
+        tenant.DefaultFinishedWarehouseId = dto.FinishedWarehouseId;
+
+        // ⚠️ `UserWarehouseId` ATAYLAB o'qilmaydi: u shaxsiy tanlov va boshqa ruxsat bilan yoziladi.
+        await _db.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task SetMyDefaultWarehouseAsync(Guid? warehouseId, CancellationToken cancellationToken)
+    {
+        Guid profileId = _user.ProfileId
+            ?? throw new ForbiddenException("Your profile is not available in this organization");
+
+        await EnsureWarehouseExistsAsync(warehouseId, cancellationToken);
+
+        UserProfile profile = await _db.UserProfiles.FirstOrDefaultAsync(p => p.Id == profileId, cancellationToken)
+            ?? throw new NotFoundException("User not found");
+        profile.DefaultWarehouseId = warehouseId;
+        await _db.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <summary>Ombor shu tenantniki va o'chirilmaganini tekshiradi (global filtr ikkalasini ham qamraydi).</summary>
+    private async Task EnsureWarehouseExistsAsync(Guid? warehouseId, CancellationToken cancellationToken)
+    {
+        if (warehouseId is not { } id) return;
+        if (!await _db.Warehouses.AnyAsync(w => w.Id == id, cancellationToken))
+            throw new NotFoundException("Warehouse not found");
     }
 }

@@ -190,9 +190,9 @@ internal sealed partial class DemoData
             expected[transfer.CounterpartyId!.Value] = expected.GetValueOrDefault(transfer.CounterpartyId.Value) + (sign * total);
         }
 
-        foreach ((PaymentHistory payment, PaymentDirection direction) in _payments)
+        foreach (PaymentHistory payment in _payments)
         {
-            decimal delta = direction == PaymentDirection.In ? -payment.Amount : payment.Amount;
+            decimal delta = payment.Direction == PaymentDirection.In ? -payment.Amount : payment.Amount;
             expected[payment.CounterpartyId] = expected.GetValueOrDefault(payment.CounterpartyId) + delta;
         }
 

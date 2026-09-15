@@ -85,6 +85,7 @@ public class ProductService : IProductService
     public async Task<ProductDto> CreateAsync(CreateProductDto dto)
     {
         await ValidateCategoryAndUnitAsync(dto.CategoryId, dto.UnitId);
+        (decimal? packSize, string? packUnit) = NormalizePack(dto.PackSize, dto.PackUnit);
 
         var product = new Product
         {
@@ -92,7 +93,8 @@ public class ProductService : IProductService
             // chunki kirill→lotin o'girish C# da.
             Name = dto.Name, NameSearch = SearchNormalizer.Normalize(dto.Name), CategoryId = dto.CategoryId,
             UnitId = dto.UnitId, Type = dto.Type, MinStock = dto.MinStock,
-            ShelfLifeDays = dto.ShelfLifeDays, Barcode = dto.Barcode, CostPrice = dto.CostPrice
+            ShelfLifeDays = dto.ShelfLifeDays, Barcode = dto.Barcode, CostPrice = dto.CostPrice,
+            PackSize = packSize, PackUnit = packUnit
         };
         _db.Products.Add(product);
         await _db.SaveChangesAsync();
@@ -109,11 +111,13 @@ public class ProductService : IProductService
             ?? throw new NotFoundException("Product not found");
 
         await ValidateCategoryAndUnitAsync(dto.CategoryId, dto.UnitId);
+        (decimal? packSize, string? packUnit) = NormalizePack(dto.PackSize, dto.PackUnit);
 
         p.Name = dto.Name; p.NameSearch = SearchNormalizer.Normalize(dto.Name);
         p.CategoryId = dto.CategoryId; p.UnitId = dto.UnitId;
         p.Type = dto.Type; p.MinStock = dto.MinStock; p.ShelfLifeDays = dto.ShelfLifeDays;
         p.Barcode = dto.Barcode; p.CostPrice = dto.CostPrice;
+        p.PackSize = packSize; p.PackUnit = packUnit;
         await _db.SaveChangesAsync();
 
         await _db.Entry(p).Reference(x => x.Category).LoadAsync();
@@ -220,7 +224,8 @@ public class ProductService : IProductService
         CategoryName = p.Category.Name, UnitId = p.UnitId,
         UnitName = p.Unit.Name, UnitShortName = p.Unit.ShortName,
         Type = p.Type, MinStock = p.MinStock, ShelfLifeDays = p.ShelfLifeDays,
-        Barcode = p.Barcode, CostPrice = p.CostPrice
+        Barcode = p.Barcode, CostPrice = p.CostPrice,
+        PackSize = p.PackSize, PackUnit = p.PackUnit
     };
 
     private static ProductDto MapToDto(Product p) => new()
@@ -229,8 +234,31 @@ public class ProductService : IProductService
         CategoryName = p.Category.Name, UnitId = p.UnitId,
         UnitName = p.Unit.Name, UnitShortName = p.Unit.ShortName,
         Type = p.Type, MinStock = p.MinStock, ShelfLifeDays = p.ShelfLifeDays,
-        Barcode = p.Barcode, CostPrice = p.CostPrice
+        Barcode = p.Barcode, CostPrice = p.CostPrice,
+        PackSize = p.PackSize, PackUnit = p.PackUnit
     };
+
+    /// <summary>
+    /// Qadoq maydonlarini tekshiradi va tozalaydi: <c>PackSize</c> va <c>PackUnit</c> — JUFT.
+    /// </summary>
+    /// <remarks>
+    /// ⚠️ Konversiya (quti → dona) bu yerda ATAYLAB yo'q: qoldiq, FEFO va hisobotlar doim
+    /// asosiy birlikda yuritiladi, qadoq esa faqat kiritish qulayligi (formada o'giriladi).
+    /// Yarim to'ldirilgan juftlik («50» — nimaning ellikta?) shu sababdan xato.
+    /// </remarks>
+    private static (decimal? PackSize, string? PackUnit) NormalizePack(decimal? packSize, string? packUnit)
+    {
+        string? unit = string.IsNullOrWhiteSpace(packUnit) ? null : packUnit.Trim();
+
+        if (packSize is { } size && size <= 0)
+            throw new AppException("Pack size must be greater than zero");
+        if (packSize is not null && unit is null)
+            throw new AppException("Pack unit is required when pack size is set");
+        if (packSize is null && unit is not null)
+            throw new AppException("Pack size is required when pack unit is set");
+
+        return (packSize, unit);
+    }
 
     private static List<CategoryDto> BuildCategoryTree(List<Category> all, Guid? parentId)
     {

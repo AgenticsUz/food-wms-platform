@@ -282,6 +282,11 @@ namespace WMS.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("tenant_id");
 
+                    b.Property<decimal?>("UnitCost")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("unit_cost");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamptz")
                         .HasColumnName("updated_at");
@@ -1009,6 +1014,14 @@ namespace WMS.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamptz")
                         .HasColumnName("created_at");
 
+                    b.Property<int>("Direction")
+                        .HasColumnType("integer")
+                        .HasColumnName("direction");
+
+                    b.Property<DateTime>("DocumentDate")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("document_date");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean")
                         .HasColumnName("is_deleted");
@@ -1030,6 +1043,19 @@ namespace WMS.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("recorded_by_user_id");
 
+                    b.Property<Guid?>("ReversalOfId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("reversal_of_id");
+
+                    b.Property<string>("ReversalReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("reversal_reason");
+
+                    b.Property<int>("Source")
+                        .HasColumnType("integer")
+                        .HasColumnName("source");
+
                     b.Property<Guid>("TenantId")
                         .HasColumnType("uuid")
                         .HasColumnName("tenant_id");
@@ -1042,6 +1068,12 @@ namespace WMS.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamptz")
                         .HasColumnName("updated_at");
 
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
                     b.HasKey("Id")
                         .HasName("pk_payment_history");
 
@@ -1051,11 +1083,22 @@ namespace WMS.Infrastructure.Persistence.Migrations
                     b.HasIndex("RecordedByUserId")
                         .HasDatabaseName("ix_payment_history_recorded_by_user_id");
 
+                    b.HasIndex("ReversalOfId")
+                        .HasDatabaseName("ix_payment_history_reversal_of_id");
+
                     b.HasIndex("TransferId")
                         .HasDatabaseName("ix_payment_history_transfer_id");
 
+                    b.HasIndex("TenantId", "DocumentDate")
+                        .HasDatabaseName("ix_payment_history_tenant_id_document_date");
+
                     b.HasIndex("TenantId", "PaidAt")
                         .HasDatabaseName("ix_payment_history_tenant_id_paid_at");
+
+                    b.HasIndex("TenantId", "ReversalOfId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_payment_history_tenant_id_reversal_of_id")
+                        .HasFilter("\"reversal_of_id\" IS NOT NULL AND \"is_deleted\" = false");
 
                     b.ToTable("payment_history", "wms");
 
@@ -1252,6 +1295,16 @@ namespace WMS.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(400)")
                         .HasColumnName("name_search");
 
+                    b.Property<decimal?>("PackSize")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("pack_size");
+
+                    b.Property<string>("PackUnit")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("pack_unit");
+
                     b.Property<int?>("ShelfLifeDays")
                         .HasColumnType("integer")
                         .HasColumnName("shelf_life_days");
@@ -1318,6 +1371,10 @@ namespace WMS.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(1000)")
                         .HasColumnName("note");
 
+                    b.Property<int>("Number")
+                        .HasColumnType("integer")
+                        .HasColumnName("number");
+
                     b.Property<DateTime?>("PlannedEndDate")
                         .HasColumnType("timestamptz")
                         .HasColumnName("planned_end_date");
@@ -1361,6 +1418,11 @@ namespace WMS.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("RecipeId")
                         .HasDatabaseName("ix_production_order_recipe_id");
+
+                    b.HasIndex("TenantId", "Number")
+                        .IsUnique()
+                        .HasDatabaseName("ix_production_order_tenant_id_number")
+                        .HasFilter("\"is_deleted\" = false");
 
                     b.HasIndex("TenantId", "Status")
                         .HasDatabaseName("ix_production_order_tenant_id_status");
@@ -2046,6 +2108,11 @@ namespace WMS.Infrastructure.Persistence.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("is_deleted");
 
+                    b.Property<decimal?>("MaterialCost")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("material_cost");
+
                     b.Property<string>("Note")
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)")
@@ -2522,6 +2589,14 @@ namespace WMS.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("debt_reminder_days");
 
+                    b.Property<Guid?>("DefaultFinishedWarehouseId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("default_finished_warehouse_id");
+
+                    b.Property<Guid?>("DefaultRawWarehouseId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("default_raw_warehouse_id");
+
                     b.Property<string>("IdentityStatus")
                         .IsRequired()
                         .HasMaxLength(16)
@@ -2619,6 +2694,51 @@ namespace WMS.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_tenant_plan_id");
 
                     b.ToTable("tenant", "wms");
+                });
+
+            modelBuilder.Entity("WMS.Domain.Entities.TenantCounter", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("created_at");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("kind");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("Value")
+                        .HasColumnType("integer")
+                        .HasColumnName("value");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tenant_counter");
+
+                    b.HasIndex("TenantId", "Kind")
+                        .IsUnique()
+                        .HasDatabaseName("ix_tenant_counter_tenant_id_kind")
+                        .HasFilter("\"is_deleted\" = false");
+
+                    b.ToTable("tenant_counter", "wms");
+
+                    b.HasAnnotation("wms:rls", true);
                 });
 
             modelBuilder.Entity("WMS.Domain.Entities.TenantFeature", b =>
@@ -2782,6 +2902,10 @@ namespace WMS.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("created_by_user_id");
 
+                    b.Property<DateTime>("DocumentDate")
+                        .HasColumnType("timestamptz")
+                        .HasColumnName("document_date");
+
                     b.Property<Guid?>("FromWarehouseId")
                         .HasColumnType("uuid")
                         .HasColumnName("from_warehouse_id");
@@ -2795,6 +2919,10 @@ namespace WMS.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(1000)")
                         .HasColumnName("note");
 
+                    b.Property<int>("Number")
+                        .HasColumnType("integer")
+                        .HasColumnName("number");
+
                     b.Property<Guid?>("OriginalTransferId")
                         .HasColumnType("uuid")
                         .HasColumnName("original_transfer_id");
@@ -2802,6 +2930,10 @@ namespace WMS.Infrastructure.Persistence.Migrations
                     b.Property<int?>("ReturnReason")
                         .HasColumnType("integer")
                         .HasColumnName("return_reason");
+
+                    b.Property<int>("Source")
+                        .HasColumnType("integer")
+                        .HasColumnName("source");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer")
@@ -2850,6 +2982,14 @@ namespace WMS.Infrastructure.Persistence.Migrations
                     b.HasIndex("TenantId", "ConfirmedAt")
                         .HasDatabaseName("ix_transfer_tenant_id_confirmed_at");
 
+                    b.HasIndex("TenantId", "DocumentDate")
+                        .HasDatabaseName("ix_transfer_tenant_id_document_date");
+
+                    b.HasIndex("TenantId", "Number")
+                        .IsUnique()
+                        .HasDatabaseName("ix_transfer_tenant_id_number")
+                        .HasFilter("\"is_deleted\" = false");
+
                     b.HasIndex("TenantId", "OriginalTransferId")
                         .HasDatabaseName("ix_transfer_tenant_id_original_transfer_id");
 
@@ -2895,6 +3035,11 @@ namespace WMS.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("TransferId")
                         .HasColumnType("uuid")
                         .HasColumnName("transfer_id");
+
+                    b.Property<decimal?>("UnitCost")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("unit_cost");
 
                     b.Property<decimal>("UnitPrice")
                         .HasPrecision(18, 2)
@@ -2980,6 +3125,10 @@ namespace WMS.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamptz")
                         .HasColumnName("created_at");
 
+                    b.Property<Guid?>("DefaultWarehouseId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("default_warehouse_id");
+
                     b.Property<string>("FullName")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -3022,6 +3171,9 @@ namespace WMS.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_user_profile");
+
+                    b.HasIndex("DefaultWarehouseId")
+                        .HasDatabaseName("ix_user_profile_default_warehouse_id");
 
                     b.HasIndex("TenantId", "IdentitySub")
                         .IsUnique()
@@ -3562,6 +3714,12 @@ namespace WMS.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_payment_history_user_profile_recorded_by_user_id");
 
+                    b.HasOne("WMS.Domain.Entities.PaymentHistory", "ReversalOf")
+                        .WithMany()
+                        .HasForeignKey("ReversalOfId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_payment_history_payment_history_reversal_of_id");
+
                     b.HasOne("WMS.Domain.Entities.Tenant", null)
                         .WithMany()
                         .HasForeignKey("TenantId")
@@ -3578,6 +3736,8 @@ namespace WMS.Infrastructure.Persistence.Migrations
                     b.Navigation("Counterparty");
 
                     b.Navigation("RecordedByUser");
+
+                    b.Navigation("ReversalOf");
 
                     b.Navigation("Transfer");
                 });
@@ -4018,6 +4178,16 @@ namespace WMS.Infrastructure.Persistence.Migrations
                     b.Navigation("Plan");
                 });
 
+            modelBuilder.Entity("WMS.Domain.Entities.TenantCounter", b =>
+                {
+                    b.HasOne("WMS.Domain.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_tenant_counter_tenant_tenant_id");
+                });
+
             modelBuilder.Entity("WMS.Domain.Entities.TenantFeature", b =>
                 {
                     b.HasOne("WMS.Domain.Entities.Tenant", "Tenant")
@@ -4163,12 +4333,20 @@ namespace WMS.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("WMS.Domain.Entities.UserProfile", b =>
                 {
+                    b.HasOne("WMS.Domain.Entities.Warehouse", "DefaultWarehouse")
+                        .WithMany()
+                        .HasForeignKey("DefaultWarehouseId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_user_profile_warehouse_default_warehouse_id");
+
                     b.HasOne("WMS.Domain.Entities.Tenant", null)
                         .WithMany()
                         .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_user_profile_tenant_tenant_id");
+
+                    b.Navigation("DefaultWarehouse");
                 });
 
             modelBuilder.Entity("WMS.Domain.Entities.UserRole", b =>

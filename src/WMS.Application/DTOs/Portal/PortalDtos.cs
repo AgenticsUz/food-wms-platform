@@ -64,6 +64,18 @@ public class PortalTransferDto
     public string? Note { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? ConfirmedAt { get; set; }
+
+    /// <summary>Hujjat sanasi — tovar HAQIQATDA kelgan/ketgan kun (P2.3).</summary>
+    /// <remarks>
+    /// ⚠️ Kabinet ro'yxati SHU maydon bo'yicha tartiblanadi. <see cref="CreatedAt"/>
+    /// qoldirildi (mijoz «qachon rasmiylashtirildi» ni ham so'raydi), lekin ro'yxatdagi
+    /// va zavoddagi tartib bir xil bo'lishi uchun asosiy sana shu.
+    /// </remarks>
+    public DateTime DocumentDate { get; set; }
+
+    /// <summary>Qisqa hujjat raqami — mijoz telefonda «12-hujjat» deb ayta olsin (P2.4).</summary>
+    public int Number { get; set; }
+
     public List<PortalTransferItemDto> Items { get; set; } = new();
 }
 
@@ -83,7 +95,14 @@ public class PortalPaymentDto
     public Guid Id { get; set; }
     public decimal Amount { get; set; }
     public PaymentMethod Method { get; set; }
+
+    /// <summary>To'lov sanasi — <c>PaymentHistory.DocumentDate</c> (P2.3).</summary>
+    /// <remarks>
+    /// ⚠️ Entity'dagi <c>PaidAt</c> endi yozuv YARATILGAN lahza (audit izi). Mijozga «pul
+    /// qachon o'tdi» kerak, «operator qachon kiritdi» emas — shuning uchun manba hujjat sanasi.
+    /// </remarks>
     public DateTime PaidAt { get; set; }
+
     public string? Note { get; set; }
 }
 

@@ -33,6 +33,20 @@ public sealed class WmsTenantScope : IAsyncDisposable
     /// <summary>Shu qamrovdagi kontekst.</summary>
     public WmsDbContext Db => Service<WmsDbContext>();
 
+    /// <summary>Qamrovdagi «joriy foydalanuvchi»ni va uning ruxsatlarini o'rnatadi.</summary>
+    /// <param name="profileId"><c>user_profile.id</c> (<c>TestData.AddUserAsync</c> dan).</param>
+    /// <param name="permissions">Ruxsat kodlari — faqat KERAKLILARI berilsin.</param>
+    /// <returns>O'sha qamrov (zanjirlab yozish uchun).</returns>
+    /// <remarks>
+    /// Ruxsatga bog'liq xatti-harakat (masalan orqaga sana) servisda tekshiriladi, chunki
+    /// entitlement YUK TARKIBIGA bog'liq — atribut buni ko'ra olmaydi.
+    /// </remarks>
+    public WmsTenantScope AsUser(Guid? profileId, params string[] permissions)
+    {
+        Service<TestCurrentUser>().Set(profileId, permissions);
+        return this;
+    }
+
     /// <summary>Qamrovdan servis oladi.</summary>
     /// <typeparam name="T">Servis turi.</typeparam>
     /// <returns>Servis nusxasi.</returns>

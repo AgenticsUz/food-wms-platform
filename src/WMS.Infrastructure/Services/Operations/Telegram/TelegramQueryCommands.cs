@@ -218,6 +218,12 @@ public sealed class TelegramQueryCommands
     {
         DashboardSummaryDto s = await sp.GetRequiredService<IAnalyticsService>().GetDashboardSummary();
         DateTime dayStart = TelegramQuietHours.ToTashkent(DateTime.UtcNow).Date - TelegramQuietHours.TashkentOffset;
+
+        // ⚠️ Bu yerda `CreatedAt` ATAYLAB qoladi: savol «bugun nima KIRITILDI» (rahbar
+        // smenani shu bilan o'lchaydi) — matn kaliti ham shuni aytadi («Transfers created
+        // today»). Hujjat sanasiga o'tkazilsa, kecha kelgan tovarni bugun kiritgan operator
+        // «hech narsa qilmagan» bo'lib ko'rinardi. Kun chegarasi ham Toshkent vaqti bo'yicha
+        // (UTC emas) — «bugun» odamning kuni.
         int transfersToday = await db.Transfers.CountAsync(t => t.CreatedAt >= dayStart, ct);
         DateTime cutoff = DateTime.UtcNow.Date.AddDays(ExpiringDays + 1);
         int expiring = await db.Batches.CountAsync(b => b.RemainingQuantity > 0 && b.ExpiryDate != null && b.ExpiryDate < cutoff, ct);
@@ -236,13 +242,17 @@ public sealed class TelegramQueryCommands
     // ── /kutilmoqda — har transfer alohida, tugmalar bilan (navbat orqali: callback tenant/aktorni navbat qatoridan oladi) ──
     private async Task<string> PendingAsync(WmsDbContext db, TelegramConnection c, string lang, CancellationToken ct)
     {
+        // ⚠️ Tartib va ko'rsatiladigan sana — HUJJAT sanasi (P2.3): tasdiqlovchi ro'yxatni
+        // ilovadagi bilan bir xil ketma-ketlikda ko'rsin. Bir kunda bir nechta bo'lsa —
+        // qisqa raqam bo'yicha (u ketma-ket, ya'ni kiritish tartibi).
         var pending = await db.Transfers.AsNoTracking()
             .Where(t => t.Status == TransferStatus.Pending)
-            .OrderBy(t => t.CreatedAt)
+            .OrderBy(t => t.DocumentDate).ThenBy(t => t.Number)
             .Select(t => new
             {
-                t.Id, t.Type, t.CreatedAt,
+                t.Id, t.Type, t.DocumentDate, t.Number,
                 Party = t.Counterparty != null ? t.Counterparty.Name : (t.FromWarehouse != null ? t.FromWarehouse.Name : (t.ToWarehouse != null ? t.ToWarehouse.Name : "—")),
+                ToName = t.ToWarehouse != null ? t.ToWarehouse.Name : "—",
                 Amount = t.Items.Sum(i => i.Quantity * i.UnitPrice),
             })
             .Take(PendingButtons + 1)
@@ -262,9 +272,12 @@ public sealed class TelegramQueryCommands
                 TransferType.Return => NotificationMessages.ReturnPending,
                 _ => NotificationMessages.SalePending,
             };
+            // Raqam SHABLONGA emas, ARGUMENTGA qo'shiladi (sababi `TransferService.WithNumber`
+            // izohida) — shu buyruq yaratadigan matn bildirishnomadagi bilan bir xil bo'lsin.
+            string date = NotificationMessages.Date(t.DocumentDate);
             string[] args = t.Type == TransferType.Internal
-                ? [t.Party, "—", NotificationMessages.Date(t.CreatedAt), "—"]
-                : [t.Party, NotificationMessages.Date(t.CreatedAt), NotificationMessages.Amount(t.Amount), "—"];
+                ? [t.Party, WithNumber(t.ToName, t.Number), date, "—"]
+                : [WithNumber(t.Party, t.Number), date, NotificationMessages.Amount(t.Amount), "—"];
 
             Notification pseudo = new()
             {
@@ -296,6 +309,18 @@ public sealed class TelegramQueryCommands
         await db.SaveChangesAsync(ct);
         return pending.Count > PendingButtons ? Translations.Format(QueryKeys.More, lang, pending.Count - PendingButtons) : string.Empty;
     }
+
+    /// <summary>Hujjat belgisi: nom + qisqa raqam («Korzinka #12»).</summary>
+    /// <param name="label">Kontragent yoki ombor nomi.</param>
+    /// <param name="number">Qisqa hujjat raqami; 0 — raqamsiz eski yozuv.</param>
+    /// <returns>Belgi.</returns>
+    /// <remarks>
+    /// ⚠️ <c>TransferService.WithNumber</c> ning nusxasi — u <see langword="private"/> va
+    /// boshqa qatlamda. Ataylab NUSXA: umumiy yordamchi uchun bu ikki joy juda kichik va
+    /// ularni bog'lash Infrastructure ↔ Trade orasida keraksiz bog'liqlik yaratardi.
+    /// </remarks>
+    private static string WithNumber(string label, int number) =>
+        number > 0 ? $"{label} #{number}" : label;
 
     private async Task SendAsync(long chatId, string text, CancellationToken ct)
     {

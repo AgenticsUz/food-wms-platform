@@ -56,6 +56,10 @@ public class ProductionOrder : TenantEntity
     public Guid RecipeId { get; set; }
     public ProductionRecipe Recipe { get; set; } = null!;
     public decimal PlannedQuantity { get; set; }
+
+    /// <summary>Tenant ichidagi qisqa buyurtma raqami (<c>Transfer.Number</c> bilan bir xil naqsh).</summary>
+    public int Number { get; set; }
+
     public ProductionOrderStatus Status { get; set; } = ProductionOrderStatus.Draft;
     public DateTime PlannedStartDate { get; set; }
     public DateTime? PlannedEndDate { get; set; }
@@ -82,6 +86,18 @@ public class StageExecution : TenantEntity
     public DateTime? EndTime { get; set; }
     public StageExecutionStatus Status { get; set; } = StageExecutionStatus.Pending;
     public string? Note { get; set; }
+
+    /// <summary>Shu bosqichda sarflangan xomashyoning QIYMATI (partiya tannarxlari bo'yicha).</summary>
+    /// <remarks>
+    /// Nega ustun kerak: xomashyo bosqich bajarilganda (alohida so'rovda) sarflanadi, tayyor
+    /// mahsulot partiyasi esa buyurtma YAKUNLANGANDA tug'iladi — oradagi qiymat hech qayerda
+    /// saqlanmasa, tayyor partiya tannarxsiz (<c>UnitCost = null</c>) qolar va foyda hisoboti
+    /// uni «tannarxi noma'lum» deb ko'rsatardi. Taxminiy baho (o'rtacha qoldiq narxi) ATAYLAB
+    /// ishlatilmaydi — u foydani jimgina buzardi.
+    /// <see langword="null"/> — bosqich hali sarflamagan yoki tannarx noma'lum bo'lgan.
+    /// </remarks>
+    public decimal? MaterialCost { get; set; }
+
     public ICollection<QcCheck> QcChecks { get; set; } = new List<QcCheck>();
 }
 

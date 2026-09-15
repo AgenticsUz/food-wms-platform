@@ -102,6 +102,14 @@ public class CreateRecipeStageItemDto
 public class ProductionOrderDto
 {
     public Guid Id { get; set; }
+
+    /// <summary>Tenant ichidagi qisqa buyurtma raqami — ekranda «#7» (P2.4).</summary>
+    /// <remarks>
+    /// ⚠️ <c>StageExecutionDto.OrderNumber</c> bilan aralashtirilmaydi: u BOSQICH tartibi
+    /// (1, 2, 3 …), bu esa buyurtmaning hujjat raqami.
+    /// </remarks>
+    public int Number { get; set; }
+
     public Guid RecipeId { get; set; }
     public string RecipeName { get; set; } = null!;
     public string OutputProductName { get; set; } = null!;

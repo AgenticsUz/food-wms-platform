@@ -162,6 +162,11 @@ public sealed class WmsDatabaseFixture : IAsyncLifetime
         // Program.cs da so'rov qamrovidan keladi; testda til doim o'zbekcha.
         builder.Services.AddScoped<IRequestLanguage, TestRequestLanguage>();
 
+        // `ICurrentUser` DI grafida FAQAT WMS.API tomonda (HTTP qamrovi) bor; servis
+        // testlari HTTP'siz yuradi, shuning uchun sozlanadigan nusxa beriladi.
+        builder.Services.AddScoped<TestCurrentUser>();
+        builder.Services.AddScoped<ICurrentUser>(sp => sp.GetRequiredService<TestCurrentUser>());
+
         return builder.Build();
     }
 

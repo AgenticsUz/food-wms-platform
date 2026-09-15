@@ -13,6 +13,7 @@ using WMS.Application.Interfaces;
 using WMS.Application.Telegram;
 using WMS.Domain.Entities;
 using WMS.Domain.Enums;
+using WMS.Infrastructure.Common;
 using WMS.Infrastructure.Persistence;
 using WMS.Infrastructure.Tenancy;
 
@@ -108,7 +109,7 @@ public sealed class TelegramPartnerBot : ITelegramPartnerNotifier
 
         rows.Add([new { text = Translations.Format(PartnerKeys.WaybillButton, lang), callback_data = WaybillPrefix + delivery.Id.ToString("N", CultureInfo.InvariantCulture) }]);
 
-        _db.TelegramOutboxes.Add(new TelegramOutbox
+        TelegramOutbox route = new()
         {
             TenantId = tenantId,
             TelegramLinkId = delivery.Link.Id,
@@ -116,8 +117,20 @@ public sealed class TelegramPartnerBot : ITelegramPartnerNotifier
             Text = sb.ToString(),
             ReplyMarkup = JsonSerializer.Serialize(new { inline_keyboard = rows }),
             DedupKey = $"route:{delivery.Id:N}:{delivery.Status}:{DateTime.UtcNow:yyyyMMddHH}",
-        });
-        await _db.SaveChangesAsync(cancellationToken);
+        };
+        _db.TelegramOutboxes.Add(route);
+
+        try
+        {
+            await _db.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex) when (PostgresErrors.IsUniqueViolation(ex))
+        {
+            // Bir soat ichida o'sha marshrut qayta yuborilmoqchi — dedup kaliti ayni shuni
+            // to'sadi va bu XATO emas. Ilgari 23505 chaqiruvchiga (yetkazish so'roviga)
+            // chiqib ketardi: haydovchi xabarni olgan, operator esa 500 ko'rardi.
+            _db.Entry(route).State = EntityState.Detached;
+        }
     }
 
     public async Task NotifyClientAsync(Guid counterpartyId, string template, string?[] args, string? dedupKey = null, CancellationToken cancellationToken = default)
@@ -140,7 +153,7 @@ public sealed class TelegramPartnerBot : ITelegramPartnerNotifier
         string?[] full = [tenant.Name, .. args];
         string text = "🏭 <b>" + WebUtility.HtmlEncode(tenant.Name) + "</b>\n" + WebUtility.HtmlEncode(Translations.Format(template, lang, full));
 
-        _db.TelegramOutboxes.Add(new TelegramOutbox
+        TelegramOutbox outbox = new()
         {
             TenantId = tenantId,
             TelegramLinkId = link.Id,
@@ -148,8 +161,20 @@ public sealed class TelegramPartnerBot : ITelegramPartnerNotifier
             Text = text,
             DedupKey = dedupKey,
             NextAttemptAt = TelegramQuietHours.HoldUntil(DateTime.UtcNow, NotificationType.Info, _options),
-        });
-        await _db.SaveChangesAsync(cancellationToken);
+        };
+        _db.TelegramOutboxes.Add(outbox);
+
+        try
+        {
+            await _db.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex) when (PostgresErrors.IsUniqueViolation(ex))
+        {
+            // Dedup kaliti bo'yicha poyga: yuqoridagi tekshiruvdan keyin boshqa so'rov yozib
+            // ulgurgan. Xabar navbatda — ish BAJARILGAN. ⚠️ Yozuv kuzatuvdan chiqariladi,
+            // aks holda shu qamrovdagi keyingi `SaveChanges` uni qayta urinib yiqilardi.
+            _db.Entry(outbox).State = EntityState.Detached;
+        }
     }
 
     // ═══════════════ Bot tomoni (tenant kontekstisiz chaqiriladi) ═══════════════
@@ -223,10 +248,13 @@ public sealed class TelegramPartnerBot : ITelegramPartnerNotifier
     {
         WmsDbContext db = sp.GetRequiredService<WmsDbContext>();
         decimal debt = await db.Debts.AsNoTracking().Where(d => d.CounterpartyId == counterpartyId).Select(d => d.Amount).FirstOrDefaultAsync(ct);
+        // ⚠️ Oxirgi to'lovlar — HUJJAT sanasi bo'yicha (P2.3): mijoz «kecha to'ladim» deydi va
+        // haq bo'ladi, `CreatedAt` esa operator qachon kiritganini ko'rsatardi. Tenglikda
+        // yozuv lahzasi — bir kundagi ikki to'lov kiritilish tartibida chiqsin.
         var payments = await db.PaymentHistories.AsNoTracking()
             .Where(p => p.CounterpartyId == counterpartyId)
-            .OrderByDescending(p => p.CreatedAt).Take(5)
-            .Select(p => new { p.CreatedAt, p.Amount })
+            .OrderByDescending(p => p.DocumentDate).ThenByDescending(p => p.CreatedAt).Take(5)
+            .Select(p => new { p.DocumentDate, p.Amount })
             .ToListAsync(ct);
 
         var sb = new StringBuilder();
@@ -238,7 +266,7 @@ public sealed class TelegramPartnerBot : ITelegramPartnerNotifier
         {
             sb.Append("\n\n").Append(Translations.Format(PartnerKeys.RecentPayments, lang)).Append("<pre>");
             foreach (var p in payments)
-                sb.Append('\n').Append(NotificationMessages.Date(p.CreatedAt)).Append("  ").Append(NotificationMessages.Amount(p.Amount));
+                sb.Append('\n').Append(NotificationMessages.Date(p.DocumentDate)).Append("  ").Append(NotificationMessages.Amount(p.Amount));
             sb.Append("</pre>");
         }
 

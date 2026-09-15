@@ -139,10 +139,13 @@ public sealed class PortalService : IPortalService
             .SelectMany(t => t.Items)
             .SumAsync(i => (decimal?)(i.Quantity * i.UnitPrice), cancellationToken) ?? 0m;
 
+        // «Oxirgi to'lov» — HUJJAT sanasi bo'yicha (P2.3): kechagi to'lov bugun kiritilsa,
+        // mijoz kartasida kechagi sana turishi kerak, aks holda u «men kecha to'ladim-ku»
+        // deydi va haq bo'ladi.
         var payments = await _db.PaymentHistories.AsNoTracking()
             .Where(p => p.CounterpartyId == actor.Id)
             .GroupBy(p => 1)
-            .Select(g => new { Total = g.Sum(p => p.Amount), Last = g.Max(p => (DateTime?)p.PaidAt) })
+            .Select(g => new { Total = g.Sum(p => p.Amount), Last = g.Max(p => (DateTime?)p.DocumentDate) })
             .FirstOrDefaultAsync(cancellationToken);
 
         return new PortalFinanceDto
@@ -161,8 +164,11 @@ public sealed class PortalService : IPortalService
         page = Math.Max(1, page);
         pageSize = Math.Clamp(pageSize, 1, 200);
 
+        // ⚠️ Tartib HUJJAT SANASI bo'yicha (P2.3) — ilova ro'yxatidagi (`TransferService`)
+        // va hisobotlardagi bilan bir xil. Tenglikda qisqa raqam: u tenant ichida ketma-ket,
+        // ya'ni kun ichidagi kiritish tartibini beradi (`Id` — v7 Guid, ya'ni YOZUV vaqti).
         return await TransfersFor(actor)
-            .OrderByDescending(t => t.CreatedAt).ThenByDescending(t => t.Id)
+            .OrderByDescending(t => t.DocumentDate).ThenByDescending(t => t.Number)
             .Skip((page - 1) * pageSize).Take(pageSize)
             .Select(ToDto)
             .ToListAsync(cancellationToken);
@@ -189,13 +195,15 @@ public sealed class PortalService : IPortalService
 
         return await _db.PaymentHistories.AsNoTracking()
             .Where(p => p.CounterpartyId == actor.Id)
-            .OrderByDescending(p => p.PaidAt)
+            // Tartib va ko'rsatiladigan sana — hujjat sanasi (P2.3). Tenglikda yozuv lahzasi:
+            // bir kunda bir nechta to'lov bo'lsa, ular kiritilish tartibida ko'rinsin.
+            .OrderByDescending(p => p.DocumentDate).ThenByDescending(p => p.PaidAt)
             .Select(p => new PortalPaymentDto
             {
                 Id = p.Id,
                 Amount = p.Amount,
                 Method = p.Method,
-                PaidAt = p.PaidAt,
+                PaidAt = p.DocumentDate,
                 Note = p.Note,
             })
             .ToListAsync(cancellationToken);
@@ -273,6 +281,8 @@ public sealed class PortalService : IPortalService
             Note = t.Note,
             CreatedAt = t.CreatedAt,
             ConfirmedAt = t.ConfirmedAt,
+            DocumentDate = t.DocumentDate,
+            Number = t.Number,
             Items = t.Items.Select(i => new PortalTransferItemDto
             {
                 Id = i.Id,

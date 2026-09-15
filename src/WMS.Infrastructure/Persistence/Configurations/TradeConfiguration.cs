@@ -20,6 +20,13 @@ internal sealed class TransferConfiguration : IEntityTypeConfiguration<Transfer>
         builder.HasIndex(t => new { t.TenantId, t.Status });
         builder.HasIndex(t => new { t.TenantId, t.ConfirmedAt });
         builder.HasIndex(t => new { t.TenantId, t.OriginalTransferId });
+
+        // Hisobot va ro'yxat filtrlari hujjat sanasi bo'yicha (`CreatedAt` — audit izi).
+        builder.HasIndex(t => new { t.TenantId, t.DocumentDate });
+
+        // Qisqa raqam tenant ichida NOYOB: hisoblagich to'g'ri ishlayotganini baza ham
+        // kafolatlaydi (ikki hujjat bir raqam olsa yozuv rad etiladi, jimgina o'tmaydi).
+        builder.HasIndex(t => new { t.TenantId, t.Number }).IsUnique().HasFilter("\"is_deleted\" = false");
     }
 }
 
@@ -115,10 +122,25 @@ internal sealed class PaymentHistoryConfiguration : IEntityTypeConfiguration<Pay
     public void Configure(EntityTypeBuilder<PaymentHistory> builder)
     {
         builder.Property(p => p.Note).HasMaxLength(1000);
+        builder.Property(p => p.ReversalReason).HasMaxLength(500);
         builder.HasOne(p => p.Counterparty).WithMany().HasForeignKey(p => p.CounterpartyId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(p => p.Transfer).WithMany().HasForeignKey(p => p.TransferId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(p => p.RecordedByUser).WithMany().HasForeignKey(p => p.RecordedByUserId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne(p => p.ReversalOf).WithMany().HasForeignKey(p => p.ReversalOfId).OnDelete(DeleteBehavior.Restrict);
         builder.HasIndex(p => new { p.TenantId, p.PaidAt });
+
+        // Hisobot va filtrlar hujjat sanasiga qaraydi (`PaidAt` — audit izi).
+        builder.HasIndex(p => new { p.TenantId, p.DocumentDate });
+
+        // Bir to'lovni IKKI marta qaytarib bo'lmaydi. Filtr `is_deleted = false` —
+        // qolgan noyob indekslar bilan bir xil naqsh (TradeConfiguration ichida).
+        builder.HasIndex(p => new { p.TenantId, p.ReversalOfId })
+            .IsUnique()
+            .HasFilter("\"reversal_of_id\" IS NOT NULL AND \"is_deleted\" = false");
+
+        // Parallel qaytarish: ikkala so'rov ham «hali qaytarilmagan» deb ko'rib qolmasin —
+        // yutqazgani 409 oladi (D13 naqshi, `xmin` tizim ustuni).
+        builder.Property<uint>("Version").HasColumnName("xmin").HasColumnType("xid").IsRowVersion();
     }
 }
 

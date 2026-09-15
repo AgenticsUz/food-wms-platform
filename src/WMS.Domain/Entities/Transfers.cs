@@ -24,6 +24,27 @@ public class Transfer : TenantEntity
     public UserProfile? CreatedByUser { get; set; }
     public TransferStatus Status { get; set; } = TransferStatus.Pending;
 
+    /// <summary>Tenant ichidagi qisqa hujjat raqami (1, 2, 3 …).</summary>
+    /// <remarks>
+    /// Guid — kalit, lekin ODAM uchun emas: ekranda «#a1b2c3d4» ko'rinardi va telefonda
+    /// aytib bo'lmasdi. Raqam tenant ichida ketma-ket, BO'SHLIQ bo'lishi mumkin (bekor
+    /// qilingan urinish raqamni qaytarmaydi) — bu ataylab: bo'shliqsizlik uchun navbatni
+    /// qulflash kerak bo'lardi.
+    /// </remarks>
+    public int Number { get; set; }
+
+    /// <summary>Hujjat sanasi — tovar HAQIQATDA kelgan/ketgan kun.</summary>
+    /// <remarks>
+    /// ⚠️ <c>CreatedAt</c> (yozuv yaratilgan lahza) bilan ARALASHTIRILMAYDI: kecha kelgan
+    /// kirim bugun kiritilsa, hisobot uni KECHAGI kunda ko'rsatishi kerak. Filtrlar,
+    /// hisobotlar va FEFO shu maydonga qaraydi; <c>CreatedAt</c> — faqat audit izi.
+    /// Kelajak sana taqiqlanadi, orqaga sana <c>documents.backdate</c> ruxsati bilan.
+    /// </remarks>
+    public DateTime DocumentDate { get; set; }
+
+    /// <summary>Qaysi yuzadan kirgan (AI kiritgan hujjatni ajratish uchun).</summary>
+    public DocumentSource Source { get; set; } = DocumentSource.Ui;
+
     /// <summary><c>Type == Return</c> bo'lganda.</summary>
     public ReturnReason? ReturnReason { get; set; }
 
@@ -46,4 +67,12 @@ public class TransferItem : TenantEntity
     public Batch? Batch { get; set; }
     public decimal Quantity { get; set; }
     public decimal UnitPrice { get; set; }
+
+    /// <summary>Chiqimda FEFO tanlagan partiyaning tannarxi — NUSXA, hisobot uchun.</summary>
+    /// <remarks>
+    /// Nusxa olinadi, chunki partiya keyin o'chirilishi yoki tannarxi to'g'rilanishi mumkin,
+    /// sotilgan tovar foydasi esa SOTUV LAHZASIDAGI tannarxdan hisoblanishi kerak.
+    /// <see langword="null"/> — tannarx noma'lum bo'lgan (yoki chiqim bo'lmagan) qator.
+    /// </remarks>
+    public decimal? UnitCost { get; set; }
 }
