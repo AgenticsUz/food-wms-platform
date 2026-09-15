@@ -182,6 +182,11 @@ public sealed class WmsDatabaseFixture : IAsyncLifetime
         builder.Services.AddSingleton<FakeLlmClient>();
         builder.Services.AddSingleton<ILlmClient>(sp => sp.GetRequiredService<FakeLlmClient>());
 
+        // Xuddi shu sabab bilan Telegram ham: bot tokeni yo'q — haqiqiy servis hamma
+        // narsani jimgina «yuborilmadi» deb qaytarardi va bot oqimini tekshirib bo'lmasdi.
+        builder.Services.AddSingleton<FakeTelegramService>();
+        builder.Services.AddSingleton<ITelegramService>(sp => sp.GetRequiredService<FakeTelegramService>());
+
         return builder.Build();
     }
 

@@ -319,3 +319,79 @@ ikkita nuqson topildi:
 - `ai_usage` ni Console'da ko'rsatish (hozir faqat bazada).
 - Prod'ga deploy QILINMADI: `Ai__ApiKey` bo'sh bo'lsa modul o'chiq, ya'ni A0 ni
   alohida deploy qilishning ma'nosi yo'q — A1 bilan birga chiqadi.
+
+---
+
+## A1 — O'quvchi tool'lar, gateway va Telegram (2026-09-15)
+
+AI endi savolga javob beradi. Hech narsa yozmaydi: A1 ning hamma tool'i o'quvchi.
+
+### Nima qilindi
+
+**10 ta tool.** `find_product`, `find_counterparty`, `stock_query`, `expiry_query`,
+`debt_query`, `payment_history`, `finance_summary`, `pending_transfers`,
+`last_price`, `today_summary`. Har biri mavjud servisni chaqiradi (§0.4) va natijani
+ikki shaklda qaytaradi: modelga qisqa matn, yuzaga strukturali DTO. Ro'yxat 50
+qatordan uzun bo'lsa matn buni OSHKORA aytadi — model «hammasi shu» deb javob
+bermasin.
+
+**Noaniqlik — savol.** `AiNameResolver` qoidasi bitta joyda: bitta nomzod
+ishlatiladi, bir nechtasi — nomzodlar sanaladi va tanlov foydalanuvchiga
+qaytariladi. Bal bo'yicha «yetarlicha ustun» degan yumshoq qoida ATAYLAB yo'q:
+`word_similarity` bali nom uzunligiga qarab suzadi va chegara qachondir noto'g'ri
+tomonga og'ardi.
+
+**Gateway.** Metering darvozasi → ruxsat va feature bo'yicha filtrlangan tool
+ro'yxati → maksimum 6 aylanish → javob. Tool istisnosi suhbatni uzmaydi (xato
+natija bo'lib modelga qaytadi); istisno MATNI modelga uzatilmaydi — ichki tafsilot
+javob orqali foydalanuvchiga chiqib ketmasin.
+
+**Suhbat oynasi.** Bir soat jimlik, oxirgi 10 xabar. Tarix kesilganda boshidan
+birinchi foydalanuvchi savoligacha tashlanadi: `tool_use` juftligi buzilsa
+provayder butun so'rovni 400 bilan rad etardi.
+
+**Telegram.** Buyruq bo'lmagan matn gateway'ga o'tadi. Buyruqlar (`/qoldiq`,
+`/qarz` …) o'z ishlovchisida QOLADI — ular aniq, tez va bepul. Ulanmagan chat eski
+yo'riqnomani ko'radi: AI qo'shilgani uchun hech kimning boti «ishlamay qolgandek»
+ko'rinmasin. «Yozmoqda…» ko'rsatkichi va 4096 belgida bo'linish qo'shildi.
+
+### Sinov to'plami — ikki rejim
+
+| Rejim | Nimani o'lchaydi | Qachon |
+|---|---|---|
+| Fixture | Kutilgan tool o'z argumentlari bilan TO'G'RI javob beradimi | Har commit'da, pulsiz |
+| Jonli (`AI_EVAL_LIVE=1`) | Model to'g'ri tool tanladimi, noaniqda so'radimi | Qo'lda, kalit bilan |
+
+Ajratilgani ataylab: ball past bo'lganda «model yanglishdimi yoki WMS noto'g'ri son
+berdimi?» degan savolga javob kerak. Jonli rejim `ai_usage` ga YOZMAYDI — sinov
+mijoz kvotasini yemasin.
+
+50 savol: qoldiq 10, muddat 5, qarz 8, bugungi 5, kutilayotgan 5, narx 5,
+noaniq nom 7, ruxsatsiz 5. Ma'lumot to'plamida «Plombir» uchta mahsulotga,
+«Korzinka» ikkita kontragentga to'g'ri keladi.
+
+### Qabul mezoni natijasi
+
+| Mezon | Natija |
+|---|---|
+| `dotnet build` | 0 xato / 0 ogohlantirish |
+| `bash scripts/run-tests.sh` | **119 test** (118 yashil + 1 jonli, o'tkazib yuborilgan) |
+| Ruxsatsiz tool modelga berilmaydi | ✅ gateway testi (`debt_query` ombor foydalanuvchisiga ko'rinmaydi) |
+| Zo'rlab chaqirilgan tool rad etiladi | ✅ `ai_tool_forbidden`, suhbat uzilmaydi |
+| Fixture to'plami | ✅ 50/50 — har savolning kutilgan tool'i to'g'ri javob berdi |
+| Jonli to'plam ≥ 45/50 | ⏳ **kalit kerak** |
+| Botda 20 real savol | ⏳ **foydalanuvchi tekshiruvi** |
+
+### Yo'l-yo'lakay tuzatilgan nuqson
+
+`LlmRequest.Messages` ga ro'yxatning O'ZI (havola) berilardi va u sikl davomida
+o'sib borardi — ya'ni provayderga ketgan so'rov keyin jimgina «o'zgarib» qolardi.
+Prod'da SDK so'rovni darhol serializatsiya qilgani uchun bu ko'rinmasdi, lekin
+jurnal, qayta urinish va test o'sha so'rovni BOSHQACHA ko'rardi. Endi nusxa
+uzatiladi.
+
+### Ochiq qolganlar
+
+- Jonli eval va botdagi qo'l tekshiruvi — ikkalasi ham `Ai__ApiKey` ga bog'liq.
+- Suhbat tarixini tozalash fon vazifasi (`HistoryRetentionDays` siyosat qiymati bor).
+- Ko'p tenantli chatda tanlovdan keyin savol qayta so'raladi (`callback_data` ≤ 64 bayt).

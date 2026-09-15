@@ -51,6 +51,16 @@ public interface ITelegramService
     /// <summary>Tugma bosilganiga javob (Telegram 30 s kutadi); <paramref name="showAlert"/> — modal oyna.</summary>
     Task<bool> AnswerCallbackQueryAsync(string callbackQueryId, string? text, bool showAlert, CancellationToken cancellationToken);
 
+    /// <summary>«Yozmoqda…» ko'rsatkichi (F10·A1: AI javobi bir necha soniya olishi mumkin).</summary>
+    /// <param name="chatId">Chat.</param>
+    /// <param name="cancellationToken">Bekor qilish belgisi.</param>
+    /// <returns>Yuborildimi.</returns>
+    /// <remarks>
+    /// ⚠️ Belgi ~5 soniyada o'chadi va uzunroq javobda qayta yuborilishi kerak. Natija
+    /// TEKSHIRILMAYDI: ko'rsatkich yuborilmasa ham javobning o'zi baribir ketadi.
+    /// </remarks>
+    Task<bool> SendTypingAsync(long chatId, CancellationToken cancellationToken);
+
     /// <summary>Xabar matnini almashtiradi va tugmalarni OLIB TASHLAYDI (natija yozuvi bilan).</summary>
     Task<bool> EditMessageTextAsync(long chatId, long messageId, string text, CancellationToken cancellationToken);
 

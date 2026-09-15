@@ -195,4 +195,48 @@ ni qo'lladi, `wms-api`/`wms-web` healthy. Brauzer tekshiruvi foydalanuvchida
 **A0 dan keyin ochiq:** suhbat tarixini tozalash fon vazifasi (`HistoryRetentionDays`
 siyosat qiymati bor, vazifa — A1), `ai_usage` ni Console'da ko'rsatish.
 
-Shundan keyin — `WMS-AI-REJA.md` §A1 (o'quvchi tool'lar, gateway, sinov to'plami, Telegram).
+---
+
+## A1 — O'quvchi tool'lar, gateway, sinov to'plami, Telegram (REJA §A1)
+
+| # | Ish | Holat |
+|---|---|---|
+| 1 | 10 ta o'quvchi tool (`find_product` … `finance_summary`) | ✅ 2026-09-15 |
+| 2 | Nom yechish qoidasi (`AiNameResolver`): bitta nomzod — ishlatiladi, ko'pi — savol | ✅ |
+| 3 | `AiGateway`: darvoza → filtrlangan tool'lar → maks 6 aylanish → javob | ✅ |
+| 4 | Suhbat oynasi (1 soat, oxirgi 10 xabar) va tarix (`AiConversations`) | ✅ |
+| 5 | System prompt: barqaror qoidalar + o'zgaruvchan kontekst | ✅ |
+| 6 | Sinov to'plami — 50 savol, fixture rejimi (CI) | ✅ |
+| 7 | Sinov to'plami — jonli rejim (`AI_EVAL_LIVE=1`, hisobot `docs/F10-EVAL-<sana>.md`) | ✅ kod tayyor, **yurgizilmagan** (kalit kerak) |
+| 8 | Telegram: buyruq bo'lmagan matn → gateway, «yozmoqda…», 4096 bo'linish | ✅ |
+
+**Qabul mezoni:**
+
+- [x] `dotnet build` 0/0; `run-tests.sh` — **119 test** (118 yashil + 1 jonli, o'tkazib yuborilgan)
+- [x] Ruxsatsiz tool modelga BERILMAYDI (gateway testi) va zo'rlab chaqirilsa rad etiladi
+- [x] Fixture rejimi: 50 savolning har biri uchun kutilgan tool to'g'ri javob beradi
+- [x] Ulanmagan Telegram chati eski xatti-harakatda qoladi (yo'riqnoma)
+- [ ] **Jonli to'plam ≥ 45/50** — `Ai__ApiKey` kerak (foydalanuvchida)
+- [ ] **Demo tenantda botda 20 real savol** — foydalanuvchi tekshiruvi
+
+**Muhim qarorlar:**
+
+- **Buyruqlar AI'ga bermaydi.** `/qoldiq`, `/qarz` kabi buyruqlar o'z ishlovchisida qoladi:
+  ular aniq, tez va bepul; AI'ga o'tkazish har bosishni pulga aylantirardi.
+- **Noaniqlikda tanlovni MODEL emas, ODAM qiladi.** Eng baland balni «g'olib» deb olish
+  «Plombir» kabi nomlarda foydalanuvchiga boshqa mahsulotning qoldig'ini ko'rsatardi.
+- **Qoldiq — MAVJUD miqdor**, umumiy qoldiq emas: AI aytgan son hujjat yaratishda
+  o'zgarmasin (`GetAvailableAsync` FEFO bilan bir xil shartdan quriladi).
+- **Sinov to'plami ikki rejimda.** Fixture — «WMS to'g'ri javob beradimi?» (CI, pulsiz),
+  jonli — «model to'g'ri tool tanladimi?» (qo'lda). Ball past bo'lganda sababni ajratish
+  uchun ikkalasi ham kerak.
+- **Ko'p tenantli chatda savol tugmaga sig'maydi** (`callback_data` ≤ 64 bayt), shuning
+  uchun tanlovdan keyin savol qayta so'raladi — bir marta, keyin tanlov bir soat eslanadi.
+
+**Yo'l-yo'lakay tuzatilgan nuqson:** `LlmRequest.Messages` ga ro'yxatning O'ZI berilardi
+va u sikl davomida o'sib, yuborilgan so'rov keyin «o'zgarib» qolardi (gateway testi ushladi).
+
+**A1 dan keyin ochiq:** jonli eval va botdagi qo'l tekshiruvi (ikkalasi ham kalitga bog'liq);
+suhbat tarixini tozalash fon vazifasi.
+
+Shundan keyin — `WMS-AI-REJA.md` §A2 (web panel, SSE, kabinet).

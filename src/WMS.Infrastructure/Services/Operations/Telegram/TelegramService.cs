@@ -142,6 +142,14 @@ public sealed class TelegramService : ITelegramService
         return call.Ok;
     }
 
+    public async Task<bool> SendTypingAsync(long chatId, CancellationToken cancellationToken)
+    {
+        if (!IsEnabled || chatId == 0) return false;
+        ApiCall call = await CallAsync(HttpClientName, "sendChatAction",
+            new { chat_id = chatId, action = "typing" }, cancellationToken);
+        return call.Ok;
+    }
+
     public async Task<bool> EditMessageTextAsync(long chatId, long messageId, string text, CancellationToken cancellationToken)
     {
         if (!IsEnabled) return false;

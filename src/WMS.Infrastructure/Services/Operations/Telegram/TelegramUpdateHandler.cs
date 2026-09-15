@@ -38,12 +38,13 @@ public sealed class TelegramUpdateHandler : ITelegramUpdateHandler
     private readonly TelegramWorkCommands _work;
     private readonly TelegramGroupCommands _groups;
     private readonly TelegramPartnerBot _partners;
+    private readonly TelegramAiCommands _ai;
     private readonly TelegramOptions _options;
     private readonly ILogger<TelegramUpdateHandler> _logger;
 
     public TelegramUpdateHandler(IServiceProvider services, ITelegramService telegram, TelegramCallbackExecutor callbacks,
         TelegramQueryCommands queries, TelegramWorkCommands work, TelegramGroupCommands groups, TelegramPartnerBot partners,
-        IOptions<TelegramOptions> options, ILogger<TelegramUpdateHandler> logger)
+        TelegramAiCommands ai, IOptions<TelegramOptions> options, ILogger<TelegramUpdateHandler> logger)
     {
         ArgumentNullException.ThrowIfNull(options);
         _services = services;
@@ -53,6 +54,7 @@ public sealed class TelegramUpdateHandler : ITelegramUpdateHandler
         _work = work;
         _groups = groups;
         _partners = partners;
+        _ai = ai;
         _options = options.Value;
         _logger = logger;
     }
@@ -88,6 +90,8 @@ public sealed class TelegramUpdateHandler : ITelegramUpdateHandler
                 || data.StartsWith(TelegramWorkCommands.ReportPrefix, StringComparison.Ordinal)
                 || (data.StartsWith(TelegramChatContext.SelectPrefix, StringComparison.Ordinal) && IsWorkSelection(data)))
                 await _work.HandleCallbackAsync(update, cancellationToken);
+            else if (TelegramAiCommands.IsSelection(data))
+                await _ai.HandleSelectionAsync(update, cancellationToken);
             else if (data.StartsWith(TelegramChatContext.SelectPrefix, StringComparison.Ordinal))
                 await _queries.HandleSelectionAsync(update, cancellationToken);
             else
@@ -128,6 +132,12 @@ public sealed class TelegramUpdateHandler : ITelegramUpdateHandler
             case TelegramUpdateKind.Command when update.Command == "stop":
                 await DeactivateAsync(update.ChatId, cancellationToken);
                 await ReplyAsync(update.ChatId, TelegramBotReplies.Stopped(lang), cancellationToken);
+                break;
+
+            // Erkin matn — AI yordamchisiga (F10·A1). Chat ulanmagan bo'lsa AI qaytib
+            // `false` beradi va foydalanuvchi eski yo'riqnomani ko'radi: AI hech kimning
+            // «botim ishlamay qoldi» degan holatini yaratmasin.
+            case TelegramUpdateKind.Text when await _ai.HandleTextAsync(update, cancellationToken):
                 break;
 
             case TelegramUpdateKind.Start:

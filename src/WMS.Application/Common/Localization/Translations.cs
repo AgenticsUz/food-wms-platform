@@ -335,6 +335,12 @@ public static class Translations
         [Messages.AiUnavailable] = [
             "AI yordamchisi vaqtincha ishlamayapti. Birozdan keyin urinib ko'ring.",
             "AI-помощник временно недоступен. Попробуйте позже."],
+        ["Organization selected. Please repeat your question."] = [
+            "Tashkilot tanlandi. Savolingizni qaytadan yozing.",
+            "Организация выбрана. Повторите ваш вопрос."],
+        ["Could not answer right now. Please try again."] = [
+            "Hozir javob bera olmadim. Qaytadan urinib ko'ring.",
+            "Сейчас не удалось ответить. Попробуйте ещё раз."],
         [Messages.AiToolForbidden] = [
             "Bu amal uchun sizda ruxsat yo'q ({0}).",
             "У вас нет прав на это действие ({0})."],
